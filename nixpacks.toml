@@ -1,2 +1,2 @@
 [start]
-cmd = "./your-binary-name"
+cmd = "./server"
