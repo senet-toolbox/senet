@@ -12,8 +12,14 @@ import {
   encodeString,
   rootNodeId,
   layoutInfo,
+  rerenderRoute,
+  root,
 } from "./wasi_obj.js";
-import { traverse, clearIntervalsForRoute } from "./traversal.js";
+import {
+  traverse,
+  clearIntervalsForRoute,
+  traverseRemove,
+} from "./traversal.js";
 import { state } from "./state.js";
 
 let wasmInstance = null;
@@ -551,7 +557,7 @@ export const importObject = {
 
     // Wrapper to make WASM s return promises
     zigFunctionReturningPromise(wasmInstance) {
-      return async function (arg1, arg2) {
+      return async function(arg1, arg2) {
         // Call the WASM function which returns a promise ID
         const promiseId = wasmInstance.exports.onMount(arg1, arg2);
 
@@ -684,7 +690,7 @@ export const importObject = {
         return;
       }
 
-console.log(element);
+      console.log(element);
       element.click();
     },
     mutateDomElementStyleWasm: (
@@ -934,19 +940,23 @@ console.log(element);
 
     navigateWASM: (pathPtr, pathLen) => {
       const path = readWasmString(pathPtr, pathLen);
+      console.log("This si the path", path);
+      // We first mark all non layout nodes as dirty this way we can traverse and remove
+      // we use the dirty flag to indicate for removal
+      wasmInstance.markAllNonLayoutNodesDirty();
 
-      const currentPath = window.location.pathname;
-      clearIntervalsForRoute(currentPath);
+      // we get the current tree pointer and traverse it to remove all the nodes that are not part of the layout
+      const current_tree = wasmInstance.getRenderTreePtr();
+      traverseRemove(root, current_tree, layoutInfo);
 
+      // we push the state and renderCycle the new path
+      // window.history.pushState({}, "", path);
+      // we push the state and renderCycle the new path
+      console.log("Rerendering the new route");
       window.history.pushState({}, "", path);
+      rerenderRoute(path === "/" ? "/root" : path);
 
-      encodeString(path === "/" ? "/root" : path);
-      const rootElement = document.getElementById(rootNodeId);
-      rootElement.innerHTML = "";
-      const newTreeNode = wasmInstance.getRenderTreePtr();
-      state.initial_render = true;
-      traverse(rootElement, newTreeNode, layoutInfo);
-      state.initial_render = false;
+      requestAnimationFrame(wasmInstance.setRerenderTrue);
     },
 
     routePushWASM: (pathPtr, pathLen) => {
@@ -1172,20 +1182,6 @@ console.log(element);
           ta.style.borderColor = "red";
         }
       });
-
-      // // 7) Ctrl+S to download current content as .json file
-      // window.addEventListener("keydown", (e) => {
-      //   if ((e.ctrlKey || e.metaKey) && e.key === "s") {
-      //     e.preventDefault();
-      //     const blob = new Blob([ta.value], { type: "application/json" });
-      //     const url = URL.createObjectURL(blob);
-      //     const a = document.createElement("a");
-      //     a.href = url;
-      //     a.download = "data.json";
-      //     a.click();
-      //     URL.revokeObjectURL(url);
-      //   }
-      // });
     },
   },
 };

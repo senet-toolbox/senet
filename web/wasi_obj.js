@@ -11,7 +11,7 @@ import {
   addKeyframesToStylesheet,
   checkMarkStyling,
 } from "./wasi_styling.js";
-import { traverse } from "./traversal.js";
+import { traverse, traverseRemove } from "./traversal.js";
 import { state } from "./state.js";
 
 export let wasmInstance;
@@ -128,18 +128,20 @@ function endDrag() {
 let layoutInfoPtr;
 
 window.addEventListener("popstate", async function(event) {
-  // Get current path from the URL
-  const pathname = window.location.pathname;
+  event.preventDefault();
+  const path = window.location.pathname;
+  // We first mark all non layout nodes as dirty this way we can traverse and remove
+  // we use the dirty flag to indicate for removal
+  wasmInstance.markAllNonLayoutNodesDirty();
 
-  // Process the route using the same logic
-  if (pathname === "/") {
-    encodeString("/root");
-  } else {
-    encodeString(pathname);
-  }
-  root.innerHTML = "";
-  tree_node = wasmInstance.getRenderTreePtr();
-  traverse(root, tree_node, layoutInfo);
+  // we get the current tree pointer and traverse it to remove all the nodes that are not part of the layout
+  const current_tree = wasmInstance.getRenderTreePtr();
+  traverseRemove(root, current_tree, layoutInfo);
+
+  // we push the state and renderCycle the new path
+  // window.history.pushState({}, "", path);
+  rerenderRoute(path === "/" ? "/root" : path);
+  requestAnimationFrame(wasmInstance.setRerenderTrue);
 });
 
 window.addEventListener("load", async () => {

@@ -60,6 +60,9 @@ const COMPONENT_TYPES = {
   SUBMIT_BUTTON_CTX: 39,
   HOOKS_CTX: 40,
   JSON_EDITOR: 41,
+  HTML_TEXT: 42,
+  CODE: 43,
+  SPAN: 44,
 };
 
 // Store intervals by route for cleanup
@@ -274,7 +277,7 @@ function createLinkElement(renderCmd, tree_node, layout) {
   const element = document.createElement("a");
   element.href = renderCmd.href;
 
-  element.addEventListener("click", function (event) {
+  element.addEventListener("click", function(event) {
     event.preventDefault();
 
     const currentPath = window.location.pathname;
@@ -308,6 +311,7 @@ function createLinkElement(renderCmd, tree_node, layout) {
     traverseRemove(root, current_tree, layout);
 
     // we push the state and renderCycle the new path
+    console.log("Rerendering the new route");
     window.history.pushState({}, "", path);
     rerenderRoute(path === "/" ? "/root" : path);
 
@@ -562,6 +566,21 @@ function createElementByType(renderCmd, tree_node, layout) {
     case COMPONENT_TYPES.TEXT_AREA:
       element = document.createElement("textarea");
       element.textContent = renderCmd.text;
+      break;
+
+    case COMPONENT_TYPES.HTML_TEXT:
+      element = document.createElement("p");
+      element.innerHTML = renderCmd.text;
+      break;
+
+    case COMPONENT_TYPES.CODE:
+      console.log("---------------------------------code");
+      element = document.createElement("code");
+      break;
+
+    case COMPONENT_TYPES.SPAN:
+      element = document.createElement("span");
+      element.innerText = renderCmd.text;
       break;
 
     case COMPONENT_TYPES.JSON_EDITOR:
