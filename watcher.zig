@@ -544,4 +544,3 @@ pub fn main() !void {
     var watcher_thread = try std.Thread.spawn(.{}, watchFiles, .{ ctx, &chan });
     defer watcher_thread.join();
 }
-
