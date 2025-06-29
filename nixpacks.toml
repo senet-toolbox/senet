@@ -1,5 +1,2 @@
-[phases.setup]
-nixPkgs = ["zig"]
-
 [start]
-cmd = "zig run watcher.zig"
+cmd = "./your-binary-name"
