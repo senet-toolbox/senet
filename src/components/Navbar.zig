@@ -5,6 +5,7 @@ const Pure = Fabric.Pure;
 const Dynamic = Fabric.Dynamic;
 const Signal = Fabric.Signal;
 const println = Fabric.println;
+const main = @import("../main.zig");
 
 var theme_background: Fabric.Types.Background = undefined;
 var text_color: Fabric.Types.Background = undefined;

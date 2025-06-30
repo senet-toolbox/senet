@@ -7,11 +7,16 @@ const Pure = Fabric.Pure;
 const Page = Fabric.Page;
 const Menu = @import("Menu.zig");
 const CodeEditor = @import("concepts/:concept/CodeEditor.zig");
+const Custom = @import("../../../components/Custom.zig");
 
 // Initialization
 var code_view_loc: CodeEditor = undefined;
+var html_code_editor: CodeEditor = undefined;
+var traversal_code_editor: CodeEditor = undefined;
 pub fn init() void {
     code_view_loc.init(&Fabric.lib.allocator_global, @embedFile("10loc.zig"));
+    html_code_editor.init(&Fabric.lib.allocator_global, @embedFile("html_text_sample.zig"));
+    traversal_code_editor.init(&Fabric.lib.allocator_global, @embedFile("traversal_sample.js"));
 
     Page(@src(), render, null, .{});
 }
@@ -21,7 +26,9 @@ pub fn deinit() void {}
 
 // Render
 const description =
-    \\ Fabric is a universal tree renderer that takes styled component hierarchies and renders them natively across platforms—from web browsers to iOS and macOS apps. Unlike black-box solutions, Fabric gives you direct access to the rendering pipeline, so you can customize and optimize the engine for your exact use case.
+    \\ Fabric is a universal tree renderer that takes styled component hierarchies and renders them natively across
+    \\platforms—from web browsers to iOS and macOS apps. Unlike black-box solutions, Fabric gives you direct access to the 
+    \\rendering pipeline, so you can customize and optimize the engine for your exact use case.
 ;
 
 const Route = struct {
@@ -94,19 +101,58 @@ pub fn render() void {
                     .font_size = 32,
                     .font_weight = 700,
                 });
-                Static.Text("Fabric is toolkit-first, framework-second. We believe developers should control their tools, not the other way around. Every API is explicitly exposed, every internal is accessible, and every component can be customized. No black boxes, no hidden magic—just transparent, controllable architecture that puts you in the driver's seat.", .{
+                Static.Text(
+                    \\Fabric is toolkit-first, framework-second. We believe developers should control their tools, not 
+                    \\the other way around. Every API is explicitly exposed, every internal is accessible, and every component can 
+                    \\be customized. No black boxes, no hidden magic—just transparent, controllable architecture that puts you in the 
+                    \\driver's seat.
+                , .{
                     .font_size = 18,
                 });
+                Static.Text(
+                    \\Fabric has no runtime allocations, this means that instantiating and destroying components does not result in overhead 
+                    \\of managing memory.
+                , .{
+                    .font_size = 18,
+                });
+                Static.Text(
+                    \\Fabric should be treated and seen as a set of tools, which can be used to adapt the core framework, it's 
+                    \\purpose is to be unopinionated, and modular.
+                , .{
+                    .font_size = 18,
+                });
+
                 Static.Text("Opinions, Opinions, Opinions!", .{
                     .margin = .{ .top = 32 },
                     .font_size = 28,
                     .font_weight = 900,
                 });
-                Static.Text("Frameworks love to tell you how to think. React: \"Use classes!\" Then: \"Actually, use functions!\" Svelte: \"Everything is state!\" Then: \"Actually, use runes!\" Every framework eventually pivots, leaving developers with broken code and migration headaches.", .{
+                Static.Text(
+                    \\While the ideology of opinionated frameworks sounds greate in theory, unfortunatley in practice there are many 
+                    \\cases where this causes the frameworks themselves to support legacy codebases, and for system to become static, 
+                    \\and inflexible.
+                , .{
                     .font_size = 18,
                 });
-                Static.Text("Fabric's approach is fundamentally different. By exposing all internals within a compact 8K-line codebase and providing direct engine access, we eliminate framework lock-in. Developers retain full control over their architecture while benefiting from a lightweight foundation where <a href=\"/docs/fabric/concepts/ui-nodes\">UI nodes</a> require just 10 lines of code.", .{
+                Custom.HtmlText(
+                    \\React: <strong>"Use Class Components!"</strong> Then: <strong>"Actually, use functions as Components!"</strong> 
+                    \\Svelte: <strong>"Everything is state!"</strong> Then: <strong>"Actually, use runes!"</strong> Every framework 
+                    \\eventually pivots, leaving developers with broken code and migration headaches.
+                , .{
                     .font_size = 18,
+                });
+
+                Custom.HtmlText(
+                    \\Fabric's approach is fundamentally different. By exposing all internals within a compact 8K-line codebase 
+                    \\and providing direct engine access, we eliminate framework lock-in. Developers retain full control over 
+                    \\their architecture while benefiting from a lightweight foundation where <a href="/docs/fabric/concepts/ui-nodes">
+                    \\UI nodes</a> require just 10 lines of code.
+                , .{
+                    .font_size = 18,
+                });
+                Static.Text("A UI Node", .{
+                    .font_size = 24,
+                    .font_weight = 700,
                 });
 
                 code_view_loc.render(0);
@@ -115,31 +161,66 @@ pub fn render() void {
                     .font_size = 32,
                     .font_weight = 900,
                 });
-                Static.Text("That's literally the entirety of Fabric at its core. It takes a bunch of UI nodes, constructs a tree, and outputs it to any renderer you want to use or build.", .{
+                Static.Text(
+                    \\That's literally the entirety of Fabric at its core. It takes a bunch of UI nodes, constructs a tree, 
+                    \\and outputs it to any renderer you want to use or build.
+                , .{
                     .font_size = 18,
                 });
 
-                Static.List(.{
-                    .margin = .{ .top = 16, .bottom = 16 },
-                    .padding = .{ .left = 32 },
-                    .display = .Flex,
-                    .child_gap = 32,
-                    .direction = .column,
-                    .child_alignment = .{ .x = .start, .y = .start },
+                Static.Text("And since Fabric is a toolkit, not a framework...", .{
+                    .font_size = 24,
+                    .font_weight = 700,
+                });
+                html_code_editor.render(0);
+                Static.Text(
+                    \\We can create our own custom UI node's which hook into the Fabric's engine. The example above, is used in this 
+                    \\very website, since we only ever render to web, we can make use of a custom UI node.
+                , .{
+                    .font_size = 18,
+                });
+                Static.Text("Then in the traversal.js file we just add out custom UI node type", .{
+                    .font_size = 18,
+                });
+                traversal_code_editor.render(0);
+
+                Static.Block(.{
+                    .position = .{ .type = .relative },
                 })({
-                    Static.ListItem(.{})({
-                        Static.Text("State management? Just one global boolean: 'global_rerender'. Set it to true and the UI updates. You could even create an interval that toggles global_rerender every tick and never worry about signals or state management again.", .{
-                            .font_size = 18,
-                        });
+                    Static.Image("/assets/gecko-engine.png", .{
+                        .position = .{ .type = .absolute, .top = .percent(-20), .right = .percent(-30) },
+                        .width = .percent(30),
                     });
-                    Static.ListItem(.{})({
-                        Static.Text("Don't like the UI node syntax? Want to create custom UI nodes with your own styling? Go for it. Just call LifeCycle.open(), LifeCycle.configure(), and LifeCycle.close() to add it to the tree hierarchy.", .{
-                            .font_size = 18,
+
+                    Static.List(.{
+                        .margin = .{ .top = 16, .bottom = 16 },
+                        .padding = .{ .left = 32 },
+                        .display = .Flex,
+                        .child_gap = 32,
+                        .direction = .column,
+                        .child_alignment = .{ .x = .start, .y = .start },
+                    })({
+                        Static.ListItem(.{})({
+                            Static.Text(
+                                \\State management? Just one global boolean: 'global_rerender'. Set it to true and the UI updates. 
+                                \\You could even create an interval that toggles global_rerender every tick and never worry about signals 
+                                \\or state management again.
+                            , .{
+                                .font_size = 18,
+                            });
                         });
-                    });
-                    Static.ListItem(.{})({
-                        Static.Text("Want to use your own renderers, your own conventions, your own ideas! Now you can!", .{
-                            .font_size = 18,
+                        Static.ListItem(.{})({
+                            Static.Text(
+                            \\Don't like the UI node syntax? Want to create custom UI nodes with your own styling? Go for it. 
+                            \\Just call LifeCycle.open(), LifeCycle.configure(), and LifeCycle.close() to add it to the tree hierarchy.
+                            , .{
+                                .font_size = 18,
+                            });
+                        });
+                        Static.ListItem(.{})({
+                            Static.Text("Want to use your own renderers, your own conventions, your own ideas! Now you can!", .{
+                                .font_size = 18,
+                            });
                         });
                     });
                 });

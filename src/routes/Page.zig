@@ -11,7 +11,7 @@ const description_3: []const u8 = ", than ";
 const description_4: []const u8 = "reading it!";
 const description_5: []const u8 = " ";
 const description_6: []const u8 = "Tether";
-const description_7: []const u8 = " aims to unite the fragmented hell of dependencies known as Web Development, and finally create a simple and approachable toolkit for developers new and old.";
+const description_7: []const u8 = " aims to unite the fragmented hell of dependencies known as Web Development, by providing a toolkit that works as a complete framework out of the box yet remains fully modular and adaptable to your exact needs.";
 pub fn init() void {
     Navbar.init();
     Fabric.Page(@src(), render, null, Style.override(.{
@@ -98,7 +98,7 @@ pub fn render() void {
                 .child_alignment = .start_center,
                 .width = .percent(100),
             })({
-                Static.Button(.{ .onPress = log }, .{
+                Static.Link("/huh",  .{
                     .display = .Flex,
                     .child_alignment = .center,
                     .width = .fixed(160),
@@ -115,14 +115,14 @@ pub fn render() void {
                         .transform = .{ .scale_size = 1.05, .type = .scale },
                     },
                 })({
-                    Static.Text("Increment", .{
+                    Static.Text("Huh?", .{
                         .font_family = "Montserrat",
                         .font_weight = 300,
                         .font_size = 18,
                         .text_color = .hex("#ffffff"),
                     });
                 });
-                Static.Button(.{ .onPress = log }, .{
+                Static.Link("/download", .{
                     .display = .Flex,
                     .width = .fixed(160),
                     .height = .fixed(45),
@@ -140,6 +140,7 @@ pub fn render() void {
                     .hover = .{
                         .transform = .{ .scale_size = 1.05, .type = .scale },
                     },
+                    .text_decoration = .none,
                 })({
                     Static.Text("Download", .{
                         .font_family = "Montserrat",

@@ -286,7 +286,12 @@ pub fn render() void {
         });
         Static.FlexBox(.{
             .width = .percent(100),
+            .position = .{ .type = .relative },
         })({
+            Static.Image("/assets/gecko-circuit.png", .{
+                .position = .{ .type = .absolute, .top = .percent(0), .right = .percent(0) },
+                .width = .percent(30),
+            });
             Static.Svg(@embedFile("UI.svg"), .{
                 .width = .percent(100),
             });
