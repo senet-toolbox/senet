@@ -7,6 +7,7 @@ const Pure = Fabric.Pure;
 const Page = Fabric.Page;
 const ViewCode = @import("../ViewCode.zig");
 const CodeEditor = @import("../CodeEditor.zig");
+const Custom = @import("../../../../../../components/Custom.zig");
 
 var view_code: ViewCode = undefined;
 var code_editor: CodeEditor = undefined;
@@ -49,7 +50,10 @@ pub fn render() void {
             .text_color = .hex("#802BFF"),
             .font_family = "monospace",
         });
-        Static.Text("Pages create routes where components can be rendered. They take a source location, whom path resides in the routes directory.", .{
+        Static.Text(
+            \\Pages create routes where components can be rendered. They take a source location, whom path resides in the 
+            \\routes directory."
+        , .{
             .font_size = 16,
             .margin = .{ .top = 8 },
         });
@@ -69,7 +73,12 @@ pub fn render() void {
         .font_weight = 700,
         .text_color = .hex("#1a1a1a"),
     });
-    Static.Text("If a route directory is marked with a :.../ for example :concept/ or :id/ or :slug/, then this becomes a dynamic route. The Page function within :slug/ will automatically be replaced by the route given", .{
+    Custom.HtmlText(
+        \\If a route directory is marked with a <strong style="color: #802BFF">:{....}/</strong> 
+        \\for example <strong style="color: #802BFF">:concept/</strong>or <strong style="color: #802BFF">:id/</strong> 
+        \\or <strong style="color: #802BFF">:slug/</strong>, then this becomes a dynamic route. 
+        \\The Page function within <strong style="color: #802BFF">:slug/</strong> will automatically be replaced by the route given.
+    , .{
         .font_size = 16,
         .margin = .{ .top = 8 },
     });

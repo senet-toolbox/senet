@@ -71,6 +71,18 @@ pub fn deinit(code_editor: *CodeEditor) void {
     code_editor.show_cpy_btn.deinit();
 }
 
+pub inline fn Code() fn (void) void {
+    const elem_decl = Fabric.ElementDecl{
+        .dynamic = .static,
+        .elem_type = .Code,
+    };
+    _ = Fabric.LifeCycle.open(elem_decl);
+    Fabric.LifeCycle.configure(elem_decl);
+    return Fabric.LifeCycle.close;
+}
+
+
+
 pub fn render(code_editor: *CodeEditor, _: f32) void {
     Pure.Block(.{
         .width = .percent(100),
@@ -83,7 +95,7 @@ pub fn render(code_editor: *CodeEditor, _: f32) void {
         .border_radius = .all(8),
         .padding = .{ .top = 10, .bottom = 10 },
     })({
-        Static.Code(.{})({
+        Code()({
             // Pure.CtxButton(copy, .{code_editor}, .{
             //     .position = .{ .type = .sticky, .top = .fixed(0), .right = .fixed(10) },
             //     .width = .fixed(22),

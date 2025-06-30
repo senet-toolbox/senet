@@ -11,6 +11,7 @@ const Kit = Fabric.Kit;
 const println = Fabric.println;
 const logo = @embedFile("logo.svg");
 const Binded = Fabric.Binded;
+const main = @import("../../../main.zig");
 
 var theme_background: [4]u8 = undefined;
 var border_color: [4]u8 = undefined;
@@ -95,17 +96,26 @@ fn list() void {
         .child_alignment = .{ .x = .between, .y = .center },
         .child_gap = 8,
         .padding = .{ .top = 8, .bottom = 8, .left = 12, .right = 12 },
-        .position = .{ .type = .fixed, .top = .fixed(0) },
+        .position = .{ .type = .fixed, .top = .fixed(0), .left = .percent(0), .right = .percent(0) },
         .width = .percent(100),
+        .z_index = 999,
+        .blur = 3,
+        .border_color = main.theme.getAttribute("border_color"),
+        .border_thickness = .{ .bottom = 1 },
     })({
         Static.FlexBox(.{
             .child_alignment = .{ .x = .start, .y = .center },
             .child_gap = 8,
         })({
-            Static.Svg(logo, .{
-                .display = .Flex,
-                .child_alignment = .{ .x = .center, .y = .center },
-                .width = .fixed(36),
+            Static.Link("/", .{
+                .text_decoration = .none,
+                .cursor = .pointer,
+            })({
+                Static.Svg(logo, .{
+                    .display = .Flex,
+                    .child_alignment = .{ .x = .center, .y = .center },
+                    .width = .fixed(36),
+                });
             });
             Static.Text("Tether", .{
                 .font_weight = 500,

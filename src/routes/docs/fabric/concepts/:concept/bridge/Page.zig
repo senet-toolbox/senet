@@ -5,6 +5,7 @@ const Style = Fabric.Style;
 const Static = Fabric.Static;
 const Pure = Fabric.Pure;
 const CodeEditor = @import("../CodeEditor.zig");
+const Custom = @import("../../../../../../components/Custom.zig");
 
 // Initialization
 var wasi_js_code_editor: CodeEditor = undefined;
@@ -47,10 +48,10 @@ pub fn render() void {
         Txt("The bridge consists of two main components:");
         Static.List(.{ .padding = .{ .left = 32 } })({
             Static.ListItem(.{})({
-                Static.HtmlText("<strong>Import Object (wasi_env/extern functions)</strong> - Functions that WASM can call to interact with JavaScript/DOM", .{});
+                Custom.HtmlText("<strong>Import Object (wasi_env/extern functions)</strong> - Functions that WASM can call to interact with JavaScript/DOM", .{});
             });
             Static.ListItem(.{})({
-                Static.HtmlText("<strong>Export Functions</strong> - WASM functions that JavaScript can call", .{});
+                Custom.HtmlText("<strong>Export Functions</strong> - WASM functions that JavaScript can call", .{});
             });
         });
         Txt("We can add our own additions to the wasi_env.js like so...");
@@ -76,7 +77,7 @@ pub fn render() void {
             .font_weight = 700,
         });
         Txt("Unlike JavaScript's high-level data types, WebAssembly operates with a fundamentally different memory model. Since WASM predates many modern web APIs and has different design constraints, the ergonomics of JavaScript-WASM interoperability require lower-level memory management.");
-        Static.HtmlText("<strong>The Challenge</strong>: WebAssembly doesn't natively understand JavaScript concepts like strings, arrays, or objects. Instead, WASM works with linear memory—essentially one large contiguous buffer of bytes. When passing data between JavaScript and WASM, we must work at the pointer level.", .{ .font_size = 18 });
+        Custom.HtmlText("<strong>The Challenge</strong>: WebAssembly doesn't natively understand JavaScript concepts like strings, arrays, or objects. Instead, WASM works with linear memory—essentially one large contiguous buffer of bytes. When passing data between JavaScript and WASM, we must work at the pointer level.", .{ .font_size = 18 });
         Txt("The pointer acts as a memory address marker, and by adding the length, we define the exact boundaries of our data—this allows us to slice the specific string from the vast buffer of WASM memory, starting at the pointer location and extending for the specified number of bytes.");
     });
 }

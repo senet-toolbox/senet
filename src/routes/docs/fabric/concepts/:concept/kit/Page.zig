@@ -36,6 +36,10 @@ pub fn render() void {
         });
         Txt("Fabric Kit is a utils module which contains the functions for fetching, navigation, parsing, url encoding and decoding, ect...");
         Txt("This module serves as a bridge between Zig applications running in WebAssembly and web browser APIs, providing essential networking, navigation, and data processing capabilities. ");
+        Static.Image("/assets/gecko-toolbox.png", .{
+            .width = .percent(14),
+            .position = .{ .type = .absolute, .top = .percent(30), .right = .percent(10) }
+        });
         Static.Svg(@embedFile("wasi_bridge.svg"), .{
             .width = .percent(100),
             .height = .percent(100),
@@ -78,7 +82,7 @@ pub fn render() void {
             .font_family = "monospace",
         });
         Txt("Deserializes JSON data from a byte slice into a strongly-typed Zig struct, providing type-safe data binding for API responses and configuration.");
-       Static.Text("navigate(path)", .{
+        Static.Text("navigate(path)", .{
             .font_size = 18,
             .font_weight = 600,
             .text_color = .hex("#802BFF"),

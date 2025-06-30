@@ -65,7 +65,9 @@ pub fn render() void {
             .font_weight = 700,
             .text_color = .hex("#1a1a1a"),
         });
-        Static.Text("Create Components with Fabric Nodes, and render to the dom, or utilise another renderer to render to anything else.", .{
+        Static.Text(
+            \\Create Components with Fabric Nodes, and render to the dom, or utilise another renderer to render to anything else.
+        , .{
             .font_size = 18,
             .text_color = .hex("#666666"),
             .margin = .{ .top = 8 },
@@ -105,14 +107,20 @@ pub fn render() void {
         .padding = .{ .left = 32 },
     })({
         Static.ListItem(.{})({
-            Static.Text("[]const u8 is just a string, ie an array '[]' of constant bytes 'u8' a u8, so 'c' = u8, or 'v' = u8, and thus [6]const u8 = &.{'F', 'a', 'b', 'r', 'i', 'c'}, or more consciley []const u8 = \"Fabric\".", .{
+            Static.Text(
+                \\[]const u8 is just a string, ie an array '[]' of constant bytes 'u8' a u8, so 'c' = u8, or 'v' = u8, and 
+                \\thus [6]const u8 = &.{'F', 'a', 'b', 'r', 'i', 'c'}, or more consciley []const u8 = "Fabric".
+            , .{
                 .font_size = 14,
                 .text_color = .hex("#666666"),
                 .margin = .{ .bottom = 4 },
             });
         });
         Static.ListItem(.{})({
-            Static.Text("u32 is a number type, just like i32 or u16, or f32, except u32 cannot be negative, i32 can, and f32 are floating point numbers.", .{
+            Static.Text(
+                \\u32 is a number type, just like i32 or u16, or f32, except u32 cannot be negative, i32 can, and f32 are
+                \\floating point numbers.
+            , .{
                 .font_size = 14,
                 .text_color = .hex("#666666"),
                 .margin = .{ .bottom = 4 },
@@ -126,7 +134,10 @@ pub fn render() void {
             });
         });
         Static.ListItem(.{})({
-            Static.Text("AllocText is a UINode that takes a formatted string, and the arguments to insert into said string, allocates underneatch the hood.", .{
+            Static.Text(
+            \\AllocText is a UINode that takes a formatted string, and the arguments to insert into said string, allocates 
+            \\underneatch the hood.
+            , .{
                 .font_size = 14,
                 .text_color = .hex("#666666"),
                 .margin = .{ .bottom = 4 },

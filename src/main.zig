@@ -3,9 +3,13 @@ const fabric = @import("fabric");
 const RootPage = @import("routes/Page.zig");
 const FabricDocs = @import("routes/docs/fabric/Page.zig");
 const Docs = @import("routes/docs/Page.zig");
+const Download = @import("routes/download/Page.zig");
+const Huh = @import("routes/huh/Page.zig");
 const Concepts = @import("routes/docs/fabric/concepts/:concept/Page.zig");
 const TrackingAllocator = fabric.TrackingAllocator;
 var fb: fabric.lib = undefined;
+const Theme = @import("Theme.zig");
+pub var theme: Theme = Theme{};
 
 var allocator: std.mem.Allocator = undefined;
 export fn deinit() void {
@@ -22,6 +26,8 @@ export fn instantiate(window_width: i32, window_height: i32) void {
     Docs.init();
     FabricDocs.init();
     Concepts.init();
+    Download.init();
+    Huh.init();
 }
 
 export fn renderUI(route_ptr: [*:0]u8) i32 {
@@ -31,8 +37,5 @@ export fn renderUI(route_ptr: [*:0]u8) i32 {
 }
 
 pub fn main() !void {
-    // fabric.Style.setDefault(fabric.Style{
-    //     .width = .percent(100),
-    // });
     allocator = std.heap.wasm_allocator;
 }
