@@ -112,6 +112,7 @@ pub fn render() void {
                 .transition = .{},
                 .hover = .{ .border_color = .hex("#802BFF"), .border_thickness = .all(1) },
                 .cursor = .pointer,
+                .background = .transparent
             })({
                 Static.Text("Next", .{
                     .font_size = 16,

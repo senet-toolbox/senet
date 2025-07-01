@@ -77,10 +77,17 @@ const menu_items: []const MenuItem = &.{
         .icon = "bi bi-cursor",
     },
     MenuItem{
+        .title = "JS Libs",
+        .link = "/docs/fabric/concepts/jslibs",
+        .icon = "bi bi-filetype-js", // Tools icon for toolkit/kit
+    },
+    MenuItem{
         .title = "WASM Bridge",
         .link = "/docs/fabric/concepts/bridge",
         .icon = "bi bi-ethernet",
     },
+
+ 
     MenuItem{
         .title = "Gotchas",
         .link = "/docs/fabric/concepts/gotchas",
@@ -107,7 +114,7 @@ fn list() void {
             .child_alignment = .{ .x = .start, .y = .center },
             .child_gap = 8,
         })({
-            Static.Link("/", .{
+            Static.Link(.{ .url = "/", .aria_label = "home page of tether" }, .{
                 .text_decoration = .none,
                 .cursor = .pointer,
             })({
@@ -131,31 +138,33 @@ fn list() void {
                 .font_size = 18,
             });
         });
-        Static.FlexBox(.{
-            .child_gap = 8,
-            .child_alignment = .{ .x = .start, .y = .center },
+
+        Static.Button(.{ .onPress = openDialog, .aria_label = "search-dialog" }, .{
+            .display = .Flex,
+            .child_alignment = .{ .x = .between, .y = .center },
+            .width = .percent(16),
+            .height = .fixed(38),
+            .padding = .{ .top = 4, .bottom = 4, .left = 8, .right = 8 },
+            .border_radius = .all(8),
+            .border_thickness = .all(1),
+            .border_color = .hex("#3A3A3A"),
+            .background = .transparent,
+            .cursor = .pointer,
+            .hover = .{ .border_color = .hex("#802BFF") }
         })({
-            Static.Button(.{ .onPress = openDialog }, .{
-                .child_gap = 8,
-                .border_radius = .all(4),
-                .padding = .all(8),
-                .display = .Flex,
-                .width = .fixed(160),
-                .child_alignment = .{ .x = .start, .y = .center },
-                .border_color = .hex("#ebedf0"),
-                .border_thickness = .all(1),
-                .margin = .{ .right = 16 },
-                .transition = .{},
-                .hover = .{
-                    .background = .hex("#ebedf0"),
-                    .border_color = .hex("#606060"),
-                    .border_thickness = .all(1),
-                },
+            Static.FlexBox(.{
+                .child_alignment = .start_center,
+                .child_gap = 24,
             })({
                 Static.Icon("bi bi-search", .{
                     .font_size = 16,
                 });
-                Static.Text("Search", .{ .font_size = 16, .text_color = .hex("#9ea6b5") });
+                Static.Text("Search...", .{
+                    .font_size = 16,
+                });
+            });
+            Static.Icon("bi bi-command", .{
+                .font_size = 16,
             });
         });
     });
@@ -176,7 +185,7 @@ fn list() void {
                     .background = .hex("#E4E4E4"),
                 },
             })({
-                Static.Link(item.link, .{
+                Static.Link(.{ .url = item.link, .aria_label = item.title }, .{
                     .text_decoration = .none,
                     .width = .percent(100),
                     .display = .Flex,

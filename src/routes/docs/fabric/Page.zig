@@ -91,8 +91,9 @@ pub fn render() void {
                     .font_size = 32,
                     .font_weight = 700,
                 });
-                Static.Image("/assets/FabricKit.png", .{
+                Static.Image("/assets/FabricKit.webp", .{
                     .width = .percent(100),
+                    .height = .percent(100),
                     .border_radius = .all(8),
                     .margin = .{ .bottom = 32 },
                 });
@@ -108,6 +109,8 @@ pub fn render() void {
                     \\driver's seat.
                 , .{
                     .font_size = 18,
+                    .width = .percent(100),
+                    .height = .fit,
                 });
                 Static.Text(
                     \\Fabric has no runtime allocations, this means that instantiating and destroying components does not result in overhead 
@@ -187,7 +190,7 @@ pub fn render() void {
                 Static.Block(.{
                     .position = .{ .type = .relative },
                 })({
-                    Static.Image("/assets/gecko-engine.png", .{
+                    Static.Image("/assets/gecko-engine.webp", .{
                         .position = .{ .type = .absolute, .top = .percent(-20), .right = .percent(-30) },
                         .width = .percent(30),
                     });
@@ -211,8 +214,8 @@ pub fn render() void {
                         });
                         Static.ListItem(.{})({
                             Static.Text(
-                            \\Don't like the UI node syntax? Want to create custom UI nodes with your own styling? Go for it. 
-                            \\Just call LifeCycle.open(), LifeCycle.configure(), and LifeCycle.close() to add it to the tree hierarchy.
+                                \\Don't like the UI node syntax? Want to create custom UI nodes with your own styling? Go for it. 
+                                \\Just call LifeCycle.open(), LifeCycle.configure(), and LifeCycle.close() to add it to the tree hierarchy.
                             , .{
                                 .font_size = 18,
                             });
@@ -263,7 +266,7 @@ pub fn render() void {
                         Static.ListItem(.{
                             // .width = .percent(100),
                         })({
-                            Static.Link(route.path, .{
+                            Static.Link(.{ .url = route.path, .aria_label = route.title }, .{
                                 .text_decoration = .none,
                                 // .width = .percent(100),
                                 .display = .Flex,

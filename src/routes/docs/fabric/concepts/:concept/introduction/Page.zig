@@ -135,8 +135,8 @@ pub fn render() void {
         });
         Static.ListItem(.{})({
             Static.Text(
-            \\AllocText is a UINode that takes a formatted string, and the arguments to insert into said string, allocates 
-            \\underneatch the hood.
+                \\AllocText is a UINode that takes a formatted string, and the arguments to insert into said string, allocates 
+                \\underneatch the hood.
             , .{
                 .font_size = 14,
                 .text_color = .hex("#666666"),
