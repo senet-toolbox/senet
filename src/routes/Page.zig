@@ -98,7 +98,7 @@ pub fn render() void {
                 .child_alignment = .start_center,
                 .width = .percent(100),
             })({
-                Static.Link("/huh",  .{
+                Static.Link(.{ .url = "/huh", .aria_label = "what is tether?" }, .{
                     .display = .Flex,
                     .child_alignment = .center,
                     .width = .fixed(160),
@@ -116,13 +116,12 @@ pub fn render() void {
                     },
                 })({
                     Static.Text("Huh?", .{
-                        .font_family = "Montserrat",
                         .font_weight = 300,
                         .font_size = 18,
                         .text_color = .hex("#ffffff"),
                     });
                 });
-                Static.Link("/download", .{
+                Static.Link(.{ .url = "/download", .aria_label = "download page for tether" }, .{
                     .display = .Flex,
                     .width = .fixed(160),
                     .height = .fixed(45),

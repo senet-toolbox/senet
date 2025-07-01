@@ -13,6 +13,4 @@ pub fn init() void {
 pub fn deinit() void {}
 
 // Render Root of the Page
-pub fn render() void {
-    // This is the Root of the page
-}
+pub fn render() void {}

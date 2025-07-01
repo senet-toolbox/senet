@@ -66,9 +66,3 @@ pub fn render(counter: *Counter) void {
         });
     });
 }
-
-// Usage example:
-// var counter = Counter{ .initial_value = 5 };
-// counter.init(&allocator);
-// defer counter.deinit();
-// counter.render();

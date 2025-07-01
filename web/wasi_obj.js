@@ -127,7 +127,7 @@ function endDrag() {
 
 let layoutInfoPtr;
 
-window.addEventListener("popstate", async function(event) {
+window.addEventListener("popstate", async function (event) {
   event.preventDefault();
   const path = window.location.pathname;
   // We first mark all non layout nodes as dirty this way we can traverse and remove
@@ -152,7 +152,7 @@ window.addEventListener("load", async () => {
 
 async function loadWasiModule() {
   let pathname = window.location.pathname;
-  pathname = "fabric-optimized";
+  pathname = "fabric";
   WebAssembly.instantiateStreaming(
     fetch(`zig-out/bin/${pathname}.wasm`),
     importObject,

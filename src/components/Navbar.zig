@@ -31,7 +31,7 @@ fn routes() void {
         },
         .{
             .url = "/about",
-            .title = "About",
+            .title = "About Me",
         },
     };
     for (urls) |url| {
@@ -49,7 +49,7 @@ fn routes() void {
                 // .display = .Flex,
             },
         })({
-            Static.Link(url.url, .{
+            Static.Link(.{ .url = url.url, .aria_label = url.title }, .{
                 .text_decoration = .none,
             })({
                 Static.Text(url.title, .{
@@ -131,6 +131,8 @@ pub fn setDefault() void {
     show_dropdown.set(false);
 }
 
+fn openDialog() void {}
+
 pub fn render() void {
     text_color = Fabric.Types.Background.hex("#262626");
     tint = Fabric.Types.Background.hex("#6338FF");
@@ -158,7 +160,7 @@ pub fn render() void {
             .child_alignment = .start_center,
             .child_gap = 10,
         })({
-            Static.Link("/", .{
+            Static.Link(.{ .url = "/", .aria_label = "home page of tether" }, .{
                 .text_decoration = .none,
             })({
                 Static.Center(.{
@@ -183,36 +185,38 @@ pub fn render() void {
 
         Static.Center(.{
             .child_gap = 24,
+            .width = .percent(30),
         })({
-            Static.FlexBox(.{
-                .child_alignment = .{ .x = .even, .y = .center },
-                .width = .fixed(300),
-                .padding = .{ .top = 4, .bottom = 4, .left = 6, .right = 6 },
+            Static.Button(.{ .onPress = openDialog, .aria_label = "search-dialog" }, .{
+                .display = .Flex,
+                .child_alignment = .{ .x = .between, .y = .center },
+                .width = .percent(70),
+                .height = .fixed(38),
+                .padding = .{ .top = 4, .bottom = 4, .left = 8, .right = 8 },
                 .border_radius = .all(8),
                 .border_thickness = .all(1),
                 .border_color = .hex("#3A3A3A"),
+                .background = .transparent,
+                .cursor = .pointer,
+                .hover = .{ .border_color = .hex("#802BFF") },
             })({
-                Static.Icon("bi bi-search", .{
-                    .text_color = text_color,
-                    .font_size = 16,
-                });
-                Static.Input(.{
-                    .string = .{
-                        .default = "Search...",
-                        .tag = "search-field",
-                    },
-                }, .{
-                    .height = .fixed(30),
-                    .font_size = 16,
-                    .text_color = text_color,
-                    .outline = .none,
+                Static.FlexBox(.{
+                    .child_alignment = .start_center,
+                    .child_gap = 24,
+                })({
+                    Static.Icon("bi bi-search", .{
+                        .font_size = 16,
+                    });
+                    Static.Text("Search...", .{
+                        .font_family = "Montserrat",
+                        .font_size = 16,
+                    });
                 });
                 Static.Icon("bi bi-command", .{
-                    .text_color = text_color,
                     .font_size = 16,
                 });
             });
-            Static.RedirectLink("https://github.com/vic-Rokx/fabric", .{
+            Static.Link(.{ .url = "https://github.com/vic-Rokx/fabric", .aria_label = "redirect link to tether github repo" }, .{
                 .text_decoration = .none,
             })({
                 Static.Icon("bi bi-github", .{
@@ -220,7 +224,7 @@ pub fn render() void {
                     .font_size = 20,
                 });
             });
-            Static.RedirectLink("https://github.com/vic-Rokx/fabric", .{
+            Static.Link(.{ .url = "https://github.com/vic-Rokx/fabric", .aria_label = "redirect link to discord" }, .{
                 .text_decoration = .none,
             })({
                 Static.Icon("bi bi-discord", .{
@@ -230,7 +234,7 @@ pub fn render() void {
             });
 
             Static.Column(.{})({
-                Static.Button(.{ .onPress = showDropDown }, .{})({
+                Static.Button(.{ .onPress = showDropDown, .aria_label = "theme-switch" }, .{})({
                     Static.Icon("bi bi-moon-stars-fill", .{
                         .text_color = text_color,
                         .font_size = 20,

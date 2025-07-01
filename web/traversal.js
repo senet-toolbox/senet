@@ -277,54 +277,32 @@ function createLinkElement(renderCmd, tree_node, layout) {
   const element = document.createElement("a");
   element.href = renderCmd.href;
 
-  element.addEventListener("click", function(event) {
-    event.preventDefault();
+  const label = wasmInstance.getAriaLabel(renderCmd.nodePtr);
+  if (label) {
+    const length = wasmInstance.getAriaLabelLen();
+    element.ariaLabel = readWasmString(label, length);
+  }
 
-    const currentPath = window.location.pathname;
-    // clearIntervalsForRoute(currentPath);
+  element.addEventListener("click", function (event) {
+    event.preventDefault();
 
     const clickedHref = event.currentTarget.href;
     const urlObj = new URL(clickedHref);
     const path = urlObj.pathname;
 
-    // root.innerHTML = "";
-    // this set the route render tree
-    // and marks all dirty
-    // let route_ptr = null;
-    // if (currentPath === "/") {
-    //   route_ptr = allocString("/root");
-    // } else {
-    //   route_ptr = allocString(currentPath);
-    // }
-
     // We first mark all non layout nodes as dirty this way we can traverse and remove
     // we use the dirty flag to indicate for removal
     wasmInstance.markAllNonLayoutNodesDirty();
 
-    // wasmInstance.renderCommands(
-    //   window.innerWidth,
-    //   window.innerHeight,
-    //   route_ptr,
-    // );
     // we get the current tree pointer and traverse it to remove all the nodes that are not part of the layout
     const current_tree = wasmInstance.getRenderTreePtr();
     traverseRemove(root, current_tree, layout);
 
     // we push the state and renderCycle the new path
-    console.log("Rerendering the new route");
     window.history.pushState({}, "", path);
     rerenderRoute(path === "/" ? "/root" : path);
 
-    // const newTreeNode = wasmInstance.getRenderTreePtr();
-    // wasmInstance.markAllNonLayoutNodesDirty();
     requestAnimationFrame(wasmInstance.setRerenderTrue);
-    // state.initial_render = true;
-    //
-    // activeNodeIds.clear();
-    // domNodeRegistry.clear();
-    // traverse(root, newTreeNode, layout);
-    // removeInactiveNodes();
-    // state.initial_render = false;
   });
 
   return element;
@@ -574,7 +552,6 @@ function createElementByType(renderCmd, tree_node, layout) {
       break;
 
     case COMPONENT_TYPES.CODE:
-      console.log("---------------------------------code");
       element = document.createElement("code");
       break;
 
@@ -656,6 +633,11 @@ function createElementByType(renderCmd, tree_node, layout) {
     case COMPONENT_TYPES.BUTTON:
       element = document.createElement("button");
       element.type = "button";
+      const label = wasmInstance.getAriaLabel(renderCmd.nodePtr);
+      if (label) {
+        const length = wasmInstance.getAriaLabelLen();
+        element.ariaLabel = readWasmString(label, length);
+      }
       element.addEventListener("click", (event) => {
         event.preventDefault();
         event.stopPropagation();

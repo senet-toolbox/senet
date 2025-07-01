@@ -101,7 +101,7 @@ fn list(_: *SideBar) void {
                     .background = .hex("#121212"),
                 },
             })({
-                Static.Link(item.link, .{
+                Static.Link(.{ .url = item.link, .aria_lable = item.title }, .{
                     .text_decoration = .none,
                     .width = .percent(100),
                     .display = .flex,

@@ -123,6 +123,7 @@ const HeaderNames = enum {
     @"User-Agent",
     Connection,
     @"Sec-WebSocket-Key",
+    @"Accept-Encoding",
 };
 
 const HTTPHeader = struct {
@@ -131,6 +132,7 @@ const HTTPHeader = struct {
     userAgent: []const u8,
     connection: []const u8,
     wskey: []const u8,
+    content_encoding: []const u8 = "",
 
     pub fn print(self: HTTPHeader) void {
         std.debug.print("{s} - {s}\n", .{
@@ -187,6 +189,7 @@ pub fn parseHeader(header: []const u8) !HTTPHeader {
             .@"User-Agent" => headerStruct.userAgent = headerValue,
             .Connection => headerStruct.connection = headerValue,
             .@"Sec-WebSocket-Key" => headerStruct.wskey = headerValue,
+            .@"Accept-Encoding" => headerStruct.content_encoding = headerValue,
         }
     }
     return headerStruct;
@@ -210,11 +213,14 @@ const mimeTypes = .{
     .{ ".html", "text/html; charset=utf8" },
     .{ ".js", "application/javascript" },
     .{ ".wasm", "application/wasm" },
+    .{ ".br", "application/wasm" },
     .{ ".css", "text/css" },
     .{ ".png", "image/png" },
+    .{ ".webp", "image/webp" },
     .{ ".jpg", "image/jpeg" },
     .{ ".gif", "image/gif" },
     .{ ".svg", "image/svg+xml" },
+    .{ ".txt", "text/html; charset=utf8" },
 };
 
 pub fn mimeForPath(path: []const u8) []const u8 {
@@ -227,11 +233,13 @@ pub fn mimeForPath(path: []const u8) []const u8 {
     return "text/html; charset=utf8";
 }
 
-pub fn openLocalFile(conn: std.net.Server.Connection, mime: []const u8, mimetype: []const u8) !void {
+pub fn openLocalFile(conn: std.net.Server.Connection, mime: []const u8, mimetype: []const u8, content_encoding: []const u8) !void {
     var allocator = std.heap.page_allocator;
     var path: []const u8 = "/index.html";
     if (mime.len > 1) {
         if (std.mem.indexOf(u8, mime, ".wasm") != null) {
+            path = mime;
+        } else if (std.mem.indexOf(u8, mime, ".br") != null) {
             path = mime;
         } else if (std.mem.indexOf(u8, mime, ".ico") != null) {
             path = "/favicon.ico";
@@ -239,16 +247,30 @@ pub fn openLocalFile(conn: std.net.Server.Connection, mime: []const u8, mimetype
             path = mime;
         } else if (std.mem.indexOf(u8, mime, ".png") != null) {
             path = mime;
+        } else if (std.mem.indexOf(u8, mime, ".webp") != null) {
+            path = mime;
         } else if (std.mem.indexOf(u8, mime, ".js") != null) {
+            path = mime;
+        } else if (std.mem.indexOf(u8, mime, ".txt") != null) {
             path = mime;
         } else {
             path = "/index.html";
         }
     }
+    var encoding: []const u8 = "";
+    if (content_encoding.len > 1 and std.mem.eql(u8, mimetype, "application/wasm")) {
+        if (std.mem.indexOf(u8, content_encoding, "br") != null) {
+            path = "/zig-out/bin/fabric-optimized.wasm.br";
+            encoding = "br";
+        } else if (std.mem.indexOf(u8, content_encoding, "gzip") != null) {
+            encoding = "gzip";
+            path = "/zig-out/bin/fabric-optimized.wasm.gzip";
+        }
+    }
     const file_cwd = try std.fmt.allocPrint(allocator, ".{s}", .{path});
     const cwd = std.fs.cwd();
-    var file = cwd.openFile(file_cwd, .{}) catch {
-        // std.debug.print("Error opening file: {}\n", .{err});
+    var file = cwd.openFile(file_cwd, .{}) catch |err| {
+        std.debug.print("Error opening file: {}\n", .{err});
         return;
     }; // Get file size
     const file_size = try file.getEndPos();
@@ -264,13 +286,13 @@ pub fn openLocalFile(conn: std.net.Server.Connection, mime: []const u8, mimetype
         "Access-Control-Allow-Methods: GET, POST, OPTIONS\r\n" ++
         "Access-Control-Allow-Headers: Content-Type, Authorization\r\n" ++
         "Content-Type: {s}\r\n" ++
+        "Content-Encoding: {s}\r\n" ++
         "Content-Length: {}\r\n" ++
         "\r\n" ++
         "{s}";
-    const response = try std.fmt.allocPrint(allocator, httpHead, .{ mimetype, contents.len, contents });
+    const response = try std.fmt.allocPrint(allocator, httpHead, .{ mimetype, encoding, contents.len, contents });
     _ = try conn.stream.writer().write(response);
 }
-
 
 var global_writer: *std.net.Server.Connection = undefined;
 pub fn main() !void {
@@ -306,7 +328,7 @@ pub fn main() !void {
         const header = try parseHeader(recv_data);
         const path = try parsePath(header.requestLine);
         const mimetype = mimeForPath(path);
-        try openLocalFile(conn, path, mimetype);
+        try openLocalFile(conn, path, mimetype, header.content_encoding);
         conn.stream.close();
     }
 }

@@ -37,19 +37,34 @@ pub fn render() void {
                 .font_weight = 700,
                 .text_color = .hex("#1a1a1a"),
             });
-            Static.Text("To put simply, Tether is an exposed set of frameworks, that give developers the ability to Build full-stack applications with zero dependencies, zero configuration, and complete control.", .{ .font_size = 24 });
+            Static.Text("To put simply, Tether is an exposed set of frameworks, that gives developers the ability to Build full-stack applications with zero dependencies, zero configuration, and complete control.", .{ .font_size = 24 });
 
-            Static.Text("Current State", .{
+            Static.Text("How the Internet works", .{
                 .font_size = 28,
                 .font_weight = 700,
                 .text_color = .hex("#1a1a1a"),
+            });
+            Custom.HtmlText(
+                \\At their core every website is just a text document. We store this document on the server and send it to the client, when they ask for it.
+                \\Your browser takes this document which is in a langauge known as <a href="https://developer.mozilla.org/en-US/docs/Web/HTML">HTML</a> 
+                \\and then draws the boxes, rectangles, and text onto your screen. This is how it worked in the beginning.
+            , .{ .font_size = 18 });
+            Static.Image("/assets/theinternet.webp", .{
+                .width = .percent(100),
+            });
+
+            Static.Text("And then theres today...", .{
+                .font_size = 28,
+                .font_weight = 700,
+                .text_color = .hex("#1a1a1a"),
+                .margin = .{ .top = 100 },
             });
             Static.Text("This is in essence, the current state of Web development, it doesn't make sense, and it's just getting worse.", .{ .font_size = 18 });
             Static.Block(.{
                 .width = .percent(100),
                 .height = .percent(100),
             })({
-                Static.Image("/assets/webdev.png", .{
+                Static.Image("/assets/webdev.webp", .{
                     .width = .percent(100),
                 });
             });
@@ -65,7 +80,6 @@ pub fn render() void {
                 \\Unlike common frameworks like <strong>React</strong> or <strong>Vue</strong>, Tether eliminates the need to deal with evolving opinions that change over time.
                 \\Many frameworks have altered their core APIs and designs, leading to complexity, legacy system support burdens, 
                 \\and the never-ending cycle of learning and relearning changes.
-                \\developers with a toolbox of functionality they can deep dive into and customize when needed.
             , .{ .font_size = 18 });
 
             Custom.HtmlText(
@@ -78,8 +92,8 @@ pub fn render() void {
 
             Custom.HtmlText(
                 \\<strong>For example:</strong> Fabric's state management is a single <code style="color: #6439FF">global_rerender</code> variable of type <code style="color: #6439FF">bool</code>. 
-                \\That's it. You can use the built-in Signal struct that Fabric exposes, build your own, or simply 
-                \\toggle the global_rerender to update your UI. Until then, you 
+                \\That's it. You can use the built-in <strong>Signal Struct</strong> that Fabric exposes, build your own, or simply 
+                \\toggle the <code style="color: #6439FF">global_rerender</code> to update your UI. Until then, you 
                 \\can utilize Tether's in-house solutions with no setup, configuration files, or complexity. Just
                 \\install and start building.
             , .{ .font_size = 18 });
@@ -142,10 +156,30 @@ pub fn render() void {
                 \\<strong>Build Tools:</strong> No transpilation, platform-specific code, configuration magic
             , .{ .font_size = 18 });
 
+            Static.Text("But that doesn't mean you can't...", .{
+                .font_size = 32,
+                .font_weight = 700,
+                .text_color = .hex("#1a1a1a"),
+            });
+
+            Custom.HtmlText(
+                \\<strong>Install Libs:</strong> Use your favorite JS Library if you want, This is even done in NightWatch with chart.js 
+                \\<a href="/docs/fabric/concepts/jslibs">NightWatch Example</a>
+            , .{ .font_size = 18 });
+
+            Custom.HtmlText(
+                \\<strong>Use C or Objc:</strong> Embed your favorite C or Objc Libs, or even Zig itself
+            , .{ .font_size = 18 });
+
+            Custom.HtmlText(
+                \\<strong>Adapt and Build:</strong> Scrap it all and use the core codebase to build your own Renderer, and Web Server 
+            , .{ .font_size = 18 });
+
             Static.Text("The Core Promise", .{
                 .font_size = 32,
                 .font_weight = 700,
                 .text_color = .hex("#1a1a1a"),
+                .margin = .{ .top = 64 }
             });
 
             Custom.HtmlText(
@@ -154,13 +188,23 @@ pub fn render() void {
                 \\problems rather than wrestling with tooling, dependencies, and ever-changing framework opinions.
             , .{ .font_size = 18 });
 
-            Custom.HtmlText(
-                \\No tricks. No magic. Just tools you can understand and control.
-            , .{ .font_size = 18 });
+            Static.Center(.{
+                .width = .percent(100),
+                .direction = .column,
+                .child_gap = 32,
+                .margin = .{ .top = 32 }
+            })({
+                Custom.HtmlText(
+                    \\No tricks. No magic. Just tools you can understand and control.
+                , .{ .font_size = 24, .font_weight = 700 });
 
-            Custom.HtmlText(
-                \\Tether is toolkit first, framework second. 
-            , .{ .font_size = 18 });
+                Custom.HtmlText(
+                    \\Tether is toolkit first, framework second. 
+                , .{ .font_size = 24, .font_weight = 700 });
+                // Custom.HtmlText(
+                //     \\Designed for the long game, not the next big thing! 
+                // , .{ .font_size = 28, .font_weight = 700 });
+            });
         });
     });
 }
