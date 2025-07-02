@@ -19,6 +19,7 @@ const routes: []const []const u8 = &.{
     "/docs/fabric/concepts/project",
     "/docs/fabric/concepts/routing",
     "/docs/fabric/concepts/reactivity",
+    "/docs/fabric/concepts/styling",
     "/docs/fabric/concepts/kit",
     "/docs/fabric/concepts/events",
     "/docs/fabric/concepts/bridge",
@@ -70,7 +71,7 @@ pub fn render() void {
         if (getPrevPathTitle()) |title| {
             Static.Button(.{ .onPress = gotoPrevRoute }, .{
                 .width = .percent(50),
-                .height = .fixed(72),
+                .height = .px(72),
                 .border_radius = .all(4),
                 .border_color = .hex("#ebedf0"),
                 .border_thickness = .all(1),
@@ -101,7 +102,7 @@ pub fn render() void {
         if (getNextPathTitle()) |title| {
             Static.Button(.{ .onPress = gotoNextRoute }, .{
                 .width = .percent(50),
-                .height = .fixed(72),
+                .height = .px(72),
                 .border_radius = .all(4),
                 .border_color = .hex("#ebedf0"),
                 .border_thickness = .all(1),

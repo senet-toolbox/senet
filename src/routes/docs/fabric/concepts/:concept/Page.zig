@@ -16,8 +16,10 @@ const Project = @import("project/Page.zig");
 const JSLibs = @import("jslibs/Page.zig");
 const Bridge = @import("bridge/Page.zig");
 const Just = @import("justletmebuild/Page.zig");
+const Styling = @import("styling/Page.zig");
 const Menu = @import("../../Menu.zig");
 const Footer = @import("../../Footer.zig");
+const root = @import("../../../../../main.zig");
 
 const Routes = enum {
     basics,
@@ -32,6 +34,7 @@ const Routes = enum {
     jslibs,
     bridge,
     justletmebuild,
+    styling,
 };
 
 // Initialization
@@ -47,6 +50,7 @@ pub fn init() void {
     Bridge.init();
     Project.init();
     Just.init();
+    Styling.init();
     Page(@src(), render, null, .{});
 }
 
@@ -74,6 +78,9 @@ fn getPage(path: []const u8) ?*const fn () void {
                 .kit => {
                     return Kit.render;
                 },
+                .styling => {
+                    return Styling.render;
+                },
                 .gotchas => {
                     return Gotchas.render;
                 },
@@ -96,6 +103,12 @@ fn getPage(path: []const u8) ?*const fn () void {
     return null;
 }
 
+var menu: bool = false;
+fn openMenu() void {
+    menu = !menu;
+    Fabric.cycle();
+}
+
 // Render
 pub fn render() void {
     const path = Fabric.Kit.getWindowPath();
@@ -107,34 +120,90 @@ pub fn render() void {
         .height = .percent(100),
     })({
         Static.FlexBox(.{
-            .child_alignment = .{ .x = .start, .y = .start },
             .padding = .horizontal(12),
             .direction = .row,
             .width = .percent(100),
             // .height = .percent(90),
         })({
-            Static.Block(.{
-                .width = .percent(12),
-            })({
-                Menu.render();
-            });
-            Static.FlexBox(.{
-                .width = .grow,
-                .child_alignment = .start_center,
+            Static.Center(.{
+                .width = .percent(100),
                 .padding = .{ .top = 60, .bottom = 120 },
                 .direction = .column,
             })({
                 Static.FlexBox(.{
-                    .width = .percent(64),
+                    .width = .clamp_percent(64, 786, 100),
                     .child_gap = 32,
                     .direction = .column,
-                    .child_alignment = .{ .x = .start, .y = .start },
-                    .padding = .{ .bottom = 120 },
+                    .padding = .{ .bottom = 80 },
                 })({
                     render_page();
                     Footer.render();
                 });
             });
+            if (!Fabric.isMobile()) {
+                Static.Block(.{
+                    .position = .{ .type = .fixed, .top = .px(0) },
+                    .padding = .{ .top = 60 },
+                    .width = .percent(16),
+                    .z_index = 9999,
+                })({
+                    Menu.render();
+                });
+            } else {
+                Static.FlexBox(.{
+                    .child_alignment = .{ .x = .between, .y = .center },
+                    .child_gap = 8,
+                    .padding = .horizontal(12),
+                    .height = .px(50),
+                    .position = .{ .type = .fixed, .top = .px(0), .left = .percent(0), .right = .percent(0) },
+                    .width = .percent(100),
+                    .z_index = 999,
+                    .background = root.theme.getAttribute("background"),
+                    .border_color = root.theme.getAttribute("border_color"),
+                    .border_thickness = .{ .bottom = 1 },
+                })({
+                    Static.FlexBox(.{ .child_alignment = .start_center, .child_gap = 12 })({
+                        Static.Link(.{ .url = "/", .aria_label = "home page of tether" }, .{
+                            .text_decoration = .none,
+                            .height = .px(36),
+                            .display = .Center,
+                        })({
+                            Static.Svg(@embedFile("../../logo.svg"), .{
+                                .display = .Center,
+                                .width = .px(36),
+                            });
+                        });
+                        Static.Text("Tether", .{
+                            .font_size = 24,
+                        });
+                    });
+                    Static.Button(.{ .onPress = openMenu }, .{
+                        .width = .px(36),
+                        .height = .px(36),
+                    })({
+                        if (menu) {
+                            Pure.Icon("bi bi-x-lg", .{
+                                .font_size = 24,
+                            });
+                        } else {
+                            Pure.Icon("bi bi-list", .{
+                                .font_size = 24,
+                            });
+                        }
+                    });
+                });
+                if (menu) {
+                    Static.Block(.{
+                        .position = .{ .type = .fixed, .top = .px(50), .left = .px(0) },
+                        .width = .percent(50),
+                        .background = root.theme.getAttribute("background"),
+                        .z_index = 999,
+                        .height = .percent(100),
+                    })({
+                        Menu.render();
+                    });
+                }
+            }
         });
     });
 }

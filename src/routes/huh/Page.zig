@@ -23,14 +23,13 @@ pub fn render() void {
     NavBar.render();
     Static.Center(.{
         .width = .percent(100),
-        // .height = .percent(100),
         .padding = .{ .top = 120, .bottom = 80 },
     })({
         Static.FlexBox(.{
             .child_gap = 24,
             .direction = .column,
-            .width = .percent(70),
-            // .height = .percent(100),
+            .width = .clamp_percent(70, 786, 100),
+            .padding = .horizontal(12),
         })({
             Static.Text("What is Tether?", .{
                 .font_size = 48,
@@ -38,6 +37,12 @@ pub fn render() void {
                 .text_color = .hex("#1a1a1a"),
             });
             Static.Text("To put simply, Tether is an exposed set of frameworks, that gives developers the ability to Build full-stack applications with zero dependencies, zero configuration, and complete control.", .{ .font_size = 24 });
+
+            Static.Center(.{})({
+                Static.Image("/assets/tether.webp", .{
+                    .width = .percent(50),
+                });
+            });
 
             Static.Text("How the Internet works", .{
                 .font_size = 28,
@@ -175,12 +180,7 @@ pub fn render() void {
                 \\<strong>Adapt and Build:</strong> Scrap it all and use the core codebase to build your own Renderer, and Web Server 
             , .{ .font_size = 18 });
 
-            Static.Text("The Core Promise", .{
-                .font_size = 32,
-                .font_weight = 700,
-                .text_color = .hex("#1a1a1a"),
-                .margin = .{ .top = 64 }
-            });
+            Static.Text("The Core Promise", .{ .font_size = 32, .font_weight = 700, .text_color = .hex("#1a1a1a"), .margin = .{ .top = 64 } });
 
             Custom.HtmlText(
                 \\Tether provides the productivity benefits of modern frameworks while maintaining the control 
@@ -188,12 +188,7 @@ pub fn render() void {
                 \\problems rather than wrestling with tooling, dependencies, and ever-changing framework opinions.
             , .{ .font_size = 18 });
 
-            Static.Center(.{
-                .width = .percent(100),
-                .direction = .column,
-                .child_gap = 32,
-                .margin = .{ .top = 32 }
-            })({
+            Static.Center(.{ .width = .percent(100), .direction = .column, .child_gap = 32, .margin = .{ .top = 32 } })({
                 Custom.HtmlText(
                     \\No tricks. No magic. Just tools you can understand and control.
                 , .{ .font_size = 24, .font_weight = 700 });
@@ -202,7 +197,7 @@ pub fn render() void {
                     \\Tether is toolkit first, framework second. 
                 , .{ .font_size = 24, .font_weight = 700 });
                 // Custom.HtmlText(
-                //     \\Designed for the long game, not the next big thing! 
+                //     \\Designed for the long game, not the next big thing!
                 // , .{ .font_size = 28, .font_weight = 700 });
             });
         });

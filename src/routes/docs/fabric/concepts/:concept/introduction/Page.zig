@@ -83,7 +83,7 @@ pub fn render() void {
             .border_thickness = .all(1),
             .padding = .all(12),
             .width = .percent(100),
-            .height = .fixed(64),
+            .height = .px(64),
         })({
             Static.Text("curl -sSL https://raw.githubusercontent.com/vic-Rokx/fabric-cli/main/install.sh | bash", .{
                 .font_size = 16,

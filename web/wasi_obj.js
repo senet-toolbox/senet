@@ -127,7 +127,7 @@ function endDrag() {
 
 let layoutInfoPtr;
 
-window.addEventListener("popstate", async function (event) {
+window.addEventListener("popstate", async function(event) {
   event.preventDefault();
   const path = window.location.pathname;
   // We first mark all non layout nodes as dirty this way we can traverse and remove
@@ -406,6 +406,7 @@ async function init() {
     route_ptr = allocString(currentPath);
   }
   wasmInstance.renderUI(route_ptr);
+  wasmInstance.markCurrentTreeDirty();
   tree_node = wasmInstance.getRenderTreePtr();
 
   activeNodeIds = new Set();
@@ -414,6 +415,7 @@ async function init() {
   wasmInstance.pendingClassesToAdd();
   wasmInstance.pendingClassesToRemove();
   document.body.appendChild(root);
+  wasmInstance.markCurrentTreeNotDirty();
 
   // initEditor();
 
@@ -441,21 +443,47 @@ async function init() {
   // requestAnimationFrame(wasmInstance.cleanUp);
   wasmInstance.resetRerender();
 
-  renderLoop();
+  // requestRerender();
+
+  // setTimeout(() => {
+  //   const currentPath = window.location.pathname;
+  //   const route_ptr = allocString(currentPath === "/" ? "/root" : currentPath);
+  //
+  //   wasmInstance.renderUI(route_ptr);
+  //   tree_node = wasmInstance.getRenderTreePtr();
+  //   activeNodeIds = new Set();
+  //   traverse(root, tree_node, layoutInfo);
+  // }, 3000);
 }
 
 let route_ptr = null;
-function renderLoop() {
+
+export function requestRerender() {
+  if (!state.isRenderScheduled) {
+    state.isRenderScheduled = true;
+    requestAnimationFrame(render);
+  }
+}
+
+export function render() {
+  // Reset the flag since the scheduled render is now running.
+  state.isRenderScheduled = false;
+
   const globalRerender = wasmInstance.shouldRerender();
   const grainRerender = wasmInstance.grainRerender();
+
+  // Exit if no re-render is needed.
+  if (!globalRerender && !grainRerender) {
+    return;
+  }
+
   try {
     if (globalRerender) {
       const currentPath = window.location.pathname;
-      if (currentPath === "/") {
-        route_ptr = allocString("/root");
-      } else {
-        route_ptr = allocString(currentPath);
-      }
+      const route_ptr = allocString(
+        currentPath === "/" ? "/root" : currentPath,
+      );
+
       wasmInstance.renderUI(route_ptr);
       tree_node = wasmInstance.getRenderTreePtr();
       activeNodeIds = new Set();
@@ -465,25 +493,81 @@ function renderLoop() {
       wasmInstance.pendingClassesToRemove();
       callDestroyFncs();
       removeInactiveNodes();
+      wasmInstance.markCurrentTreeNotDirty();
       wasmInstance.resetRerender();
       requestAnimationFrame(wasmInstance.cleanUp);
-    } else if (grainRerender) {
+    } else {
+      // This implies grainRerender is true
       console.log("Grain Rerender");
-      tree_node = wasmInstance.getRenderTreePtr();
-      activeNodeIds = new Set();
-      traverse(root, tree_node, layoutInfo);
-      wasmInstance.pendingClassesToAdd();
-      wasmInstance.pendingClassesToRemove();
-      callDestroyFncs();
-      removeInactiveNodes();
-      wasmInstance.resetGrainRerender();
     }
-    requestAnimationFrame(renderLoop);
+
+    // // // --- Consolidated Logic ---
+    // const tree_node = wasmInstance.getRenderTreePtr();
+    // activeNodeIds = new Set();
+    // traverse(root, tree_node, layoutInfo);
+    // state.initial_render = false;
+    // //
+    // wasmInstance.pendingClassesToAdd();
+    // wasmInstance.pendingClassesToRemove();
+    // callDestroyFncs();
+    // removeInactiveNodes();
+    // // wasmInstance.resetRerender();
+    // //
+    // // // Reset the specific flags in wasm
+    // if (globalRerender) {
+    //   wasmInstance.resetRerender();
+    // }
+    // // if (grainRerender) {
+    // //   wasmInstance.resetGrainRerender();
+    // // }
+    // //
+    // // // The cleanup can be done in the next animation frame.
+    // requestAnimationFrame(wasmInstance.cleanUp);
   } catch (error) {
-    console.error("Render loop error:", error);
-    // Optionally, implement error recovery or loop stopping mechanism
+    console.error("An error occurred during the render cycle:", error);
   }
 }
+
+// function renderLoop() {
+//   const globalRerender = wasmInstance.shouldRerender();
+//   const grainRerender = wasmInstance.grainRerender();
+//   try {
+//     if (globalRerender) {
+//       console.log("attempting to rerender");
+//       const currentPath = window.location.pathname;
+//       if (currentPath === "/") {
+//         route_ptr = allocString("/root");
+//       } else {
+//         route_ptr = allocString(currentPath);
+//       }
+//       wasmInstance.renderUI(route_ptr);
+//       tree_node = wasmInstance.getRenderTreePtr();
+//       activeNodeIds = new Set();
+//       traverse(root, tree_node, layoutInfo);
+//       state.initial_render = false;
+//       wasmInstance.pendingClassesToAdd();
+//       wasmInstance.pendingClassesToRemove();
+//       callDestroyFncs();
+//       removeInactiveNodes();
+//       wasmInstance.resetRerender();
+//       requestAnimationFrame(wasmInstance.cleanUp);
+//     } else if (grainRerender) {
+//       console.log("Grain Rerender");
+//       tree_node = wasmInstance.getRenderTreePtr();
+//       activeNodeIds = new Set();
+//       traverse(root, tree_node, layoutInfo);
+//       wasmInstance.pendingClassesToAdd();
+//       wasmInstance.pendingClassesToRemove();
+//       callDestroyFncs();
+//       removeInactiveNodes();
+//       wasmInstance.resetGrainRerender();
+//     }
+//     requestAnimationFrame(renderLoop);
+//   } catch (error) {
+//     console.error("Render loop error:", error);
+//     // Optionally, implement error recovery or loop stopping mechanism
+//   }
+// }
 
 export function callDestroyFncs() {
   // Remove any nodes that aren't active in this render

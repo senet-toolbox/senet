@@ -16,6 +16,7 @@ import {
 import { domNodeRegistry, eventHandlers, eventStorage } from "./maps.js";
 import { state } from "./state.js";
 
+const parser = new DOMParser();
 // Component type constants
 const COMPONENT_TYPES = {
   RECTANGLE: 0,
@@ -283,7 +284,7 @@ function createLinkElement(renderCmd, tree_node, layout) {
     element.ariaLabel = readWasmString(label, length);
   }
 
-  element.addEventListener("click", function (event) {
+  element.addEventListener("click", function(event) {
     event.preventDefault();
 
     const clickedHref = event.currentTarget.href;
@@ -298,10 +299,10 @@ function createLinkElement(renderCmd, tree_node, layout) {
     const current_tree = wasmInstance.getRenderTreePtr();
     traverseRemove(root, current_tree, layout);
 
+
     // we push the state and renderCycle the new path
     window.history.pushState({}, "", path);
     rerenderRoute(path === "/" ? "/root" : path);
-
     requestAnimationFrame(wasmInstance.setRerenderTrue);
   });
 
@@ -532,7 +533,7 @@ function initJsonEditor(parent, element) {
  * @param {Object} layout - The layout information
  * @returns {HTMLElement} - The created element
  */
-function createElementByType(renderCmd, tree_node, layout) {
+function createElementByType(renderCmd, tree_node, layout, parent) {
   let element;
 
   switch (renderCmd.elemType) {
@@ -674,7 +675,15 @@ function createElementByType(renderCmd, tree_node, layout) {
 
     case COMPONENT_TYPES.SVG:
       element = document.createElement("div");
+      // // console.log(parent);
       element.innerHTML = renderCmd.text;
+      // const svgDoc = parser.parseFromString(renderCmd.text, "image/svg+xml");
+      // element = svgDoc.documentElement;
+      // element.className = "";
+      // const tempDiv = document.createElement("div");
+      // tempDiv.innerHTML = renderCmd.text;
+      // element = tempDiv.querySelector("svg");
+      // element = parent.querySelector('svg');
       break;
 
     case COMPONENT_TYPES.LINK:
@@ -774,7 +783,6 @@ function setupElement(element, renderCmd) {
   element.id = renderCmd.id;
 
   // Apply styles
-
   updateComponentStyle(
     renderCmd.nodePtr,
     renderCmd.styleId,
@@ -856,14 +864,15 @@ export function traverse(parent, tree_node, layout) {
     }
 
     if (renderCmd.isDirty) {
+      // console.log(renderCmd.isDirty, renderCmd.id);
       // Mark as processed
-      wasmInstance.setDirtyToFalse(renderCmd.nodePtr);
+      // wasmInstance.setDirtyToFalse(renderCmd.nodePtr);
 
       let element = document.getElementById(renderCmd.id);
 
       if (!element || state.initial_render) {
         // Create new element
-        element = createElementByType(renderCmd, tree_node, layout);
+        element = createElementByType(renderCmd, tree_node, layout, parent);
 
         if (!element) continue; // Skip if element creation failed
 

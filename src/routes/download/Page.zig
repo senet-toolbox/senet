@@ -29,7 +29,8 @@ pub fn render() void {
             .child_gap = 24,
             .direction = .column,
             .margin = .{ .bottom = 32 },
-            .width = .percent(70),
+            .width = .clamp_percent(70, 786, 100),
+            .padding = .horizontal(12),
             // .child_alignment = .start_center,
         })({
             Static.Text("Download", .{
@@ -40,11 +41,11 @@ pub fn render() void {
             Custom.HtmlText("Lets first install <strong style=\"color: #f7a41d;\">Z</strong><strong>IG</strong> via zvm <a href=\"https://www.zvm.app/\">ZVM</a>", .{ .font_size = 20 });
             Static.Image("/assets/ZVM.png", .{
                 .position = .{ .type = .absolute, .top = .percent(10), .right = .percent(20) },
-                .width = .percent(10),
+                .width = if (Fabric.isMobile()) .percent(30) else .percent(10),
             });
             Static.Image("/assets/ZIG.svg", .{
                 .position = .{ .type = .absolute, .bottom = .percent(5), .left = .percent(20) },
-                .width = .percent(30),
+                .width = if (Fabric.isMobile()) .percent(40) else .percent(30),
                 .height = .percent(30),
             });
             Txt("Now Lets install the Fabric CLI, paste the following into your terminal...");
@@ -54,7 +55,7 @@ pub fn render() void {
                 .border_thickness = .all(1),
                 .padding = .all(12),
                 .width = .percent(100),
-                .height = .fixed(64),
+                .height = .px(64),
             })({
                 Static.Text("curl -sSL https://raw.githubusercontent.com/vic-Rokx/fabric-cli/main/install.sh | bash", .{
                     .font_size = 16,

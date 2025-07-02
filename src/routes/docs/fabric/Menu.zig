@@ -67,6 +67,11 @@ const menu_items: []const MenuItem = &.{
         .icon = "bi bi-arrow-repeat", // Circular arrows for reactive updates
     },
     MenuItem{
+        .title = "Styling",
+        .link = "/docs/fabric/concepts/styling",
+        .icon = "bi bi-paint-bucket", // Circular arrows for reactive updates
+    },
+    MenuItem{
         .title = "Kit",
         .link = "/docs/fabric/concepts/kit",
         .icon = "bi bi-tools", // Tools icon for toolkit/kit
@@ -87,7 +92,6 @@ const menu_items: []const MenuItem = &.{
         .icon = "bi bi-ethernet",
     },
 
- 
     MenuItem{
         .title = "Gotchas",
         .link = "/docs/fabric/concepts/gotchas",
@@ -99,83 +103,72 @@ pub fn init() void {}
 fn openDialog() void {}
 
 fn list() void {
-    Static.FlexBox(.{
-        .child_alignment = .{ .x = .between, .y = .center },
-        .child_gap = 8,
-        .padding = .{ .top = 8, .bottom = 8, .left = 12, .right = 12 },
-        .position = .{ .type = .fixed, .top = .fixed(0), .left = .percent(0), .right = .percent(0) },
-        .width = .percent(100),
-        .z_index = 999,
-        .blur = 3,
-        .border_color = main.theme.getAttribute("border_color"),
-        .border_thickness = .{ .bottom = 1 },
-    })({
+    if (!Fabric.isMobile()) {
         Static.FlexBox(.{
-            .child_alignment = .{ .x = .start, .y = .center },
-            .child_gap = 8,
-        })({
-            Static.Link(.{ .url = "/", .aria_label = "home page of tether" }, .{
-                .text_decoration = .none,
-                .cursor = .pointer,
-            })({
-                Static.Svg(logo, .{
-                    .display = .Flex,
-                    .child_alignment = .{ .x = .center, .y = .center },
-                    .width = .fixed(36),
-                });
-            });
-            Static.Text("Tether", .{
-                .font_weight = 500,
-                .font_size = 18,
-            });
-            Static.Block(.{
-                .border_thickness = .{ .left = 1 },
-                .height = .fixed(24),
-                .border_color = .rgb(0, 0, 0),
-            })({});
-            Static.Text("Docs", .{
-                .font_weight = 500,
-                .font_size = 18,
-            });
-        });
-
-        Static.Button(.{ .onPress = openDialog, .aria_label = "search-dialog" }, .{
-            .display = .Flex,
             .child_alignment = .{ .x = .between, .y = .center },
-            .width = .percent(16),
-            .height = .fixed(38),
-            .padding = .{ .top = 4, .bottom = 4, .left = 8, .right = 8 },
-            .border_radius = .all(8),
-            .border_thickness = .all(1),
-            .border_color = .hex("#3A3A3A"),
-            .background = .transparent,
-            .cursor = .pointer,
-            .hover = .{ .border_color = .hex("#802BFF") }
+            .child_gap = 8,
+            .padding = .{ .top = 8, .bottom = 8, .left = 12, .right = 12 },
+            .position = .{ .type = .fixed, .top = .px(0), .left = .percent(0), .right = .percent(0) },
+            .width = .percent(100),
+            .z_index = 999,
+            .blur = 3,
+            .border_color = main.theme.getAttribute("border_color"),
+            .border_thickness = .{ .bottom = 1 },
         })({
             Static.FlexBox(.{
-                .child_alignment = .start_center,
-                .child_gap = 24,
+                .child_alignment = .{ .x = .start, .y = .center },
+                .child_gap = 8,
             })({
-                Static.Icon("bi bi-search", .{
-                    .font_size = 16,
+                Static.Link(.{ .url = "/", .aria_label = "home page of tether" }, .{
+                    .text_decoration = .none,
+                    .cursor = .pointer,
+                })({
+                    Static.Svg(logo, .{
+                        .display = .Flex,
+                        .child_alignment = .{ .x = .center, .y = .center },
+                        .width = .px(36),
+                    });
                 });
-                Static.Text("Search...", .{
-                    .font_size = 16,
+                Static.Text("Tether", .{
+                    .font_weight = 500,
+                    .font_size = 18,
+                });
+                Static.Block(.{
+                    .border_thickness = .{ .left = 1 },
+                    .height = .px(24),
+                    .border_color = .rgb(0, 0, 0),
+                })({});
+                Static.Text("Docs", .{
+                    .font_weight = 500,
+                    .font_size = 18,
                 });
             });
-            Static.Icon("bi bi-command", .{
-                .font_size = 16,
+
+            Static.Button(.{ .onPress = openDialog, .aria_label = "search-dialog" }, .{ .display = .Flex, .child_alignment = .{ .x = .between, .y = .center }, .width = .percent(16), .height = .px(38), .padding = .{ .top = 4, .bottom = 4, .left = 8, .right = 8 }, .border_radius = .all(8), .border_thickness = .all(1), .border_color = .hex("#3A3A3A"), .background = .transparent, .cursor = .pointer, .hover = .{ .border_color = .hex("#802BFF") } })({
+                Static.FlexBox(.{
+                    .child_alignment = .start_center,
+                    .child_gap = 24,
+                })({
+                    Static.Icon("bi bi-search", .{
+                        .font_size = 16,
+                    });
+                    Static.Text("Search...", .{
+                        .font_size = 16,
+                    });
+                });
+                Static.Icon("bi bi-command", .{
+                    .font_size = 16,
+                });
             });
         });
-    });
+    }
     Static.List(.{
         .list_style = .none,
         .display = .Flex,
         .direction = .column,
         .padding = .{ .top = 16, .bottom = 16, .right = 8, .left = 8 },
         .child_gap = 16,
-        .width = .percent(14),
-        .position = .{ .type = .fixed, .top = .fixed(48) },
+        .width = .percent(100),
     })({
         for (menu_items) |item| {
             Static.ListItem(.{
