@@ -37,15 +37,17 @@ pub fn render() void {
         Txt("Fabric Kit is a utils module which contains the functions for fetching, navigation, parsing, url encoding and decoding, ect...");
         Txt("This module serves as a bridge between Zig applications running in WebAssembly and web browser APIs, providing essential networking, navigation, and data processing capabilities. ");
         Static.Image("/assets/gecko-toolbox.png", .{
-            .width = .percent(14),
-            .position = .{ .type = .absolute, .top = .percent(30), .right = .percent(10) }
+            .width = if (Fabric.isMobile()) .percent(20) else .percent(14),
+            .position = .{ .type = .absolute, .top = if (Fabric.isMobile()) .percent(55) else .percent(30), .right = if (Fabric.isMobile()) .percent(5) else .percent(10) }
         });
         Static.Svg(@embedFile("wasi_bridge.svg"), .{
             .width = .percent(100),
             .height = .percent(100),
         });
         Txt("While the above does look complex in implementation, usage is quite simple. In the future fetching will become even simpler with greater integration of WASM and JS.");
-        Static.Center(.{})({
+        Static.Center(.{
+            .width = .percent(100),
+        })({
             sample_fetch.render(0);
         });
         Txt("There have been many approaches to fetching and handling response/requests. Fabric adopts a straightforward, callback-based approach for handling HTTP requests and responses, viewing the application as a static state machine. This means all application code executes sequentially, without waiting for asynchronous operations to complete. Such a design compels a more deliberate consideration of the application's state when data is not yet available.");

@@ -8,6 +8,7 @@ const Page = Fabric.Page;
 const Menu = @import("Menu.zig");
 const CodeEditor = @import("concepts/:concept/CodeEditor.zig");
 const Custom = @import("../../../components/Custom.zig");
+const root = @import("../../../main.zig");
 
 // Initialization
 var code_view_loc: CodeEditor = undefined;
@@ -43,6 +44,7 @@ const routes = [_]Route{
     .{ .title = "Routing", .path = "/docs/fabric/concepts/routing" },
     .{ .title = "Theme and Style", .path = "/docs/fabric/concepts/theme-and-style" },
     .{ .title = "Reactivity & Signals", .path = "/docs/fabric/concepts/reactivity-signals" },
+    .{ .title = "Styling", .path = "/docs/fabric/concepts/styling" },
     .{ .title = "Kit", .path = "/docs/fabric/concepts/kit" },
     .{ .title = "Icons and Svgs", .path = "/docs/fabric/concepts/icons-and-svgs" },
     .{ .title = "Authentication", .path = "/docs/fabric/concepts/authentication" },
@@ -55,30 +57,106 @@ const routes = [_]Route{
     .{ .title = "Building a Renderer", .path = "/docs/fabric/concepts/building-renderer" },
 };
 
+var last_time: i64 = 0;
+pub fn throttle() bool {
+    const current_time = std.time.milliTimestamp();
+    if (current_time - last_time < 60) {
+        return true;
+    }
+    last_time = current_time;
+    return false;
+}
+
+var menu: bool = false;
+fn openMenu() void {
+    if (!throttle()) {
+        menu = !menu;
+        Fabric.cycle();
+    }
+}
+
 pub fn render() void {
     Static.FlexBox(.{
         .child_alignment = .{ .x = .start, .y = .start },
         .padding = .horizontal(12),
-        .direction = .row,
+        .direction = if (!Fabric.isMobile()) .row else .column,
         .width = .percent(100),
         .height = .percent(100),
     })({
         Fabric.Layout(@src(), .{})({
-            Static.Block(.{
-                .width = .percent(12),
-                .margin = .{ .right = 32 },
-            })({
-                Menu.render();
-            });
+            if (!Fabric.isMobile()) {
+                Static.Block(.{
+                    .position = .{ .type = .fixed, .top = .px(60) },
+                    .width = .percent(12),
+                    .margin = .{ .right = 32 },
+                    .z_index = 999,
+                })({
+                    Menu.render();
+                });
+            } else {
+                Static.FlexBox(.{
+                    .child_alignment = .{ .x = .between, .y = .center },
+                    .child_gap = 8,
+                    .padding = .horizontal(12),
+                    .height = .px(50),
+                    .position = .{ .type = .fixed, .top = .px(0), .left = .percent(0), .right = .percent(0) },
+                    .width = .percent(100),
+                    .z_index = 999,
+                    .background = root.theme.getAttribute("background"),
+                    .border_color = root.theme.getAttribute("border_color"),
+                    .border_thickness = .{ .bottom = 1 },
+                })({
+                    Static.FlexBox(.{ .child_alignment = .start_center, .child_gap = 12 })({
+                        Static.Link(.{ .url = "/", .aria_label = "home page of tether" }, .{
+                            .text_decoration = .none,
+                            .height = .px(36),
+                            .display = .Center,
+                        })({
+                            Static.Svg(@embedFile("logo.svg"), .{
+                                .display = .Center,
+                                .width = .px(36),
+                            });
+                        });
+                        Static.Text("Tether", .{
+                            .font_size = 24,
+                        });
+                    });
+                    Static.Button(.{ .onPress = openMenu }, .{
+                        .width = .px(36),
+                        .height = .px(36),
+                    })({
+                        if (menu) {
+                            Pure.Icon("bi bi-x-lg", .{
+                                .font_size = 24,
+                            });
+                        } else {
+                            Pure.Icon("bi bi-list", .{
+                                .font_size = 24,
+                            });
+                        }
+                    });
+                });
+                if (menu) {
+                    Static.Block(.{
+                        .position = .{ .type = .fixed, .top = .px(50), .left = .px(0) },
+                        .width = .percent(50),
+                        .background = root.theme.getAttribute("background"),
+                        .z_index = 999,
+                        .height = .percent(100),
+                    })({
+                        Menu.render();
+                    });
+                }
+            }
         });
         Static.FlexBox(.{
             .height = .percent(100),
-            .width = .grow,
+            .width = .percent(100),
             .child_alignment = .{ .y = .start, .x = .center },
             .padding = .{ .top = 60 },
         })({
             Static.FlexBox(.{
-                .width = .percent(62),
+                .width = .clamp_percent(62, 786, 100),
                 .child_gap = 16,
                 .direction = .column,
                 .child_alignment = .{ .x = .start, .y = .start },
@@ -103,9 +181,9 @@ pub fn render() void {
                     .font_weight = 700,
                 });
                 Static.Text(
-                    \\Fabric is toolkit-first, framework-second. We believe developers should control their tools, not 
-                    \\the other way around. Every API is explicitly exposed, every internal is accessible, and every component can 
-                    \\be customized. No black boxes, no hidden magic—just transparent, controllable architecture that puts you in the 
+                    \\Fabric is toolkit-first, framework-second. We believe developers should control their tools, not
+                    \\the other way around. Every API is explicitly exposed, every internal is accessible, and every component can
+                    \\be customized. No black boxes, no hidden magic—just transparent, controllable architecture that puts you in the
                     \\driver's seat.
                 , .{
                     .font_size = 18,
@@ -113,13 +191,13 @@ pub fn render() void {
                     .height = .fit,
                 });
                 Static.Text(
-                    \\Fabric has no runtime allocations, this means that instantiating and destroying components does not result in overhead 
+                    \\Fabric has no runtime allocations, this means that instantiating and destroying components does not result in overhead
                     \\of managing memory.
                 , .{
                     .font_size = 18,
                 });
                 Static.Text(
-                    \\Fabric should be treated and seen as a set of tools, which can be used to adapt the core framework, it's 
+                    \\Fabric should be treated and seen as a set of tools, which can be used to adapt the core framework, it's
                     \\purpose is to be unopinionated, and modular.
                 , .{
                     .font_size = 18,
@@ -131,23 +209,23 @@ pub fn render() void {
                     .font_weight = 900,
                 });
                 Static.Text(
-                    \\While the ideology of opinionated frameworks sounds greate in theory, unfortunatley in practice there are many 
-                    \\cases where this causes the frameworks themselves to support legacy codebases, and for system to become static, 
+                    \\While the ideology of opinionated frameworks sounds greate in theory, unfortunatley in practice there are many
+                    \\cases where this causes the frameworks themselves to support legacy codebases, and for system to become static,
                     \\and inflexible.
                 , .{
                     .font_size = 18,
                 });
                 Custom.HtmlText(
-                    \\React: <strong>"Use Class Components!"</strong> Then: <strong>"Actually, use functions as Components!"</strong> 
-                    \\Svelte: <strong>"Everything is state!"</strong> Then: <strong>"Actually, use runes!"</strong> Every framework 
+                    \\React: <strong>"Use Class Components!"</strong> Then: <strong>"Actually, use functions as Components!"</strong>
+                    \\Svelte: <strong>"Everything is state!"</strong> Then: <strong>"Actually, use runes!"</strong> Every framework
                     \\eventually pivots, leaving developers with broken code and migration headaches.
                 , .{
                     .font_size = 18,
                 });
 
                 Custom.HtmlText(
-                    \\Fabric's approach is fundamentally different. By exposing all internals within a compact 8K-line codebase 
-                    \\and providing direct engine access, we eliminate framework lock-in. Developers retain full control over 
+                    \\Fabric's approach is fundamentally different. By exposing all internals within a compact 8K-line codebase
+                    \\and providing direct engine access, we eliminate framework lock-in. Developers retain full control over
                     \\their architecture while benefiting from a lightweight foundation where <a href="/docs/fabric/concepts/ui-nodes">
                     \\UI nodes</a> require just 10 lines of code.
                 , .{
@@ -165,7 +243,7 @@ pub fn render() void {
                     .font_weight = 900,
                 });
                 Static.Text(
-                    \\That's literally the entirety of Fabric at its core. It takes a bunch of UI nodes, constructs a tree, 
+                    \\That's literally the entirety of Fabric at its core. It takes a bunch of UI nodes, constructs a tree,
                     \\and outputs it to any renderer you want to use or build.
                 , .{
                     .font_size = 18,
@@ -177,7 +255,7 @@ pub fn render() void {
                 });
                 html_code_editor.render(0);
                 Static.Text(
-                    \\We can create our own custom UI node's which hook into the Fabric's engine. The example above, is used in this 
+                    \\We can create our own custom UI node's which hook into the Fabric's engine. The example above, is used in this
                     \\very website, since we only ever render to web, we can make use of a custom UI node.
                 , .{
                     .font_size = 18,
@@ -205,8 +283,8 @@ pub fn render() void {
                     })({
                         Static.ListItem(.{})({
                             Static.Text(
-                                \\State management? Just one global boolean: 'global_rerender'. Set it to true and the UI updates. 
-                                \\You could even create an interval that toggles global_rerender every tick and never worry about signals 
+                                \\State management? Just one global boolean: 'global_rerender'. Set it to true and the UI updates.
+                                \\You could even create an interval that toggles global_rerender every tick and never worry about signals
                                 \\or state management again.
                             , .{
                                 .font_size = 18,
@@ -214,7 +292,7 @@ pub fn render() void {
                         });
                         Static.ListItem(.{})({
                             Static.Text(
-                                \\Don't like the UI node syntax? Want to create custom UI nodes with your own styling? Go for it. 
+                                \\Don't like the UI node syntax? Want to create custom UI nodes with your own styling? Go for it.
                                 \\Just call LifeCycle.open(), LifeCycle.configure(), and LifeCycle.close() to add it to the tree hierarchy.
                             , .{
                                 .font_size = 18,

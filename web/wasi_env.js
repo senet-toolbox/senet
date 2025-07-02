@@ -14,6 +14,8 @@ import {
   layoutInfo,
   rerenderRoute,
   root,
+  render,
+  requestRerender,
 } from "./wasi_obj.js";
 import {
   traverse,
@@ -107,6 +109,14 @@ export const importObject = {
     environ_get: () => 0,
   }, // Link WASI stubs
   env: {
+    /**
+     * Call this function whenever you want to trigger a re-render.
+     * It uses a flag to throttle calls to once per animation frame.
+     */
+    requestRerenderWasm: () => {
+      requestRerender();
+    },
+
     consoleLog: (ptr, len) => {
       if (!wasmInstance) {
         console.error("WASM instance not initialized");
@@ -593,7 +603,7 @@ export const importObject = {
         console.log(
           `Timeout complete, resuming with callback ID ${callbackId}`,
         );
-        wasmInstance.ctxButtonCallback(callbackId);
+        wasmInstance.timeoutCtxCallBackId(callbackId);
       }, ms);
     },
 

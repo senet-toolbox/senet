@@ -199,6 +199,7 @@ pub fn render() void {
             });
             Static.ListItem(.{
                 .list_style = .decimal,
+                .width = .percent(100),
             })({
                 wasm_chart_code_editor.render(0);
             });

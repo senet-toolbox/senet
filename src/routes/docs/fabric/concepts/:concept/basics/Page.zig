@@ -181,7 +181,7 @@ pub fn render() void {
             });
         });
         Static.Block(.{
-            .width = .percent(80),
+            .width = .percent(100),
         })({
             code_editor.render(0);
         });
@@ -274,7 +274,7 @@ pub fn render() void {
             .margin = .{ .bottom = 16 },
         });
         Static.Block(.{
-            .width = .percent(80),
+            .width = .percent(100),
             .margin = .{ .bottom = 16 },
         })({
             code_editor_component.render(0);
@@ -302,7 +302,7 @@ pub fn render() void {
             .margin = .{ .bottom = 16 },
         });
         Static.Block(.{
-            .width = .percent(80),
+            .width = .percent(100),
             .margin = .{ .bottom = 16 },
         })({
             code_editor_lifecycle.render(0);
