@@ -191,7 +191,7 @@ pub fn render() void {
             .direction = .column,
             .child_alignment = .center,
             // .height = .percent(100),
-            .padding = .{ .top = 80, .bottom = 80 },
+            .padding = .{ .top = 200, .bottom = 80 },
         })({
             Static.Svg(@embedFile("Logo.svg"), .{
                 .width = .percent(100),
