@@ -6,6 +6,7 @@ const Dynamic = Fabric.Dynamic;
 const Signal = Fabric.Signal;
 const println = Fabric.println;
 const root = @import("../main.zig");
+const Search = @import("Search.zig");
 
 var theme_background: Fabric.Types.Background = undefined;
 var text_color: Fabric.Types.Background = undefined;
@@ -86,8 +87,6 @@ fn routes() void {
 
 const Self = @This();
 var allocator = std.heap.page_allocator;
-var signal: Signal(u32) = undefined;
-var show: Signal(bool) = undefined;
 var show_dropdown: Signal(bool) = undefined;
 
 const ThemeOption = struct {
@@ -121,10 +120,9 @@ fn switchTheme(opt: []const u8) void {
 }
 
 pub fn init() void {
-    signal.init(0);
-    show.init(false);
     // Fabric.eventListener(.click, closeAll);
     show_dropdown.init(false);
+    Search.init();
 }
 // fn activeTheme(theme: Theme) [4]f32 {
 //     if (Fabric.Theme.theme == theme) {
@@ -148,7 +146,9 @@ pub fn setDefault() void {
     show_dropdown.set(false);
 }
 
-fn openDialog() void {}
+fn openDialog() void {
+    Search.toggle();
+}
 
 pub fn render() void {
     text_color = Fabric.Types.Background.hex("#262626");
@@ -160,6 +160,7 @@ pub fn render() void {
         .fn_name = "",
         .line = 0,
     }, .{})({
+        Search.render();
         if (!Fabric.isMobile()) {
             Static.FlexBox(.{
                 .position = .{
@@ -176,7 +177,6 @@ pub fn render() void {
                     .left = 50,
                     .right = 50,
                 },
-                .z_index = 1000,
                 .blur = 1,
             })({
                 Static.FlexBox(.{
@@ -192,7 +192,7 @@ pub fn render() void {
                             .width = .px(45),
                             .margin = .{ .right = 30 },
                         })({
-                            Static.Svg(@embedFile("../logo.svg"), .{
+                            Static.Image("/assets/logo_normal.svg", .{
                                 .width = .percent(100),
                                 .height = .percent(100),
                                 .text_color = text_color,

@@ -24,32 +24,84 @@ var input_element: Element = Element{};
 
 const SideBar = @This();
 
+const Tag = struct {
+    keywords: Keywords = &.{},
+    url: []const u8 = "",
+    sub_title: []const u8 = "",
+    description: []const u8 = "",
+};
+const Keywords = []const []const u8;
 const MenuItem = struct {
     title: []const u8,
     link: []const u8,
     icon: []const u8,
+    tags: []const Tag = &.{},
 };
 
-const menu_items: []const MenuItem = &.{
+pub const menu_items: []const MenuItem = &.{
     MenuItem{
         .title = "Home",
         .link = "/docs/fabric",
         .icon = "bi bi-house", // Keep as is - perfect for home
+        .tags = &.{
+            Tag{
+                .keywords = &.{ "fabric home", "fabric", "docs", "home" },
+                .sub_title = "Fabric Docs",
+                .url = "/docs/fabric",
+                .description = "Fabric documentation...",
+            },
+        },
     },
     MenuItem{
         .title = "Just let me build!!!!",
         .link = "/docs/fabric/concepts/justletmebuild",
         .icon = "bi bi-fire", // Keep as is - perfect for home
+        .tags = &.{
+            Tag{
+                .keywords = &.{ "started", "installation", "fabric", "immediate", "create app", "fabric create app" },
+                .sub_title = "Create an App",
+                .url = "/docs/fabric/concepts/justletmebuild/#create-command",
+                .description = "Use fabric to create and run an applic...",
+            },
+        },
     },
     MenuItem{
         .title = "Introduction",
         .link = "/docs/fabric/concepts/introduction",
         .icon = "bi bi-book", // Book icon for introductory content
+        .tags = &.{
+            Tag{
+                .keywords = &.{ "introduction", "installation", "fabric" },
+                .sub_title = "Install Fabric",
+                .url = "/docs/fabric/concepts/introduction/#curl-install",
+                .description = "Fabric curl command install, current only for MacOS...",
+            },
+            Tag{
+                .keywords = &.{ "introduction", "pros", "cons", "installation", "fabric" },
+                .sub_title = "Install Fabric",
+                .url = "/docs/fabric/concepts/introduction/#pros-cons",
+                .description = "Pros and cons of using Fabric, compared...",
+            },
+        },
     },
     MenuItem{
         .title = "Basics",
         .link = "/docs/fabric/concepts/basics",
         .icon = "bi bi-mortarboard", // Graduation cap for learning basics
+        .tags = &.{
+            Tag{
+                .keywords = &.{ "basics", "learning", "fabric", "docs", "reconciler", "rendering" },
+                .sub_title = "Fabric Basics",
+                .url = "/docs/fabric/concepts/basics/#introduction",
+                .description = "Introduction to Fabric, and how to use it...",
+            },
+            Tag{
+                .keywords = &.{ "reconciler", "rendering", "rerender" },
+                .sub_title = "How rendering works",
+                .url = "/docs/fabric/concepts/basics/#reconciler",
+                .description = "How the reconciler and rendering of fabric wor...",
+            },
+        },
     },
     MenuItem{
         .title = "Project Structure",

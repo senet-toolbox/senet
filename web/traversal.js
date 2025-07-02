@@ -7,6 +7,7 @@ import {
   rerenderRoute,
   root,
   allocString,
+  render,
 } from "./wasi_obj.js";
 import {
   applyHoverClass,
@@ -288,6 +289,7 @@ function createLinkElement(renderCmd, tree_node, layout) {
     event.preventDefault();
 
     const clickedHref = event.currentTarget.href;
+
     const urlObj = new URL(clickedHref);
     const path = urlObj.pathname;
 
@@ -299,11 +301,20 @@ function createLinkElement(renderCmd, tree_node, layout) {
     const current_tree = wasmInstance.getRenderTreePtr();
     traverseRemove(root, current_tree, layout);
 
-
     // we push the state and renderCycle the new path
-    window.history.pushState({}, "", path);
+    window.history.pushState({}, "", clickedHref);
     rerenderRoute(path === "/" ? "/root" : path);
-    requestAnimationFrame(wasmInstance.setRerenderTrue);
+    requestAnimationFrame(() => {
+      wasmInstance.setRerenderTrue();
+      requestAnimationFrame(() => {
+        const hash = window.location.hash;
+        if (hash) {
+          const id = window.location.hash.substring(1, hash.length);
+          const element = document.getElementById(id);
+          element.scrollIntoView();
+        }
+      });
+    });
   });
 
   return element;

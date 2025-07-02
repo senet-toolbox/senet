@@ -240,6 +240,7 @@ export const allocString = (string) => {
 
 export let root;
 async function init() {
+  console.log("falksdjf;laksdfj;lakdsfj;laksdfj;alskdfj;lkafj");
   root = document.getElementById("contents");
 
   // Set up listener for back/forward buttons
@@ -416,6 +417,18 @@ async function init() {
   wasmInstance.pendingClassesToRemove();
   document.body.appendChild(root);
   wasmInstance.markCurrentTreeNotDirty();
+  wasmInstance.resetRerender();
+  const hash = window.location.hash;
+  if (hash) {
+    const id = window.location.hash.substring(1, hash.length);
+    const element = document.getElementById(id);
+    element.scrollIntoView();
+  }
+  // if (state.initial_render) {
+  //   state.initial_render = false;
+  //   window.location.href = window.location.href;
+  // }
+  // window.history.pushState({}, "", window.location.href);
 
   // initEditor();
 
@@ -441,7 +454,6 @@ async function init() {
   // removeInactiveNodes();
   // wasmInstance.resetRerender();
   // requestAnimationFrame(wasmInstance.cleanUp);
-  wasmInstance.resetRerender();
 
   // requestRerender();
 

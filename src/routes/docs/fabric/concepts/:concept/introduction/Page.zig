@@ -78,6 +78,7 @@ pub fn render() void {
             .margin = .{ .top = 8 },
         });
         Static.Center(.{
+            .id = "curl-install",
             .border_radius = .all(8),
             .border_color = .hex("#bfbfbf"),
             .border_thickness = .all(1),
@@ -152,6 +153,7 @@ pub fn render() void {
     });
     // Core Functions Section
     Static.FlexBox(.{
+        .id = "pros-cons",
         .child_alignment = .{ .x = .start, .y = .start },
         .child_gap = 16,
         .direction = .column,
