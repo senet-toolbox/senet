@@ -7,6 +7,7 @@ const Pure = Fabric.Pure;
 const Page = Fabric.Page;
 const ViewCode = @import("../ViewCode.zig");
 const CodeEditor = @import("../CodeEditor.zig");
+const Custom = @import("../../../../../../components/Custom.zig");
 
 var view_code: ViewCode = undefined;
 var code_editor: CodeEditor = undefined;
@@ -37,7 +38,7 @@ pub fn render() void {
         .direction = .column,
         .margin = .{ .bottom = 32 },
     })({
-        Static.Text("main.zig - Application Entry Point", .{
+        Static.Text("Basics", .{
             .font_size = 42,
             .font_weight = 700,
             .text_color = .hex("#1a1a1a"),
@@ -122,7 +123,7 @@ pub fn render() void {
                 .text_color = .hex("#4a4a4a"),
             });
         });
-        Static.Svg(@embedFile("client-server.svg"), .{
+        Custom.LazyImage("/assets/client-server.webp", .{
             .width = .percent(100),
             .height = .percent(100),
         });
@@ -288,13 +289,7 @@ pub fn render() void {
             .width = .percent(100),
             .position = .{ .type = .relative },
         })({
-            Static.Image("/assets/gecko-circuit.png", .{
-                .position = .{ .type = .absolute, .top = .percent(0), .right = .percent(0) },
-                .width = .percent(30),
-            });
-            Static.Svg(@embedFile("UI.svg"), .{
-                .width = .percent(100),
-            });
+            Custom.LazyImage("/assets/final.webp", .{ .width = .percent(100), .height = .percent(100) });
         });
         Static.Text("LifeCycle Call Structure", .{
             .font_size = 32,

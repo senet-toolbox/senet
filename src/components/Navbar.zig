@@ -220,7 +220,7 @@ pub fn render() void {
                         .padding = .{ .top = 4, .bottom = 4, .left = 8, .right = 8 },
                         .border_radius = .all(8),
                         .border_thickness = .all(1),
-                        .border_color = .hex("#3A3A3A"),
+                        .border_color = .hex("#E1E1E1"),
                         .background = .transparent,
                         .cursor = .pointer,
                         .hover = .{ .border_color = .hex("#802BFF") },
@@ -231,30 +231,35 @@ pub fn render() void {
                         })({
                             Static.Icon("bi bi-search", .{
                                 .font_size = 16,
+                                .text_color = .hex("#A2A2A2"),
                             });
                             Static.Text("Search...", .{
                                 .font_family = "Montserrat",
                                 .font_size = 16,
+                                .text_color = .hex("#A2A2A2"),
                             });
                         });
                         Static.Icon("bi bi-command", .{
                             .font_size = 16,
+                            .text_color = .hex("#A2A2A2"),
                         });
                     });
                     Static.Link(.{ .url = "https://github.com/vic-Rokx/fabric", .aria_label = "redirect link to tether github repo" }, .{
                         .text_decoration = .none,
                     })({
                         Static.Icon("bi bi-github", .{
-                            .text_color = text_color,
-                            .font_size = 20,
+                            .font_size = 24,
+                            .text_color = .hex("#A2A2A2"),
+                            .hover = .{ .text_color = .hex("#592BFF") },
                         });
                     });
                     Static.Link(.{ .url = "https://github.com/vic-Rokx/fabric", .aria_label = "redirect link to discord" }, .{
                         .text_decoration = .none,
                     })({
                         Static.Icon("bi bi-discord", .{
-                            .text_color = text_color,
-                            .font_size = 20,
+                            .font_size = 24,
+                            .text_color = .hex("#A2A2A2"),
+                            .hover = .{ .text_color = .hex("#592BFF") },
                         });
                     });
 

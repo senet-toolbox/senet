@@ -44,4 +44,5 @@ pub const ElementType = enum(u8) {
     HtmlText,
     Code,
     Span,
+    LazyImage,
 };
