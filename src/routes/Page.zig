@@ -190,37 +190,71 @@ pub fn render() void {
             .width = .clamp_percent(40, 600, 100),
             .direction = .column,
             .child_alignment = .center,
-            .padding = if (Fabric.isMobile()) .all(0) else .{ .top = 200, .bottom = 80 },
         })({
-            Static.Image("/assets/logonormal.svg", .{
-                .width = .percent(100),
-                .display = .Center,
-            });
+            if (Fabric.isMobile()) {
+                Static.Image("/assets/Logo.svg", .{
+                    .width = .percent(70),
+                    .display = .Center,
+                    .padding = if (Fabric.isMobile()) .all(0) else .{ .top = 200 },
+                });
+            } else {
+                Static.Image("/assets/Logo.svg", .{
+                    .width = .percent(100),
+                });
+            }
 
             if (Fabric.isMobile()) {
-                Static.Center(.{})({
-                    Static.Text("Tether", .{
-                        .font_weight = 900,
-                        .font_size = 36,
-                    });
-                });
                 Static.Center(.{
                     .direction = .column,
                     .padding = .horizontal(12),
                     .child_gap = 16,
                 })({
+                    Static.FlexBox(.{
+                        .child_gap = 32,
+                    })({
+                        Static.Link(.{ .url = "https://github.com/vic-Rokx/fabric", .aria_label = "redirect link to tether github repo" }, .{
+                            .text_decoration = .none,
+                            .height = .px(56),
+                            .width = .px(56),
+                            .border_thickness = .all(1),
+                            .border_color = .hex("#EFEFEF"),
+                            .border_radius = .all(8),
+                            .display = .Center,
+                        })({
+                            Static.Icon("bi bi-github", .{
+                                .font_size = 28,
+                                .text_color = .hex("#252525"),
+                            });
+                        });
+                        Static.Link(.{ .url = "https://github.com/vic-Rokx/fabric", .aria_label = "redirect link to discord" }, .{
+                            .text_decoration = .none,
+                            .height = .px(56),
+                            .width = .px(56),
+                            .border_thickness = .all(1),
+                            .border_radius = .all(8),
+                            .border_color = .hex("#EFEFEF"),
+                            .display = .Center,
+                        })({
+                            Static.Icon("bi bi-discord", .{
+                                .font_size = 28,
+                                .text_color = .hex("#252525"),
+                            });
+                        });
+                    });
+
                     Custom.HtmlText(
                         \\Writing code should be more <strong style="color: #6439FF">cumbersome</strong> than <strong style="color: #6439FF">reading it!</strong>
                     , .{
                         .display = .Center,
-                        .font_size = 24,
+                        .font_size = 32,
+                        .font_weight = 700,
                     });
                     Custom.HtmlText(
                         \\<strong style="color: #6439FF">Tether</strong> is a  
                         \\toolkit that works as a complete framework out of the box yet remains fully modular and adaptable to your exact needs.
                     , .{
                         .display = .Center,
-                        .font_size = 24,
+                        .font_size = 20,
                     });
                 });
                 if (Fabric.isMobile()) {
