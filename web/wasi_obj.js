@@ -243,7 +243,6 @@ async function init() {
   if ("serviceWorker" in navigator) {
     navigator.serviceWorker
       .register("/sw.js")
-      .then((registration) => console.log("SW registered"))
       .catch((error) => console.log("SW registration failed"));
   }
 
@@ -430,6 +429,7 @@ async function init() {
     const element = document.getElementById(id);
     element.scrollIntoView();
   }
+
   // if (state.initial_render) {
   //   state.initial_render = false;
   //   window.location.href = window.location.href;

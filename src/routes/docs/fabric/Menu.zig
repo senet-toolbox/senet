@@ -12,6 +12,7 @@ const println = Fabric.println;
 const logo = @embedFile("logo.svg");
 const Binded = Fabric.Binded;
 const main = @import("../../../main.zig");
+const Search = @import("../../../components/Search.zig");
 
 var theme_background: [4]u8 = undefined;
 var border_color: [4]u8 = undefined;
@@ -152,9 +153,12 @@ pub const menu_items: []const MenuItem = &.{
 };
 pub fn init() void {}
 
-fn openDialog() void {}
+fn openDialog() void {
+    Search.toggle();
+}
 
 fn list() void {
+    Search.render();
     if (!Fabric.isMobile()) {
         Static.FlexBox(.{
             .child_alignment = .{ .x = .between, .y = .center },
@@ -162,7 +166,7 @@ fn list() void {
             .padding = .{ .top = 8, .bottom = 8, .left = 12, .right = 12 },
             .position = .{ .type = .fixed, .top = .px(0), .left = .percent(0), .right = .percent(0) },
             .width = .percent(100),
-            .z_index = 999,
+            .z_index = 400,
             .blur = 3,
             .border_color = main.theme.getAttribute("border_color"),
             .border_thickness = .{ .bottom = 1 },
@@ -175,41 +179,60 @@ fn list() void {
                     .text_decoration = .none,
                     .cursor = .pointer,
                 })({
-                    Static.Svg(logo, .{
+                    Static.Image("/assets/circlelogo.webp", .{
                         .display = .Flex,
                         .child_alignment = .{ .x = .center, .y = .center },
-                        .width = .px(36),
+                        .width = .px(42),
+                        .height = .px(42),
                     });
                 });
                 Static.Text("Tether", .{
                     .font_weight = 500,
                     .font_size = 18,
                 });
+                // Static.Svg(@embedFile("text.svg"), .{
+                //     .width = .px(80),
+                // });
                 Static.Block(.{
                     .border_thickness = .{ .left = 1 },
                     .height = .px(24),
                     .border_color = .rgb(0, 0, 0),
                 })({});
                 Static.Text("Docs", .{
-                    .font_weight = 500,
+                    .font_weight = 700,
                     .font_size = 18,
                 });
             });
-
-            Static.Button(.{ .onPress = openDialog, .aria_label = "search-dialog" }, .{ .display = .Flex, .child_alignment = .{ .x = .between, .y = .center }, .width = .percent(16), .height = .px(38), .padding = .{ .top = 4, .bottom = 4, .left = 8, .right = 8 }, .border_radius = .all(8), .border_thickness = .all(1), .border_color = .hex("#3A3A3A"), .background = .transparent, .cursor = .pointer, .hover = .{ .border_color = .hex("#802BFF") } })({
+            Static.Button(.{ .onPress = openDialog, .aria_label = "search-dialog" }, .{
+                .display = .Flex,
+                .child_alignment = .{ .x = .between, .y = .center },
+                .width = .percent(20),
+                .height = .px(38),
+                .padding = .{ .top = 4, .bottom = 4, .left = 8, .right = 8 },
+                .border_radius = .all(8),
+                .border_thickness = .all(1),
+                .border_color = .hex("#E1E1E1"),
+                .background = .transparent,
+                .cursor = .pointer,
+                .hover = .{ .border_color = .hex("#802BFF") },
+            })({
                 Static.FlexBox(.{
                     .child_alignment = .start_center,
                     .child_gap = 24,
                 })({
                     Static.Icon("bi bi-search", .{
                         .font_size = 16,
+                        .text_color = .hex("#A2A2A2"),
                     });
                     Static.Text("Search...", .{
+                        .font_family = "Montserrat",
                         .font_size = 16,
+                        .text_color = .hex("#A2A2A2"),
                     });
                 });
                 Static.Icon("bi bi-command", .{
                     .font_size = 16,
+                    .text_color = .hex("#A2A2A2"),
                 });
             });
         });

@@ -65,6 +65,7 @@ const COMPONENT_TYPES = {
   HTML_TEXT: 42,
   CODE: 43,
   SPAN: 44,
+  LAZY_IMAGE: 45,
 };
 
 // Store intervals by route for cleanup
@@ -587,6 +588,12 @@ function createElementByType(renderCmd, tree_node, layout, parent) {
       element.src = renderCmd.href;
       break;
 
+    case COMPONENT_TYPES.LAZY_IMAGE:
+      element = document.createElement("img");
+      element.setAttribute("src", renderCmd.href);
+      element.setAttribute("loading", "lazy");
+      break;
+
     case COMPONENT_TYPES.FLEXBOX:
     case COMPONENT_TYPES.BOX:
     case COMPONENT_TYPES.HOOKS:
@@ -722,7 +729,6 @@ function createElementByType(renderCmd, tree_node, layout, parent) {
 
     case COMPONENT_TYPES.ICON:
       element = document.createElement("i");
-      element.className = renderCmd.href;
       break;
 
     case COMPONENT_TYPES.LIST:
@@ -792,6 +798,9 @@ function createElementByType(renderCmd, tree_node, layout, parent) {
  */
 function setupElement(element, renderCmd) {
   element.id = renderCmd.id;
+  if (renderCmd.elemType === COMPONENT_TYPES.ICON) {
+    element.className = renderCmd.href;
+  }
 
   // Apply styles
   updateComponentStyle(
