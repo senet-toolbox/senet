@@ -190,11 +190,11 @@ pub fn render() void {
             .width = .clamp_percent(40, 600, 100),
             .direction = .column,
             .child_alignment = .center,
-            // .height = .percent(100),
-            .padding = .{ .top = 200, .bottom = 80 },
+            .padding = if (Fabric.isMobile()) .all(0) else .{ .top = 200, .bottom = 80 },
         })({
-            Static.Svg(@embedFile("Logo.svg"), .{
+            Static.Image("/assets/Logo.svg", .{
                 .width = .percent(100),
+                .display = .Center,
             });
 
             if (Fabric.isMobile()) {
