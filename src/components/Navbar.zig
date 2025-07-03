@@ -192,7 +192,7 @@ pub fn render() void {
                             .width = .px(45),
                             .margin = .{ .right = 30 },
                         })({
-                            Static.Image("/assets/logo_normal.svg", .{
+                            Static.Image("/assets/logonormal.svg", .{
                                 .width = .percent(100),
                                 .height = .percent(100),
                                 .text_color = text_color,
@@ -325,8 +325,6 @@ pub fn render() void {
                 .width = .percent(100),
                 .z_index = 999,
                 .background = root.theme.getAttribute("background"),
-                .border_color = root.theme.getAttribute("border_color"),
-                .border_thickness = .{ .bottom = 1 },
             })({
                 Static.FlexBox(.{ .child_alignment = .start_center, .child_gap = 12 })({
                     Static.Link(.{ .url = "/", .aria_label = "home page of tether" }, .{
@@ -334,10 +332,9 @@ pub fn render() void {
                         .height = .px(36),
                         .display = .Center,
                     })({
-                        // Static.Image("/assets/logo_normal.svg", .{
-                        Static.Image("/assets/Logo.svg", .{
-                            .width = .px(36),
-                        });
+                        // Static.Image("/assets/logonormal.svg", .{
+                        //     .width = .px(36),
+                        // });
                     });
                 });
                 Static.Button(.{ .onPress = openMenu }, .{
@@ -346,11 +343,11 @@ pub fn render() void {
                 })({
                     if (menu) {
                         Pure.Icon("bi bi-x-lg", .{
-                            .font_size = 24,
+                            .font_size = 32,
                         });
                     } else {
                         Pure.Icon("bi bi-list", .{
-                            .font_size = 24,
+                            .font_size = 32,
                         });
                     }
                 });
