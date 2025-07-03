@@ -334,13 +334,10 @@ pub fn render() void {
                         .height = .px(36),
                         .display = .Center,
                     })({
-                        Static.Svg(@embedFile("../logo.svg"), .{
-                            .display = .Center,
+                        // Static.Image("/assets/logo_normal.svg", .{
+                        Static.Image("/assets/Logo.svg", .{
                             .width = .px(36),
                         });
-                    });
-                    Static.Text("Tether", .{
-                        .font_size = 24,
                     });
                 });
                 Static.Button(.{ .onPress = openMenu }, .{
