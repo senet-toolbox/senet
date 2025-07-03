@@ -192,7 +192,7 @@ pub fn render() void {
             .child_alignment = .center,
             .padding = if (Fabric.isMobile()) .all(0) else .{ .top = 200, .bottom = 80 },
         })({
-            Static.Image("/assets/Logo.svg", .{
+            Static.Image("/assets/logonormal.svg", .{
                 .width = .percent(100),
                 .display = .Center,
             });
