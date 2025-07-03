@@ -240,7 +240,13 @@ export const allocString = (string) => {
 
 export let root;
 async function init() {
-  console.log("falksdjf;laksdfj;lakdsfj;laksdfj;alskdfj;lkafj");
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker
+      .register("/sw.js")
+      .then((registration) => console.log("SW registered"))
+      .catch((error) => console.log("SW registration failed"));
+  }
+
   root = document.getElementById("contents");
 
   // Set up listener for back/forward buttons
