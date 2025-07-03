@@ -195,7 +195,7 @@ pub fn render() void {
                 Static.Image("/assets/Logo.svg", .{
                     .width = .percent(70),
                     .display = .Center,
-                    .padding = if (Fabric.isMobile()) .all(0) else .{ .top = 200 },
+                    .padding = if (Fabric.isMobile()) .all(0) else .{ .top = 320 },
                 });
             } else {
                 Static.Image("/assets/Logo.svg", .{
