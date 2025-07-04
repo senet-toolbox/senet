@@ -317,7 +317,7 @@ test "chan of chan" {
     const thread = struct {
         fn func(cOC: *TofT) !void {
             std.time.sleep(2_000_000_000);
-            std.debug.print("{d} Thread Receiving\n", .{std.time.milliTimestamp()});
+            // std.debug.print("{d} Thread Receiving\n", .{std.time.milliTimestamp()});
             var c = try cOC.recv();
             std.debug.print("{d} Thread Received chan of chan: {any}\n", .{ std.time.milliTimestamp(), cOC });
             std.debug.print("{d} Thread pulling from chan buffer\n", .{std.time.milliTimestamp()});
