@@ -1,7 +1,9 @@
 const std = @import("std");
 const fabric = @import("fabric");
 const RootPage = @import("routes/Page.zig");
+const ErrorPage = @import("routes/Error.zig");
 const FabricDocs = @import("routes/docs/fabric/Page.zig");
+const MetalDocs = @import("routes/docs/metal/Page.zig");
 const Docs = @import("routes/docs/Page.zig");
 const Download = @import("routes/download/Page.zig");
 const Huh = @import("routes/huh/Page.zig");
@@ -22,12 +24,14 @@ export fn instantiate(window_width: i32, window_height: i32) void {
         .allocator = &allocator,
     });
     RootPage.init();
-    // Docs.init();
+    ErrorPage.init();
+    Docs.init();
+    MetalDocs.init();
     FabricDocs.init();
     Concepts.init();
-    // Download.init();
-    // Huh.init();
-    // About.init();
+    Download.init();
+    Huh.init();
+    About.init();
 }
 
 export fn renderUI(route_ptr: [*:0]u8) i32 {

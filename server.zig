@@ -269,9 +269,14 @@ pub fn openLocalFile(conn: std.net.Server.Connection, mime: []const u8, mimetype
     }
     const file_cwd = try std.fmt.allocPrint(allocator, ".{s}", .{path});
     const cwd = std.fs.cwd();
-    var file = cwd.openFile(file_cwd, .{}) catch |err| {
-        std.debug.print("Error opening file: {}\n", .{err});
-        return;
+    var file = cwd.openFile(file_cwd, .{}) catch |err| blk: {
+        std.debug.print("Error opening file: {} {s}\n", .{ err, file_cwd });
+        encoding = "";
+        const default_file = cwd.openFile("./zig-out/bin/fabric-optimized.wasm", .{}) catch |default_err| {
+            std.debug.print("Default Error opening file: {}\n", .{default_err});
+            return;
+        };
+        break :blk default_file;
     }; // Get file size
     const file_size = try file.getEndPos();
 

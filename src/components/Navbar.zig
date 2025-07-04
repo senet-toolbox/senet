@@ -160,7 +160,6 @@ pub fn render() void {
         .fn_name = "",
         .line = 0,
     }, .{})({
-        Search.render();
         if (!Fabric.isMobile()) {
             Static.FlexBox(.{
                 .position = .{
@@ -328,7 +327,6 @@ pub fn render() void {
                 .height = .px(50),
                 .position = .{ .type = .fixed, .top = .px(0), .left = .percent(0), .right = .percent(0) },
                 .width = .percent(100),
-                .z_index = 999,
                 .background = root.theme.getAttribute("background"),
             })({
                 Static.FlexBox(.{ .child_alignment = .start_center, .child_gap = 12 })({
@@ -400,5 +398,6 @@ pub fn render() void {
                 });
             }
         }
+        Search.render();
     });
 }
