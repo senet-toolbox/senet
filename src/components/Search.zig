@@ -26,18 +26,26 @@ fn close(_: *Fabric.Event) void {
 pub fn render() void {
     if (show) {
         Static.Hooks(.{ .mounted = mount }, .{})({
-            Binded.Center(&background, .{
+            Static.Center(.{
                 .position = .{
                     .type = .fixed,
                     .top = .percent(0),
                 },
                 .height = .percent(100),
                 .width = .percent(100),
-                .background = .transparentizeHex("#000000", 100),
-                .z_index = 999,
                 .direction = .row,
             })({
+                Binded.FlexBox(&background, .{
+                    .position = .{
+                        .type = .fixed,
+                        .top = .percent(0),
+                    },
+                    .height = .percent(100),
+                    .width = .percent(100),
+                    .background = .transparentizeHex("#000000", 100),
+                })({});
                 Static.FlexBox(.{
+                    .z_index = 1100,
                     .height = .percent(80),
                     .width = .clamp_percent(36, 700, 90),
                     .background = .hex("#F5F5F5"),
@@ -56,7 +64,7 @@ pub fn render() void {
                         .border_color = .hex("#EFEFEF"),
                         .cursor = .pointer,
                         .hover = .{
-                            .border_color = .hex("#802BFF"),
+                            .border_color = .hex("#5A27FF"),
                             .border_thickness = .all(2),
                         },
                         .background = .hex("#ffffff"),
@@ -111,14 +119,14 @@ pub fn render() void {
                                     .cursor = .pointer,
                                     .direction = .column,
                                     .hover = .{
-                                        .border_color = .hex("#802BFF"),
+                                        .border_color = .hex("#5A27FF"),
                                         .border_thickness = .all(2),
                                     },
                                     .text_decoration = .none,
                                 })({
                                     Static.Text(item.title, .{
                                         .font_size = 18,
-                                        .text_color = .hex("#802BFF"),
+                                        .text_color = .hex("#5A27FF"),
                                         .font_weight = 700,
                                     });
                                     Static.Text(item.link, .{
@@ -138,7 +146,7 @@ pub fn render() void {
                                         .padding = .horizontal(8),
                                         .text_decoration = .none,
                                         .hover = .{
-                                            .border_color = .hex("#802BFF"),
+                                            .border_color = .hex("#5A27FF"),
                                             .border_thickness = .all(2),
                                             .border_radius = if (item.tags.len - 1 == i) .top_bottom(0, 4) else null,
                                         },

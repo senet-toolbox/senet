@@ -66,10 +66,35 @@ pub fn render() void {
                 .height = .percent(100),
                 .direction = .column,
             })({
-                Static.Header("First all-in-one app toolkit.", .XLarge, .{
-                    .font_weight = 900,
-                    .font_size = 90,
-                    .margin = .all(10),
+                Static.Column(.{
+                    .child_alignment = .{ .x = .start, .y = .start },
+                    .width = .percent(100),
+                    .margin = .all(0),
+                    .child_gap = 0,
+                })({
+                    Static.FlexBox(.{
+                        .width = .percent(100),
+                        .margin = .all(0),
+                        .height = .px(100),
+                    })({
+                        Static.Svg(@embedFile("text.svg"), .{
+                            .display = .InlineBlock,
+                            .width = .px(270),
+                            .margin = .{ .right = 20 },
+                        });
+                        Static.Text("all-in-one", .{
+                            .display = .InlineBlock,
+                            .font_weight = 900,
+                            .font_size = 90,
+                            .margin = .all(0),
+                        });
+                    });
+                    Static.Text("app toolkit.", .{
+                        .display = .InlineBlock,
+                        .font_weight = 900,
+                        .font_size = 90,
+                        .margin = .all(0),
+                    });
                 });
                 Static.Block(.{
                     .margin = .all(10),

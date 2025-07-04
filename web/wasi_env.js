@@ -103,7 +103,6 @@ export const importObject = {
     fd_close: () => 0,
     fd_seek: () => 0,
     fd_read: () => {
-      console.log("fakjsdhflkajsdhflkajsdfh;laksfj");
     },
     environ_sizes_get: () => 0,
     environ_get: () => 0,
@@ -142,7 +141,6 @@ export const importObject = {
       const str = readWasmString(ptr, len);
       const style1 = readWasmString(stylePtr1, styleLen1);
       const style2 = readWasmString(stylePtr2, styleLen2);
-      console.log(str, style1, style2);
     },
 
     trackAlloc: () => {
@@ -198,9 +196,15 @@ export const importObject = {
         );
 
         const element = document.getElementById(elementId);
+        if (element === null) {
+          console.log("Is Null");
+          return;
+        }
+
         const event_type = new TextDecoder().decode(
           memory.subarray(ptr, ptr + len),
         );
+
         eventHandlers.set(`fb-inst-evt-hd-${id}-${elementId}`, (event) => {
           eventStorage[id] = event;
           wasmInstance.eventInstCallback(id);
@@ -225,6 +229,10 @@ export const importObject = {
         );
 
         const element = document.getElementById(elementId);
+        if (element === null) {
+          console.log("Is Null");
+          return;
+        }
         const event_type = new TextDecoder().decode(
           memory.subarray(ptr, ptr + len),
         );
@@ -837,28 +845,29 @@ export const importObject = {
       valuePtr,
       valueLen,
     ) => {
-      if (!wasmInstance) {
-        console.error("WASM instance not initialized");
-        return;
-      }
-      const memory = new Uint8Array(wasmInstance.memory.buffer);
-      const id = new TextDecoder().decode(
-        memory.subarray(idPtr, idPtr + idLen),
-      );
-      const attribute = new TextDecoder().decode(
-        memory.subarray(attributePtr, attributePtr + attributeLen),
-      );
-      const value = new TextDecoder().decode(
-        memory.subarray(valuePtr, valuePtr + valueLen),
-      );
-      const element = document.getElementById(id);
-      if (element === null) {
-        console.log("Is Null");
-        return;
-      }
+      requestAnimationFrame(() => {
+        if (!wasmInstance) {
+          console.error("WASM instance not initialized");
+          return;
+        }
+        const memory = new Uint8Array(wasmInstance.memory.buffer);
+        const id = new TextDecoder().decode(
+          memory.subarray(idPtr, idPtr + idLen),
+        );
+        const attribute = new TextDecoder().decode(
+          memory.subarray(attributePtr, attributePtr + attributeLen),
+        );
+        const value = new TextDecoder().decode(
+          memory.subarray(valuePtr, valuePtr + valueLen),
+        );
+        const element = document.getElementById(id);
+        if (element === null) {
+          console.log("Is Null");
+          return;
+        }
 
-      console.log(value, attribute);
-      element.style[attribute] = value;
+        element.style[attribute] = value;
+      });
     },
     mutateDomElementWasm: (idPtr, idLen, attributePtr, attributeLen, value) => {
       requestAnimationFrame(() => {
@@ -950,7 +959,6 @@ export const importObject = {
 
     navigateWASM: (pathPtr, pathLen) => {
       const path = readWasmString(pathPtr, pathLen);
-      console.log("This si the path", path);
       // We first mark all non layout nodes as dirty this way we can traverse and remove
       // we use the dirty flag to indicate for removal
       wasmInstance.markAllNonLayoutNodesDirty();
@@ -962,7 +970,6 @@ export const importObject = {
       // we push the state and renderCycle the new path
       // window.history.pushState({}, "", path);
       // we push the state and renderCycle the new path
-      console.log("Rerendering the new route");
       window.history.pushState({}, "", path);
       rerenderRoute(path === "/" ? "/root" : path);
 
@@ -978,7 +985,6 @@ export const importObject = {
       const endpoint = readWasmString(endpointPtr, endpointLen);
       const hookId = `${endpoint}-${id}`;
 
-      console.log(hookId);
       hooksHandlers.set(hookId, () => {
         wasmInstance.hookInstCallback(id);
       });

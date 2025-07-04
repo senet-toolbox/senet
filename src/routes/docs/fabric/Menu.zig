@@ -85,6 +85,7 @@ pub const menu_items: []const MenuItem = &.{
             },
         },
     },
+
     MenuItem{
         .title = "Basics",
         .link = "/docs/fabric/concepts/basics",
@@ -149,6 +150,19 @@ pub const menu_items: []const MenuItem = &.{
         .title = "Gotchas",
         .link = "/docs/fabric/concepts/gotchas",
         .icon = "bi bi-exclamation-triangle", // Warning triangle for gotchas/pitfalls
+    },
+    MenuItem{
+        .title = "Metal",
+        .link = "/docs/metal",
+        .icon = "bi bi-motherboard", // Graduation cap for learning basics
+        .tags = &.{
+            Tag{
+                .keywords = &.{ "metal", "docker" },
+                .sub_title = "No more Docker",
+                .url = "/docs/metal/#introduction",
+                .description = "Tether, and all its sub frameworks run on metal, no docker...",
+            },
+        },
     },
 };
 pub fn init() void {}
@@ -237,6 +251,7 @@ fn list() void {
             });
         });
     }
+
     Static.List(.{
         .list_style = .none,
         .display = .Flex,
@@ -272,6 +287,6 @@ fn list() void {
     });
 }
 
-pub fn render() void {
+pub fn render(_: void) void {
     list();
 }

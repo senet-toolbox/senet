@@ -45,4 +45,5 @@ pub const ElementType = enum(u8) {
     Code,
     Span,
     LazyImage,
+    Intersection,
 };

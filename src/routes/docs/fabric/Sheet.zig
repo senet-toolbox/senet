@@ -16,8 +16,8 @@ var styles: Styles = undefined;
 pub fn Sheet(comptime T: type, component: *const fn (T) void) type {
     return struct {
         const Self = @This();
-        var sheet_element: Element = undefined;
-        var sheet_backdrop_element: Element = undefined;
+        var sheet_element: Element = Element{};
+        var sheet_backdrop_element: Element = Element{};
         var offset_height: f32 = 0;
         var drag_listener: usize = 0;
         var drag_end_listener: usize = 0;
@@ -72,6 +72,11 @@ pub fn Sheet(comptime T: type, component: *const fn (T) void) type {
 
         fn mount() void {
             _ = sheet_backdrop_element.addListener(.click, close);
+            sheet_element.mutateStyle("transition", .{ .string = "transform 0.2s ease" });
+            const translation = Fabric.fmtln("translate3d({d}%, 0, 0)", .{-100});
+            sheet_element.mutateStyle("transform", .{ .string = translation });
+            const translation_backdrop = Fabric.fmtln("translate3d({d}%, 0, 0)", .{-100});
+            sheet_backdrop_element.mutateStyle("transform", .{ .string = translation_backdrop });
         }
 
         pub fn render(_: *Self, inst: T) void {
@@ -109,10 +114,10 @@ const Styles = struct {
         return .{
             .outer_container = Style{
                 .position = .{
-                    .type = .absolute,
-                    .bottom = .fixed(0),
-                    .left = .fixed(0),
-                    .top = .fixed(0),
+                    .type = .fixed,
+                    .bottom = .px(0),
+                    .left = .px(0),
+                    .top = .px(0),
                 },
                 .width = .percent(100),
                 .height = .percent(100),
@@ -125,16 +130,17 @@ const Styles = struct {
                 .direction = .column,
                 .position = .{
                     .type = .fixed,
-                    .bottom = .fixed(0),
-                    .left = .fixed(0),
-                    .top = .fixed(0),
+                    .bottom = .px(0),
+                    .left = .px(0),
+                    .top = .px(0),
                 },
-                .width = .percent(18),
+                .width = .clamp_percent(25, 600, 70),
                 .height = .percent(100),
                 .will_change = .transform,
                 .backface_visibility = "hidden",
                 .transform = .{ .type = .translateX, .percent = -100 },
                 .border_thickness = .{ .right = 1 },
+                .background = .hex("#ffffff"),
                 // .border_color = border_color,
                 // .background = primary,
                 .z_index = 1100,

@@ -123,68 +123,74 @@ pub fn render() void {
                 .text_color = .hex("#4a4a4a"),
             });
         });
-        Custom.LazyImage("/assets/client-server.webp", .{
-            .width = .percent(100),
-            .height = .percent(100),
+        Custom.Intersection(.{})({
+            Static.Image("/assets/client-server.webp", .{
+                .width = .percent(100),
+                .height = .percent(100),
+            });
         });
     });
     // Virtual DOM Section
-    Static.FlexBox(.{
-        .child_alignment = .{ .x = .start, .y = .start },
-        .child_gap = 16,
-        .direction = .column,
-        .margin = .{ .bottom = 32 },
+    Custom.Intersection(.{
         .width = .percent(100),
     })({
-        Static.Text("Virtual DOM & Reconciliation", .{
-            .font_size = 32,
-            .font_weight = 600,
-            .text_color = .hex("#2a2a2a"),
-            .margin = .{ .bottom = 16 },
-        });
-
-        Static.Text("The rendering system uses a virtual DOM approach with the following features:", .{
-            .font_size = 18,
-            .text_color = .hex("#4a4a4a"),
-            .margin = .{ .bottom = 16 },
-        });
-
-        Static.List(.{
+        Static.FlexBox(.{
+            .child_alignment = .{ .x = .start, .y = .start },
+            .child_gap = 16,
             .direction = .column,
-            .child_gap = 12,
-            .padding = .{ .left = 16 },
-            .display = .Flex,
-            .child_alignment = .{ .y = .start, .x = .start },
-        })({
-            Static.ListItem(.{})({
-                Static.Text("Tree Construction: Builds a UI tree representation in memory", .{
-                    .font_size = 18,
-                    .text_color = .hex("#4a4a4a"),
-                });
-            });
-            Static.ListItem(.{})({
-                Static.Text("Dirty Tracking: Marks nodes that require updates", .{
-                    .font_size = 18,
-                    .text_color = .hex("#4a4a4a"),
-                });
-            });
-            Static.ListItem(.{})({
-                Static.Text("Diffing Algorithm: Compares current and new tree states", .{
-                    .font_size = 18,
-                    .text_color = .hex("#4a4a4a"),
-                });
-            });
-            Static.ListItem(.{})({
-                Static.Text("Selective Updates: Only updates nodes that have changed", .{
-                    .font_size = 18,
-                    .text_color = .hex("#4a4a4a"),
-                });
-            });
-        });
-        Static.Block(.{
+            .margin = .{ .bottom = 32 },
             .width = .percent(100),
         })({
-            code_editor.render(0);
+            Static.Text("Virtual DOM & Reconciliation", .{
+                .font_size = 32,
+                .font_weight = 600,
+                .text_color = .hex("#2a2a2a"),
+                .margin = .{ .bottom = 16 },
+            });
+
+            Static.Text("The rendering system uses a virtual DOM approach with the following features:", .{
+                .font_size = 18,
+                .text_color = .hex("#4a4a4a"),
+                .margin = .{ .bottom = 16 },
+            });
+
+            Static.List(.{
+                .direction = .column,
+                .child_gap = 12,
+                .padding = .{ .left = 16 },
+                .display = .Flex,
+                .child_alignment = .{ .y = .start, .x = .start },
+            })({
+                Static.ListItem(.{})({
+                    Static.Text("Tree Construction: Builds a UI tree representation in memory", .{
+                        .font_size = 18,
+                        .text_color = .hex("#4a4a4a"),
+                    });
+                });
+                Static.ListItem(.{})({
+                    Static.Text("Dirty Tracking: Marks nodes that require updates", .{
+                        .font_size = 18,
+                        .text_color = .hex("#4a4a4a"),
+                    });
+                });
+                Static.ListItem(.{})({
+                    Static.Text("Diffing Algorithm: Compares current and new tree states", .{
+                        .font_size = 18,
+                        .text_color = .hex("#4a4a4a"),
+                    });
+                });
+                Static.ListItem(.{})({
+                    Static.Text("Selective Updates: Only updates nodes that have changed", .{
+                        .font_size = 18,
+                        .text_color = .hex("#4a4a4a"),
+                    });
+                });
+            });
+            Custom.Intersection(.{
+                .width = .percent(100),
+            })({
+                code_editor.render(0);
+            });
         });
     });
 
@@ -274,7 +280,7 @@ pub fn render() void {
             .text_color = .hex("#4a4a4a"),
             .margin = .{ .bottom = 16 },
         });
-        Static.Block(.{
+        Custom.Intersection(.{
             .width = .percent(100),
             .margin = .{ .bottom = 16 },
         })({
@@ -296,7 +302,7 @@ pub fn render() void {
             .font_weight = 600,
             .margin = .{ .bottom = 16 },
         });
-        Static.Block(.{
+        Custom.Intersection(.{
             .width = .percent(100),
             .margin = .{ .bottom = 16 },
         })({
@@ -322,7 +328,12 @@ pub fn render() void {
             .text_color = .hex("#4a4a4a"),
             .margin = .{ .bottom = 16 },
         });
-        code_editor_global.render(0);
+        Custom.Intersection(.{
+            .width = .percent(100),
+            .margin = .{ .bottom = 16 },
+        })({
+            code_editor_global.render(0);
+        });
         Static.Text("Instance Components", .{
             .font_size = 32,
             .font_weight = 600,
@@ -333,7 +344,12 @@ pub fn render() void {
             .text_color = .hex("#4a4a4a"),
             .margin = .{ .bottom = 16 },
         });
-        code_editor_instance.render(0);
+        Custom.Intersection(.{
+            .width = .percent(100),
+            .margin = .{ .bottom = 16 },
+        })({
+            code_editor_instance.render(0);
+        });
         Static.Text("Comptime Components", .{
             .font_size = 32,
             .font_weight = 600,
@@ -344,6 +360,11 @@ pub fn render() void {
             .text_color = .hex("#4a4a4a"),
             .margin = .{ .bottom = 16 },
         });
-        code_editor_comptime.render(0);
+        Custom.Intersection(.{
+            .width = .percent(100),
+            .margin = .{ .bottom = 16 },
+        })({
+            code_editor_comptime.render(0);
+        });
     });
 }

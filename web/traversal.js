@@ -8,6 +8,7 @@ import {
   root,
   allocString,
   render,
+  removeInactiveNodes,
 } from "./wasi_obj.js";
 import {
   applyHoverClass,
@@ -66,6 +67,7 @@ const COMPONENT_TYPES = {
   CODE: 43,
   SPAN: 44,
   LAZY_IMAGE: 45,
+  INTERSECTION: 46,
 };
 
 // Store intervals by route for cleanup
@@ -268,7 +270,43 @@ function processInputElement(element, renderCmd) {
     });
   }
 }
+/* ───────── helpers ───────── */
+const isLayout = (el) => {
+  if (el && typeof el.id === "string" && el.id.includes("layout")) {
+    console.log(el);
+    return true;
+  }
+  return false;
+};
 
+/**
+ * Delete a subtree while preserving any descendant whose id contains "layout".
+ * 1. DFS through children.
+ * 2. If a child is (or contains) a layout root, move it out before deleting.
+ * 3. Finally delete the now-layout-free wrapper node itself.
+ */
+function stripNonLayout(el) {
+  if (!el) return;
+
+  // Visit children first so we can hoist them before we nuke their parent
+  for (const child of Array.from(el.children)) {
+    if (isLayout(child)) {
+      // -- keep it alive: re-parent one level up
+      el.parentNode.insertBefore(child, el);
+      continue; // do NOT recurse into a preserved island
+    }
+    stripNonLayout(child); // recurse into non-layout child
+  }
+
+  // Now `el` has no layout descendants => safe to delete everything remaining
+  domNodeRegistry.delete(el.id);
+  if (el.localName === "p" || el.localName === "svg") {
+    el.remove();
+  } else {
+    el.replaceWith(...Array.from(el.childNodes));
+  }
+  // el.remove(); // removes element + any text nodes inside
+}
 /**
  * Create a link element with route handling
  * @param {Object} renderCmd - The render command
@@ -296,11 +334,36 @@ function createLinkElement(renderCmd, tree_node, layout) {
 
     // We first mark all non layout nodes as dirty this way we can traverse and remove
     // we use the dirty flag to indicate for removal
-    wasmInstance.markAllNonLayoutNodesDirty();
+    const count = wasmInstance.markAllNonLayoutNodesDirty();
+    console.log(count);
+    // for (let i = 0; i < count; i++) {
+    //   const ptr = wasmInstance.getRemovedNode(i);
+    //   const len = wasmInstance.getRemovedNodeLength(i);
+    //
+    //   const id = readWasmString(ptr, len);
+    //   const node = domNodeRegistry.get(id);
+    //   const el = node.domNode;
+    //   domNodeRegistry.delete(id);
+    //   element.replaceWith(...Array.from(element.childNodes));
+    // }
 
+    /* ───────── main removal loop ───────── */
+    for (let i = 0; i < count; i++) {
+      const ptr = wasmInstance.getRemovedNode(i);
+      const len = wasmInstance.getRemovedNodeLength(i);
+      const id = readWasmString(ptr, len);
+
+      const rec = domNodeRegistry.get(id);
+      if (!rec) continue; // already gone
+
+      const el = rec.domNode;
+      if (isLayout(el)) continue; // never delete a layout root itself
+
+      stripNonLayout(el); // delete everything *except* layouts
+    }
     // we get the current tree pointer and traverse it to remove all the nodes that are not part of the layout
-    const current_tree = wasmInstance.getRenderTreePtr();
-    traverseRemove(root, current_tree, layout);
+    // const current_tree = wasmInstance.getRenderTreePtr();
+    // traverseRemove(root, current_tree, layout);
 
     // we push the state and renderCycle the new path
     window.history.pushState({}, "", clickedHref);
@@ -592,6 +655,10 @@ function createElementByType(renderCmd, tree_node, layout, parent) {
       element = document.createElement("img");
       element.setAttribute("src", renderCmd.href);
       element.setAttribute("loading", "lazy");
+      break;
+
+    case COMPONENT_TYPES.INTERSECTION:
+      element = document.createElement("div");
       break;
 
     case COMPONENT_TYPES.FLEXBOX:
@@ -914,7 +981,7 @@ export function traverse(parent, tree_node, layout) {
           if (renderCmd.hooks.mountedId > 0) {
             wasmInstance.ctxHooksMountedCallback(renderCmd.hooks.mountedId);
           }
-        } else {
+        } else if (renderCmd.elemType === COMPONENT_TYPES.HOOKS) {
           if (renderCmd.hooks.mountedId > 0) {
             wasmInstance.hooksMountedCallback(renderCmd.hooks.mountedId);
           }
@@ -951,10 +1018,12 @@ export function traverseRemove(parent, tree_node, layout) {
     const renderCmd = readRenderCommand(rndcmd_ptr, layout);
 
     if (renderCmd.isDirty) {
+      // console.log("flkajsdfl;kajflkjafj", renderCmd.id);
       const node = domNodeRegistry.get(renderCmd.id);
       const el = node.domNode;
       domNodeRegistry.delete(renderCmd.id);
-      el.remove();
+      // el.remove();
+      el.replaceWith(...Array.from(el.childNodes));
       wasmInstance.setDirtyToFalse(renderCmd.nodePtr);
     }
   }

@@ -430,6 +430,21 @@ async function init() {
     element.scrollIntoView();
   }
 
+  // Super simple lazy loading
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      if (entry.isIntersecting) {
+        // entry.target.classList.add("loaded");
+        observer.unobserve(entry.target);
+      }
+    });
+  });
+
+  // Find all elements with id="lazy" and observe them
+  document.querySelectorAll('[id*="Inte"]').forEach((element) => {
+    observer.observe(element);
+  });
+
   // if (state.initial_render) {
   //   state.initial_render = false;
   //   window.location.href = window.location.href;
