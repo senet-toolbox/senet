@@ -43,8 +43,8 @@ pub fn render() void {
 
         Custom.HtmlText(
             \\This is a website about how to <a href="https://thomasstep.com/blog/centering-a-div-with-tailwind-css">CENTER A DIV!!!!</a>
-            \\Are you kidding me, what is this! <strong>class="flex flex-row min-h-screen justify-center items-center"</strong>. NONE of those words
-            \\make any sense? Why can't we just do <strong>style="center"</strong>. I have found that in the few years of working in Web development.
+            \\This is the result... <strong>class="flex flex-row min-h-screen justify-center items-center"</strong>.
+            \\The question is then, why can't we just do <strong>style="center"</strong>. I have found that in the few years of working in Web development.
             \\Styling has caused an enormity of abstraction layers, and more so pushed developers completely away from the Frontend.
         , .{
             .font_size = 18,
@@ -57,7 +57,7 @@ pub fn render() void {
             \\To center any element in Fabric, just write <code>display = .Center</code>, or <code>child_alignment = .center</code>, Fabric 
             \\even exposes it own Center Component type, Center(Style) Component, which will Center any child elements within it.
             \\No more <strong>justify-content</strong>, or <strong>align-items</strong>, or <strong>text-align</strong>, ect... only <code>.x = .start</code>, or 
-            \\<code>.y = .center</code>, these are also direction independent, adding <code>direction = .row</code>
+            \\<code>.y = .center</code> or <code>.child_alignement = .topLeft</code>, these are also direction independent, adding <code>direction = .row</code>
             \\or <code>direction = .column</code>, will still layout elements in y and x axis, correctly, unlike justify-content, and align-items.
         , .{
             .font_size = 18,

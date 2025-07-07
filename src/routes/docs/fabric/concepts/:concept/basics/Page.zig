@@ -36,17 +36,40 @@ pub fn render() void {
         .child_alignment = .{ .x = .start, .y = .start },
         .child_gap = 8,
         .direction = .column,
-        .margin = .{ .bottom = 32 },
     })({
         Static.Text("Basics", .{
             .font_size = 42,
             .font_weight = 700,
             .text_color = .hex("#1a1a1a"),
         });
-        Static.Text("The root entry point for your Fabric application", .{
-            .font_size = 18,
+        Static.Text("The main.zig file is the root entry point for your Fabric application", .{
+            .font_size = 22,
             .text_color = .hex("#666666"),
-            .margin = .{ .top = 8 },
+        });
+    });
+    Static.Text(
+    \\Fabric is compiled into wasm, and a small event-loop server handles the request, response connection with the client.
+    \\Once fabric.wasm is loaded on to the client browser, then we generate the dom. This is known as Client side Rendering.
+    , .{
+        .font_size = 18,
+    });
+    Custom.PreImage("/assets/client-server.webp", .{
+        .width = .percent(100),
+        .height = .percent(100),
+    });
+    Static.Column(.{
+        .width = .percent(100),
+    })({
+        Static.Text("main.zig", .{
+            .font_size = 32,
+            .font_weight = 600,
+            .text_color = .hex("#2a2a2a"),
+            .margin = .{ .bottom = 16 },
+        });
+        Custom.Intersection(.{
+            .width = .percent(100),
+        })({
+            code_editor.render(0);
         });
     });
 
@@ -123,12 +146,6 @@ pub fn render() void {
                 .text_color = .hex("#4a4a4a"),
             });
         });
-        Custom.Intersection(.{})({
-            Static.Image("/assets/client-server.webp", .{
-                .width = .percent(100),
-                .height = .percent(100),
-            });
-        });
     });
     // Virtual DOM Section
     Custom.Intersection(.{
@@ -185,11 +202,6 @@ pub fn render() void {
                         .text_color = .hex("#4a4a4a"),
                     });
                 });
-            });
-            Custom.Intersection(.{
-                .width = .percent(100),
-            })({
-                code_editor.render(0);
             });
         });
     });

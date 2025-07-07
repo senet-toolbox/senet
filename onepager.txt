@@ -1,0 +1,105 @@
+Tether is a toolkit that works as a complete framework out of the box yet remains fully modular and adaptable to your exact needs.
+Tether is composed of Fabric, Reverb, and Treehouse; The ultimate goal of Tether is too consolidate the fragemented world of application
+development. The constant churn of npm dependency hell, new framework, and changes to old framework which install code bugs, and forced 
+refactors, has lead to the undeniably burn out and lack of ambition to even attempt new ideas.
+
+Tether was was designed from the ground up, and ships zero dependencies. It is modular, meaning Fabric, Reverb, and Treehouse work
+independently of one another. Moreover, while shipping zero dependencies, modules such as JS and C or C++ or event Objc can be used inside
+Tether.
+
+Everything is exposed. Tether has the purpose of being and unopinionated and exposed explicit toolkit. Renderers can be adapted or
+completely swapped out, as well as the reconcilers, or embedded Auth packages. Every api is exposed for developers to handle. This also
+means that Tether is legacy immune, The days of React choosing Class components one week and Function Components the next, is no more.
+Tether does not transpile, or include a runtime, hence it can be run on bare metal architectures, no need for docker if you don't want it.
+
+Okay but what is Fabric, Reverb, and Treehouse.
+
+Fabric:
+Fabric is a frontend WASM Framework which uses zig to build and contrustuct UI's without the need to touch or write HTML, JS, or CSS.
+Fabric comes with its own Styling system, and Components. 
+
+Fabric has taken a completely new approach. To center any element in Fabric, just write display = .Center, or child_alignment = .center, 
+Fabric even exposes it own Center Component type, Center(Style) Component, which will Center any child elements within it.
+No more justify-content, or align-items, or text-align, ect... only .x = .start, or .y = .center or .child_alignement = .topLeft, 
+these are also direction independent, adding direction = .row or direction = .column, will still layout elements in y and x axis, 
+correctly, unlike justify-content, and align-items.
+
+But when need be, you can deep dive into Fabric Styling system and granularly use it, just like CSS, but without all the strange unintuitive
+naming conventions.
+
+Reactivity in Fabric can be defined by 3 component types Static, Pure, and Grain. While many frameworks have taken the approach that state should be
+described by functions useState, $state, or createSignal() which return variables that define which parts of the UI will change. 
+Fabric's approach is to go from UI to code instead. What this means is, that the UI description itself defines how state is updated. 
+Instead of useState() being plastered everywhere. Just changing the Component type from Static to Pure, will tell Fabric to update this 
+component if the UI changes.
+
+Any component marked with Pure, Dynamic, or Grain will rerender if any of their props change. This means, that if you were to create a 
+counter { var count = 0; }, and then increment the count { count += 1 }, and then call Fabric.cycle() anywhere in your 
+codebase the new count will be displayed to the screen. However, if you were to use Static, then this Component will render the 
+count once, and never again.
+
+Fabric exposes Signal(comptime T: type), which means if we want to use the modern day approach to State management we can.
+
+Includes
+- Opaque UI Components library of 120 components
+- State management
+- Animation Library
+- Integration apis with Tether
+- Wasm bridge
+- just 2000 lines of html and js which can be customized, used as wasm bridge for fabric
+- Agnostic interface for integrating custom components into fabric
+- Fetch callback system, no async function coloring 
+- Kit (a uitls lib, for parsing, searching...)
+- Cli for generating boilerplate (fabric gen select, fabric gen base, ...)
+- Memory tracker, every alloc is tracked
+- Hot reloading
+- error logging,
+- high performance rendering,
+- Compiles to web
+
+Reverb:
+Reverb is the web server framework for Tether, to keep it simple, reverb is inspired by golang Fiber, and Echo. Yet, is built for extreme 
+performance. Gnet is a eventloop, that it, and Reverb is on par, with Gnet, while handling HTTP parsing and requests response, as well as,
+dynamic routes, ect...
+
+Includes
+- Middleware
+- Orm, connect to pgsql or sqllite
+- Websockets
+- OAuth lib, Google, Apple, Microsoft, Github...
+- Dynamic routes
+- High performance, currently onpar with gnet
+- Scheduler library (atomic lock free thread pool, stack swapping async...)
+- Builtin tooling for parsing and searching, utilizing SIMD
+- Treehouse integration
+- Cli for generating boilerplate (tether gen crud...)
+- Custom SIMD http parser to outperform the rest
+- Error tracking and logger
+- Memory tracker, every alloc is tracked
+- Loom engine (event loop)
+- Hot reloading
+
+
+Treehouse:
+Treehouse is like if Redis and Postgres's Table system had a child. The point of Treehouse is too combine the speed and caching capabilities
+of Redis, due to the idealogoy of Hot key's being more accesible than cold ones. But also giving you the ability to create complex
+datastructures via tables' like Postgres. This means that Tables which are frequently requested by the server, are kept in a Hot path, automatically.
+No more need to for defining which data you want to store in your cache. But if need be we can split and create two Treehouse instances, one for caching
+and one for Storage. Or forget Treehouse for storage, and just use it as a drop in replacement for Redis. It uses the same RESP command system.
+
+Includes
+- High performance, on par with redis 
+- Scheduler library (atomic lock free thread pool, stack swapping async...)
+- Builtin tooling for parsing and searching, utilizing SIMD
+- Error tracking and logger
+- Memory tracker, every alloc is tracked
+- Snapshotting
+- Replication
+- Multithreading
+- Cache crash safety
+- Cluster management
+- Direct storage and parsing of JSON, akin to Mongodb
+- Tree data structure, inspired by pgsql
+- Start up allocated memory, no dynamic growing items
+- Backups and rollback
+- RESP3 Protocol

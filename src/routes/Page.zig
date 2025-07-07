@@ -101,7 +101,7 @@ pub fn render() void {
                 })({
                     Static.Text(description_1, .{
                         .display = .Inline,
-                        .font_weight = 500,
+                        .font_weight = 300,
                         .font_size = 20,
                         .opacity = 0.7,
                     });
@@ -113,7 +113,7 @@ pub fn render() void {
                     });
                     Static.Text(description_3, .{
                         .display = .Inline,
-                        .font_weight = 500,
+                        .font_weight = 300,
                         .font_size = 20,
                         .opacity = 0.7,
                     });
@@ -125,12 +125,12 @@ pub fn render() void {
                     });
                     Static.Text(description_5, .{
                         .display = .Inline,
-                        .font_weight = 500,
+                        .font_weight = 300,
                         .font_size = 20,
                         .opacity = 0.7,
                     });
                     Static.Text("", .{
-                        .font_weight = 500,
+                        .font_weight = 300,
                         .font_size = 20,
                         .opacity = 0.7,
                         .margin = .{ .top = 12 },
@@ -143,7 +143,7 @@ pub fn render() void {
                     });
                     Static.Text(description_7, .{
                         .display = .Inline,
-                        .font_weight = 500,
+                        .font_weight = 300,
                         .font_size = 20,
                         .opacity = 0.7,
                     });
@@ -198,7 +198,6 @@ pub fn render() void {
                         .text_decoration = .none,
                     })({
                         Static.Text("Download", .{
-                            .font_family = "Montserrat",
                             .font_weight = 300,
                             .font_size = 18,
                             .text_color = .hex("#262626"),
@@ -217,10 +216,39 @@ pub fn render() void {
             .child_alignment = .center,
         })({
             if (Fabric.isMobile()) {
-                Static.Image("/assets/Logo.svg", .{
-                    .width = .percent(70),
-                    .display = .Center,
-                    .margin = .{ .top = 80 },
+                Static.Column(.{
+                    .child_alignment = .center,
+                    .margin = .{ .top = 20, .bottom = 40 },
+                    .child_gap = 48,
+                    .width = .percent(100),
+                })({
+                    Static.Center(.{
+                        .child_gap = 12,
+                        .width = .percent(45),
+                        .height = .px(48),
+                        .border_radius = .all(99),
+                        .border_thickness = .all(1),
+                        .border_color = .hex("#EBEBEB"),
+                    })({
+                        // Static.Text("Tether v1.0", .{
+                        //     .font_size = 20,
+                        // });
+                        Static.Text("version 1.0.0", .{
+                            .font_size = 20,
+                            .gradient = &.{},
+                            .font_weight = 300,
+                        });
+                        Static.Icon("bi bi-arrow-right", .{
+                            .font_size = 20,
+                        });
+                    });
+                    Static.Svg(@embedFile("text.svg"), .{
+                        .width = .px(270),
+                    });
+                    // Static.Image("/assets/Logo.svg", .{
+                    //     .width = .percent(40),
+                    //     .display = .Center,
+                    // });
                 });
             } else {
                 Static.Image("/assets/Logo.svg", .{
@@ -234,52 +262,55 @@ pub fn render() void {
                     .padding = .horizontal(12),
                     .child_gap = 16,
                 })({
-                    Static.FlexBox(.{
-                        .child_gap = 32,
-                    })({
-                        Static.Link(.{ .url = "https://github.com/vic-Rokx/fabric", .aria_label = "redirect link to tether github repo" }, .{
-                            .text_decoration = .none,
-                            .height = .px(56),
-                            .width = .px(56),
-                            .border_thickness = .all(1),
-                            .border_color = .hex("#EFEFEF"),
-                            .border_radius = .all(8),
-                            .display = .Center,
-                        })({
-                            Static.Icon("bi bi-github", .{
-                                .font_size = 28,
-                                .text_color = .hex("#252525"),
-                            });
-                        });
-                        Static.Link(.{ .url = "https://github.com/vic-Rokx/fabric", .aria_label = "redirect link to discord" }, .{
-                            .text_decoration = .none,
-                            .height = .px(56),
-                            .width = .px(56),
-                            .border_thickness = .all(1),
-                            .border_radius = .all(8),
-                            .border_color = .hex("#EFEFEF"),
-                            .display = .Center,
-                        })({
-                            Static.Icon("bi bi-discord", .{
-                                .font_size = 28,
-                                .text_color = .hex("#252525"),
-                            });
-                        });
-                    });
+                    // Static.FlexBox(.{
+                    //     .child_gap = 32,
+                    // })({
+                    //     Static.Link(.{ .url = "https://github.com/vic-Rokx/fabric", .aria_label = "redirect link to tether github repo" }, .{
+                    //         .text_decoration = .none,
+                    //         .height = .px(56),
+                    //         .width = .px(56),
+                    //         .border_thickness = .all(1),
+                    //         .border_color = .hex("#EFEFEF"),
+                    //         .border_radius = .all(8),
+                    //         .display = .Center,
+                    //     })({
+                    //         Static.Icon("bi bi-github", .{
+                    //             .font_size = 28,
+                    //             .text_color = .hex("#252525"),
+                    //         });
+                    //     });
+                    //     Static.Link(.{ .url = "https://github.com/vic-Rokx/fabric", .aria_label = "redirect link to discord" }, .{
+                    //         .text_decoration = .none,
+                    //         .height = .px(56),
+                    //         .width = .px(56),
+                    //         .border_thickness = .all(1),
+                    //         .border_radius = .all(8),
+                    //         .border_color = .hex("#EFEFEF"),
+                    //         .display = .Center,
+                    //     })({
+                    //         Static.Icon("bi bi-discord", .{
+                    //             .font_size = 28,
+                    //             .text_color = .hex("#252525"),
+                    //         });
+                    //     });
+                    // });
 
                     Custom.HtmlText(
-                        \\Writing code should be more <strong style="color: #6439FF">cumbersome</strong> than <strong style="color: #6439FF">reading it!</strong>
+                        \\The <i>Toolkit</i> for Fullstack Applications
                     , .{
                         .display = .Center,
-                        .font_size = 32,
-                        .font_weight = 700,
+                        .font_size = 36,
+                        .font_weight = 900,
+                        .text_color = .hex("#202020"),
                     });
                     Custom.HtmlText(
-                        \\<strong style="color: #6439FF">Tether</strong> is a  
+                        \\<strong>Tether</strong> is a  
                         \\toolkit that works as a complete framework out of the box yet remains fully modular and adaptable to your exact needs.
                     , .{
                         .display = .Center,
                         .font_size = 20,
+                        .font_weight = 300,
+                        .text_color = .hex("#202020"),
                     });
                 });
                 if (Fabric.isMobile()) {
@@ -333,7 +364,6 @@ pub fn render() void {
                             .text_decoration = .none,
                         })({
                             Static.Text("Download", .{
-                                .font_family = "Montserrat",
                                 .font_weight = 300,
                                 .font_size = 18,
                                 .text_color = .hex("#262626"),

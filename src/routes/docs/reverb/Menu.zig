@@ -42,122 +42,122 @@ const MenuItem = struct {
 pub const menu_items: []const MenuItem = &.{
     MenuItem{
         .title = "Home",
-        .link = "/docs/fabric",
+        .link = "/docs/reverb",
         .icon = "bi bi-house", // Keep as is - perfect for home
         .tags = &.{
             Tag{
-                .keywords = &.{ "fabric home", "fabric", "docs", "home" },
-                .sub_title = "Fabric Docs",
-                .url = "/docs/fabric",
-                .description = "Fabric documentation...",
+                .keywords = &.{ "reverb home", "reverb", "docs", "home" },
+                .sub_title = "Reverb Docs",
+                .url = "/docs/reverb",
+                .description = "Reverb documentation...",
             },
         },
     },
     MenuItem{
         .title = "Just let me build!!!!",
-        .link = "/docs/fabric/concepts/justletmebuild",
+        .link = "/docs/reverb/concepts/justletmebuild",
         .icon = "bi bi-fire", // Keep as is - perfect for home
         .tags = &.{
             Tag{
-                .keywords = &.{ "started", "installation", "fabric", "immediate", "create app", "fabric create app" },
-                .sub_title = "Create an App",
-                .url = "/docs/fabric/concepts/justletmebuild/#create-command",
-                .description = "Use fabric to create and run an applic...",
+                .keywords = &.{ "started", "installation", "reverb", "immediate", "create server", "metal create server" },
+                .sub_title = "Create a Server",
+                .url = "/docs/reverb/concepts/justletmebuild/#create-command",
+                .description = "Use reverb to create and run an applic...",
             },
         },
     },
     MenuItem{
         .title = "Introduction",
-        .link = "/docs/fabric/concepts/introduction",
+        .link = "/docs/reverb/concepts/introduction",
         .icon = "bi bi-book", // Book icon for introductory content
         .tags = &.{
             Tag{
-                .keywords = &.{ "introduction", "installation", "fabric" },
-                .sub_title = "Install Fabric",
-                .url = "/docs/fabric/concepts/introduction/#curl-install",
-                .description = "Fabric curl command install, current only for MacOS...",
+                .keywords = &.{ "introduction", "installation", "reverb" },
+                .sub_title = "Install Reverb",
+                .url = "/docs/reverb/concepts/introduction/#curl-install",
+                .description = "Reverb curl command install, current only for MacOS...",
             },
             Tag{
-                .keywords = &.{ "introduction", "pros", "cons", "installation", "fabric" },
-                .sub_title = "Install Fabric",
-                .url = "/docs/fabric/concepts/introduction/#pros-cons",
-                .description = "Pros and cons of using Fabric, compared...",
+                .keywords = &.{ "introduction", "pros", "cons", "installation", "reverb" },
+                .sub_title = "Install Reverb",
+                .url = "/docs/reverb/concepts/introduction/#pros-cons",
+                .description = "Pros and cons of using Reverb, compared...",
             },
         },
     },
 
     MenuItem{
         .title = "Basics",
-        .link = "/docs/fabric/concepts/basics",
+        .link = "/docs/reverb/concepts/basics",
         .icon = "bi bi-mortarboard", // Graduation cap for learning basics
         .tags = &.{
             Tag{
-                .keywords = &.{ "basics", "learning", "fabric", "docs", "reconciler", "rendering" },
-                .sub_title = "Fabric Basics",
-                .url = "/docs/fabric/concepts/basics/#introduction",
-                .description = "Introduction to Fabric, and how to use it...",
-            },
-            Tag{
-                .keywords = &.{ "reconciler", "rendering", "rerender" },
-                .sub_title = "How rendering works",
-                .url = "/docs/fabric/concepts/basics/#reconciler",
-                .description = "How the reconciler and rendering of fabric wor...",
+                .keywords = &.{
+                    "basics",
+                    "learning",
+                    "reverb",
+                    "docs",
+                },
+                .sub_title = "Reverb Basics",
+                .url = "/docs/reverb/concepts/basics/#introduction",
+                .description = "Introduction to Reverb, and how to use it...",
             },
         },
     },
     MenuItem{
-        .title = "Project Structure",
-        .link = "/docs/fabric/concepts/project",
-        .icon = "bi bi-diagram-3",
-    },
-    MenuItem{
         .title = "Routing",
-        .link = "/docs/fabric/concepts/routing",
+        .link = "/docs/reverb/concepts/routing",
         .icon = "bi bi-signpost", // Signpost for navigation/routing
     },
     MenuItem{
-        .title = "Reactivity",
-        .link = "/docs/fabric/concepts/reactivity",
-        .icon = "bi bi-arrow-repeat", // Circular arrows for reactive updates
+        .title = "Context",
+        .link = "/docs/reverb/concepts/context",
+        .icon = "bi bi-lightbulb",
     },
     MenuItem{
-        .title = "Styling",
-        .link = "/docs/fabric/concepts/styling",
-        .icon = "bi bi-paint-bucket", // Circular arrows for reactive updates
+        .title = "Client",
+        .link = "/docs/reverb/concepts/client",
+        .icon = "bi bi-globe-americas",
+    },
+    MenuItem{
+        .title = "Middleware",
+        .link = "/docs/reverb/concepts/middleware",
+        .icon = "bi bi-activity",
+    },
+    MenuItem{
+        .title = "Memory Tracking",
+        .link = "/docs/reverb/concepts/memory",
+        .icon = "bi bi-memory",
+    },
+    MenuItem{
+        .title = "Project Structure",
+        .link = "/docs/reverb/concepts/project",
+        .icon = "bi bi-diagram-3",
+    },
+
+    MenuItem{
+        .title = "Loom Engine",
+        .link = "/docs/reverb/concepts/loom",
+        .icon = "bi bi-flower1", // Circular arrows for reactive updates
+    },
+    MenuItem{
+        .title = "Scehduler",
+        .link = "/docs/reverb/concepts/scheduler",
+        .icon = "bi bi-calendar-event", // Circular arrows for reactive updates
     },
     MenuItem{
         .title = "Kit",
-        .link = "/docs/fabric/concepts/kit",
+        .link = "/docs/reverb/concepts/kit",
         .icon = "bi bi-tools", // Tools icon for toolkit/kit
     },
     MenuItem{
-        .title = "Events & Handlers",
-        .link = "/docs/fabric/concepts/events",
-        .icon = "bi bi-cursor",
-    },
-    MenuItem{
-        .title = "Lifecycle Hooks",
-        .link = "/docs/fabric/concepts/hooks",
-        .icon = "bi bi-hourglass-split",
-    },
-    MenuItem{
-        .title = "JS Libs",
-        .link = "/docs/fabric/concepts/jslibs",
-        .icon = "bi bi-filetype-js", // Tools icon for toolkit/kit
-    },
-    MenuItem{
-        .title = "WASM Bridge",
-        .link = "/docs/fabric/concepts/bridge",
-        .icon = "bi bi-ethernet",
-    },
-    MenuItem{
         .title = "KeyStone",
-        .link = "/docs/fabric/concepts/keystone",
+        .link = "/docs/reverb/concepts/keystone",
         .icon = "bi bi-unlock",
     },
     MenuItem{
         .title = "Gotchas",
-        .link = "/docs/fabric/concepts/gotchas",
+        .link = "/docs/reverb/concepts/gotchas",
         .icon = "bi bi-exclamation-triangle", // Warning triangle for gotchas/pitfalls
     },
     MenuItem{

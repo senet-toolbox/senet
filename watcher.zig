@@ -219,6 +219,8 @@ const mimeTypes = .{
     .{ ".gif", "image/gif" },
     .{ ".svg", "image/svg+xml" },
     .{ ".txt", "text/html; charset=utf8" },
+    .{ ".woff", "font/woff" },
+    .{ ".woff2", "font/woff2" },
 };
 
 pub fn mimeForPath(path: []const u8) []const u8 {
@@ -248,6 +250,10 @@ pub fn openLocalFile(conn: std.net.Server.Connection, mime: []const u8, mimetype
         } else if (std.mem.indexOf(u8, mime, ".js") != null) {
             path = mime;
         } else if (std.mem.indexOf(u8, mime, ".txt") != null) {
+            path = mime;
+        } else if (std.mem.indexOf(u8, mime, ".woff") != null) {
+            path = mime;
+        } else if (std.mem.indexOf(u8, mime, ".woff2") != null) {
             path = mime;
         } else {
             path = "/index.html";

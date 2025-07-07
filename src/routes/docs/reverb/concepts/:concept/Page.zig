@@ -6,19 +6,19 @@ const Static = Fabric.Static;
 const Pure = Fabric.Pure;
 const Page = Fabric.Page;
 const Basics = @import("basics/Page.zig");
-const Introduction = @import("introduction/Page.zig");
-const Gotchas = @import("gotchas/Page.zig");
+// const Introduction = @import("introduction/Page.zig");
+// const Gotchas = @import("gotchas/Page.zig");
 const Routing = @import("routing/Page.zig");
-const Reactivity = @import("reactivity/Page.zig");
-const Kit = @import("kit/Page.zig");
-const Events = @import("events/Page.zig");
-const Project = @import("project/Page.zig");
-const JSLibs = @import("jslibs/Page.zig");
-const Bridge = @import("bridge/Page.zig");
+// const Reactivity = @import("reactivity/Page.zig");
+// const Kit = @import("kit/Page.zig");
+// const Events = @import("events/Page.zig");
+// const Project = @import("project/Page.zig");
+// const JSLibs = @import("jslibs/Page.zig");
+// const Bridge = @import("bridge/Page.zig");
 const Just = @import("justletmebuild/Page.zig");
-const Styling = @import("styling/Page.zig");
-const Hooks = @import("hooks/Page.zig");
-const KeyStone = @import("keystone/Page.zig");
+// const Styling = @import("styling/Page.zig");
+// const Hooks = @import("hooks/Page.zig");
+// const KeyStone = @import("keystone/Page.zig");
 const Menu = @import("../../Menu.zig");
 const Footer = @import("../../Footer.zig");
 const root = @import("../../../../../main.zig");
@@ -29,37 +29,37 @@ var sheet: Sheet(void, Menu.render) = undefined;
 const Routes = enum {
     basics,
     routing,
-    reactivity,
-    authentication,
-    introduction,
-    kit,
-    project,
-    gotchas,
-    events,
-    jslibs,
-    bridge,
+    // reactivity,
+    // authentication,
+    // introduction,
+    // kit,
+    // project,
+    // gotchas,
+    // events,
+    // jslibs,
+    // bridge,
     justletmebuild,
-    styling,
-    hooks,
-    keystone,
+    // styling,
+    // hooks,
+    // keystone,
 };
 
 // Initialization
 pub fn init() void {
     Basics.init();
-    Introduction.init();
+    // Introduction.init();
     Routing.init();
-    Reactivity.init();
-    Kit.init();
-    Gotchas.init();
-    JSLibs.init();
-    Events.init();
-    Bridge.init();
-    Project.init();
+    // Reactivity.init();
+    // Kit.init();
+    // Gotchas.init();
+    // JSLibs.init();
+    // Events.init();
+    // Bridge.init();
+    // Project.init();
     Just.init();
-    Styling.init();
-    Hooks.init();
-    KeyStone.init();
+    // Styling.init();
+    // Hooks.init();
+    // KeyStone.init();
     sheet.init(&Fabric.lib.allocator_global);
     Page(@src(), render, null, .{});
 }
@@ -76,43 +76,43 @@ fn getPage(path: []const u8) ?*const fn () void {
                 .routing => {
                     return Routing.render;
                 },
-                .reactivity => {
-                    return Reactivity.render;
-                },
-                .introduction => {
-                    return Introduction.render;
-                },
-                .project => {
-                    return Project.render;
-                },
-                .kit => {
-                    return Kit.render;
-                },
-                .styling => {
-                    return Styling.render;
-                },
-                .gotchas => {
-                    return Gotchas.render;
-                },
-                .events => {
-                    return Events.render;
-                },
-                .jslibs => {
-                    return JSLibs.render;
-                },
-                .bridge => {
-                    return Bridge.render;
-                },
+                // .reactivity => {
+                //     return Reactivity.render;
+                // },
+                // .introduction => {
+                //     return Introduction.render;
+                // },
+                // .project => {
+                //     return Project.render;
+                // },
+                // .kit => {
+                //     return Kit.render;
+                // },
+                // .styling => {
+                //     return Styling.render;
+                // },
+                // .gotchas => {
+                //     return Gotchas.render;
+                // },
+                // .events => {
+                //     return Events.render;
+                // },
+                // .jslibs => {
+                //     return JSLibs.render;
+                // },
+                // .bridge => {
+                //     return Bridge.render;
+                // },
                 .justletmebuild => {
                     return Just.render;
                 },
-                .hooks => {
-                    return Hooks.render;
-                },
-                .keystone => {
-                    return KeyStone.render;
-                },
-                else => return null,
+                // .hooks => {
+                //     return Hooks.render;
+                // },
+                // .keystone => {
+                //     return KeyStone.render;
+                // },
+                // else => return null,
             }
         }
     }
@@ -167,7 +167,7 @@ pub fn render() void {
                 });
             } else {
                 Fabric.Layout(.{
-                    .file = "/routes/docs/fabric/concepts/:concept",
+                    .file = "/routes/docs/reverb/concepts/:concept",
                     .module = "",
                     .column = 0,
                     .fn_name = "",

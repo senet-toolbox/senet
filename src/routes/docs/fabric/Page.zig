@@ -27,7 +27,7 @@ pub fn deinit() void {}
 
 // Render
 const description =
-    \\ Fabric is a universal tree renderer that takes styled component hierarchies and renders them natively across
+    \\Fabric is a universal tree renderer that takes styled component hierarchies and renders them natively across
     \\platforms—from web browsers to iOS and macOS apps. Unlike black-box solutions, Fabric gives you direct access to the 
     \\rendering pipeline, so you can customize and optimize the engine for your exact use case.
 ;
@@ -39,22 +39,21 @@ const Route = struct {
 
 const routes = [_]Route{
     .{ .title = "Introduction", .path = "/docs/fabric/concepts/introduction" },
-    .{ .title = "Fabric Basics", .path = "/docs/fabric/concepts/basics" },
+    .{ .title = "Basics", .path = "/docs/fabric/concepts/basics" },
+    .{ .title = "Project Structure", .path = "/docs/fabric/concepts/routing" },
     .{ .title = "Static, Pure, Dynamic, Grain", .path = "/docs/fabric/concepts/reactivity" },
     .{ .title = "Routing", .path = "/docs/fabric/concepts/routing" },
-    .{ .title = "Theme and Style", .path = "/docs/fabric/concepts/theme-and-style" },
-    .{ .title = "Reactivity & Signals", .path = "/docs/fabric/concepts/reactivity-signals" },
+    .{ .title = "Reactivity", .path = "/docs/fabric/concepts/reactivity-signals" },
     .{ .title = "Styling", .path = "/docs/fabric/concepts/styling" },
     .{ .title = "Kit", .path = "/docs/fabric/concepts/kit" },
-    .{ .title = "Icons and Svgs", .path = "/docs/fabric/concepts/icons-and-svgs" },
-    .{ .title = "Authentication", .path = "/docs/fabric/concepts/authentication" },
-    .{ .title = "Using JS Libraries", .path = "/docs/fabric/concepts/using-js-libraries" },
+    .{ .title = "Event Handlers", .path = "/docs/fabric/concepts/events" },
+    .{ .title = "LifeCycle Hooks", .path = "/docs/fabric/concepts/hooks" },
+    .{ .title = "Event Handlers", .path = "/docs/fabric/concepts/events" },
+    .{ .title = "Using JS Libraries", .path = "/docs/fabric/concepts/jslibs" },
     .{ .title = "Wasm Bridge", .path = "/docs/fabric/concepts/wasm-bridge" },
-    .{ .title = "Custom Components", .path = "/docs/fabric/concepts/custom-components" },
-    .{ .title = "Renderers & UI-Tree", .path = "/docs/fabric/concepts/renderers-ui-tree" },
-    .{ .title = "Building a UI Layout Algorithmn", .path = "/docs/fabric/concepts/building-ui-layout-algorithm" },
-    .{ .title = "Building a Reconciler", .path = "/docs/fabric/concepts/building-reconciler" },
-    .{ .title = "Building a Renderer", .path = "/docs/fabric/concepts/building-renderer" },
+    .{ .title = "KeyStone", .path = "/docs/fabric/concepts/keystone" },
+    .{ .title = "Gotchas", .path = "/docs/fabric/concepts/gotchas" },
+    .{ .title = "Metal", .path = "/docs/fabric/concepts/metal" },
 };
 
 var last_time: i64 = 0;
@@ -86,10 +85,12 @@ pub fn render() void {
         // Fabric.Layout(@src(), .{})({
         if (!Fabric.isMobile()) {
             Static.Block(.{
-                .position = .{ .type = .fixed, .top = .px(60) },
-                .width = .percent(12),
-                .margin = .{ .right = 32 },
+                .position = .{ .top = .px(0), .type = .fixed },
+                .width = .percent(14),
+                .margin = .{ .right = 32, .top = 60 },
+                .padding = .{ .bottom = 128 },
                 .z_index = 999,
+                .height = .percent(100),
             })({
                 Menu.render({});
             });
@@ -121,7 +122,7 @@ pub fn render() void {
                     });
                 });
             });
-       }
+        }
         Static.FlexBox(.{
             .height = .percent(100),
             .width = .percent(100),
@@ -134,22 +135,27 @@ pub fn render() void {
                 .direction = .column,
                 .child_alignment = .{ .x = .start, .y = .start },
             })({
-                Static.Text("Fabric", .{
-                    .font_size = 56,
-                    .font_weight = 700,
+                // Static.Text("Fabric", .{
+                //     .font_size = 64,
+                //     .font_family = "Mrs Sheppards",
+                // });
+                Static.Svg(@embedFile("fabric_text.svg"), .{
+                    .margin = .{ .top = 16 },
+                    .width = .percent(20),
                 });
-                Static.Text("An Exposed UI Toolkit", .{
-                    .font_size = 32,
-                    .font_weight = 700,
-                });
-                Static.Image("/assets/FabricKit.webp", .{
-                    .width = .percent(100),
-                    .height = .percent(100),
-                    .border_radius = .all(8),
-                    .margin = .{ .bottom = 32 },
-                });
+
+                // Static.Text("An Exposed UI Toolkit", .{
+                //     .font_size = 32,
+                //     .font_weight = 700,
+                // });
+                // Static.Image("/assets/FabricKit.webp", .{
+                //     .width = .percent(100),
+                //     .height = .percent(100),
+                //     .border_radius = .all(8),
+                //     .margin = .{ .bottom = 32 },
+                // });
                 Static.Text("What is Fabric?", .{
-                    .margin = .{ .top = 32 },
+                    // .margin = .{ .top = 32 },
                     .font_size = 32,
                     .font_weight = 700,
                 });
@@ -164,16 +170,45 @@ pub fn render() void {
                     .height = .fit,
                 });
                 Static.Text(
-                    \\Fabric has no runtime allocations, this means that instantiating and destroying components does not result in overhead
-                    \\of managing memory.
-                , .{
-                    .font_size = 18,
-                });
-                Static.Text(
                     \\Fabric should be treated and seen as a set of tools, which can be used to adapt the core framework, it's
                     \\purpose is to be unopinionated, and modular.
                 , .{
                     .font_size = 18,
+                });
+
+                Static.Text("Fabric is simple by nature", .{
+                    // .margin = .{ .top = 32 },
+                    .font_size = 32,
+                    .font_weight = 700,
+                });
+                Static.List(.{
+                    .direction = .column,
+                })({
+                    Static.ListItem(.{})({
+                        Static.Text("To rerender just call Fabric.cycle()", .{
+                            .font_size = 18,
+                        });
+                    });
+                    Static.ListItem(.{})({
+                        Static.Text("You can add any custom native HTML or embed directly into Fabric.", .{
+                            .font_size = 18,
+                        });
+                    });
+                    Static.ListItem(.{})({
+                        Static.Text("No runtime allocations", .{
+                            .font_size = 18,
+                        });
+                    });
+                    Static.ListItem(.{})({
+                        Static.Text("Minimal memory management", .{
+                            .font_size = 18,
+                        });
+                    });
+                    Static.ListItem(.{})({
+                        Static.Text("Native performance", .{
+                            .font_size = 18,
+                        });
+                    });
                 });
 
                 Static.Text("Opinions, Opinions, Opinions!", .{
@@ -208,6 +243,106 @@ pub fn render() void {
                     .font_size = 24,
                     .font_weight = 700,
                 });
+                Static.Text(
+                    \\This is a Zig function that creates a flexbox container element in what appears to be a UI framework.
+                , .{
+                    .font_size = 18,
+                });
+                Custom.HtmlText(
+                    \\<strong>Function Purpose:</strong>
+                    \\Creates a flexbox layout container with the provided styling and returns a closure function to 
+                    \\properly close/cleanup the element.
+                , .{
+                    .font_size = 18,
+                });
+
+                Static.List(.{
+                    .list_style = .decimal,
+                })({
+                    Static.ListItem(.{})({
+                        Custom.HtmlText(
+                            \\<strong>Takes a Style parameter</strong> - accepts styling configuration for the flexbox
+                        , .{
+                            .font_size = 18,
+                        });
+                    });
+                    Static.ListItem(.{})({
+                        Custom.HtmlText(
+                            \\<strong>Creates an ElementDecl</strong> struct with:
+                        , .{
+                            .font_size = 18,
+                        });
+                        Static.List(.{})({
+                            Static.ListItem(.{})({
+                                Static.Text(
+                                    \\The provided style
+                                , .{
+                                    .font_size = 18,
+                                });
+                            });
+                        });
+                        Static.List(.{})({
+                            Static.ListItem(.{})({
+                                Static.Text(
+                                    \\Static dynamic behavior (not dynamically updated)
+                                , .{
+                                    .font_size = 18,
+                                });
+                            });
+                        });
+                        Static.List(.{})({
+                            Static.ListItem(.{})({
+                                Static.Text(
+                                    \\FlexBox as the element type
+                                , .{
+                                    .font_size = 18,
+                                });
+                            });
+                        });
+                    });
+                    Static.ListItem(.{})({
+                        Custom.HtmlText(
+                            \\<strong>Lifecycle management</strong> - calls three lifecycle methods:
+                        , .{
+                            .font_size = 18,
+                        });
+                        Static.List(.{})({
+                            Static.ListItem(.{})({
+                                Static.Text(
+                                    \\LifeCycle.open() - initializes/opens the element
+                                , .{
+                                    .font_size = 18,
+                                });
+                            });
+                        });
+                        Static.List(.{})({
+                            Static.ListItem(.{})({
+                                Static.Text(
+                                    \\LifeCycle.configure() - applies configuration/styling
+                                , .{
+                                    .font_size = 18,
+                                });
+                            });
+                        });
+                        Static.List(.{})({
+                            Static.ListItem(.{})({
+                                Static.Text(
+                                    \\Returns LifeCycle.close - provides a function to close/cleanup the element
+                                , .{
+                                    .font_size = 18,
+                                });
+                            });
+                        });
+                    });
+                });
+                Custom.HtmlText(
+                    \\<strong>Usage pattern:</strong>
+                    \\This follows a common pattern where you'd call FlexBox(style) to create the container, 
+                    \\add child elements, then call the returned function to properly close the flexbox container. 
+                    \\The inline nature suggests it's designed for performance-critical UI code.
+                , .{
+                    .font_size = 18,
+                });
 
                 code_view_loc.render(0);
                 Static.Text("That's it!", .{
@@ -221,7 +356,6 @@ pub fn render() void {
                 , .{
                     .font_size = 18,
                 });
-
                 Static.Text("And since Fabric is a toolkit, not a framework...", .{
                     .font_size = 24,
                     .font_weight = 700,
@@ -251,8 +385,8 @@ pub fn render() void {
                     })({
                         Static.ListItem(.{})({
                             Static.Text(
-                                \\State management? Just one global boolean: 'global_rerender'. Set it to true and the UI updates.
-                                \\You could even create an interval that toggles global_rerender every tick and never worry about signals
+                                \\State management? Just one global boolean: 'global_rerender'. Run Fabric.cycle() and the UI updates.
+                                \\You could even create an interval that calls Fabric.cycle() every tick and never worry about signals
                                 \\or state management again.
                             , .{
                                 .font_size = 18,
@@ -277,16 +411,6 @@ pub fn render() void {
                     .font_size = 22,
                     .font_weight = 700,
                 });
-
-                // Static.FlexBox(.{})({
-                // Static.Image("/assets/before.png", .{
-                //     .width = .percent(50),
-                // });
-                // Static.Image("/assets/after.png", .{
-                //     .width = .percent(50),
-                // });
-                // });
-
                 Static.Text("Documentation", .{
                     .margin = .{ .top = 32 },
                     .font_size = 32,
@@ -296,7 +420,6 @@ pub fn render() void {
                     .font_size = 20,
                     .text_color = .hex("#666666"),
                 });
-
                 Static.Text("Fabric concepts:", .{
                     .font_size = 24,
                 });

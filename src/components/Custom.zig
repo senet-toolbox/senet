@@ -15,6 +15,29 @@ pub inline fn HtmlText(text: []const u8, style: Style) void {
     Fabric.LifeCycle.close({});
 }
 
+pub inline fn GradientText(text: []const u8, style: Style) void {
+    const elem_decl = Fabric.ElementDecl{
+        .dynamic = .static,
+        .elem_type = .TextGradient,
+        .text = text,
+        .style = style,
+    };
+    _ = Fabric.LifeCycle.open(elem_decl);
+    Fabric.LifeCycle.configure(elem_decl);
+    Fabric.LifeCycle.close({});
+}
+
+pub inline fn PreImage(link: []const u8, style: Style) void {
+    const elem_decl = Fabric.ElementDecl{
+        .href = link,
+        .elem_type = .PreImage,
+        .style = style,
+    };
+    _ = Fabric.LifeCycle.open(elem_decl);
+    Fabric.LifeCycle.configure(elem_decl);
+    Fabric.LifeCycle.close({});
+}
+
 pub inline fn LazyImage(link: []const u8, style: Style) void {
     const elem_decl = Fabric.ElementDecl{
         .href = link,
