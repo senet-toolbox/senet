@@ -33,18 +33,22 @@ const Url = struct {
     url: []const u8,
     title: []const u8,
 };
-const urls: [4]Url = .{
+const urls: [5]Url = .{
     .{
         .url = "/docs/fabric",
         .title = "Fabric",
     },
     .{
-        .url = "/docs/tether",
-        .title = "Tether",
+        .url = "/docs/reverb",
+        .title = "Reverb",
     },
     .{
         .url = "/docs/treehouse",
         .title = "Treehouse",
+    },
+    .{
+        .url = "/docs/metal",
+        .title = "Metal",
     },
     .{
         .url = "/about",
@@ -233,7 +237,6 @@ pub fn render() void {
                                 .text_color = .hex("#A2A2A2"),
                             });
                             Static.Text("Search...", .{
-                                .font_family = "Montserrat",
                                 .font_size = 16,
                                 .text_color = .hex("#A2A2A2"),
                             });
@@ -323,8 +326,8 @@ pub fn render() void {
             Static.FlexBox(.{
                 .child_alignment = .{ .x = .between, .y = .center },
                 .child_gap = 8,
-                .padding = .horizontal(12),
-                .height = .px(50),
+                .padding = .horizontal(16),
+                .height = .px(90),
                 .position = .{ .type = .fixed, .top = .px(0), .left = .percent(0), .right = .percent(0) },
                 .width = .percent(100),
                 .background = root.theme.getAttribute("background"),
@@ -335,8 +338,11 @@ pub fn render() void {
                         .height = .px(36),
                         .display = .Center,
                     })({
-                        // Static.Image("/assets/logonormal.svg", .{
-                        //     .width = .px(36),
+                        Static.Image("/assets/circlelogo.webp", .{
+                            .width = .px(48),
+                        });
+                        // Static.Svg(@embedFile("../routes/text.svg"), .{
+                        //     .width = .px(112),
                         // });
                     });
                 });
@@ -357,7 +363,7 @@ pub fn render() void {
             });
             if (menu) {
                 Static.Block(.{
-                    .position = .{ .type = .fixed, .top = .px(50), .left = .px(0) },
+                    .position = .{ .type = .fixed, .top = .px(90), .left = .px(0) },
                     .width = .percent(100),
                     .background = root.theme.getAttribute("background"),
                     .z_index = 999,

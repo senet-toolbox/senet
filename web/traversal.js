@@ -68,6 +68,8 @@ const COMPONENT_TYPES = {
   SPAN: 44,
   LAZY_IMAGE: 45,
   INTERSECTION: 46,
+  PRE_IMAGE: 47,
+  TEXT_GRADIENT: 48,
 };
 
 // Store intervals by route for cleanup
@@ -617,6 +619,15 @@ function createElementByType(renderCmd, tree_node, layout, parent) {
       element.textContent = renderCmd.text;
       break;
 
+    case COMPONENT_TYPES.TEXT_GRADIENT:
+      element = document.createElement("p");
+      element.style["background"] =
+        "-webkit-linear-gradient(45deg, #E04F67, #C72C4A, #4800FF)";
+      element.style["-webkit-background-clip"] = "text";
+      element.style["-webkit-text-fill-color"] = "transparent";
+      element.textContent = renderCmd.text;
+      break;
+
     case COMPONENT_TYPES.TEXT_AREA:
       element = document.createElement("textarea");
       element.textContent = renderCmd.text;
@@ -655,6 +666,12 @@ function createElementByType(renderCmd, tree_node, layout, parent) {
       element = document.createElement("img");
       element.setAttribute("src", renderCmd.href);
       element.setAttribute("loading", "lazy");
+      break;
+
+    case COMPONENT_TYPES.PRE_IMAGE:
+      element = document.createElement("img");
+      element.setAttribute("src", renderCmd.href);
+      element.setAttribute("fetchpriority", "high");
       break;
 
     case COMPONENT_TYPES.INTERSECTION:

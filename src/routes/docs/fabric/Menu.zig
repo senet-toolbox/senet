@@ -136,6 +136,11 @@ pub const menu_items: []const MenuItem = &.{
         .icon = "bi bi-cursor",
     },
     MenuItem{
+        .title = "Lifecycle Hooks",
+        .link = "/docs/fabric/concepts/hooks",
+        .icon = "bi bi-hourglass-split",
+    },
+    MenuItem{
         .title = "JS Libs",
         .link = "/docs/fabric/concepts/jslibs",
         .icon = "bi bi-filetype-js", // Tools icon for toolkit/kit
@@ -145,7 +150,11 @@ pub const menu_items: []const MenuItem = &.{
         .link = "/docs/fabric/concepts/bridge",
         .icon = "bi bi-ethernet",
     },
-
+    MenuItem{
+        .title = "KeyStone",
+        .link = "/docs/fabric/concepts/keystone",
+        .icon = "bi bi-unlock",
+    },
     MenuItem{
         .title = "Gotchas",
         .link = "/docs/fabric/concepts/gotchas",
@@ -251,7 +260,6 @@ fn list() void {
             });
         });
     }
-
     Static.List(.{
         .list_style = .none,
         .display = .Flex,
@@ -259,6 +267,9 @@ fn list() void {
         .padding = .{ .top = 16, .bottom = 16, .right = 8, .left = 8 },
         .child_gap = 16,
         .width = .percent(100),
+        .overflow_y = .scroll,
+        .height = .percent(100),
+        .show_scrollbar = false,
     })({
         for (menu_items) |item| {
             Static.ListItem(.{

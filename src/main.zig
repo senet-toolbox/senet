@@ -3,12 +3,14 @@ const fabric = @import("fabric");
 const RootPage = @import("routes/Page.zig");
 const ErrorPage = @import("routes/Error.zig");
 const FabricDocs = @import("routes/docs/fabric/Page.zig");
+const ReverbDocs = @import("routes/docs/reverb/Page.zig");
 const MetalDocs = @import("routes/docs/metal/Page.zig");
 const Docs = @import("routes/docs/Page.zig");
 const Download = @import("routes/download/Page.zig");
 const Huh = @import("routes/huh/Page.zig");
 const About = @import("routes/about/Page.zig");
 const Concepts = @import("routes/docs/fabric/concepts/:concept/Page.zig");
+const ReverbConcepts = @import("routes/docs/reverb/concepts/:concept/Page.zig");
 var fb: fabric.lib = undefined;
 const Theme = @import("Theme.zig");
 pub var theme: Theme = Theme{};
@@ -24,14 +26,16 @@ export fn instantiate(window_width: i32, window_height: i32) void {
         .allocator = &allocator,
     });
     RootPage.init();
-    ErrorPage.init();
-    Docs.init();
-    MetalDocs.init();
-    FabricDocs.init();
-    Concepts.init();
-    Download.init();
-    Huh.init();
-    About.init();
+    // ErrorPage.init();
+    // Docs.init();
+    // MetalDocs.init();
+    // FabricDocs.init();
+    ReverbDocs.init();
+    ReverbConcepts.init();
+    // Concepts.init();
+    // Download.init();
+    // Huh.init();
+    // About.init();
 }
 
 export fn renderUI(route_ptr: [*:0]u8) i32 {

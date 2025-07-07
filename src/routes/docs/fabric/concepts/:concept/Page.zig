@@ -17,6 +17,8 @@ const JSLibs = @import("jslibs/Page.zig");
 const Bridge = @import("bridge/Page.zig");
 const Just = @import("justletmebuild/Page.zig");
 const Styling = @import("styling/Page.zig");
+const Hooks = @import("hooks/Page.zig");
+const KeyStone = @import("keystone/Page.zig");
 const Menu = @import("../../Menu.zig");
 const Footer = @import("../../Footer.zig");
 const root = @import("../../../../../main.zig");
@@ -38,6 +40,8 @@ const Routes = enum {
     bridge,
     justletmebuild,
     styling,
+    hooks,
+    keystone,
 };
 
 // Initialization
@@ -54,6 +58,8 @@ pub fn init() void {
     Project.init();
     Just.init();
     Styling.init();
+    Hooks.init();
+    KeyStone.init();
     sheet.init(&Fabric.lib.allocator_global);
     Page(@src(), render, null, .{});
 }
@@ -99,6 +105,12 @@ fn getPage(path: []const u8) ?*const fn () void {
                 },
                 .justletmebuild => {
                     return Just.render;
+                },
+                .hooks => {
+                    return Hooks.render;
+                },
+                .keystone => {
+                    return KeyStone.render;
                 },
                 else => return null,
             }

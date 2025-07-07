@@ -7,6 +7,7 @@ const Pure = Fabric.Pure;
 const Page = Fabric.Page;
 const ViewCode = @import("../ViewCode.zig");
 const CodeEditor = @import("../CodeEditor.zig");
+const Custom = @import("../../../../../../components/Custom.zig");
 
 pub fn Txt(text: []const u8) void {
     Static.Text(text, .{
@@ -71,7 +72,7 @@ pub fn render() void {
     // Page Header
     Static.FlexBox(.{
         .child_alignment = .{ .x = .start, .y = .start },
-        .child_gap = 24,
+        .child_gap = 16,
         .direction = .column,
         .margin = .{ .bottom = 32 },
         .width = .percent(100),
@@ -82,71 +83,29 @@ pub fn render() void {
             .text_color = .hex("#1a1a1a"),
         });
         Static.Block(.{})({
-            Static.Text("Reactivity in Fabric is defined and used via ", .{
+            Custom.HtmlText(
+                \\Reactivity in Fabric can be defined by 3 component types 
+                \\<code style="border-radius: 4px; background: #802bff; padding: 4px; color: white;">
+                \\Static</code>, 
+                \\<code style="border-radius: 4px; background: #802bff; padding: 4px; color: white;">
+                \\Pure</code>, and
+                \\<code style="border-radius: 4px; background: #802bff; padding: 4px; color: white;">
+                \\Grain</code>. 
+            , .{
                 .display = .Inline,
                 .font_size = 18,
                 .text_color = .hex("#666666"),
             });
-
-            Static.Text("Static", .{
-                .display = .Inline,
-                .font_size = 16,
-                .background = .hex("#802bff"),
-                .text_color = .hex("#ffffff"),
-                .padding = .all(4),
-                .border_radius = .all(4),
-            });
-            Static.Text(", ", .{
+            Custom.HtmlText(
+                \\While many frameworks have taken the approach that state should be described by functions <code>useState, $state, or createSignal()</code>
+                \\which return variables that define which parts of the UI will change.
+                \\Fabric's approach is to go from UI to code instead. What this means is, that the UI description itself defines how 
+                \\state is updated. Instead of <code>useState()</code> being plastered everywhere. Just changing the Component type from
+                \\Static to Pure, will tell Fabric to update this component if the UI changes.
+            , .{
                 .display = .Inline,
                 .font_size = 18,
                 .text_color = .hex("#666666"),
-            });
-            Static.Text("Pure", .{
-                .display = .Inline,
-                .font_size = 16,
-                .background = .hex("#802bff"),
-                .text_color = .hex("#ffffff"),
-                .padding = .all(4),
-                .border_radius = .all(4),
-            });
-            Static.Text(", ", .{
-                .display = .Inline,
-                .font_size = 18,
-                .text_color = .hex("#666666"),
-            });
-            Static.Text("Dynamic", .{
-                .display = .Inline,
-                .font_size = 16,
-                .background = .hex("#802bff"),
-                .text_color = .hex("#ffffff"),
-                .padding = .all(4),
-                .border_radius = .all(4),
-            });
-            Static.Text(", and", .{
-                .display = .Inline,
-                .font_size = 18,
-                .text_color = .hex("#666666"),
-            });
-            Static.Text("Grain", .{
-                .display = .Inline,
-                .font_size = 16,
-                .background = .hex("#802bff"),
-                .text_color = .hex("#ffffff"),
-                .padding = .all(4),
-                .border_radius = .all(4),
-            });
-            Static.Text("Components, as well as ", .{
-                .display = .Inline,
-                .font_size = 18,
-                .text_color = .hex("#666666"),
-            });
-            Static.Text("Signals", .{
-                .display = .Inline,
-                .font_size = 16,
-                .background = .hex("#802bff"),
-                .text_color = .hex("#ffffff"),
-                .padding = .all(4),
-                .border_radius = .all(4),
             });
         });
     });
@@ -158,6 +117,29 @@ pub fn render() void {
             .width = .percent(70),
             .height = .percent(70),
         });
+    });
+    Static.Text("From UI to Code", .{
+        .font_size = 32,
+        .font_weight = 700,
+        .text_color = .hex("#1a1a1a"),
+    });
+    Custom.HtmlText(
+        \\Any component marked with Pure, Dynamic, or Grain will rerender if any of their props change. This means, that if you were to create
+        \\a counter <code>{ var count = 0; }</code>, and then increment the count <code>{ count += 1 }</code>, and then call <code>Fabric.cycle()</code> anywhere in your codebase
+        \\the new count will be displayed to the screen. However, if you were to use Static, then this Component will render the count once, and never again.
+    , .{
+        .font_size = 18,
+    });
+    Static.Svg(@embedFile("fabric_cycle.svg"), .{
+        .width = .percent(100),
+    });
+    Custom.HtmlText(
+        \\This is akin to how Svelte handled state in the past where everything marked as <code>let</code> was considered state. Fabric takes a similar 
+        \\approach, but gives you the Developer control of when the state should update. Fabric exposes <code>Signal(comptime T: type)</code> for greater granular control.
+        \\This means we get the best of both worlds. We can just call <code>Fabric.cycle()</code>, and Fabric will handle what state to update, but if we have a large file, or codebase. We can 
+        \\use Signals to be explicit about how our state is handled.
+    , .{
+        .font_size = 18,
     });
     Static.Text("Static, Pure, Dynamic, Grain", .{
         .font_size = 32,
@@ -205,7 +187,7 @@ pub fn render() void {
         });
         Static.Text("Pure", .{
             .display = .Inline,
-            .font_size = 16,
+            .font_size = 18,
             .background = .hex("#802bff"),
             .text_color = .hex("#ffffff"),
             .padding = .all(4),
@@ -213,12 +195,12 @@ pub fn render() void {
         });
         Static.Text(" or ", .{
             .display = .Inline,
-            .font_size = 20,
+            .font_size = 18,
         });
         //
         Static.Text("Dynamic", .{
             .display = .Inline,
-            .font_size = 16,
+            .font_size = 18,
             .background = .hex("#802bff"),
             .text_color = .hex("#ffffff"),
             .padding = .all(4),
@@ -226,7 +208,7 @@ pub fn render() void {
         });
         Static.Text(" components through simple lookups, making the codebase more navigable and maintainable.", .{
             .display = .Inline,
-            .font_size = 20,
+            .font_size = 18,
         });
     });
 
@@ -241,22 +223,22 @@ pub fn render() void {
     Txt("This software architecture, becomes even more powerful, when creating your own Style Components Library.");
     Txt("These patterns are used for the Generic button component in Opaque Components Library.");
 
-    Static.Text("Static Components", .{
+    Custom.HtmlText("<strong>Static Components</strong>", .{
         .font_size = 24,
         .font_weight = 600,
         .text_color = .hex("#1a1a1a"),
     });
-    Txt("Static Components are instantiated and rendered once, thus if there props change or styling or anything else, they will not rerender. However, using the force_all_rerender global variable, will cause the Static Components and all other components to rerender.");
-    Txt("Static components are best used for Text or FlexBoxes, or components which are mainly used for layout or static content such as Headers or documentation.");
+    Txt("Static Components are instantiated and rendered once, thus if their props, styling or anything else changes, they will not be rerendered. However, using the force_all_rerender global variable, will cause the Static Components and all other components to rerender.");
+    Txt("Static components are best used for Text, Boxes, or components which are mainly used for layout or static content such as Headers or documentation.");
 
-    Static.Text("Pure Components", .{
+    Custom.HtmlText("<strong>Pure Components</strong>", .{
         .font_size = 24,
         .font_weight = 600,
         .text_color = .hex("#1a1a1a"),
     });
-    Txt("Pure components work just like static components, except during reconciliation there props are checked, between both trees, thus if any of their fields or props, or arguments have changed they will rerender.");
+    Txt("Pure components work just like Static components, except during reconciliation there props are checked, between both trees, thus if any of their fields or props, or arguments have changed they will rerender.");
 
-    Static.Text("Dynamic Components", .{
+    Custom.HtmlText("<strong>Dynamic Components</strong>", .{
         .font_size = 24,
         .font_weight = 600,
         .text_color = .hex("#1a1a1a"),
@@ -282,9 +264,7 @@ pub fn render() void {
         .font_weight = 600,
         .text_color = .hex("#1a1a1a"),
     });
-
     Txt("Signals are used to update the UI nodes in your UI tree.");
-
     Static.Text("Signal(comptime T: type)", .{
         .font_size = 18,
         .font_weight = 600,

@@ -46,4 +46,6 @@ pub const ElementType = enum(u8) {
     Span,
     LazyImage,
     Intersection,
+    PreImage,
+    TextGradient,
 };

@@ -84,7 +84,6 @@ pub fn render() void {
             .border_thickness = .all(1),
             .padding = .all(12),
             .width = .percent(100),
-            .height = .px(64),
         })({
             Static.Text("curl -sSL https://raw.githubusercontent.com/vic-Rokx/fabric-cli/main/install.sh | bash", .{
                 .font_size = 16,
@@ -104,9 +103,7 @@ pub fn render() void {
     })({
         code_editor.render(0);
     });
-    Static.Block(.{
-        .padding = .{ .left = 32 },
-    })({
+    Static.List(.{})({
         Static.ListItem(.{})({
             Static.Text(
                 \\[]const u8 is just a string, ie an array '[]' of constant bytes 'u8' a u8, so 'c' = u8, or 'v' = u8, and 

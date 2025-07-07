@@ -78,7 +78,6 @@ pub fn render() void {
                             .height = .px(60),
                             .padding = .{ .top = 4, .bottom = 4, .left = 8, .right = 8 },
                             .background = .transparent,
-                            .font_family = "Montserrat",
                             .font_size = 18,
                             .outline = .none,
                             .border_thickness = .all(0),

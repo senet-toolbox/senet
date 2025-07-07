@@ -169,8 +169,6 @@ async function loadWasiModule() {
         }
       }
 
-      // Use exported functions
-
       moduleCache.set(pathname, exports);
       moduleRoutes.add(pathname);
       wasmInstance = exports;
@@ -240,11 +238,11 @@ export const allocString = (string) => {
 
 export let root;
 async function init() {
-  if ("serviceWorker" in navigator) {
-    navigator.serviceWorker
-      .register("/sw.js")
-      .catch((error) => console.log("SW registration failed"));
-  }
+  // if ("serviceWorker" in navigator) {
+  //   navigator.serviceWorker
+  //     .register("/sw.js")
+  //     .catch((error) => console.log("SW registration failed"));
+  // }
 
   root = document.getElementById("contents");
 
