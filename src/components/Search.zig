@@ -34,18 +34,19 @@ pub fn render() void {
                 .height = .percent(100),
                 .width = .percent(100),
                 .direction = .row,
+                .z_index = 999,
             })({
                 Binded.FlexBox(&background, .{
                     .position = .{
                         .type = .fixed,
                         .top = .percent(0),
+                        .right = .px(0),
+                        .left = .px(0),
+                        .bottom = .px(0),
                     },
-                    .height = .percent(100),
-                    .width = .percent(100),
                     .background = .transparentizeHex("#000000", 100),
                 })({});
                 Static.FlexBox(.{
-                    .z_index = 1100,
                     .height = .percent(80),
                     .width = .clamp_percent(36, 700, 90),
                     .background = .hex("#F5F5F5"),
@@ -55,6 +56,7 @@ pub fn render() void {
                     .overflow_y = .scroll,
                     .child_gap = 8,
                     .border_radius = .all(8),
+                    .z_index = 1100,
                 })({
                     Static.FlexBox(.{
                         .width = .percent(100),
