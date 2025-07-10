@@ -38,21 +38,23 @@ pub fn render() void {
         });
         Static.Text(
             \\Routing refers to the process of determining which route to handle a request.
-            \\Routes are defined using the addRoute function, which takes a path, method, handler function, and optional middleware functions.
+            \\Routes are defined using the get, post, ect... functions, which takes a path, handler function, and optional slice of middleware functions.
         , .{
             .font_size = 22,
             .text_color = .hex("#666666"),
         });
     });
-    Static.Text(
-        \\Reverb uses a single threaded event-loop known as Loom underneath the hood. Loom handles the reading and writing to 
-        \\and from the client.
-    , .{
-        .font_size = 18,
-    });
-    Custom.PreImage("/assets/reverb_basics.webp", .{
+    Static.Box(.{
         .width = .percent(100),
         .height = .percent(100),
+        .border_radius = .all(8),
+        .background = .hex("#282a36"),
+        .padding = .all(12),
+        .margin = .{ .bottom = 32 },
+    })({
+        Custom.HtmlText(
+            \\<code>server.get("/users", getUsers, &.{})</code>
+        , .{ .text_color = .hex("#ffffff") });
     });
     Static.Column(.{
         .width = .percent(100),
@@ -77,9 +79,97 @@ pub fn render() void {
             , .{ .font_size = 18 });
         });
     });
-        Custom.Intersection(.{
-            .width = .percent(100),
-        })({
-            simple_route.render(0);
-        });
+    Custom.Intersection(.{
+        .width = .percent(100),
+    })({
+        simple_route.render(0);
+    });
+    Static.Text("Dynamic Routing", .{
+        .font_size = 32,
+        .font_weight = 700,
+        .text_color = .hex("#1a1a1a"),
+    });
+    Static.Text(
+        \\Dynamic routing is a feature of Reverb that allows you to define routes that can be parameterized.
+        \\This means that you can define routes that can take parameters, and then use those parameters to determine which route to handle the request.
+    , .{
+        .font_size = 18,
+    });
+    Static.Box(.{
+        .width = .percent(100),
+        .height = .percent(100),
+        .border_radius = .all(8),
+        .background = .hex("#282a36"),
+        .padding = .all(12),
+    })({
+        Custom.HtmlText(
+            \\<code>server.get("/users/:id", getUsers, &.{})</code>
+        , .{ .text_color = .hex("#ffffff") });
+    });
+    Static.Box(.{
+        .width = .percent(100),
+        .height = .percent(100),
+        .border_radius = .all(8),
+        .background = .hex("#282a36"),
+        .padding = .all(12),
+    })({
+        Custom.HtmlText(
+            \\<code>server.get("/users/:id/:name", getUsers, &.{})</code>
+        , .{ .text_color = .hex("#ffffff") });
+    });
+    Static.Text(
+        \\It should be noted that dynamic routes are independent of the name given, ie the two following dynamic routes will both match to the same route, ie the second will overide the former.
+    , .{
+        .font_size = 18,
+    });
+    Static.Box(.{
+        .width = .percent(100),
+        .height = .percent(100),
+        .border_radius = .all(8),
+        .background = .hex("#282a36"),
+        .padding = .all(12),
+    })({
+        Custom.HtmlText(
+            \\<code>server.get("/users/:name", getUsersByName, &.{})</code>
+        , .{ .text_color = .hex("#ffffff") });
+    });
+    Static.Box(.{
+        .width = .percent(100),
+        .height = .percent(100),
+        .border_radius = .all(8),
+        .background = .hex("#282a36"),
+        .padding = .all(12),
+    })({
+        Custom.HtmlText(
+            \\<code>server.get("/users/:id", getUsersById, &.{})</code>
+        , .{ .text_color = .hex("#ffffff") });
+    });
+    Static.Text(
+        \\To solve this issue, use named routes, or within the route handler handle different cases of params passed in.
+    , .{
+        .font_size = 18,
+    });
+    Static.Box(.{
+        .width = .percent(100),
+        .height = .percent(100),
+        .border_radius = .all(8),
+        .background = .hex("#282a36"),
+        .padding = .all(12),
+    })({
+        Custom.HtmlText(
+            \\<code>server.get("/usersbyname", getUsersByName, &.{})</code>
+        , .{ .text_color = .hex("#ffffff") });
+    });
+    Static.Box(.{
+        .width = .percent(100),
+        .height = .percent(100),
+        .border_radius = .all(8),
+        .background = .hex("#282a36"),
+        .padding = .all(12),
+    })({
+        Custom.HtmlText(
+            \\<code>server.get("/usersbyid", getUsersById, &.{})</code>
+        , .{ .text_color = .hex("#ffffff") });
+    });
+ 
 }

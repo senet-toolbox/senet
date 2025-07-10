@@ -161,6 +161,12 @@ pub const menu_items: []const MenuItem = &.{
         .icon = "bi bi-exclamation-triangle", // Warning triangle for gotchas/pitfalls
     },
     MenuItem{
+        .title = "Tutorials",
+        .link = "/docs/fabric/concepts/tutorials",
+        .icon = "bi bi-award",
+    },
+ 
+    MenuItem{
         .title = "Metal",
         .link = "/docs/metal",
         .icon = "bi bi-motherboard", // Graduation cap for learning basics

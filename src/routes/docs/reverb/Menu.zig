@@ -115,11 +115,6 @@ pub const menu_items: []const MenuItem = &.{
         .icon = "bi bi-lightbulb",
     },
     MenuItem{
-        .title = "Client",
-        .link = "/docs/reverb/concepts/client",
-        .icon = "bi bi-globe-americas",
-    },
-    MenuItem{
         .title = "Middleware",
         .link = "/docs/reverb/concepts/middleware",
         .icon = "bi bi-activity",
@@ -181,6 +176,7 @@ fn openDialog() void {
 }
 
 fn list() void {
+    const current_path = Fabric.Kit.getWindowPath();
     Search.render();
     if (!Fabric.isMobile()) {
         Static.FlexBox(.{
@@ -235,7 +231,7 @@ fn list() void {
                 .border_radius = .all(8),
                 .border_thickness = .all(1),
                 .border_color = .hex("#E1E1E1"),
-                .background = .transparent,
+                .background = .hex("#ffffff"),
                 .cursor = .pointer,
                 .hover = .{ .border_color = .hex("#802BFF") },
             })({
@@ -275,8 +271,9 @@ fn list() void {
             Static.ListItem(.{
                 .width = .percent(100),
                 .border_radius = .all(4),
+                .background = if (std.mem.eql(u8, current_path, item.link)) .hex("#802BFF") else .transparent,
                 .hover = .{
-                    .background = .hex("#E4E4E4"),
+                    .background = if (std.mem.eql(u8, current_path, item.link)) .hex("#802BFF") else .hex("#E4E4E4"),
                 },
             })({
                 Static.Link(.{ .url = item.link, .aria_label = item.title }, .{
@@ -288,8 +285,11 @@ fn list() void {
                     .padding = .{ .top = 10, .bottom = 10, .right = 8, .left = 8 },
                     .cursor = .pointer,
                 })({
-                    Static.Icon(item.icon, .{});
+                    Static.Icon(item.icon, .{
+                        .text_color = if (std.mem.eql(u8, current_path, item.link)) .hex("#ffffff") else .hex("#212121"),
+                    });
                     Static.Text(item.title, .{
+                        .text_color = if (std.mem.eql(u8, current_path, item.link)) .hex("#ffffff") else .hex("#212121"),
                         .font_size = 14,
                     });
                 });

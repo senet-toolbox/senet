@@ -6,17 +6,17 @@ const Static = Fabric.Static;
 const Pure = Fabric.Pure;
 const Page = Fabric.Page;
 const Basics = @import("basics/Page.zig");
-// const Introduction = @import("introduction/Page.zig");
+const Introduction = @import("introduction/Page.zig");
 // const Gotchas = @import("gotchas/Page.zig");
 const Routing = @import("routing/Page.zig");
-// const Reactivity = @import("reactivity/Page.zig");
+const Loom = @import("loom/Page.zig");
 // const Kit = @import("kit/Page.zig");
 // const Events = @import("events/Page.zig");
 // const Project = @import("project/Page.zig");
-// const JSLibs = @import("jslibs/Page.zig");
+const Middleware = @import("middleware/Page.zig");
 // const Bridge = @import("bridge/Page.zig");
 const Just = @import("justletmebuild/Page.zig");
-// const Styling = @import("styling/Page.zig");
+const Context = @import("context/Page.zig");
 // const Hooks = @import("hooks/Page.zig");
 // const KeyStone = @import("keystone/Page.zig");
 const Menu = @import("../../Menu.zig");
@@ -29,9 +29,9 @@ var sheet: Sheet(void, Menu.render) = undefined;
 const Routes = enum {
     basics,
     routing,
-    // reactivity,
+    loom,
     // authentication,
-    // introduction,
+    introduction,
     // kit,
     // project,
     // gotchas,
@@ -39,7 +39,8 @@ const Routes = enum {
     // jslibs,
     // bridge,
     justletmebuild,
-    // styling,
+    context,
+    middleware,
     // hooks,
     // keystone,
 };
@@ -47,12 +48,13 @@ const Routes = enum {
 // Initialization
 pub fn init() void {
     Basics.init();
-    // Introduction.init();
+    Introduction.init();
+    Context.init();
     Routing.init();
-    // Reactivity.init();
+    Loom.init();
     // Kit.init();
     // Gotchas.init();
-    // JSLibs.init();
+    Middleware.init();
     // Events.init();
     // Bridge.init();
     // Project.init();
@@ -76,30 +78,30 @@ fn getPage(path: []const u8) ?*const fn () void {
                 .routing => {
                     return Routing.render;
                 },
-                // .reactivity => {
-                //     return Reactivity.render;
-                // },
-                // .introduction => {
-                //     return Introduction.render;
-                // },
+                .loom => {
+                    return Loom.render;
+                },
+                .introduction => {
+                    return Introduction.render;
+                },
                 // .project => {
                 //     return Project.render;
                 // },
                 // .kit => {
                 //     return Kit.render;
                 // },
-                // .styling => {
-                //     return Styling.render;
-                // },
+                .context => {
+                    return Context.render;
+                },
                 // .gotchas => {
                 //     return Gotchas.render;
                 // },
                 // .events => {
                 //     return Events.render;
                 // },
-                // .jslibs => {
-                //     return JSLibs.render;
-                // },
+                .middleware => {
+                    return Middleware.render;
+                },
                 // .bridge => {
                 //     return Bridge.render;
                 // },
