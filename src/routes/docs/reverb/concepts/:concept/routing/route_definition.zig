@@ -1,2 +1,4 @@
-server.addRoute("/path/to/route", "METHOD", method, []const Middleware);
-server.addRoute("/users", "GET", getUsers, &.{});
+server.get("/path/to/route", method, []const Middleware);
+server.get("/users", getUsers, &.{});
+server.post("/users", addUser, &.{});
+server.delete("/users", deleteUser, &.{});

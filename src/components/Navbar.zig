@@ -56,6 +56,7 @@ const urls: [5]Url = .{
     },
 };
 fn routes() void {
+    const current_path = Fabric.Kit.getWindowPath();
     for (urls) |url| {
         Static.ListItem(.{
             // .style_id = "dropdown",
@@ -65,6 +66,7 @@ fn routes() void {
             .display = .Flex,
             .child_alignment = .{ .y = .center, .x = .start },
             .border_thickness = .{ .bottom = 1, .top = 0, .left = 0, .right = 0 },
+            .border_color = if (std.mem.eql(u8, current_path, url.url)) text_color else .transparent,
             .hover = .{
                 .border_color = text_color,
                 .border_thickness = .{ .bottom = 1, .top = 0, .left = 0, .right = 0 },
@@ -180,7 +182,7 @@ pub fn render() void {
                     .left = 50,
                     .right = 50,
                 },
-                .blur = 1,
+                .blur = 2,
             })({
                 Static.FlexBox(.{
                     .height = .px(50),
@@ -224,7 +226,7 @@ pub fn render() void {
                         .border_radius = .all(8),
                         .border_thickness = .all(1),
                         .border_color = .hex("#E1E1E1"),
-                        .background = .transparent,
+                        .background = .hex("#ffffff"),
                         .cursor = .pointer,
                         .hover = .{ .border_color = .hex("#802BFF") },
                     })({
@@ -239,6 +241,7 @@ pub fn render() void {
                             Static.Text("Search...", .{
                                 .font_size = 16,
                                 .text_color = .hex("#A2A2A2"),
+                                .font_family = "Montserrat, sans-serif",
                             });
                         });
                         Static.Icon("bi bi-command", .{
@@ -246,7 +249,7 @@ pub fn render() void {
                             .text_color = .hex("#A2A2A2"),
                         });
                     });
-                    Static.Link(.{ .url = "https://github.com/vic-Rokx/fabric", .aria_label = "redirect link to tether github repo" }, .{
+                    Static.RedirectLink(.{ .url = "https://github.com/vic-Rokx/fabric", .aria_label = "redirect link to tether github repo" }, .{
                         .text_decoration = .none,
                     })({
                         Static.Icon("bi bi-github", .{
@@ -255,7 +258,7 @@ pub fn render() void {
                             .hover = .{ .text_color = .hex("#592BFF") },
                         });
                     });
-                    Static.Link(.{ .url = "https://github.com/vic-Rokx/fabric", .aria_label = "redirect link to discord" }, .{
+                    Static.RedirectLink(.{ .url = "https://github.com/vic-Rokx/fabric", .aria_label = "redirect link to discord" }, .{
                         .text_decoration = .none,
                     })({
                         Static.Icon("bi bi-discord", .{
@@ -265,61 +268,61 @@ pub fn render() void {
                         });
                     });
 
-                    Static.Column(.{})({
-                        Static.Button(.{ .onPress = showDropDown, .aria_label = "theme-switch" }, .{})({
-                            Static.Icon("bi bi-moon-stars-fill", .{
-                                .text_color = text_color,
-                                .font_size = 20,
-                            });
-                        });
-                        if (show_dropdown.get()) {
-                            Static.List(.{
-                                .display = .Flex,
-                                .position = .{ .type = .absolute, .top = .px(32), .right = .percent(0.05) },
-                                .border_radius = .all(6),
-                                .border_thickness = .all(1),
-                                .height = .fit,
-                                .child_gap = 4,
-                                .direction = .column,
-                                .padding = .{ .left = 4, .right = 4, .top = 4, .bottom = 4 },
-                                .width = .px(100),
-                            })({
-                                for (theme_options) |opt| {
-                                    Static.ListItem(.{
-                                        .display = .Flex,
-                                        .list_style = .none,
-                                        .width = .percent(100),
-                                        .height = .px(26),
-                                        .hover = .{},
-                                        .border_radius = .all(4),
-                                    })({
-                                        Static.CtxButton(switchTheme, .{opt.name}, .{
-                                            .width = .percent(100),
-                                            .height = .percent(100),
-                                            .display = .Flex,
-                                            .child_alignment = .{ .y = .center, .x = .start },
-                                            .padding = .{ .left = 8, .top = 4, .bottom = 4, .right = 4 },
-                                            // .background = activeTheme(opt.theme),
-                                            .border_radius = .all(4),
-                                            .child_gap = 8,
-                                        })({
-                                            Static.Icon(opt.icon, .{
-                                                .width = .px(16),
-                                                .height = .px(16),
-                                                .text_color = .hex("#C0C0C0"),
-                                                // .text_color = dropdownTextColor(opt.theme),
-                                            });
-                                            Static.Text(opt.name, .{
-                                                .font_size = 14,
-                                                .font_weight = 400,
-                                                // .text_color = dropdownTextColor(opt.theme),
-                                            });
-                                        });
-                                    });
-                                }
-                            });
-                        }
-                    });
+                    // Static.Column(.{})({
+                    //     Static.Button(.{ .onPress = showDropDown, .aria_label = "theme-switch" }, .{})({
+                    //         Static.Icon("bi bi-moon-stars-fill", .{
+                    //             .text_color = text_color,
+                    //             .font_size = 20,
+                    //         });
+                    //     });
+                    //     if (show_dropdown.get()) {
+                    //         Static.List(.{
+                    //             .display = .Flex,
+                    //             .position = .{ .type = .absolute, .top = .px(32), .right = .percent(0.05) },
+                    //             .border_radius = .all(6),
+                    //             .border_thickness = .all(1),
+                    //             .height = .fit,
+                    //             .child_gap = 4,
+                    //             .direction = .column,
+                    //             .padding = .{ .left = 4, .right = 4, .top = 4, .bottom = 4 },
+                    //             .width = .px(100),
+                    //         })({
+                    //             for (theme_options) |opt| {
+                    //                 Static.ListItem(.{
+                    //                     .display = .Flex,
+                    //                     .list_style = .none,
+                    //                     .width = .percent(100),
+                    //                     .height = .px(26),
+                    //                     .hover = .{},
+                    //                     .border_radius = .all(4),
+                    //                 })({
+                    //                     Static.CtxButton(switchTheme, .{opt.name}, .{
+                    //                         .width = .percent(100),
+                    //                         .height = .percent(100),
+                    //                         .display = .Flex,
+                    //                         .child_alignment = .{ .y = .center, .x = .start },
+                    //                         .padding = .{ .left = 8, .top = 4, .bottom = 4, .right = 4 },
+                    //                         // .background = activeTheme(opt.theme),
+                    //                         .border_radius = .all(4),
+                    //                         .child_gap = 8,
+                    //                     })({
+                    //                         Static.Icon(opt.icon, .{
+                    //                             .width = .px(16),
+                    //                             .height = .px(16),
+                    //                             .text_color = .hex("#C0C0C0"),
+                    //                             // .text_color = dropdownTextColor(opt.theme),
+                    //                         });
+                    //                         Static.Text(opt.name, .{
+                    //                             .font_size = 14,
+                    //                             .font_weight = 400,
+                    //                             // .text_color = dropdownTextColor(opt.theme),
+                    //                         });
+                    //                     });
+                    //                 });
+                    //             }
+                    //         });
+                    //     }
+                    // });
                 });
             });
         } else {

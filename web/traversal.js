@@ -275,7 +275,6 @@ function processInputElement(element, renderCmd) {
 /* ───────── helpers ───────── */
 const isLayout = (el) => {
   if (el && typeof el.id === "string" && el.id.includes("layout")) {
-    console.log(el);
     return true;
   }
   return false;
@@ -337,7 +336,6 @@ function createLinkElement(renderCmd, tree_node, layout) {
     // We first mark all non layout nodes as dirty this way we can traverse and remove
     // we use the dirty flag to indicate for removal
     const count = wasmInstance.markAllNonLayoutNodesDirty();
-    console.log(count);
     // for (let i = 0; i < count; i++) {
     //   const ptr = wasmInstance.getRemovedNode(i);
     //   const len = wasmInstance.getRemovedNodeLength(i);

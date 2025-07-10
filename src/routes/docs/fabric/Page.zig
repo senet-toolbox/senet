@@ -53,6 +53,7 @@ const routes = [_]Route{
     .{ .title = "Wasm Bridge", .path = "/docs/fabric/concepts/wasm-bridge" },
     .{ .title = "KeyStone", .path = "/docs/fabric/concepts/keystone" },
     .{ .title = "Gotchas", .path = "/docs/fabric/concepts/gotchas" },
+    .{ .title = "Tutorials", .path = "/docs/fabric/concepts/tutorials" },
     .{ .title = "Metal", .path = "/docs/fabric/concepts/metal" },
 };
 

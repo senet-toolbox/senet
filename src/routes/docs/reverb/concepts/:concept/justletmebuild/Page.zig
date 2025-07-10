@@ -5,17 +5,9 @@ const Style = Fabric.Style;
 const Static = Fabric.Static;
 const Page = Fabric.Page;
 const Pure = Fabric.Pure;
-const CodeEditor = @import("../CodeEditor.zig");
 
 // Initialization
-var wasi_js_code_editor: CodeEditor = undefined;
-var chart_code_editor: CodeEditor = undefined;
-var chart_use_code_editor: CodeEditor = undefined;
 pub fn init() void {
-    // wasi_js_code_editor.init(&Fabric.lib.allocator_global, @embedFile("chart.js"));
-    // chart_code_editor.init(&Fabric.lib.allocator_global, @embedFile("chart_sample.zig"));
-    // chart_use_code_editor.init(&Fabric.lib.allocator_global, @embedFile("chart_use_case_sample.zig"));
-    // sample_inst_events.init(&Fabric.lib.allocator_global, @embedFile("inst_even_sample.zig"));
 }
 
 pub fn Txt(text: []const u8) void {
@@ -36,15 +28,15 @@ pub fn render() void {
             .font_weight = 700,
             .text_color = .hex("#1a1a1a"),
         });
-        Static.Text("curl -sSL https://raw.githubusercontent.com/vic-Rokx/fabric-cli/main/install.sh | bash", .{
+        Static.Text("curl -sSL https://raw.githubusercontent.com/vic-Rokx/metal/main/install.sh | bash", .{
             .font_size = 16,
             .font_family = "Azeret Mono, monospace",
         });
-        Static.Text("fabric create myapp", .{
+        Static.Text("metal reverb create my-reverb-app", .{
             .font_size = 18,
             .font_family = "Azeret Mono, monospace",
         });
-        Static.Text("fabric create run", .{
+        Static.Text("metal reverb run", .{
             .font_size = 18,
             .font_family = "Azeret Mono, monospace",
         });

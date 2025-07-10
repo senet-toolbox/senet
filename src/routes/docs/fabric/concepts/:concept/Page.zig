@@ -9,6 +9,7 @@ const Basics = @import("basics/Page.zig");
 const Introduction = @import("introduction/Page.zig");
 const Gotchas = @import("gotchas/Page.zig");
 const Routing = @import("routing/Page.zig");
+const Tutorials = @import("tutorials/Page.zig");
 const Reactivity = @import("reactivity/Page.zig");
 const Kit = @import("kit/Page.zig");
 const Events = @import("events/Page.zig");
@@ -42,6 +43,7 @@ const Routes = enum {
     styling,
     hooks,
     keystone,
+    tutorials,
 };
 
 // Initialization
@@ -60,6 +62,7 @@ pub fn init() void {
     Styling.init();
     Hooks.init();
     KeyStone.init();
+    Tutorials.init();
     sheet.init(&Fabric.lib.allocator_global);
     Page(@src(), render, null, .{});
 }
@@ -111,6 +114,9 @@ fn getPage(path: []const u8) ?*const fn () void {
                 },
                 .keystone => {
                     return KeyStone.render;
+                },
+                .tutorials => {
+                    return Tutorials.render;
                 },
                 else => return null,
             }

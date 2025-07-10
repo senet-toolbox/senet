@@ -37,20 +37,10 @@
     // internet connectivity.
     .dependencies = .{
         .fabric = .{
-            .path = "../fabric",
-            // .url = "zig fetch https://github.com/vic-Rokx/fabric/archive/refs/tags/v1.1.2.tar.gz",
-            // .hash = "fabric-0.0.0-KeTeuXFzBwDGG0ihVJaf0aquXDI0KBSpZGS80QV27w7_",
+            .url = "https://github.com/tether-labs/fabric/archive/refs/tags/v1.1.3.tar.gz",
+            .hash = "fabric-0.0.0-KeTeudyDBwBJm-xvopUQvHLnl1KGzeBcif21pa8XP18Z",
         },
     },
-
-    // Specifies the set of files and directories that are included in this package.
-    // Only files and directories listed here are included in the `hash` that
-    // is computed for this package. Only files listed here will remain on disk
-    // when using the zig package manager. As a rule of thumb, one should list
-    // files required for compilation plus any license(s).
-    // Paths are relative to the build root. Use the empty string (`""`) to refer to
-    // the build root itself.
-    // A directory listed here means that all files within, recursively, are included.
     .paths = .{
         "build.zig",
         "build.zig.zon",

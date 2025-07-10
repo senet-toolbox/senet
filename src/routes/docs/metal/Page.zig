@@ -5,7 +5,7 @@ const Style = Fabric.Style;
 const Static = Fabric.Static;
 const Pure = Fabric.Pure;
 const Page = Fabric.Page;
-const Menu = @import("../fabric/Menu.zig");
+const Navbar = @import("../../../components/Navbar.zig");
 const Custom = @import("../../../components/Custom.zig");
 const root = @import("../../../main.zig");
 
@@ -74,6 +74,7 @@ fn Txt(text: []const u8) void {
 }
 
 pub fn render() void {
+    Navbar.render();
     Static.FlexBox(.{
         .child_alignment = .{ .x = .start, .y = .start },
         .padding = .horizontal(12),
@@ -81,52 +82,44 @@ pub fn render() void {
         .height = .percent(100),
     })({
         // Fabric.Layout(@src(), .{})({
-        if (!Fabric.isMobile()) {
-            Static.Block(.{
-                .position = .{ .type = .fixed, .top = .px(60) },
-                .width = .percent(12),
-                .margin = .{ .right = 32 },
-                .z_index = 999,
-            })({
-                Menu.render({});
-            });
-        } else {
-            Fabric.Layout(@src(), .{})({
-                Static.FlexBox(.{
-                    .child_alignment = .{ .x = .between, .y = .center },
-                    .child_gap = 8,
-                    .padding = .horizontal(12),
-                    .height = .px(50),
-                    .position = .{ .type = .fixed, .top = .px(0), .left = .percent(0), .right = .percent(0) },
-                    .width = .percent(100),
-                    .z_index = 999,
-                    .background = root.theme.getAttribute("background"),
-                })({
-                    Static.FlexBox(.{ .child_alignment = .between_center, .child_gap = 12, .width = .percent(100) })({
-                        Static.Link(.{ .url = "/", .aria_label = "home page of tether" }, .{
-                            .text_decoration = .none,
-                            .height = .px(36),
-                            .display = .Center,
-                        })({
-                            Static.Image("/assets/circlelogo.webp", .{
-                                .display = .Flex,
-                                .child_alignment = .{ .x = .center, .y = .center },
-                                .width = .px(42),
-                                .height = .px(42),
-                            });
-                        });
-                        Static.Button(.{ .onPress = openMenu }, .{
-                            .width = .px(36),
-                            .height = .px(36),
-                        })({
-                            Pure.Icon("bi bi-list", .{
-                                .font_size = 24,
-                            });
-                        });
-                    });
-                });
-            });
-        }
+        // if (!Fabric.isMobile()) {
+        // } else {
+        //     Fabric.Layout(@src(), .{})({
+        //         Static.FlexBox(.{
+        //             .child_alignment = .{ .x = .between, .y = .center },
+        //             .child_gap = 8,
+        //             .padding = .horizontal(12),
+        //             .height = .px(50),
+        //             .position = .{ .type = .fixed, .top = .px(0), .left = .percent(0), .right = .percent(0) },
+        //             .width = .percent(100),
+        //             .z_index = 999,
+        //             .background = root.theme.getAttribute("background"),
+        //         })({
+        //             Static.FlexBox(.{ .child_alignment = .between_center, .child_gap = 12, .width = .percent(100) })({
+        //                 Static.Link(.{ .url = "/", .aria_label = "home page of tether" }, .{
+        //                     .text_decoration = .none,
+        //                     .height = .px(36),
+        //                     .display = .Center,
+        //                 })({
+        //                     Static.Image("/assets/circlelogo.webp", .{
+        //                         .display = .Flex,
+        //                         .child_alignment = .{ .x = .center, .y = .center },
+        //                         .width = .px(42),
+        //                         .height = .px(42),
+        //                     });
+        //                 });
+        //                 Static.Button(.{ .onPress = openMenu }, .{
+        //                     .width = .px(36),
+        //                     .height = .px(36),
+        //                 })({
+        //                     Pure.Icon("bi bi-list", .{
+        //                         .font_size = 24,
+        //                     });
+        //                 });
+        //             });
+        //         });
+        //     });
+        // }
         Static.Center(.{
             .width = .percent(100),
             .padding = .{ .top = 60, .bottom = 120 },

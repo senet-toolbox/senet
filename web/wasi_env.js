@@ -141,6 +141,7 @@ export const importObject = {
       const str = readWasmString(ptr, len);
       const style1 = readWasmString(stylePtr1, styleLen1);
       const style2 = readWasmString(stylePtr2, styleLen2);
+      console.log(str, style1, style2);
     },
 
     trackAlloc: () => {
