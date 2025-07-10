@@ -165,7 +165,7 @@ pub const menu_items: []const MenuItem = &.{
         .link = "/docs/fabric/concepts/tutorials",
         .icon = "bi bi-award",
     },
- 
+
     MenuItem{
         .title = "Metal",
         .link = "/docs/metal",
@@ -187,7 +187,6 @@ fn openDialog() void {
 }
 
 fn list() void {
-    Search.render();
     if (!Fabric.isMobile()) {
         Static.FlexBox(.{
             .child_alignment = .{ .x = .between, .y = .center },
@@ -302,6 +301,7 @@ fn list() void {
             });
         }
     });
+    Search.render();
 }
 
 pub fn render(_: void) void {
