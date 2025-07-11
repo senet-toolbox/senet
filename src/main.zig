@@ -25,17 +25,17 @@ export fn instantiate(window_width: i32, window_height: i32) void {
         .screen_height = window_height,
         .allocator = &allocator,
     });
-    // RootPage.init();
-    // ErrorPage.init();
-    // Docs.init();
-    // MetalDocs.init();
+    RootPage.init();
+    ErrorPage.init();
+    Docs.init();
+    MetalDocs.init();
     FabricDocs.init();
-    // ReverbDocs.init();
-    // ReverbConcepts.init();
+    ReverbDocs.init();
+    ReverbConcepts.init();
     Concepts.init();
-    // Download.init();
-    // Huh.init();
-    // About.init();
+    Download.init();
+    Huh.init();
+    About.init();
 }
 
 export fn renderUI(route_ptr: [*:0]u8) i32 {
