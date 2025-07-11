@@ -240,7 +240,7 @@ pub fn render() void {
                     .padding = .all(12),
                     .width = .percent(100),
                 })({
-                    Static.Text("curl -sSL https://raw.githubusercontent.com/vic-Rokx/metal/main/install.sh | bash", .{
+                    Static.Text("curl -sSL https://raw.githubusercontent.com/tether-labs/metal/main/install.sh | bash", .{
                         .font_size = 16,
                         .font_family = "Azeret Mono, monospace",
                     });

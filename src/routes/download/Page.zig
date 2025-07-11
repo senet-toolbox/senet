@@ -57,7 +57,7 @@ pub fn render() void {
                 .width = .percent(100),
                 .height = .px(64),
             })({
-                Static.Text("curl -sSL https://raw.githubusercontent.com/vic-Rokx/fabric-cli/main/install.sh | bash", .{
+                Static.Text("curl -sSL https://raw.githubusercontent.com/tether-labs/metal/main/install.sh | bash", .{
                     .font_size = 16,
                     .font_family = "Azeret Mono, monospace",
                 });
