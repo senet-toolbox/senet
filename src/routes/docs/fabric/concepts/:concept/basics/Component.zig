@@ -11,9 +11,9 @@ pub fn init() void {
 
 // Render
 pub fn render() void {
-    Static.FlexBox(.{})({}); // 👈 {} is passed ie void, now we can run any zig code inside the empty braces;
+    Static.Box(.{})({}); // 👈 {} is passed ie void, now we can run any zig code inside the empty braces;
     // I am a component that takes children
-    Static.FlexBox(Style{
+    Static.Box(Style{
         .background = .hex("#ffffff"),
         // 👇 {} is passed ie void, now we can run any zig code inside the empty braces
     })({

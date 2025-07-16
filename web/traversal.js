@@ -12,8 +12,10 @@ import {
 } from "./wasi_obj.js";
 import {
   applyHoverClass,
+  applyFocusClass,
   updateComponentStyle,
   checkMarkStyling,
+  applyFocusWithinClass,
 } from "./wasi_styling.js";
 import { domNodeRegistry, eventHandlers, eventStorage } from "./maps.js";
 import { state } from "./state.js";
@@ -70,6 +72,7 @@ const COMPONENT_TYPES = {
   INTERSECTION: 46,
   PRE_IMAGE: 47,
   TEXT_GRADIENT: 48,
+  GRADIENT: 49,
 };
 
 // Store intervals by route for cleanup
@@ -273,7 +276,7 @@ function processInputElement(element, renderCmd) {
   }
 }
 /* ───────── helpers ───────── */
-const isLayout = (el) => {
+export const isLayout = (el) => {
   if (el && typeof el.id === "string" && el.id.includes("layout")) {
     return true;
   }
@@ -286,7 +289,7 @@ const isLayout = (el) => {
  * 2. If a child is (or contains) a layout root, move it out before deleting.
  * 3. Finally delete the now-layout-free wrapper node itself.
  */
-function stripNonLayout(el) {
+export function stripNonLayout(el) {
   if (!el) return;
 
   // Visit children first so we can hoist them before we nuke their parent
@@ -335,7 +338,7 @@ function createLinkElement(renderCmd, tree_node, layout) {
 
     // We first mark all non layout nodes as dirty this way we can traverse and remove
     // we use the dirty flag to indicate for removal
-    const count = wasmInstance.markAllNonLayoutNodesDirty();
+    const count = wasmInstance.markAllNonLayoutNodesDirtyRemoveList();
     // for (let i = 0; i < count; i++) {
     //   const ptr = wasmInstance.getRemovedNode(i);
     //   const len = wasmInstance.getRemovedNodeLength(i);
@@ -352,6 +355,7 @@ function createLinkElement(renderCmd, tree_node, layout) {
       const ptr = wasmInstance.getRemovedNode(i);
       const len = wasmInstance.getRemovedNodeLength(i);
       const id = readWasmString(ptr, len);
+      // console.log(id);
 
       const rec = domNodeRegistry.get(id);
       if (!rec) continue; // already gone
@@ -368,6 +372,7 @@ function createLinkElement(renderCmd, tree_node, layout) {
     // we push the state and renderCycle the new path
     window.history.pushState({}, "", clickedHref);
     rerenderRoute(path === "/" ? "/root" : path);
+    // wasmInstance.markAllNonLayoutNodesDirty();
     requestAnimationFrame(() => {
       wasmInstance.setRerenderTrue();
       requestAnimationFrame(() => {
@@ -375,7 +380,12 @@ function createLinkElement(renderCmd, tree_node, layout) {
         if (hash) {
           const id = window.location.hash.substring(1, hash.length);
           const element = document.getElementById(id);
-          element.scrollIntoView();
+          if (element) {
+            // Scroll the element into view with options
+            element.scrollIntoView({
+              block: "center", // Vertically align to the center of the screen
+            });
+          }
         }
       });
     });
@@ -673,7 +683,7 @@ function createElementByType(renderCmd, tree_node, layout, parent) {
       break;
 
     case COMPONENT_TYPES.INTERSECTION:
-      element = document.createElement("div");
+      element = document.createElement("section");
       break;
 
     case COMPONENT_TYPES.FLEXBOX:
@@ -740,6 +750,7 @@ function createElementByType(renderCmd, tree_node, layout, parent) {
         element.ariaLabel = readWasmString(label, length);
       }
       element.addEventListener("click", (event) => {
+        state.currentDepthNode = renderCmd.id;
         event.preventDefault();
         event.stopPropagation();
         const idPtr = allocString(renderCmd.id);
@@ -864,6 +875,12 @@ function createElementByType(renderCmd, tree_node, layout, parent) {
       element = document.createElement("canvas");
       break;
 
+    case COMPONENT_TYPES.GRADIENT:
+      element = document.createElement("div");
+      element.style["background"] =
+        "-webkit-linear-gradient(45deg, #8886f2, #e04597, #ee6994)";
+      break;
+
     default:
       element = document.createElement("div");
       break;
@@ -894,6 +911,18 @@ function setupElement(element, renderCmd) {
 
   if (renderCmd.props.hoverCss.length > 0) {
     applyHoverClass(element, renderCmd.styleId, renderCmd.props.hoverCss);
+  }
+
+  if (renderCmd.props.focusCss.length > 0) {
+    applyFocusClass(element, renderCmd.styleId, renderCmd.props.focusCss);
+  }
+
+  if (renderCmd.props.focusWithinCss.length > 0) {
+    applyFocusWithinClass(
+      element,
+      renderCmd.styleId,
+      renderCmd.props.focusWithinCss,
+    );
   }
 
   // Register the element
@@ -936,6 +965,18 @@ function updateElement(element, renderCmd) {
   if (renderCmd.props.hoverCss.length > 0) {
     applyHoverClass(element, renderCmd.styleId, renderCmd.props.hoverCss);
   }
+
+  if (renderCmd.props.focusCss.length > 0) {
+    applyFocusClass(element, renderCmd.styleId, renderCmd.props.focusCss);
+  }
+
+  if (renderCmd.props.focusWithinCss.length > 0) {
+    applyFocusWithinClass(
+      element,
+      renderCmd.styleId,
+      renderCmd.props.focusWithinCss,
+    );
+  }
 }
 
 /**
@@ -954,6 +995,7 @@ export function traverse(parent, tree_node, layout) {
     const rndcmd_ptr = wasmInstance.getRenderCommandPtr(child_ptr);
     const renderCmd = readRenderCommand(rndcmd_ptr, layout);
 
+    // console.log(renderCmd.isDirty, renderCmd.id);
     activeNodeIds.add(renderCmd.id);
 
     // Skip processing if the element has invalid dialog ID
@@ -966,7 +1008,6 @@ export function traverse(parent, tree_node, layout) {
     }
 
     if (renderCmd.isDirty) {
-      // console.log(renderCmd.isDirty, renderCmd.id);
       // Mark as processed
       // wasmInstance.setDirtyToFalse(renderCmd.nodePtr);
 

@@ -40,7 +40,7 @@ count once, and never again.
 
 Fabric exposes Signal(comptime T: type), which means if we want to use the modern day approach to State management we can.
 
-Includes
+Fabric Includes
 - Opaque UI Components library of 120 components
 - State management
 - Animation Library
@@ -103,3 +103,11 @@ Includes
 - Start up allocated memory, no dynamic growing items
 - Backups and rollback
 - RESP3 Protocol
+
+Metal:
+Metal is the cli tool for tether, within metal we can create and generate boilerplate code for fabric, reverb, as well as build and deploy,
+our code. Furthermore mental includes its own chat system, which can be used to ask questions about tether or your current codebase.
+Sonny the chatbot, is trained on tether's documentation, and nighwatch's codebase, which means it has access to high performance code data.
+Therefore the quality of the chatbot is very high compared to typical chatbots such as gpt-3.5, gpt-4, and others.
+
+

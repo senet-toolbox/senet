@@ -27,11 +27,11 @@ pub const LifeCycle = struct {
     }
 };
 
-pub inline fn FlexBox(style: Style) fn (void) void {
+pub inline fn Box(style: Style) fn (void) void {
     const elem_decl = ElementDecl{
         .style = style,
         .dynamic = .static,
-        .elem_type = .FlexBox,
+        .elem_type = .Box,
     };
 
     LifeCycle.open(elem_decl);

@@ -177,127 +177,151 @@ fn openDialog() void {
 
 fn list() void {
     const current_path = Fabric.Kit.getWindowPath();
-    Search.render();
-    if (!Fabric.isMobile()) {
+    Static.FlexBox(.{
+        .child_alignment = .{ .x = .between, .y = .center },
+        .child_gap = 8,
+        .padding = .{ .top = 8, .bottom = 8, .left = 12, .right = 12 },
+        .position = .{ .type = .fixed, .top = .px(0), .left = .percent(0), .right = .percent(0) },
+        .height = .percent(6),
+        .width = .percent(100),
+        .z_index = 400,
+        .blur = 3,
+        .border_color = main.theme.getAttribute("border_color"),
+        .border_thickness = .{ .bottom = 1 },
+    })({
         Static.FlexBox(.{
-            .child_alignment = .{ .x = .between, .y = .center },
+            .child_alignment = .{ .x = .start, .y = .center },
             .child_gap = 8,
-            .padding = .{ .top = 8, .bottom = 8, .left = 12, .right = 12 },
-            .position = .{ .type = .fixed, .top = .px(0), .left = .percent(0), .right = .percent(0) },
-            .width = .percent(100),
-            .z_index = 400,
-            .blur = 3,
-            .border_color = main.theme.getAttribute("border_color"),
-            .border_thickness = .{ .bottom = 1 },
         })({
-            Static.FlexBox(.{
-                .child_alignment = .{ .x = .start, .y = .center },
-                .child_gap = 8,
+            Static.Link(.{ .url = "/", .aria_label = "home page of tether" }, .{
+                .text_decoration = .none,
+                .cursor = .pointer,
             })({
-                Static.Link(.{ .url = "/", .aria_label = "home page of tether" }, .{
-                    .text_decoration = .none,
-                    .cursor = .pointer,
-                })({
-                    Static.Image("/assets/circlelogo.webp", .{
-                        .display = .Flex,
-                        .child_alignment = .{ .x = .center, .y = .center },
-                        .width = .px(42),
-                        .height = .px(42),
-                    });
-                });
-                Static.Text("Tether", .{
-                    .font_weight = 500,
-                    .font_size = 18,
-                });
-                // Static.Svg(@embedFile("text.svg"), .{
-                //     .width = .px(80),
-                // });
-                Static.Block(.{
-                    .border_thickness = .{ .left = 1 },
-                    .height = .px(24),
-                    .border_color = .rgb(0, 0, 0),
-                })({});
-                Static.Text("Docs", .{
-                    .font_weight = 700,
-                    .font_size = 18,
+                Static.Image("/assets/circlelogo.webp", .{
+                    .display = .Flex,
+                    .child_alignment = .{ .x = .center, .y = .center },
+                    .width = .px(42),
+                    .height = .px(42),
                 });
             });
-            Static.Button(.{ .onPress = openDialog, .aria_label = "search-dialog" }, .{
-                .display = .Flex,
-                .child_alignment = .{ .x = .between, .y = .center },
-                .width = .percent(20),
-                .height = .px(38),
-                .padding = .{ .top = 4, .bottom = 4, .left = 8, .right = 8 },
-                .border_radius = .all(8),
-                .border_thickness = .all(1),
-                .border_color = .hex("#E1E1E1"),
-                .background = .hex("#ffffff"),
-                .cursor = .pointer,
-                .hover = .{ .border_color = .hex("#802BFF") },
+            Static.Text("Tether", .{
+                .font_weight = 500,
+                .font_size = 18,
+            });
+            // Static.Svg(@embedFile("text.svg"), .{
+            //     .width = .px(80),
+            // });
+            Static.Block(.{
+                .border_thickness = .{ .left = 1 },
+                .height = .px(24),
+                .border_color = .rgb(0, 0, 0),
+            })({});
+            Static.Text("Docs", .{
+                .font_weight = 700,
+                .font_size = 18,
+            });
+        });
+        Static.Button(.{ .onPress = openDialog, .aria_label = "search-dialog" }, .{
+            .display = .Flex,
+            .child_alignment = .{ .x = .between, .y = .center },
+            .width = .percent(20),
+            .height = .px(38),
+            .padding = .{ .top = 4, .bottom = 4, .left = 8, .right = 8 },
+            .border_radius = .all(8),
+            .border_thickness = .all(1),
+            .border_color = .hex("#E1E1E1"),
+            .background = .transparentizeHex("#ffffff", 70),
+            .cursor = .pointer,
+            .hover = .{ .border_color = .hex("#802BFF") },
+        })({
+            Static.FlexBox(.{
+                .child_alignment = .left_center,
+                .child_gap = 24,
             })({
-                Static.FlexBox(.{
-                    .child_alignment = .start_center,
-                    .child_gap = 24,
-                })({
-                    Static.Icon("bi bi-search", .{
-                        .font_size = 16,
-                        .text_color = .hex("#A2A2A2"),
-                    });
-                    Static.Text("Search...", .{
-                        .font_family = "Montserrat",
-                        .font_size = 16,
-                        .text_color = .hex("#A2A2A2"),
-                    });
+                Static.Icon("bi bi-search", .{
+                    .font_size = 16,
+                    .text_color = .hex("#A2A2A2"),
                 });
-                Static.Icon("bi bi-command", .{
+                Static.Text("Search...", .{
+                    .font_family = "Montserrat",
                     .font_size = 16,
                     .text_color = .hex("#A2A2A2"),
                 });
             });
+            Static.Icon("bi bi-command", .{
+                .font_size = 16,
+                .text_color = .hex("#A2A2A2"),
+            });
         });
-    }
-    Static.List(.{
-        .list_style = .none,
-        .display = .Flex,
-        .direction = .column,
-        .padding = .{ .top = 16, .bottom = 16, .right = 8, .left = 8 },
-        .child_gap = 16,
-        .width = .percent(100),
-        .overflow_y = .scroll,
+    });
+    Static.Box(.{
+        .position = .{ .type = .fixed, .top = .percent(6), .left = .percent(0) },
+        .width = .percent(14),
         .height = .percent(100),
-        .show_scrollbar = false,
+        .z_index = 999,
     })({
-        for (menu_items) |item| {
-            Static.ListItem(.{
-                .width = .percent(100),
-                .border_radius = .all(4),
-                .background = if (std.mem.eql(u8, current_path, item.link)) .hex("#802BFF") else .transparent,
-                .hover = .{
-                    .background = if (std.mem.eql(u8, current_path, item.link)) .hex("#802BFF") else .hex("#E4E4E4"),
-                },
-            })({
-                Static.Link(.{ .url = item.link, .aria_label = item.title }, .{
-                    .text_decoration = .none,
+        Static.List(.{
+            .list_style = .none,
+            .display = .Flex,
+            .direction = .column,
+            .padding = .{ .top = 16, .bottom = 64, .right = 8, .left = 8 },
+            .child_gap = 16,
+            .width = .percent(100),
+            .overflow_y = .scroll,
+            .height = .percent(95),
+            .show_scrollbar = false,
+        })({
+            for (menu_items) |item| {
+                Static.ListItem(.{
                     .width = .percent(100),
-                    .display = .Flex,
-                    .child_alignment = .{ .x = .start, .y = .center },
-                    .child_gap = 12,
-                    .padding = .{ .top = 10, .bottom = 10, .right = 8, .left = 8 },
-                    .cursor = .pointer,
+                    // .border_radius = .all(4),
+                    .background = if (std.mem.eql(u8, current_path, item.link)) .transparentizeHex("#802BFF", 30) else .transparent,
+                    .hover = .{
+                        .background = if (std.mem.eql(u8, current_path, item.link)) .transparentizeHex("#802BFF", 30) else .hex("#EDEDED"),
+                    },
+                    .border_thickness = .{ .right = 2 },
+                    .border_color = if (std.mem.eql(u8, current_path, item.link)) .hex("#802BFF") else .transparent,
                 })({
-                    Static.Icon(item.icon, .{
-                        .text_color = if (std.mem.eql(u8, current_path, item.link)) .hex("#ffffff") else .hex("#212121"),
-                    });
-                    Static.Text(item.title, .{
-                        .text_color = if (std.mem.eql(u8, current_path, item.link)) .hex("#ffffff") else .hex("#212121"),
-                        .font_size = 14,
+                    Static.Link(.{ .url = item.link, .aria_label = item.title }, .{
+                        .text_decoration = .none,
+                        .width = .percent(100),
+                        .display = .Flex,
+                        .child_alignment = .{ .x = .start, .y = .center },
+                        .child_gap = 12,
+                        .padding = .{ .top = 10, .bottom = 10, .right = 8, .left = 8 },
+                        .cursor = .pointer,
+                    })({
+                        Static.Icon(item.icon, .{
+                            .text_color = if (std.mem.eql(u8, current_path, item.link)) .darken("#802BFF", 30) else .hex("#212121"),
+                        });
+                        Static.Text(item.title, .{
+                            .text_color = if (std.mem.eql(u8, current_path, item.link)) .darken("#802BFF", 30) else .hex("#212121"),
+                            .font_size = 14,
+                        });
                     });
                 });
-            });
-        }
+            }
+        });
     });
+    Search.render();
 }
 
 pub fn render(_: void) void {
-    list();
+    // Fabric.Layout(.{
+    //     .file = "/routes/docs/fabric",
+    //     .module = "",
+    //     .column = 0,
+    //     .fn_name = "",
+    //     .line = 0,
+    // }, .{})({
+        Static.Block(.{
+            .position = .{ .top = .px(0), .type = .fixed },
+            .width = .percent(14),
+            .padding = .{ .bottom = 128 },
+            .z_index = 999,
+            .height = .percent(100),
+        })({
+            list();
+        });
+    // });
 }

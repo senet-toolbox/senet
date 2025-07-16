@@ -29,6 +29,36 @@ pub fn init() void {
 // Deinitialization
 pub fn deinit() void {}
 
+var global_counter: u32 = 0;
+var instance_counter_1: u32 = 0;
+var instance_counter_2: u32 = 0;
+var comptime_counter_1: u32 = 0;
+var comptime_counter_2: u32 = 0;
+fn incrementGlobal() void {
+    global_counter += 1;
+    Fabric.cycle();
+}
+
+fn incrementInstance1() void {
+    instance_counter_1 += 1;
+    Fabric.cycle();
+}
+
+fn incrementInstance2() void {
+    instance_counter_2 += 1;
+    Fabric.cycle();
+}
+
+fn incrementComptime1() void {
+    comptime_counter_1 += 1;
+    Fabric.cycle();
+}
+
+fn incrementComptime2() void {
+    comptime_counter_2 += 1;
+    Fabric.cycle();
+}
+
 // Render
 pub fn render() void {
     // Page Header
@@ -48,8 +78,8 @@ pub fn render() void {
         });
     });
     Static.Text(
-    \\Fabric is compiled into wasm, and a small event-loop server handles the request, response connection with the client.
-    \\Once fabric.wasm is loaded on to the client browser, then we generate the dom. This is known as Client side Rendering.
+        \\Fabric is compiled into wasm, and a small event-loop server handles the request, response connection with the client.
+        \\Once fabric.wasm is loaded on to the client browser, then we generate the dom. This is known as Client side Rendering.
     , .{
         .font_size = 18,
     });
@@ -346,6 +376,40 @@ pub fn render() void {
         })({
             code_editor_global.render(0);
         });
+
+        Custom.Gradient(.{
+            .display = .Flex,
+            .child_alignment = .x_even_center,
+            .child_gap = 16,
+            .padding = .all(20),
+            .width = .percent(100),
+            .height = .percent(100),
+            .border_radius = .all(8),
+        })({
+            Static.Button(.{ .onPress = incrementGlobal, .aria_label = "global_counter" }, .{
+                .display = .Center,
+                .border_radius = .all(8),
+                .padding = .all(12),
+                .background = .hex("#ffffff"),
+            })({
+                Pure.AllocText("Increment global counter: {d}", .{global_counter}, .{
+                    .font_size = 18,
+                    .text_color = .hex("#4a4a4a"),
+                });
+            });
+            Static.Button(.{ .onPress = incrementGlobal, .aria_label = "global_counter" }, .{
+                .display = .Center,
+                .border_radius = .all(8),
+                .padding = .all(12),
+                .background = .hex("#ffffff"),
+            })({
+                Pure.AllocText("Increment global counter: {d}", .{global_counter}, .{
+                    .font_size = 18,
+                    .text_color = .hex("#4a4a4a"),
+                });
+            });
+        });
+
         Static.Text("Instance Components", .{
             .font_size = 32,
             .font_weight = 600,
@@ -362,6 +426,40 @@ pub fn render() void {
         })({
             code_editor_instance.render(0);
         });
+
+        Custom.Gradient(.{
+            .display = .Flex,
+            .child_alignment = .x_even_center,
+            .child_gap = 16,
+            .padding = .all(20),
+            .width = .percent(100),
+            .height = .percent(100),
+            .border_radius = .all(8),
+        })({
+            Static.Button(.{ .onPress = incrementInstance1, .aria_label = "instance_counter" }, .{
+                .display = .Center,
+                .border_radius = .all(8),
+                .padding = .all(12),
+                .background = .hex("#ffffff"),
+            })({
+                Pure.AllocText("Increment instance counter: {d}", .{instance_counter_1}, .{
+                    .font_size = 18,
+                    .text_color = .hex("#4a4a4a"),
+                });
+            });
+            Static.Button(.{ .onPress = incrementInstance2, .aria_label = "instance_counter" }, .{
+                .display = .Center,
+                .border_radius = .all(8),
+                .padding = .all(12),
+                .background = .hex("#ffffff"),
+            })({
+                Pure.AllocText("Increment instance counter: {d}", .{instance_counter_2}, .{
+                    .font_size = 18,
+                    .text_color = .hex("#4a4a4a"),
+                });
+            });
+        });
+
         Static.Text("Comptime Components", .{
             .font_size = 32,
             .font_weight = 600,
@@ -377,6 +475,38 @@ pub fn render() void {
             .margin = .{ .bottom = 16 },
         })({
             code_editor_comptime.render(0);
+        });
+        Custom.Gradient(.{
+            .display = .Flex,
+            .child_alignment = .x_even_center,
+            .child_gap = 16,
+            .padding = .all(20),
+            .width = .percent(100),
+            .height = .percent(100),
+            .border_radius = .all(8),
+        })({
+            Static.Button(.{ .onPress = incrementComptime1, .aria_label = "comptime_counter" }, .{
+                .display = .Center,
+                .border_radius = .all(8),
+                .padding = .all(12),
+                .background = .hex("#ffffff"),
+            })({
+                Pure.AllocText("Increment comptime counter: {d}", .{comptime_counter_1}, .{
+                    .font_size = 18,
+                    .text_color = .hex("#4a4a4a"),
+                });
+            });
+            Static.Button(.{ .onPress = incrementComptime2, .aria_label = "comptime_counter" }, .{
+                .display = .Center,
+                .border_radius = .all(8),
+                .padding = .all(12),
+                .background = .hex("#ffffff"),
+            })({
+                Pure.AllocText("Increment comptime counter: {d}", .{comptime_counter_2}, .{
+                    .font_size = 18,
+                    .text_color = .hex("#4a4a4a"),
+                });
+            });
         });
     });
 }

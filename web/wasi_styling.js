@@ -148,7 +148,6 @@ export function applyHoverClass(element, styleId, hoverStyles) {
   } else {
     // If no styleId, apply hover directly to the element
     if (element.localName === "i") {
-      console.log();
       selector = `.${element.className.split(" ").pop()}:hover`;
     } else {
       selector = `.${element.className}:hover`;
@@ -167,6 +166,76 @@ export function applyHoverClass(element, styleId, hoverStyles) {
     const hoverCSS = `${selector} { ${hoverStyles} }`;
     const newIndex = styleSheet.cssRules.length;
     styleSheet.insertRule(hoverCSS, newIndex);
+    // Cache the rule
+    styleRuleCache.set(styleName, newIndex);
+  }
+}
+
+export function applyFocusClass(element, styleId, focusStyles) {
+  const styleName = `focus-${element.id}`;
+
+  // Determine the correct selector
+  let selector;
+  if (styleId.length > 0) {
+    // If styleId is provided, we need to target the element with this class
+    // when the parent is hovered
+    selector = `.${element.className}:focus-within ${styleId.startsWith(".") ? styleId : "." + styleId}`;
+  } else {
+    // If no styleId, apply hover directly to the element
+    if (element.localName === "i") {
+      selector = `.${element.className.split(" ").pop()}:focus-within`;
+    } else {
+      selector = `.${element.className}:focus-within`;
+    }
+  }
+
+  // Check if we already have this class
+  if (styleRuleCache.has(styleName)) {
+    // Update existing rule
+    const ruleIndex = styleRuleCache.get(styleName);
+    const focusCSS = `${selector} { ${focusStyles} }`;
+    styleSheet.deleteRule(ruleIndex);
+    styleSheet.insertRule(focusCSS, ruleIndex);
+  } else {
+    // Define and insert the hover rule
+    const focusCSS = `${selector} { ${focusStyles} }`;
+    const newIndex = styleSheet.cssRules.length;
+    styleSheet.insertRule(focusCSS, newIndex);
+    // Cache the rule
+    styleRuleCache.set(styleName, newIndex);
+  }
+}
+
+export function applyFocusWithinClass(element, styleId, focusWithinStyles) {
+  const styleName = `focus-within-${element.id}`;
+
+  // Determine the correct selector
+  let selector;
+  if (styleId.length > 0) {
+    // If styleId is provided, we need to target the element with this class
+    // when the parent is hovered
+    selector = `.${element.className}:focus-within ${styleId.startsWith(".") ? styleId : "." + styleId}`;
+  } else {
+    // If no styleId, apply hover directly to the element
+    if (element.localName === "i") {
+      selector = `.${element.className.split(" ").pop()}:focus-within`;
+    } else {
+      selector = `.${element.className}:focus-within`;
+    }
+  }
+
+  // Check if we already have this class
+  if (styleRuleCache.has(styleName)) {
+    // Update existing rule
+    const ruleIndex = styleRuleCache.get(styleName);
+    const focuseWithinCss = `${selector} { ${focusWithinStyles} }`;
+    styleSheet.deleteRule(ruleIndex);
+    styleSheet.insertRule(focuseWithinCss, ruleIndex);
+  } else {
+    // Define and insert the hover rule
+    const focuseWithinCss = `${selector} { ${focusWithinStyles} }`;
+    const newIndex = styleSheet.cssRules.length;
+    styleSheet.insertRule(focuseWithinCss, newIndex);
     // Cache the rule
     styleRuleCache.set(styleName, newIndex);
   }

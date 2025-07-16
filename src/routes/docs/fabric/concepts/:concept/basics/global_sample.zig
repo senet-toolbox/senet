@@ -20,7 +20,7 @@ fn decrement() void {
 }
 
 pub fn render() void {
-    Static.FlexBox(.{
+    Static.Box(.{
         .child_alignment = .{ .x = .center, .y = .center },
         .child_gap = 16,
         .padding = .all(20),

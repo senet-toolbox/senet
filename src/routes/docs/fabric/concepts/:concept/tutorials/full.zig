@@ -21,13 +21,11 @@ fn drawO() void {
 
 var grid_boxes: [9]GridBox = undefined;
 var current_player: Player = .x;
-var rerender: Signal(void) = undefined;
 var winner: ?Player = null;
 /// Initialise the board for a new game.
 pub fn init() void {
     for (&grid_boxes) |*box| box.* = GridBox{};
     current_player = .x;
-    rerender.init({}); // Initialise the force signal once
 }
 
 fn selectBox(box: *GridBox) void {
@@ -46,7 +44,7 @@ fn selectBox(box: *GridBox) void {
         };
     }
 
-    rerender.force(); // request re‑render
+    Fabric.cycle(); // request re‑render
 }
 
 // All 8 possible winning line combinations (rows, columns, diagonals)
@@ -77,7 +75,7 @@ fn checkWin() ?Player {
 
 /// Render the interactive grid.
 pub fn render() void {
-    Static.FlexBox(.{
+    Static.Center(.{
         .width = .percent(100),
         .height = .percent(100),
         .flex_wrap = .wrap,

@@ -14,6 +14,7 @@ const root = @import("../../../main.zig");
 var ctx_sample: CodeEditor = undefined;
 var ctx_offload_sample: CodeEditor = undefined;
 pub fn init() void {
+    Fabric.lib.registerLayout("/docs/reverb", layout);
     ctx_sample.init(&Fabric.lib.allocator_global, @embedFile("context_sample.zig"));
     ctx_offload_sample.init(&Fabric.lib.allocator_global, @embedFile("context_offload_sample.zig"));
     // html_code_editor.init(&Fabric.lib.allocator_global, @embedFile("html_text_sample.zig"));
@@ -83,18 +84,7 @@ pub fn render() void {
         .height = .percent(100),
     })({
         // Fabric.Layout(@src(), .{})({
-        if (!Fabric.isMobile()) {
-            Static.Block(.{
-                .position = .{ .top = .px(0), .type = .fixed },
-                .width = .percent(14),
-                .margin = .{ .right = 32, .top = 60 },
-                .padding = .{ .bottom = 128 },
-                .z_index = 999,
-                .height = .percent(100),
-            })({
-                Menu.render({});
-            });
-        } else {
+        if (!Fabric.isMobile()) {} else {
             Static.FlexBox(.{
                 .child_alignment = .{ .x = .between, .y = .center },
                 .child_gap = 8,
@@ -107,7 +97,7 @@ pub fn render() void {
                 .border_color = root.theme.getAttribute("border_color"),
                 .border_thickness = .{ .bottom = 1 },
             })({
-                Static.FlexBox(.{ .child_alignment = .between_center, .child_gap = 12, .width = .percent(100) })({
+                Static.FlexBox(.{ .child_alignment = .x_between_center, .child_gap = 12, .width = .percent(100) })({
                     Static.Link(.{ .url = "/", .aria_label = "home page of tether" }, .{
                         .text_decoration = .none,
                         .height = .px(36),
@@ -268,10 +258,23 @@ pub fn render() void {
                     .margin = .{ .top = 8 },
                 });
                 Custom.HtmlText(
-                \\Below is an example of copying and offloading the copied key to a atomic thread pool.
+                    \\Below is an example of copying and offloading the copied key to a atomic thread pool.
                 , .{});
                 ctx_offload_sample.render(0);
             });
         });
     });
+}
+
+fn layout(page: *const fn () void) void {
+    Fabric.Remember(.{
+        .file = "/routes/docs/reverb",
+        .module = "",
+        .column = 0,
+        .fn_name = "",
+        .line = 0,
+    })({
+        Menu.render({});
+    });
+    @call(.auto, page, .{});
 }

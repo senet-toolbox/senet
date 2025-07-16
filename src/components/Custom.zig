@@ -1,6 +1,7 @@
 const std = @import("std");
 const Fabric = @import("fabric");
 const Static = Fabric.Static;
+const Pure = Fabric.Pure;
 const Style = Fabric.Style;
 
 pub inline fn HtmlText(text: []const u8, style: Style) void {
@@ -25,6 +26,17 @@ pub inline fn GradientText(text: []const u8, style: Style) void {
     _ = Fabric.LifeCycle.open(elem_decl);
     Fabric.LifeCycle.configure(elem_decl);
     Fabric.LifeCycle.close({});
+}
+
+pub inline fn Gradient(style: Style) fn (void) void {
+    const elem_decl = Fabric.ElementDecl{
+        .dynamic = .static,
+        .elem_type = .Gradient,
+        .style = style,
+    };
+    _ = Fabric.LifeCycle.open(elem_decl);
+    Fabric.LifeCycle.configure(elem_decl);
+    return Fabric.LifeCycle.close;
 }
 
 pub inline fn PreImage(link: []const u8, style: Style) void {
@@ -57,4 +69,64 @@ pub inline fn Intersection(style: Style) fn (void) void {
     _ = Fabric.LifeCycle.open(elem_decl);
     Fabric.LifeCycle.configure(elem_decl);
     return Fabric.LifeCycle.close;
+}
+
+var copied: bool = false;
+var copied_text: []const u8 = "";
+fn copy(text: []const u8) void {
+    Fabric.Clipboard.copy(text);
+    copied = true;
+    copied_text = text;
+    Fabric.println("Hello", .{});
+    Fabric.cycle();
+    Fabric.registerCtxTimeout(500, toggleIcon, .{});
+}
+
+fn toggleIcon() void {
+    copied = false;
+    copied_text = "";
+    Fabric.cycle();
+}
+
+pub fn code_snippet_single(text: []const u8) void {
+    Static.Box(.{
+        .height = .percent(100),
+        .background = .hex("#282a36"),
+        .border_radius = .all(8),
+        .padding = .all(8),
+        .width = .percent(100),
+        .direction = .column,
+        .position = .{ .type = .relative },
+    })({
+        Static.CtxButton(copy, .{text}, .{
+            .width = .px(22),
+            .height = .px(22),
+            .border_radius = .all(4),
+            .display = .Center,
+            .cursor = .pointer,
+            .transition = .{ .duration = 300 },
+            .hover = .{ .background = .hex("#2D303E") },
+            .position = .{ .type = .absolute, .right = .px(8), .top = .px(8) },
+        })({
+            if (copied and std.mem.eql(u8, text, copied_text)) {
+                Pure.Icon("bi bi-check", .{
+                    .font_size = 16,
+                    .text_color = .hex("#cccccc"),
+                    .transition = .{ .duration = 300 },
+                    .hover = .{ .text_color = .hex("#ffffff") },
+                });
+            } else {
+                Pure.Icon("bi bi-clipboard", .{
+                    .font_size = 16,
+                    .text_color = .hex("#cccccc"),
+                    .transition = .{ .duration = 300 },
+                    .hover = .{ .text_color = .hex("#ffffff") },
+                });
+            }
+        });
+        HtmlText(text, .{
+            .font_size = 16,
+            .text_color = .hex("#ffffff"),
+        });
+    });
 }

@@ -29,10 +29,15 @@ pub fn render() void {
                 .height = .percent(100),
                 .direction = .column,
             })({
-                Static.Text("Error, Sorry this page doesn't exist. But there are others you may like!", .{
+                Static.Text("Page Not Found", .{
                     .display = .Center,
                     .font_size = 36,
                     .font_weight = 700,
+                    .text_color = .hex("#1a1a1a"),
+                });
+                Static.Text("Sorry! The page you are looking for does not exist. But we have others that you might like.", .{
+                    .display = .Center,
+                    .font_size = 24,
                     .text_color = .hex("#1a1a1a"),
                 });
             });

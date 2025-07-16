@@ -5,11 +5,11 @@ const Grid   = @import("../../components/Grid.zig");
 
 pub fn init() void {
     Fabric.Page(@src(), render, null, .{});
-    Grid.init(); // 👈 Ensure component state is initialised once
+    Grid.init(); // 👈 🚧 Ensure component state is initialised once 🚧
 }
 
 pub fn render() void {
-    Static.FlexBox(.{
+    Static.Center(.{
         .direction = .column,
         .width     = .percent(100),
         .height    = .percent(100),
@@ -17,11 +17,11 @@ pub fn render() void {
     })({
         Static.Text("Tic‑Tac‑Toe!", .{});
         // Constrain the board to 30 % of the viewport for now.
-        Static.FlexBox(.{
+        Static.Box(.{
             .width  = .percent(30),
             .height = .percent(30),
         })({
-            Grid.render(); // 👈 Draw the board
+            Grid.render(); // 👈 🚧 Draw the board 🚧
         });
     });
 }

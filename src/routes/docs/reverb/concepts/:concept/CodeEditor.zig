@@ -95,7 +95,7 @@ pub fn render(code_editor: *CodeEditor, _: f32) void {
         .padding = .{ .top = 10, .bottom = 10 },
     })({
         Static.FlexBox(.{
-            .child_alignment = .end_center,
+            .child_alignment = .left_center,
             .width = .percent(100),
             .padding = .horizontal(12),
         })({
@@ -129,7 +129,7 @@ pub fn render(code_editor: *CodeEditor, _: f32) void {
                 Static.FlexBox(.{
                     .height = .px(20),
                     .white_space = .pre,
-                    .child_alignment = .start_center,
+                    .child_alignment = .left_center,
                     .padding = .{
                         .left = 30,
                     },
