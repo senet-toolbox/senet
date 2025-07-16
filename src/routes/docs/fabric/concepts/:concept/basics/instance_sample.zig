@@ -33,7 +33,7 @@ pub fn deinit(counter: *Counter) void {
 }
 
 pub fn render(counter: *Counter) void {
-    Static.FlexBox(.{
+    Static.Box(.{
         .child_alignment = .{ .x = .center, .y = .center },
         .child_gap = 16,
         .padding = .all(20),

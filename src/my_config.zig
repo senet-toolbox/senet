@@ -48,4 +48,5 @@ pub const ElementType = enum(u8) {
     Intersection,
     PreImage,
     TextGradient,
+    Gradient,
 };

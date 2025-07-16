@@ -187,7 +187,7 @@ pub fn render() void {
                 Static.FlexBox(.{
                     .height = .px(50),
                     .direction = .row,
-                    .child_alignment = .start_center,
+                    .child_alignment = .left_center,
                     .child_gap = 10,
                 })({
                     Static.Link(.{ .url = "/", .aria_label = "home page of tether" }, .{
@@ -231,7 +231,7 @@ pub fn render() void {
                         .hover = .{ .border_color = .hex("#802BFF") },
                     })({
                         Static.FlexBox(.{
-                            .child_alignment = .start_center,
+                            .child_alignment = .left_center,
                             .child_gap = 24,
                         })({
                             Static.Icon("bi bi-search", .{
@@ -335,7 +335,7 @@ pub fn render() void {
                 .width = .percent(100),
                 .background = root.theme.getAttribute("background"),
             })({
-                Static.FlexBox(.{ .child_alignment = .start_center, .child_gap = 12 })({
+                Static.FlexBox(.{ .child_alignment = .left_center, .child_gap = 12 })({
                     Static.Link(.{ .url = "/", .aria_label = "home page of tether" }, .{
                         .text_decoration = .none,
                         .height = .px(36),

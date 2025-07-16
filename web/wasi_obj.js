@@ -132,7 +132,7 @@ window.addEventListener("popstate", async function(event) {
   const path = window.location.pathname;
   // We first mark all non layout nodes as dirty this way we can traverse and remove
   // we use the dirty flag to indicate for removal
-  wasmInstance.markAllNonLayoutNodesDirty();
+  wasmInstance.markAllNonLayoutNodesDirtyRemoveList();
 
   // we get the current tree pointer and traverse it to remove all the nodes that are not part of the layout
   const current_tree = wasmInstance.getRenderTreePtr();
@@ -366,6 +366,26 @@ async function init() {
       layoutInfoPtr + 88,
       4,
     ).getUint32(0, true),
+    propsFocusOffset: new DataView(
+      wasmInstance.memory.buffer,
+      layoutInfoPtr + 92,
+      4,
+    ).getUint32(0, true),
+    propsFocusSize: new DataView(
+      wasmInstance.memory.buffer,
+      layoutInfoPtr + 96,
+      4,
+    ).getUint32(0, true),
+    propsFocusWithinOffset: new DataView(
+      wasmInstance.memory.buffer,
+      layoutInfoPtr + 100,
+      4,
+    ).getUint32(0, true),
+    propsFocusWithinSize: new DataView(
+      wasmInstance.memory.buffer,
+      layoutInfoPtr + 104,
+      4,
+    ).getUint32(0, true),
   };
 
   wasmInstance.instantiate(window.innerWidth, window.innerHeight); // Example UI function
@@ -425,23 +445,17 @@ async function init() {
   if (hash) {
     const id = window.location.hash.substring(1, hash.length);
     const element = document.getElementById(id);
-    element.scrollIntoView();
+    if (element) {
+      // Scroll the element into view with options
+      element.scrollIntoView({
+        block: "center", // Vertically align to the center of the screen
+      });
+    }
   }
 
-  // Super simple lazy loading
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach((entry) => {
-      if (entry.isIntersecting) {
-        // entry.target.classList.add("loaded");
-        observer.unobserve(entry.target);
-      }
-    });
-  });
+  handleIntersection();
 
-  // Find all elements with id="lazy" and observe them
-  document.querySelectorAll('[id*="Inte"]').forEach((element) => {
-    observer.observe(element);
-  });
+  // const navLinks = document.querySelectorAll(".sidebar a");
 
   // if (state.initial_render) {
   //   state.initial_render = false;
@@ -487,6 +501,43 @@ async function init() {
   // }, 3000);
 }
 
+function handleIntersection() {
+  const observer = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        // Correctly get the link by its ID (without the '#')
+        const link = document.getElementById(`#${entry.target.id}`);
+
+        if (link) {
+          // Toggle the class based on whether the section is in view
+          if (entry.isIntersecting) {
+            link.classList.add("active");
+          } else {
+            link.classList.remove("active");
+          }
+        }
+      });
+    },
+    {
+      rootMargin: "-20% 0px -40% 0px", // Adjust this to change when sections are considered "active"
+      // threshold: [0, 0.1, 0.5, 1],
+      threshold: 0,
+    },
+
+    // {
+    //   // A margin of -40% from the top and bottom means the section
+    //   // is active in the middle 20% of the viewport.
+    //   rootMargin: "-40% 0px -40% 0px",
+    //   threshold: 0, // A single threshold is often sufficient
+    // },
+  );
+
+  // Observe all <section> elements
+  document.querySelectorAll("section").forEach((section) => {
+    observer.observe(section);
+  });
+}
+
 let route_ptr = null;
 
 export function requestRerender() {
@@ -517,6 +568,12 @@ export function render() {
 
       wasmInstance.renderUI(route_ptr);
       tree_node = wasmInstance.getRenderTreePtr();
+      if (tree_node === 0) {
+        state.initial_render = false;
+        wasmInstance.resetRerender();
+        requestAnimationFrame(wasmInstance.cleanUp);
+        return;
+      }
       activeNodeIds = new Set();
       traverse(root, tree_node, layoutInfo);
       state.initial_render = false;
@@ -526,6 +583,7 @@ export function render() {
       removeInactiveNodes();
       wasmInstance.markCurrentTreeNotDirty();
       wasmInstance.resetRerender();
+      handleIntersection();
       requestAnimationFrame(wasmInstance.cleanUp);
     } else {
       // This implies grainRerender is true
@@ -774,6 +832,8 @@ export function readRenderCommand(offset, layout) {
   let id = "";
   let dialogId = "";
   let hoverCss = "";
+  let focusCss = "";
+  let focusWithinCss = "";
   let exitAnimationId = null;
   const show = view.getUint8(layout.showOffset, true);
   let hooks = {};
@@ -811,6 +871,32 @@ export function readRenderCommand(offset, layout) {
       hoverCss = readWasmString(cssHoverPtr, cssHoverLen);
     }
 
+    const propsFocusOffset = offset + layout.propsFocusOffset;
+    const propsFocusView = new DataView(
+      wasmInstance.memory.buffer,
+      propsFocusOffset, // propsOffset is relative to the start of RenderCommand
+      layout.propsFocusSize,
+    );
+    const focusExists = propsFocusView.getUint8(0, true);
+    if (focusExists > 0) {
+      const cssHoverPtr = wasmInstance.getFocusStyle(nodePtr);
+      const cssHoverLen = wasmInstance.getFocusLen();
+      focusCss = readWasmString(cssHoverPtr, cssHoverLen);
+    }
+
+    const propsFocusWithinOffset = offset + layout.propsFocusWithinOffset;
+    const propsFocusWithinView = new DataView(
+      wasmInstance.memory.buffer,
+      propsFocusWithinOffset, // propsOffset is relative to the start of RenderCommand
+      layout.propsFocusWithinSize,
+    );
+    const focusWithinExists = propsFocusWithinView.getUint8(0, true);
+    if (focusWithinExists > 0) {
+      const cssHoverPtr = wasmInstance.getFocusWithinStyle(nodePtr);
+      const cssHoverLen = wasmInstance.getFocusWithinLen();
+      focusWithinCss = readWasmString(cssHoverPtr, cssHoverLen);
+    }
+
     const exitAnimPtr = propsView.getUint32(layout.propsExitAnimation, true);
     if (exitAnimPtr) {
       const exitAnimLen = propsView.getUint32(
@@ -834,6 +920,8 @@ export function readRenderCommand(offset, layout) {
   const props = {
     css,
     hoverCss,
+    focusCss,
+    focusWithinCss,
     btnId,
     dialogId,
     keyFrames,

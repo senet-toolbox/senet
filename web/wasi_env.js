@@ -4,6 +4,7 @@ import {
   charts,
   hooksHandlers,
   eventStorage,
+  domNodeRegistry,
 } from "./maps.js";
 import { styleSheet } from "./wasi_styling.js";
 import {
@@ -21,6 +22,8 @@ import {
   traverse,
   clearIntervalsForRoute,
   traverseRemove,
+  isLayout,
+  stripNonLayout,
 } from "./traversal.js";
 import { state } from "./state.js";
 
@@ -102,8 +105,7 @@ export const importObject = {
     // Other WASI stubs (minimal implementation)
     fd_close: () => 0,
     fd_seek: () => 0,
-    fd_read: () => {
-    },
+    fd_read: () => { },
     environ_sizes_get: () => 0,
     environ_get: () => 0,
   }, // Link WASI stubs
@@ -960,21 +962,45 @@ export const importObject = {
 
     navigateWASM: (pathPtr, pathLen) => {
       const path = readWasmString(pathPtr, pathLen);
-      // We first mark all non layout nodes as dirty this way we can traverse and remove
-      // we use the dirty flag to indicate for removal
-      wasmInstance.markAllNonLayoutNodesDirty();
+      const count = wasmInstance.markAllNonLayoutNodesDirtyRemoveList();
 
+      /* ───────── main removal loop ───────── */
+      for (let i = 0; i < count; i++) {
+        const ptr = wasmInstance.getRemovedNode(i);
+        const len = wasmInstance.getRemovedNodeLength(i);
+        const id = readWasmString(ptr, len);
+
+        const rec = domNodeRegistry.get(id);
+        if (!rec) continue; // already gone
+
+        const el = rec.domNode;
+        if (isLayout(el)) continue; // never delete a layout root itself
+
+        stripNonLayout(el); // delete everything *except* layouts
+      }
       // we get the current tree pointer and traverse it to remove all the nodes that are not part of the layout
-      const current_tree = wasmInstance.getRenderTreePtr();
-      traverseRemove(root, current_tree, layoutInfo);
+      // const current_tree = wasmInstance.getRenderTreePtr();
+      // traverseRemove(root, current_tree, layout);
 
-      // we push the state and renderCycle the new path
-      // window.history.pushState({}, "", path);
       // we push the state and renderCycle the new path
       window.history.pushState({}, "", path);
       rerenderRoute(path === "/" ? "/root" : path);
-
-      requestAnimationFrame(wasmInstance.setRerenderTrue);
+      requestAnimationFrame(() => {
+        wasmInstance.setRerenderTrue();
+        requestAnimationFrame(() => {
+          const hash = window.location.hash;
+          if (hash) {
+            const id = window.location.hash.substring(1, hash.length);
+            const element = document.getElementById(id);
+            if (element) {
+              // Scroll the element into view with options
+              element.scrollIntoView({
+                block: "center", // Vertically align to the center of the screen
+              });
+            }
+          }
+        });
+      });
     },
 
     routePushWASM: (pathPtr, pathLen) => {

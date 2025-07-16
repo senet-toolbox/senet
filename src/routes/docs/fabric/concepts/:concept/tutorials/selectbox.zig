@@ -4,12 +4,12 @@ fn selectBox(box: *GridBox) void {
     box.clicked = true;
     box.player  = current_player;
 
-    if (checkWin()) |p| {
+    if (checkWin()) |p| { // 🚧
         winner = p;
     } else {
         // Toggle turn only if no winner yet
         current_player = switch (current_player) { .x => .o, .o => .x };
     }
 
-    rerender.force(); // request re‑render
+    Fabric.cycle(); 
 }

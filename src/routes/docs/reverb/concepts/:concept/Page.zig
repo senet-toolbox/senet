@@ -159,14 +159,6 @@ pub fn render() void {
                 });
             });
             if (!Fabric.isMobile()) {
-                Static.Block(.{
-                    .position = .{ .type = .fixed, .top = .px(0) },
-                    .padding = .{ .top = 60 },
-                    .width = .percent(16),
-                    .z_index = 9999,
-                })({
-                    Menu.render({});
-                });
             } else {
                 Fabric.Layout(.{
                     .file = "/routes/docs/reverb/concepts/:concept",
@@ -185,7 +177,7 @@ pub fn render() void {
                         .z_index = 999,
                         .background = root.theme.getAttribute("background"),
                     })({
-                        Static.FlexBox(.{ .child_alignment = .between_center, .child_gap = 12, .width = .percent(100) })({
+                        Static.FlexBox(.{ .child_alignment = .x_between_center, .child_gap = 12, .width = .percent(100) })({
                             Static.Link(.{ .url = "/", .aria_label = "home page of tether" }, .{
                                 .text_decoration = .none,
                                 .height = .px(36),

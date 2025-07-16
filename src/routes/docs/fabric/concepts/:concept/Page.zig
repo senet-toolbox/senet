@@ -18,6 +18,7 @@ const JSLibs = @import("jslibs/Page.zig");
 const Bridge = @import("bridge/Page.zig");
 const Just = @import("justletmebuild/Page.zig");
 const Styling = @import("styling/Page.zig");
+const Layout = @import("layouts/Page.zig");
 const Hooks = @import("hooks/Page.zig");
 const KeyStone = @import("keystone/Page.zig");
 const Menu = @import("../../Menu.zig");
@@ -44,6 +45,7 @@ const Routes = enum {
     hooks,
     keystone,
     tutorials,
+    layout,
 };
 
 // Initialization
@@ -63,6 +65,7 @@ pub fn init() void {
     Hooks.init();
     KeyStone.init();
     Tutorials.init();
+    Layout.init();
     sheet.init(&Fabric.lib.allocator_global);
     Page(@src(), render, null, .{});
 }
@@ -81,6 +84,9 @@ fn getPage(path: []const u8) ?*const fn () void {
                 },
                 .reactivity => {
                     return Reactivity.render;
+                },
+                .layout => {
+                    return Layout.render;
                 },
                 .introduction => {
                     return Introduction.render;
@@ -163,14 +169,7 @@ pub fn render() void {
                 });
             });
             if (!Fabric.isMobile()) {
-                Static.Block(.{
-                    .position = .{ .type = .fixed, .top = .px(0) },
-                    .padding = .{ .top = 60 },
-                    .width = .percent(16),
-                    .z_index = 9999,
-                })({
-                    Menu.render({});
-                });
+                // Menu.render({});
             } else {
                 Fabric.Layout(.{
                     .file = "/routes/docs/fabric/concepts/:concept",
@@ -189,7 +188,7 @@ pub fn render() void {
                         .z_index = 999,
                         .background = root.theme.getAttribute("background"),
                     })({
-                        Static.FlexBox(.{ .child_alignment = .between_center, .child_gap = 12, .width = .percent(100) })({
+                        Static.FlexBox(.{ .child_alignment = .x_between_center, .child_gap = 12, .width = .percent(100) })({
                             Static.Link(.{ .url = "/", .aria_label = "home page of tether" }, .{
                                 .text_decoration = .none,
                                 .height = .px(36),

@@ -137,7 +137,7 @@ pub fn render() void {
                     .width = .percent(100),
                 })({
                     Static.Box(.{
-                        .child_alignment = .between_center,
+                        .child_alignment = .x_between_center,
                         .margin = .{ .top = 64, .bottom = 128 },
                         .child_gap = 32,
                     })({

@@ -32,7 +32,7 @@ pub fn Counter(comptime T: type, initial_value: T) type {
         }
 
         pub fn render(counter: *Self) void {
-            Static.FlexBox(.{
+            Static.Box(.{
                 .child_alignment = .{ .x = .center, .y = .center },
                 .child_gap = 16,
                 .padding = .all(20),

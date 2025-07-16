@@ -1,4 +1,4 @@
-const TicTacToe = @import("routes/tictac/Page.zig"); // 👈 NEW;
+const TicTacToe = @import("routes/tictac/Page.zig"); // 👈 🚧 NEW 🚧;
 //...
 export fn instantiate(window_width: i32, window_height: i32) void {
     fb.init(.{
@@ -8,5 +8,5 @@ export fn instantiate(window_width: i32, window_height: i32) void {
     });
 
     RootPage.init();
-    TicTacToe.init(); // 👈 NEW
+    TicTacToe.init(); // 👈 🚧 NEW 🚧
 }

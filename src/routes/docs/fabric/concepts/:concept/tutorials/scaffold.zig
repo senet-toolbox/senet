@@ -10,7 +10,7 @@ pub fn init() void {
 
 /// Renders a full‑window flexbox with a header.
 pub fn render() void {
-    Static.FlexBox(.{
+    Static.Center(.{
         .width = .percent(100),
         .height = .percent(100),
     })({

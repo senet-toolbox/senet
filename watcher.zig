@@ -461,6 +461,7 @@ pub fn main() !void {
                     return read_err;
                 }
                 const recv_data = recv_buf[0..recv_total];
+                // std.debug.print("Got connection! {s}\n", .{recv_data});
                 if (recv_data.len == 0) {
                     // Browsers (or firefox?) attempt to optimize for speed
                     // by opening a connection to the server once a user highlights

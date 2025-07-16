@@ -19,7 +19,7 @@ var allocator: std.mem.Allocator = undefined;
 export fn deinit() void {
     fb.deinit();
 }
-export fn instantiate(window_width: i32, window_height: i32) void {
+export fn instantiate(window_width: f32, window_height: f32) void {
     fb.init(.{
         .screen_width = window_width,
         .screen_height = window_height,

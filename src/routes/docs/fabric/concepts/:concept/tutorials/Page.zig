@@ -6,6 +6,7 @@ const Static = Fabric.Static;
 const Pure = Fabric.Pure;
 const Page = Fabric.Page;
 const Custom = @import("../../../../../../components/Custom.zig");
+const Kit = Fabric.Kit;
 const CodeEditor = @import("../CodeEditor.zig");
 
 var scaffold_code_editor: CodeEditor = undefined;
@@ -35,7 +36,19 @@ pub fn init() void {
     full_code_editor.init(&Fabric.lib.allocator_global, @embedFile("full.zig"));
 }
 
-fn copy(_: []const u8) void {
+var copied: bool = false;
+var copied_text: []const u8 = "";
+fn copy(text: []const u8) void {
+    Fabric.Clipboard.copy(text);
+    copied = true;
+    copied_text = text;
+    Fabric.cycle();
+    Fabric.registerCtxTimeout(500, toggleIcon, .{});
+}
+
+fn toggleIcon() void {
+    copied = false;
+    copied_text = "";
     Fabric.cycle();
 }
 
@@ -59,12 +72,21 @@ fn code_snippet_single(text: []const u8) void {
             .hover = .{ .background = .hex("#2D303E") },
             .position = .{ .type = .absolute, .right = .px(8), .top = .px(8) },
         })({
-            Pure.Icon("bi bi-clipboard", .{
-                .font_size = 16,
-                .text_color = .hex("#cccccc"),
-                .transition = .{ .duration = 300 },
-                .hover = .{ .text_color = .hex("#ffffff") },
-            });
+            if (copied and std.mem.eql(u8, text, copied_text)) {
+                Pure.Icon("bi bi-check", .{
+                    .font_size = 16,
+                    .text_color = .hex("#cccccc"),
+                    .transition = .{ .duration = 300 },
+                    .hover = .{ .text_color = .hex("#ffffff") },
+                });
+            } else {
+                Pure.Icon("bi bi-clipboard", .{
+                    .font_size = 16,
+                    .text_color = .hex("#cccccc"),
+                    .transition = .{ .duration = 300 },
+                    .hover = .{ .text_color = .hex("#ffffff") },
+                });
+            }
         });
         Custom.HtmlText(text, .{
             .font_size = 16,
@@ -500,17 +522,17 @@ pub fn render() void {
         });
 
         // Section 12
-        Static.Text("4. Adding a Global Force Signal", .{
+        Static.Text("4. Using Fabric.cycle() to re-render the board", .{
             .font_size = 32,
             .font_weight = 700,
             .text_color = .hex("#1a1a1a"),
             .margin = .{ .top = 32, .bottom = 8 },
         });
-        Static.Text("Before we wire in win-detection, we need a clean way to tell Fabric “re-evaluate the entire board component now” whenever a move is made. Instead of sprinkling many small `Signal`s throughout the grid, we can leverage a single force signal that explicitly invalidates the component tree.", .{
+        Static.Text("Before we wire in win-detection, we need a clean way to tell Fabric “re-evaluate the entire board component now” whenever a move is made. Instead of sprinkling many small `Signal`s throughout the grid, we can leverage a single cycle fucntion call that explicitly invalidates the component tree.", .{
             .font_size = 18,
             .text_color = .hex("#666666"),
         });
-        Static.Text("4.1 Why use a force signal?", .{
+        Static.Text("4.1 Why use a Fabric.cycle?", .{
             .font_size = 24,
             .font_weight = 700,
             .text_color = .hex("#1a1a1a"),
@@ -519,7 +541,7 @@ pub fn render() void {
 
         Static.List(.{})({
             Static.ListItem(.{})({
-                Static.Text("Simplicity - One line (`rerender.force()`) after any mutation guarantees a fresh render pass.", .{
+                Static.Text("Simplicity - One line (`Fabric.cycle()`) after any mutation guarantees a fresh render pass.", .{
                     .font_size = 18,
                     .text_color = .hex("#4a4a4a"),
                 });
@@ -534,13 +556,13 @@ pub fn render() void {
 
             // insert code here
             Static.ListItem(.{})({
-                Static.Text("Zero payload - A `Signal(void)` carries no data; it’s purely a _recompute_ trigger.", .{
+                Static.Text("Zero payload - A `Signal(void)` carries some heap allocated memory; while Fabric.cycle() is purely a _recompute_ trigger.", .{
                     .font_size = 18,
                     .text_color = .hex("#4a4a4a"),
                 });
             });
         });
-        Static.Text("4.2 Updated `Grid.zig` with `Signal`", .{
+        Static.Text("4.2 Updated `Grid.zig` with `Fabric.cycle()`", .{
             .font_size = 24,
             .font_weight = 700,
             .text_color = .hex("#1a1a1a"),
