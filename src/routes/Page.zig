@@ -57,7 +57,7 @@ pub fn render() void {
     })({
         if (!Fabric.isMobile()) {
             Static.Center(.{
-                .width = .clamp_percent(50, 50, 100),
+                .width = .mobile_desktop_percent(100, 50),
                 .height = .percent(100),
                 .direction = .column,
             })({
@@ -177,7 +177,7 @@ pub fn render() void {
             });
         }
         Static.FlexBox(.{
-            .width = .clamp_percent(40, 40, 100),
+            .width = .mobile_desktop_percent(100, 40),
             .direction = .column,
             .child_alignment = .center,
         })({
@@ -227,6 +227,7 @@ pub fn render() void {
                     .direction = .column,
                     .padding = .horizontal(12),
                     .child_gap = 16,
+                    .width = .percent(100),
                 })({
                     Custom.HtmlText(
                         \\The <i>Toolkit</i> for Fullstack Applications

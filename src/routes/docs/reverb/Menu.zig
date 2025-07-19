@@ -177,21 +177,22 @@ fn openDialog() void {
 
 fn list() void {
     const current_path = Fabric.Kit.getWindowPath();
-    Static.FlexBox(.{
+    Static.Box(.{
         .child_alignment = .{ .x = .between, .y = .center },
         .child_gap = 8,
         .padding = .{ .top = 8, .bottom = 8, .left = 12, .right = 12 },
         .position = .{ .type = .fixed, .top = .px(0), .left = .percent(0), .right = .percent(0) },
-        .height = .percent(6),
+        .height = .mobile_desktop_percent(8, 6),
         .width = .percent(100),
         .z_index = 400,
         .blur = 3,
         .border_color = main.theme.getAttribute("border_color"),
         .border_thickness = .{ .bottom = 1 },
     })({
-        Static.FlexBox(.{
+        Static.Box(.{
             .child_alignment = .{ .x = .start, .y = .center },
             .child_gap = 8,
+            .height = .percent(100),
         })({
             Static.Link(.{ .url = "/", .aria_label = "home page of tether" }, .{
                 .text_decoration = .none,
@@ -235,7 +236,7 @@ fn list() void {
                 .cursor = .pointer,
                 .hover = .{ .border_color = .hex("#802BFF") },
             })({
-                Static.FlexBox(.{
+                Static.Box(.{
                     .child_alignment = .left_center,
                     .child_gap = 24,
                 })({
@@ -257,8 +258,8 @@ fn list() void {
         }
     });
     Static.Box(.{
-        .position = .{ .type = .fixed, .top = .percent(6), .left = .percent(0) },
-        .width = .clamp_percent(14, 14, 100),
+        .position = .{ .type = .fixed, .top = if (Fabric.isMobile()) .percent(8) else .percent(6), .left = .percent(0) },
+        .width = .mobile_desktop_percent(100, 14),
         .height = .percent(100),
         .z_index = 999,
     })({
@@ -311,7 +312,7 @@ fn list() void {
 pub fn render(_: void) void {
     Static.Block(.{
         .position = .{ .top = .px(0), .type = .fixed },
-        .width = .percent(14),
+        .width = .mobile_desktop_percent(100, 14),
         .padding = .{ .bottom = 128 },
         .z_index = 999,
         .height = .percent(100),

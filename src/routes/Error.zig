@@ -25,7 +25,7 @@ pub fn render() void {
     })({
         if (!Fabric.isMobile()) {
             Static.Center(.{
-                .width = .clamp_percent(60, 60, 100),
+                .width = .mobile_desktop_percent(100, 60),
                 .height = .percent(100),
                 .direction = .column,
             })({
@@ -42,23 +42,13 @@ pub fn render() void {
                 });
             });
         }
-        // Static.FlexBox(.{
-        //     .width = .clamp_percent(40, 600, 100),
-        //     .direction = .column,
-        //     .child_alignment = .center,
-        // })({
         if (Fabric.isMobile()) {
             Static.Image("/assets/Logo.svg", .{
                 .width = .percent(70),
                 .display = .Center,
                 .margin = .{ .top = 80 },
             });
-        } else {
-            // Static.Image("/assets/Logo.svg", .{
-            //     .width = .percent(100),
-            // });
         }
-
         if (Fabric.isMobile()) {
             Static.Center(.{
                 .direction = .column,

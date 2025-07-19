@@ -126,7 +126,7 @@ pub fn render() void {
             .direction = .column,
         })({
             Static.FlexBox(.{
-                .width = .clamp_percent(64, 64, 100),
+                .width = .mobile_desktop_percent(100, 64),
                 .direction = .column,
                 .padding = .{ .bottom = 80 },
             })({

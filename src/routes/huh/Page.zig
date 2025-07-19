@@ -28,7 +28,7 @@ pub fn render() void {
         Static.FlexBox(.{
             .child_gap = 24,
             .direction = .column,
-            .width = .clamp_percent(70, 70, 100),
+            .width = .mobile_desktop_percent(100, 70),
             .padding = .horizontal(12),
         })({
             Static.Text("What is Tether?", .{
