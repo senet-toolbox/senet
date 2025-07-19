@@ -25,7 +25,7 @@ pub fn render() void {
     })({
         if (!Fabric.isMobile()) {
             Static.Center(.{
-                .width = .clamp_percent(60, 786, 100),
+                .width = .clamp_percent(60, 60, 100),
                 .height = .percent(100),
                 .direction = .column,
             })({

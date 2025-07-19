@@ -9,11 +9,14 @@ const Menu = @import("Menu.zig");
 const CodeEditor = @import("concepts/:concept/CodeEditor.zig");
 const Custom = @import("../../../components/Custom.zig");
 const root = @import("../../../main.zig");
+const Sheet = @import("Sheet.zig").Sheet;
+var sheet: Sheet(void, Menu.render) = undefined;
 
 // Initialization
 var ctx_sample: CodeEditor = undefined;
 var ctx_offload_sample: CodeEditor = undefined;
 pub fn init() void {
+    sheet.init(&Fabric.lib.allocator_global);
     Fabric.lib.registerLayout("/docs/reverb", layout);
     ctx_sample.init(&Fabric.lib.allocator_global, @embedFile("context_sample.zig"));
     ctx_offload_sample.init(&Fabric.lib.allocator_global, @embedFile("context_offload_sample.zig"));
@@ -120,7 +123,7 @@ pub fn render() void {
             .padding = .{ .top = 60 },
         })({
             Static.FlexBox(.{
-                .width = .clamp_percent(62, 786, 100),
+                .width = .clamp_percent(62, 62, 100),
                 .child_gap = 16,
                 .direction = .column,
                 .child_alignment = .{ .x = .start, .y = .start },
@@ -267,14 +270,58 @@ pub fn render() void {
 }
 
 fn layout(page: *const fn () void) void {
-    Fabric.Remember(.{
-        .file = "/routes/docs/reverb",
-        .module = "",
-        .column = 0,
-        .fn_name = "",
-        .line = 0,
-    })({
-        Menu.render({});
-    });
-    @call(.auto, page, .{});
+    if (Fabric.isMobile()) {
+        Static.FlexBox(.{
+            .child_alignment = .{ .x = .between, .y = .center },
+            .child_gap = 8,
+            .padding = .horizontal(12),
+            .height = .px(50),
+            .position = .{ .type = .fixed, .top = .px(0), .left = .percent(0), .right = .percent(0) },
+            .width = .percent(100),
+            .z_index = 999,
+            .background = .hex("#ffffff"),
+        })({
+            Static.FlexBox(.{ .child_alignment = .x_between_center, .child_gap = 12, .width = .percent(100) })({
+                Static.Link(.{ .url = "/", .aria_label = "home page of tether" }, .{
+                    .text_decoration = .none,
+                    .height = .px(36),
+                    .display = .Center,
+                })({
+                    Static.Image("/assets/circlelogo.webp", .{
+                        .display = .Flex,
+                        .child_alignment = .{ .x = .center, .y = .center },
+                        .width = .px(42),
+                        .height = .px(42),
+                    });
+                });
+                Static.Button(.{ .onPress = openMenu }, .{
+                    .width = .px(36),
+                    .height = .px(36),
+                })({
+                    if (menu) {
+                        Pure.Icon("bi bi-x-lg", .{
+                            .font_size = 24,
+                        });
+                    } else {
+                        Pure.Icon("bi bi-list", .{
+                            .font_size = 24,
+                        });
+                    }
+                });
+            });
+        });
+        sheet.render({});
+        @call(.auto, page, .{});
+    } else {
+        Fabric.Remember(.{
+            .file = "/routes/docs/fabric",
+            .module = "",
+            .column = 0,
+            .fn_name = "",
+            .line = 0,
+        })({
+            Menu.render({});
+        });
+        @call(.auto, page, .{});
+    }
 }

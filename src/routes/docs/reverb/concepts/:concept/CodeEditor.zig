@@ -95,7 +95,7 @@ pub fn render(code_editor: *CodeEditor, _: f32) void {
         .padding = .{ .top = 10, .bottom = 10 },
     })({
         Static.FlexBox(.{
-            .child_alignment = .left_center,
+            .child_alignment = .right_center,
             .width = .percent(100),
             .padding = .horizontal(12),
         })({
@@ -113,7 +113,7 @@ pub fn render(code_editor: *CodeEditor, _: f32) void {
                         .font_size = 16,
                         .text_color = .hex("#cccccc"),
                         .transition = .{ .duration = 300 },
-                        .hover = .{ .text_color  = .hex("#ffffff") },
+                        .hover = .{ .text_color = .hex("#ffffff") },
                     });
                 } else {
                     Pure.Icon("bi bi-check", .{
@@ -278,7 +278,8 @@ pub fn tokenize(code_editor: *CodeEditor, text: []const u8) !void {
             var text_deets = TextDetails{};
 
             var buf = std.ArrayList(u8).init(allocator.*);
-            if (std.mem.indexOf(u8, word, "}") != null) {
+            if (std.mem.indexOf(u8, word, "{}")) |_| {
+            } else if (std.mem.indexOf(u8, word, "}")) |_| {
                 depth -= 1;
             }
 
@@ -353,5 +354,6 @@ pub fn tokenize(code_editor: *CodeEditor, text: []const u8) !void {
 
         is_comment = false;
         depth += @intCast(std.mem.count(u8, line, "{"));
+        depth -= @intCast(std.mem.count(u8, line, "{}"));
     }
 }

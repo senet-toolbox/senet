@@ -131,11 +131,6 @@ fn getPage(path: []const u8) ?*const fn () void {
     return null;
 }
 
-var menu: bool = false;
-fn openMenu() void {
-    sheet.toggle();
-    // Fabric.cycle();
-}
 
 // Render
 pub fn render() void {
@@ -159,7 +154,7 @@ pub fn render() void {
                 .direction = .column,
             })({
                 Static.FlexBox(.{
-                    .width = .clamp_percent(64, 786, 100),
+                    .width = .clamp_percent(64, 64, 100),
                     .child_gap = 32,
                     .direction = .column,
                     .padding = .{ .bottom = 80 },
@@ -168,52 +163,6 @@ pub fn render() void {
                     Footer.render();
                 });
             });
-            if (!Fabric.isMobile()) {
-                // Menu.render({});
-            } else {
-                Fabric.Layout(.{
-                    .file = "/routes/docs/fabric/concepts/:concept",
-                    .module = "",
-                    .column = 0,
-                    .fn_name = "",
-                    .line = 0,
-                }, .{})({
-                    Static.FlexBox(.{
-                        .child_alignment = .{ .x = .between, .y = .center },
-                        .child_gap = 8,
-                        .padding = .horizontal(12),
-                        .height = .px(50),
-                        .position = .{ .type = .fixed, .top = .px(0), .left = .percent(0), .right = .percent(0) },
-                        .width = .percent(100),
-                        .z_index = 999,
-                        .background = root.theme.getAttribute("background"),
-                    })({
-                        Static.FlexBox(.{ .child_alignment = .x_between_center, .child_gap = 12, .width = .percent(100) })({
-                            Static.Link(.{ .url = "/", .aria_label = "home page of tether" }, .{
-                                .text_decoration = .none,
-                                .height = .px(36),
-                                .display = .Center,
-                            })({
-                                Static.Image("/assets/circlelogo.webp", .{
-                                    .display = .Flex,
-                                    .child_alignment = .{ .x = .center, .y = .center },
-                                    .width = .px(42),
-                                    .height = .px(42),
-                                });
-                            });
-                            Static.Button(.{ .onPress = openMenu }, .{
-                                .width = .px(36),
-                                .height = .px(36),
-                            })({
-                                Pure.Icon("bi bi-list", .{
-                                    .font_size = 24,
-                                });
-                            });
-                        });
-                    });
-                    sheet.render({});
-                });
-            }
         });
     });
 }
