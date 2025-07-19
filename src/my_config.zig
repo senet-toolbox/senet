@@ -49,4 +49,5 @@ pub const ElementType = enum(u8) {
     PreImage,
     TextGradient,
     Gradient,
+    Virtualize,
 };

@@ -7,4 +7,5 @@ export const charts = new Map(); // Maps: path -> wasi_exports
 export const moduleRoutes = new Set(); // Maps: path -> wasi_exports
 export const hooksHandlers = new Map();
 export let eventStorage = {};
+export let observeredSections = new Map();
 
