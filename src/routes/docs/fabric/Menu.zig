@@ -302,42 +302,44 @@ fn list() void {
                 .font_size = 18,
             });
         });
-        Static.Button(.{ .onPress = openDialog, .aria_label = "search-dialog" }, .{
-            .display = .Flex,
-            .child_alignment = .{ .x = .between, .y = .center },
-            .width = .percent(20),
-            .height = .px(38),
-            .padding = .{ .top = 4, .bottom = 4, .left = 8, .right = 8 },
-            .border_radius = .all(8),
-            .border_thickness = .all(1),
-            .border_color = .hex("#E1E1E1"),
-            .background = .transparentizeHex("#ffffff", 70),
-            .cursor = .pointer,
-            .hover = .{ .border_color = .hex("#802BFF") },
-        })({
-            Static.FlexBox(.{
-                .child_alignment = .left_center,
-                .child_gap = 24,
+        if (!Fabric.isMobile()) {
+            Static.Button(.{ .onPress = openDialog, .aria_label = "search-dialog" }, .{
+                .display = .Flex,
+                .child_alignment = .{ .x = .between, .y = .center },
+                .width = .percent(20),
+                .height = .px(38),
+                .padding = .{ .top = 4, .bottom = 4, .left = 8, .right = 8 },
+                .border_radius = .all(8),
+                .border_thickness = .all(1),
+                .border_color = .hex("#E1E1E1"),
+                .background = .transparentizeHex("#ffffff", 70),
+                .cursor = .pointer,
+                .hover = .{ .border_color = .hex("#802BFF") },
             })({
-                Static.Icon("bi bi-search", .{
-                    .font_size = 16,
-                    .text_color = .hex("#A2A2A2"),
+                Static.FlexBox(.{
+                    .child_alignment = .left_center,
+                    .child_gap = 24,
+                })({
+                    Static.Icon("bi bi-search", .{
+                        .font_size = 16,
+                        .text_color = .hex("#A2A2A2"),
+                    });
+                    Static.Text("Search...", .{
+                        .font_family = "Montserrat",
+                        .font_size = 16,
+                        .text_color = .hex("#A2A2A2"),
+                    });
                 });
-                Static.Text("Search...", .{
-                    .font_family = "Montserrat",
+                Static.Icon("bi bi-command", .{
                     .font_size = 16,
                     .text_color = .hex("#A2A2A2"),
                 });
             });
-            Static.Icon("bi bi-command", .{
-                .font_size = 16,
-                .text_color = .hex("#A2A2A2"),
-            });
-        });
+        }
     });
     Static.Box(.{
         .position = .{ .type = .fixed, .top = .percent(6), .left = .percent(0) },
-        .width = .percent(14),
+        .width = .clamp_percent(14, 14, 100),
         .height = .percent(100),
         .z_index = 999,
     })({
@@ -388,21 +390,13 @@ fn list() void {
 }
 
 pub fn render(_: void) void {
-    // Fabric.Layout(.{
-    //     .file = "/routes/docs/fabric",
-    //     .module = "",
-    //     .column = 0,
-    //     .fn_name = "",
-    //     .line = 0,
-    // }, .{})({
-        Static.Block(.{
-            .position = .{ .top = .px(0), .type = .fixed },
-            .width = .percent(14),
-            .padding = .{ .bottom = 128 },
-            .z_index = 999,
-            .height = .percent(100),
-        })({
-            list();
-        });
-    // });
+    Static.Block(.{
+        .position = .{ .top = .px(0), .type = .fixed },
+        .width = .percent(14),
+        .padding = .{ .bottom = 128 },
+        .z_index = 999,
+        .height = .percent(100),
+    })({
+        list();
+    });
 }

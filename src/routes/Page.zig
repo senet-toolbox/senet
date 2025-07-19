@@ -57,7 +57,7 @@ pub fn render() void {
     })({
         if (!Fabric.isMobile()) {
             Static.Center(.{
-                .width = .clamp_percent(50, 786, 100),
+                .width = .clamp_percent(50, 50, 100),
                 .height = .percent(100),
                 .direction = .column,
             })({
@@ -177,7 +177,7 @@ pub fn render() void {
             });
         }
         Static.FlexBox(.{
-            .width = .clamp_percent(40, 600, 100),
+            .width = .clamp_percent(40, 40, 100),
             .direction = .column,
             .child_alignment = .center,
         })({
@@ -228,39 +228,6 @@ pub fn render() void {
                     .padding = .horizontal(12),
                     .child_gap = 16,
                 })({
-                    // Static.FlexBox(.{
-                    //     .child_gap = 32,
-                    // })({
-                    //     Static.Link(.{ .url = "https://github.com/vic-Rokx/fabric", .aria_label = "redirect link to tether github repo" }, .{
-                    //         .text_decoration = .none,
-                    //         .height = .px(56),
-                    //         .width = .px(56),
-                    //         .border_thickness = .all(1),
-                    //         .border_color = .hex("#EFEFEF"),
-                    //         .border_radius = .all(8),
-                    //         .display = .Center,
-                    //     })({
-                    //         Static.Icon("bi bi-github", .{
-                    //             .font_size = 28,
-                    //             .text_color = .hex("#252525"),
-                    //         });
-                    //     });
-                    //     Static.Link(.{ .url = "https://github.com/vic-Rokx/fabric", .aria_label = "redirect link to discord" }, .{
-                    //         .text_decoration = .none,
-                    //         .height = .px(56),
-                    //         .width = .px(56),
-                    //         .border_thickness = .all(1),
-                    //         .border_radius = .all(8),
-                    //         .border_color = .hex("#EFEFEF"),
-                    //         .display = .Center,
-                    //     })({
-                    //         Static.Icon("bi bi-discord", .{
-                    //             .font_size = 28,
-                    //             .text_color = .hex("#252525"),
-                    //         });
-                    //     });
-                    // });
-
                     Custom.HtmlText(
                         \\The <i>Toolkit</i> for Fullstack Applications
                     , .{
@@ -329,7 +296,7 @@ pub fn render() void {
                             },
                             .text_decoration = .none,
                         })({
-                            Static.Text("Download", .{
+                            Static.Text("Install", .{
                                 .font_weight = 300,
                                 .font_size = 18,
                                 .text_color = .hex("#262626"),
@@ -342,55 +309,57 @@ pub fn render() void {
                     });
                 }
             }
-            Static.Box(.{
-                .position = .{ .type = .absolute, .bottom = .percent(0), .right = .percent(0) },
-                .height = .percent(10),
-                .width = .percent(100),
-                .child_alignment = .bottom_right,
-                .direction = .column,
-                .padding = .{ .right = 32 },
-                .border_thickness = .{ .bottom = 1 },
-                .border_color = .hex("#E4E4E4"),
-            })({
-                Static.Text("Trusted By", .{ .font_size = 16 });
+            if (!Fabric.isMobile()) {
                 Static.Box(.{
-                    .child_gap = 24,
+                    .position = .{ .type = .absolute, .bottom = .percent(0), .right = .percent(0) },
+                    .height = .percent(10),
+                    .width = .percent(100),
+                    .child_alignment = .bottom_right,
+                    .direction = .column,
+                    .padding = .{ .right = 32 },
+                    .border_thickness = .{ .bottom = 1 },
+                    .border_color = .hex("#E4E4E4"),
                 })({
-                    Static.Text("NightWatch", .{ .font_size = 24 });
-                    Static.Text("Heights & Minds", .{ .font_size = 24 });
+                    Static.Text("Trusted By", .{ .font_size = 16 });
+                    Static.Box(.{
+                        .child_gap = 24,
+                    })({
+                        Static.Text("NightWatch", .{ .font_size = 24 });
+                        Static.Text("Heights & Minds", .{ .font_size = 24 });
+                    });
+                });
+            }
+        });
+    });
+    if (!Fabric.isMobile()) {
+        Static.Box(.{
+            // .height = .percent(100),
+            .width = .percent(100),
+            .margin = .{ .top = 64 },
+            .padding = .{ .bottom = 64 },
+            .child_alignment = .{ .x = .even, .y = .start },
+        })({
+            Static.Column(.{
+                .height = .percent(100),
+                .width = .percent(40),
+                .display = .Center,
+            })({
+                Static.Text("From Here...", .{ .font_size = 32, .font_weight = 700 });
+                Static.Image("/assets/webdev.webp", .{
+                    .width = .percent(100),
+                });
+            });
+            Static.Column(.{
+                .height = .percent(100),
+                .width = .percent(40),
+                .display = .Center,
+            })({
+                Static.Text("To Here...", .{ .font_size = 32, .font_weight = 700 });
+                Static.Image("/assets/tether.webp", .{
+                    .width = .percent(85),
                 });
             });
         });
-    });
-    Static.Box(.{
-        // .height = .percent(100),
-        .width = .percent(100),
-        .margin = .{ .top = 64 },
-        .padding = .{ .bottom = 64 },
-        .child_alignment = .{ .x = .even, .y = .start },
-    })({
-        Static.Column(.{
-            .height = .percent(100),
-            .width = .percent(40),
-            .display = .Center,
-        })({
-            Static.Text("From Here...", .{ .font_size = 32, .font_weight = 700 });
-            Static.Image("/assets/webdev.webp", .{
-                .width = .percent(100),
-            });
-        });
-        Static.Column(.{
-            .height = .percent(100),
-            .width = .percent(40),
-            .display = .Center,
-        })({
-            Static.Text("To Here...", .{ .font_size = 32, .font_weight = 700 });
-            Static.Image("/assets/tether.webp", .{
-                .width = .percent(85),
-            });
-        });
-
-        // Comparison.render();
-    });
+    }
     // });
 }

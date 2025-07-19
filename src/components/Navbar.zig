@@ -7,6 +7,7 @@ const Signal = Fabric.Signal;
 const println = Fabric.println;
 const root = @import("../main.zig");
 const Search = @import("Search.zig");
+const Kit = Fabric.Kit;
 
 var theme_background: Fabric.Types.Background = undefined;
 var text_color: Fabric.Types.Background = undefined;
@@ -56,7 +57,7 @@ const urls: [5]Url = .{
     },
 };
 fn routes() void {
-    const current_path = Fabric.Kit.getWindowPath();
+    const current_path = Kit.getWindowPath();
     for (urls) |url| {
         Static.ListItem(.{
             // .style_id = "dropdown",
@@ -154,6 +155,12 @@ pub fn setDefault() void {
 
 fn openDialog() void {
     Search.toggle();
+}
+
+fn navigate(url: []const u8) void {
+    Kit.navigate(url);
+    menu = !menu;
+    Fabric.cycle();
 }
 
 pub fn render() void {
@@ -267,62 +274,6 @@ pub fn render() void {
                             .hover = .{ .text_color = .hex("#592BFF") },
                         });
                     });
-
-                    // Static.Column(.{})({
-                    //     Static.Button(.{ .onPress = showDropDown, .aria_label = "theme-switch" }, .{})({
-                    //         Static.Icon("bi bi-moon-stars-fill", .{
-                    //             .text_color = text_color,
-                    //             .font_size = 20,
-                    //         });
-                    //     });
-                    //     if (show_dropdown.get()) {
-                    //         Static.List(.{
-                    //             .display = .Flex,
-                    //             .position = .{ .type = .absolute, .top = .px(32), .right = .percent(0.05) },
-                    //             .border_radius = .all(6),
-                    //             .border_thickness = .all(1),
-                    //             .height = .fit,
-                    //             .child_gap = 4,
-                    //             .direction = .column,
-                    //             .padding = .{ .left = 4, .right = 4, .top = 4, .bottom = 4 },
-                    //             .width = .px(100),
-                    //         })({
-                    //             for (theme_options) |opt| {
-                    //                 Static.ListItem(.{
-                    //                     .display = .Flex,
-                    //                     .list_style = .none,
-                    //                     .width = .percent(100),
-                    //                     .height = .px(26),
-                    //                     .hover = .{},
-                    //                     .border_radius = .all(4),
-                    //                 })({
-                    //                     Static.CtxButton(switchTheme, .{opt.name}, .{
-                    //                         .width = .percent(100),
-                    //                         .height = .percent(100),
-                    //                         .display = .Flex,
-                    //                         .child_alignment = .{ .y = .center, .x = .start },
-                    //                         .padding = .{ .left = 8, .top = 4, .bottom = 4, .right = 4 },
-                    //                         // .background = activeTheme(opt.theme),
-                    //                         .border_radius = .all(4),
-                    //                         .child_gap = 8,
-                    //                     })({
-                    //                         Static.Icon(opt.icon, .{
-                    //                             .width = .px(16),
-                    //                             .height = .px(16),
-                    //                             .text_color = .hex("#C0C0C0"),
-                    //                             // .text_color = dropdownTextColor(opt.theme),
-                    //                         });
-                    //                         Static.Text(opt.name, .{
-                    //                             .font_size = 14,
-                    //                             .font_weight = 400,
-                    //                             // .text_color = dropdownTextColor(opt.theme),
-                    //                         });
-                    //                     });
-                    //                 });
-                    //             }
-                    //         });
-                    //     }
-                    // });
                 });
             });
         } else {
@@ -355,11 +306,11 @@ pub fn render() void {
                 })({
                     if (menu) {
                         Pure.Icon("bi bi-x-lg", .{
-                            .font_size = 32,
+                            .font_size = 24,
                         });
                     } else {
                         Pure.Icon("bi bi-list", .{
-                            .font_size = 32,
+                            .font_size = 24,
                         });
                     }
                 });
@@ -370,6 +321,8 @@ pub fn render() void {
                     .width = .percent(100),
                     .background = root.theme.getAttribute("background"),
                     .z_index = 999,
+                    .border_color = .hex("#E4E4E4"),
+                    .border_thickness = .{ .bottom = 1 },
                 })({
                     Static.List(.{
                         .list_style = .none,
@@ -381,23 +334,20 @@ pub fn render() void {
                     })({
                         for (urls) |item| {
                             Static.ListItem(.{
-                                .width = .percent(100),
-                                .border_radius = .all(4),
-                                .hover = .{
-                                    .background = .hex("#E4E4E4"),
-                                },
+                                .width = .percent(70),
                             })({
-                                Static.Link(.{ .url = item.url, .aria_label = item.title }, .{
-                                    .text_decoration = .none,
-                                    .width = .percent(100),
+                                Static.CtxButton(navigate, .{item.url}, .{
                                     .display = .Flex,
-                                    .child_alignment = .{ .x = .start, .y = .center },
+                                    .width = .percent(100),
+                                    .child_alignment = .left_center,
                                     .child_gap = 12,
-                                    .padding = .{ .top = 10, .bottom = 10, .right = 8, .left = 8 },
+                                    .padding = .tbrl(10,10,8,8),
                                     .cursor = .pointer,
                                 })({
                                     // Static.Icon(item.icon, .{});
                                     Static.Text(item.title, .{
+                                        .text_color = .hex("#262626"),
+                                        .font_family = "Montserrat",
                                         .font_size = 18,
                                     });
                                 });

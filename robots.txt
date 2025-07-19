@@ -6,7 +6,7 @@ User-agent: *
 Allow: /
 
 # Specify the location of your sitemap
-Sitemap: https://tether-website-production.up.railway.app/sitemap.xml
+# Sitemap: https://tetherlabs.app/sitemap.xml
 
 # Optional: Set crawl delay to be respectful to your server
 # Crawl-delay: 1

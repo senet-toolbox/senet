@@ -46,7 +46,7 @@ Fabric Includes
 - Animation Library
 - Integration apis with Tether
 - Wasm bridge
-- just 2000 lines of html and js which can be customized, used as wasm bridge for fabric
+- just 3000 lines of html and js which can be customized, used as wasm bridge for fabric
 - Agnostic interface for integrating custom components into fabric
 - Fetch callback system, no async function coloring 
 - Kit (a uitls lib, for parsing, searching...)
