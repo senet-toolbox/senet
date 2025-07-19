@@ -61,6 +61,16 @@ pub inline fn LazyImage(link: []const u8, style: Style) void {
     Fabric.LifeCycle.close({});
 }
 
+pub inline fn Virtualize(style: Style) fn (void) void {
+    const elem_decl = Fabric.ElementDecl{
+        .elem_type = .Virtualize,
+        .style = style,
+    };
+    _ = Fabric.LifeCycle.open(elem_decl);
+    Fabric.LifeCycle.configure(elem_decl);
+    return Fabric.LifeCycle.close;
+}
+
 pub inline fn Intersection(style: Style) fn (void) void {
     const elem_decl = Fabric.ElementDecl{
         .elem_type = .Intersection,

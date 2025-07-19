@@ -9,6 +9,7 @@ import {
   allocString,
   render,
   removeInactiveNodes,
+  layoutInfo,
 } from "./wasi_obj.js";
 import {
   applyHoverClass,
@@ -17,7 +18,12 @@ import {
   checkMarkStyling,
   applyFocusWithinClass,
 } from "./wasi_styling.js";
-import { domNodeRegistry, eventHandlers, eventStorage } from "./maps.js";
+import {
+  domNodeRegistry,
+  eventHandlers,
+  eventStorage,
+  observeredSections,
+} from "./maps.js";
 import { state } from "./state.js";
 
 const parser = new DOMParser();
@@ -73,6 +79,7 @@ const COMPONENT_TYPES = {
   PRE_IMAGE: 47,
   TEXT_GRADIENT: 48,
   GRADIENT: 49,
+  VIRTUALIZE: 50,
 };
 
 // Store intervals by route for cleanup
@@ -981,8 +988,49 @@ function updateElement(element, renderCmd) {
 
 /**
  * Traverse and render the component tree
- * @param {HTMLElement} parent - The parent element
- * @param {HTMLElement} tree_node - The current tree node
+ * @param {HTMLElement} parent - The parent element html element
+ * @param {HTMLElement} tree_node - The current tree node  *UINode
+ * @param {Object} layout - The layout information
+ */
+export function generateSections(virtual, virtual_ptr, layout) {
+  if (!virtual) return;
+
+  const children_count = wasmInstance.getTreeNodeChildrenCount(virtual_ptr);
+
+  for (let i = 0; i < children_count; i++) {
+    const child_ptr = wasmInstance.getTreeNodeChild(virtual_ptr, i);
+    const rndcmd_ptr = wasmInstance.getRenderCommandPtr(child_ptr);
+    const renderCmd = readRenderCommand(rndcmd_ptr, layout);
+
+    if (renderCmd.elemType !== COMPONENT_TYPES.INTERSECTION) {
+      console.error(
+        "Virtualized element must contain only intersection elements",
+      );
+      return;
+    }
+
+    activeNodeIds.add(renderCmd.id);
+
+    let element = createElementByType(renderCmd, virtual_ptr, layout, virtual);
+
+    if (!element) continue; // Skip if element creation failed
+
+    // Set up the element
+    setupElement(element, renderCmd);
+
+    // Append to parent
+    virtual.appendChild(element);
+    observeredSections.set(renderCmd.id, {
+      renderCmd,
+      treeNodePtr: child_ptr,
+    });
+  }
+}
+
+/**
+ * Traverse and render the component tree
+ * @param {HTMLElement} parent - The parent element html element
+ * @param {HTMLElement} tree_node - The current tree node  *UINode
  * @param {Object} layout - The layout information
  */
 export function traverse(parent, tree_node, layout) {
@@ -1013,6 +1061,7 @@ export function traverse(parent, tree_node, layout) {
 
       let element = document.getElementById(renderCmd.id);
 
+      // This is the first render, so this is where we virtualize
       if (!element || state.initial_render) {
         // Create new element
         element = createElementByType(renderCmd, tree_node, layout, parent);
@@ -1021,8 +1070,15 @@ export function traverse(parent, tree_node, layout) {
 
         // Set up the element
         setupElement(element, renderCmd);
-        // Process children
-        traverse(element, child_ptr, layout);
+
+        if (renderCmd.elemType === COMPONENT_TYPES.VIRTUALIZE) {
+          // We loop through the sections, and create section elements with empty content, and attach and observer
+          // to the section element.
+          generateSections(element, child_ptr, layout);
+        } else {
+          // Process children
+          traverse(element, child_ptr, layout);
+        }
 
         // Append to parent
         parent.appendChild(element);

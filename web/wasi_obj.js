@@ -4,6 +4,7 @@ import {
   moduleCache,
   moduleRoutes,
   hooksHandlers,
+  observeredSections,
 } from "./maps.js";
 import {
   applyHoverClass,
@@ -501,41 +502,66 @@ async function init() {
   // }, 3000);
 }
 
+function loadSection(element) {
+  const id = element.id;
+  // if it does not include the id then we have already loaded this section
+  if (!observeredSections.has(id)) {
+    return;
+  }
+  const section = observeredSections.get(id);
+  wasmInstance.markUINodeTreeDirty(section.renderCmd.nodePtr);
+  traverse(element, section.treeNodePtr, layoutInfo);
+}
+const loadedSections = new Set();
 function handleIntersection() {
-  const observer = new IntersectionObserver(
-    (entries) => {
-      entries.forEach((entry) => {
-        // Correctly get the link by its ID (without the '#')
-        const link = document.getElementById(`#${entry.target.id}`);
-
-        if (link) {
-          // Toggle the class based on whether the section is in view
-          if (entry.isIntersecting) {
-            link.classList.add("active");
-          } else {
-            link.classList.remove("active");
-          }
-        }
-      });
-    },
-    {
-      rootMargin: "-20% 0px -40% 0px", // Adjust this to change when sections are considered "active"
-      // threshold: [0, 0.1, 0.5, 1],
-      threshold: 0,
-    },
-
-    // {
-    //   // A margin of -40% from the top and bottom means the section
-    //   // is active in the middle 20% of the viewport.
-    //   rootMargin: "-40% 0px -40% 0px",
-    //   threshold: 0, // A single threshold is often sufficient
-    // },
-  );
+  const options = {
+    root: null,
+    rootMargin: "0px", // Only 50px buffer at bottom
+    threshold: 0.1,
+  };
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      console.log(entry.isIntersecting);
+      if (entry.isIntersecting && !loadedSections.has(entry.target)) {
+        console.log("Intersection", entry.target.id);
+        loadedSections.add(entry.target);
+        loadSection(entry.target);
+      }
+    });
+  }, options);
 
   // Observe all <section> elements
   document.querySelectorAll("section").forEach((section) => {
     observer.observe(section);
   });
+  // Wait a bit before setting up the observer
+  // const observer = new IntersectionObserver(
+  //   (entries) => {
+  //     entries.forEach((entry) => {
+  //       // Correctly get the link by its ID (without the '#')
+  //       const link = document.getElementById(`#${entry.target.id}`);
+  //
+  //       if (link) {
+  //         // Toggle the class based on whether the section is in view
+  //         if (entry.isIntersecting) {
+  //           link.classList.add("active");
+  //         } else {
+  //           link.classList.remove("active");
+  //         }
+  //       }
+  //     });
+  //   },
+  //   {
+  //     rootMargin: "-20% 0px -40% 0px", // Adjust this to change when sections are considered "active"
+  //     // threshold: [0, 0.1, 0.5, 1],
+  //     threshold: 0,
+  //   },
+  // );
+  //
+  // // Observe all <section> elements
+  // document.querySelectorAll("section").forEach((section) => {
+  //   observer.observe(section);
+  // });
 }
 
 let route_ptr = null;
@@ -583,7 +609,7 @@ export function render() {
       removeInactiveNodes();
       wasmInstance.markCurrentTreeNotDirty();
       wasmInstance.resetRerender();
-      handleIntersection();
+      // handleIntersection();
       requestAnimationFrame(wasmInstance.cleanUp);
     } else {
       // This implies grainRerender is true

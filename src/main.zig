@@ -26,14 +26,14 @@ export fn instantiate(window_width: f32, window_height: f32) void {
     });
     RootPage.init();
     ErrorPage.init();
-    MetalDocs.init();
+    // MetalDocs.init();
     FabricDocs.init();
     FabricConcepts.init();
-    ReverbDocs.init();
-    ReverbConcepts.init();
-    Download.init();
-    Huh.init();
-    About.init();
+    // ReverbDocs.init();
+    // ReverbConcepts.init();
+    // Download.init();
+    // Huh.init();
+    // About.init();
 }
 
 export fn renderUI(route_ptr: [*:0]u8) i32 {
