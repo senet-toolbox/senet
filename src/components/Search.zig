@@ -129,7 +129,7 @@ pub fn render() void {
                 })({});
                 Static.Box(.{
                     .height = .percent(80),
-                    .width = .clamp_percent(36, 36, 90),
+                    .width = .mobile_desktop_percent(90, 36),
                     .background = .hex("#F5F5F5"),
                     .padding = .all(12),
                     .direction = .column,

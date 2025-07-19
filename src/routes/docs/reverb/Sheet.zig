@@ -134,7 +134,7 @@ const Styles = struct {
                     .left = .px(0),
                     .top = .px(0),
                 },
-                .width = .clamp_percent(25, 600, 70),
+                .width = .mobile_desktop_percent(70, 25),
                 .height = .percent(100),
                 .will_change = .transform,
                 .backface_visibility = "hidden",

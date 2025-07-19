@@ -45,7 +45,7 @@ pub fn render() void {
             .margin = .{ .bottom = 16 },
         })({
             Static.Image("/assets/eventloop.webp", .{
-                .width = .clamp_percent(70, 600, 100),
+                .width = .mobile_desktop_percent(100, 70),
                 .height = .percent(100),
                 .margin = .{ .bottom = 32 },
             });

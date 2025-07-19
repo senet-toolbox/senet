@@ -42,22 +42,19 @@ const Route = struct {
 };
 
 const routes = [_]Route{
-    .{ .title = "Introduction", .path = "/docs/fabric/concepts/introduction" },
-    .{ .title = "Basics", .path = "/docs/fabric/concepts/basics" },
-    .{ .title = "Project Structure", .path = "/docs/fabric/concepts/routing" },
-    .{ .title = "Static, Pure, Dynamic, Grain", .path = "/docs/fabric/concepts/reactivity" },
-    .{ .title = "Routing", .path = "/docs/fabric/concepts/routing" },
-    .{ .title = "Reactivity", .path = "/docs/fabric/concepts/reactivity-signals" },
-    .{ .title = "Styling", .path = "/docs/fabric/concepts/styling" },
-    .{ .title = "Kit", .path = "/docs/fabric/concepts/kit" },
-    .{ .title = "Event Handlers", .path = "/docs/fabric/concepts/events" },
-    .{ .title = "LifeCycle Hooks", .path = "/docs/fabric/concepts/hooks" },
-    .{ .title = "Event Handlers", .path = "/docs/fabric/concepts/events" },
-    .{ .title = "Using JS Libraries", .path = "/docs/fabric/concepts/jslibs" },
-    .{ .title = "Wasm Bridge", .path = "/docs/fabric/concepts/wasm-bridge" },
-    .{ .title = "KeyStone", .path = "/docs/fabric/concepts/keystone" },
-    .{ .title = "Gotchas", .path = "/docs/fabric/concepts/gotchas" },
-    .{ .title = "Metal", .path = "/docs/fabric/concepts/metal" },
+    .{ .title = "Introduction", .path = "/docs/reverb/concepts/introduction" },
+    .{ .title = "Basics", .path = "/docs/reverb/concepts/basics" },
+    .{ .title = "Routing", .path = "/docs/reverb/concepts/routing" },
+    .{ .title = "Context", .path = "/docs/reverb/concepts/context" },
+    .{ .title = "Middleware", .path = "/docs/reverb/concepts/middleware" },
+    .{ .title = "Memory Tracking", .path = "/docs/reverb/concepts/memory" },
+    .{ .title = "Project Structure", .path = "/docs/reverb/concepts/project" },
+    .{ .title = "Loom Engine", .path = "/docs/reverb/concepts/loom" },
+    .{ .title = "Scheduler", .path = "/docs/reverb/concepts/scheduler" },
+    .{ .title = "Kit", .path = "/docs/reverb/concepts/kit" },
+    .{ .title = "KeyStone", .path = "/docs/reverb/concepts/keystone" },
+    .{ .title = "Gotchas", .path = "/docs/reverb/concepts/gotchas" },
+    .{ .title = "Metal", .path = "/docs/reverb/concepts/metal" },
 };
 
 var last_time: i64 = 0;
@@ -123,7 +120,7 @@ pub fn render() void {
             .padding = .{ .top = 60 },
         })({
             Static.FlexBox(.{
-                .width = .clamp_percent(62, 62, 100),
+                .width = .mobile_desktop_percent(100, 62),
                 .child_gap = 16,
                 .direction = .column,
                 .child_alignment = .{ .x = .start, .y = .start },
@@ -272,6 +269,50 @@ pub fn render() void {
                     \\Below is an example of copying and offloading the copied key to a atomic thread pool.
                 , .{});
                 ctx_offload_sample.render(0);
+                Custom.Intersection(.{
+                    .id = "fabric-documentation",
+                })({
+                    Static.Text("Documentation", .{
+                        .margin = .{ .top = 32 },
+                        .font_size = 32,
+                        .font_weight = 700,
+                    });
+                    Static.Text("This is the documenation of Fabric, a frontend toolkit for building UI. Fabric is one of 3 components of Tether.", .{
+                        .font_size = 20,
+                        .text_color = .hex("#666666"),
+                    });
+                    Static.Text("Fabric concepts:", .{
+                        .font_size = 24,
+                    });
+
+                    Static.List(.{
+                        .display = .Flex,
+                        .child_gap = 8,
+                        .direction = .column,
+                        .child_alignment = .{ .x = .start, .y = .start },
+                        .padding = .{ .left = 32 },
+                    })({
+                        for (routes) |route| {
+                            Static.ListItem(.{
+                                // .width = .percent(100),
+                            })({
+                                Static.Link(.{ .url = route.path, .aria_label = route.title }, .{
+                                    .text_decoration = .none,
+                                    // .width = .percent(100),
+                                    .display = .Flex,
+                                    .child_alignment = .{ .x = .start, .y = .center },
+                                    .child_gap = 12,
+                                    .padding = .{ .top = 4, .bottom = 4 },
+                                    .cursor = .pointer,
+                                    .border_thickness = .{ .bottom = 1 },
+                                    .hover = .{ .border_thickness = .{ .bottom = 1 }, .border_color = .rgb(0, 0, 0) },
+                                })({
+                                    Static.Text(route.title, .{});
+                                });
+                            });
+                        }
+                    });
+                });
             });
         });
     });

@@ -29,7 +29,7 @@ pub fn render() void {
             .child_gap = 24,
             .direction = .column,
             .margin = .{ .bottom = 32 },
-            .width = .clamp_percent(70, 70, 100),
+            .width = .mobile_desktop_percent(100, 70),
             .padding = .horizontal(12),
             // .child_alignment = .start_center,
         })({
