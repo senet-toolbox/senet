@@ -54,15 +54,88 @@ pub fn render() void {
             \\Fabric has taken a completely new approach. In the very early stages of Fabric's creation, an entire UI layout algorithmn
             \\was built from scratch. The aim of this was, to design an ergonmic, and usable simple styling system, for developers to work
             \\with. Today, Fabric does not use this UI algo, due to the benefits of the browser's DOM engine, but still uses the same styling api interface.
+        , .{
+            .font_size = 18,
+        });
+
+        Custom.HtmlText(
             \\To center any element in Fabric, just write <code>display = .Center</code>, or <code>child_alignment = .center</code>, Fabric 
             \\even exposes it own Center Component type, Center(Style) Component, which will Center any child elements within it.
             \\No more <strong>justify-content</strong>, or <strong>align-items</strong>, or <strong>text-align</strong>, ect... only <code>.x = .start</code>, or 
-            \\<code>.y = .center</code> or <code>.child_alignement = .topLeft</code>, these are also direction independent, adding <code>direction = .row</code>
+            \\<code>.y = .center</code> or <code>.child_alignement = .top_left</code>, these are also direction independent, adding <code>direction = .row</code>
             \\or <code>direction = .column</code>, will still layout elements in y and x axis, correctly, unlike justify-content, and align-items.
         , .{
             .font_size = 18,
         });
 
+        Static.List(.{})({
+            Static.ListItem(.{})({
+                Static.Text("display: .Center", .{
+                    .font_size = 18,
+                    .text_color = .hex("#2a2a2a"),
+                });
+            });
+            Static.ListItem(.{})({
+                Static.Text("child_alignment: .center", .{
+                    .font_size = 18,
+                    .text_color = .hex("#2a2a2a"),
+                });
+            });
+            Static.ListItem(.{})({
+                Static.Text("child_alignment: .left_center", .{
+                    .font_size = 18,
+                    .text_color = .hex("#2a2a2a"),
+                });
+            });
+            Static.ListItem(.{})({
+                Static.Text("child_alignment: .right_center", .{
+                    .font_size = 18,
+                    .text_color = .hex("#2a2a2a"),
+                });
+            });
+            Static.ListItem(.{})({
+                Static.Text("child_alignment: .top_left", .{
+                    .font_size = 18,
+                    .text_color = .hex("#2a2a2a"),
+                });
+            });
+            Static.ListItem(.{})({
+                Static.Text("child_alignment: .top_right", .{
+                    .font_size = 18,
+                    .text_color = .hex("#2a2a2a"),
+                });
+            });
+            Static.ListItem(.{})({
+                Static.Text("child_alignment: .bottom_left", .{
+                    .font_size = 18,
+                    .text_color = .hex("#2a2a2a"),
+                });
+            });
+            Static.ListItem(.{})({
+                Static.Text("child_alignment: .bottom_right", .{
+                    .font_size = 18,
+                    .text_color = .hex("#2a2a2a"),
+                });
+            });
+            Static.ListItem(.{})({
+                Static.Text("child_alignment: .top_center", .{
+                    .font_size = 18,
+                    .text_color = .hex("#2a2a2a"),
+                });
+            });
+            Static.ListItem(.{})({
+                Static.Text("child_alignment: .bottom_center", .{
+                    .font_size = 18,
+                    .text_color = .hex("#2a2a2a"),
+                });
+            });
+            Static.ListItem(.{})({
+                Static.Text("and much more...", .{
+                    .font_size = 18,
+                    .text_color = .hex("#2a2a2a"),
+                });
+            });
+        });
         Custom.HtmlText(
             \\A typical CSS styled Button requires the following styling <code>style="display: flex; justify-content: center, align-items: center,
             \\border-radius: 8px; border: 1px solid black; background: transparent;"</style></code>.

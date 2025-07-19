@@ -152,8 +152,16 @@ pub fn render() void {
                     .font_size = 32,
                     .font_weight = 700,
                 });
+                Static.Text(
+                    \\Reverb is the backend framework of Tether.
+                , .{
+                    .font_size = 24,
+                    .width = .percent(100),
+                    .text_color = .hex("#666666"),
+                    .margin = .{ .top = 8, .bottom = 8 },
+                });
                 Custom.HtmlText(
-                    \\Reverb is a backend web framework. The purpose of Reverb is to be the connection between Fabric, and Treehouse. 
+                    \\The purpose of Reverb is to be the connection between Fabric, and Treehouse. 
                     \\Reverb was heavily inspired by <a href="https://gofiber.io/">Golang Fiber</a>, and <a href="https://echo.labstack.c
                     \\om/">Echo</a>.
                     \\Reverb has been built from the ground up, with a focus on simplicity in design and development, yet with extreme performance
