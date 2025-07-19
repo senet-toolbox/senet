@@ -18,6 +18,8 @@ var code_view_loc: CodeEditor = undefined;
 var html_code_editor: CodeEditor = undefined;
 var traversal_code_editor: CodeEditor = undefined;
 var enum_code_editor: CodeEditor = undefined;
+var void_code_editor: CodeEditor = undefined;
+var full_code_editor: CodeEditor = undefined;
 pub fn init() void {
     sheet.init(&Fabric.lib.allocator_global);
     Fabric.lib.registerLayout("/docs/fabric", layout);
@@ -25,6 +27,8 @@ pub fn init() void {
     html_code_editor.init(&Fabric.lib.allocator_global, @embedFile("html_text_sample.zig"));
     traversal_code_editor.init(&Fabric.lib.allocator_global, @embedFile("traversal_sample.js"));
     enum_code_editor.init(&Fabric.lib.allocator_global, @embedFile("enum.zig"));
+    void_code_editor.init(&Fabric.lib.allocator_global, @embedFile("void_sample.zig"));
+    full_code_editor.init(&Fabric.lib.allocator_global, @embedFile("full_sample.zig"));
 
     Page(@src(), render, null, .{
         .width = .percent(100),
@@ -201,6 +205,9 @@ pub fn render() void {
                 // });
                 Custom.Intersection(.{
                     .id = "what-is-fabric",
+                    .child_gap = 8,
+                    .display = .Flex,
+                    .direction = .column,
                 })({
                     Static.Text("What is Fabric?", .{
                         // .margin = .{ .top = 32 },
@@ -208,18 +215,25 @@ pub fn render() void {
                         .font_weight = 700,
                     });
                     Static.Text(
-                        \\Fabric is toolkit-first, framework-second. We believe developers should control their tools, not
+                        \\Fabric is the frontend framework of Tether.
+                    , .{
+                        .font_size = 24,
+                        .width = .percent(100),
+                        .text_color = .hex("#666666"),
+                        .margin = .{ .top = 8, .bottom = 8 },
+                    });
+                    Static.Text(
+                        \\We believe developers should control their tools, not
                         \\the other way around. Every API is explicitly exposed, every internal is accessible, and every component can
                         \\be customized. No black boxes, no hidden magic—just transparent, controllable architecture that puts you in the
                         \\driver's seat.
                     , .{
                         .font_size = 18,
                         .width = .percent(100),
-                        .height = .fit,
                     });
                     Static.Text(
                         \\Fabric should be treated and seen as a set of tools, which can be used to adapt the core framework, it's
-                        \\purpose is to be unopinionated, and modular.
+                        \\purpose is to be unopinionated, and modular. However, there are guidelines, and best practices that we follow.
                     , .{
                         .font_size = 18,
                     });
@@ -236,12 +250,12 @@ pub fn render() void {
                         .direction = .column,
                     })({
                         Static.ListItem(.{})({
-                            Static.Text("To rerender just call Fabric.cycle()", .{
+                            Static.Text("To update the UI just call Fabric.cycle()", .{
                                 .font_size = 18,
                             });
                         });
                         Static.ListItem(.{})({
-                            Static.Text("You can add any custom native HTML or embed directly into Fabric.", .{
+                            Static.Text("You can embed any custom HTML, JS, CSS", .{
                                 .font_size = 18,
                             });
                         });
@@ -265,6 +279,9 @@ pub fn render() void {
 
                 Custom.Intersection(.{
                     .id = "opinions-opinions-opinions",
+                    .display = .Flex,
+                    .direction = .column,
+                    .child_gap = 8,
                 })({
                     Static.Text("Opinions, Opinions, Opinions!", .{
                         .margin = .{ .top = 32 },
@@ -272,16 +289,23 @@ pub fn render() void {
                         .font_weight = 900,
                     });
                     Static.Text(
-                        \\While the ideology of opinionated frameworks sounds greate in theory, unfortunatley in practice there are many
+                        \\While the ideology of opinionated frameworks sounds great in theory, unfortunatley in practice there are many
                         \\cases where this causes the frameworks themselves to support legacy codebases, and for systems to become static,
                         \\and inflexible.
                     , .{
                         .font_size = 18,
                     });
                     Custom.HtmlText(
-                        \\React: <strong>"Use Class Components!"</strong> Then: <strong>"Actually, use functions as Components!"</strong>
-                        \\Svelte: <strong>"Everything is state!"</strong> Then: <strong>"Actually, use runes!"</strong> Every framework
+                        \\<strong  style="color: #087ea4;">React</strong>: <strong>"Use Class Components!"</strong> Then: <strong>"Actually, use functions as Components!"</strong>
+                        \\<strong style="color: #ff3e00;">Svelte</strong>: <strong>"Everything is state!"</strong> Then: <strong>"Actually, use runes!"</strong> Every framework
                         \\eventually pivots, leaving developers with broken code and migration headaches.
+                    , .{
+                        .font_size = 18,
+                    });
+
+                    Custom.HtmlText(
+                        \\Now in their own right, React and Svelte are great frameworks, but they are not Fabric. Fabric is a toolkit, not a framework. 
+                        \\Both React and Svelte have laid the groundwork for Fabric to be where it is today. Moreover, what Rich Harris achieved, is no small feat.
                     , .{
                         .font_size = 18,
                     });
@@ -289,14 +313,16 @@ pub fn render() void {
                     Custom.HtmlText(
                         \\Fabric's approach is fundamentally different. By exposing all internals within a compact 8K-line codebase
                         \\and providing direct engine access, we eliminate framework lock-in. Developers retain full control over
-                        \\their architecture while benefiting from a lightweight foundation where <a href="/docs/fabric/concepts/ui-nodes">
-                        \\UI nodes</a> require just 10 lines of code.
+                        \\their architecture while benefiting from a lightweight foundation where UI nodes require just 10 lines of code.
                     , .{
                         .font_size = 18,
                     });
                 });
                 Custom.Intersection(.{
                     .id = "what-is-a-ui-node",
+                    .child_gap = 8,
+                    .display = .Flex,
+                    .direction = .column,
                 })({
                     Static.Text("A UI Node", .{
                         .font_size = 24,
@@ -323,9 +349,42 @@ pub fn render() void {
                     });
 
                     Custom.HtmlText(
-                        \\<i>fn (void) void void</i> ??? This is a function that takes void ({}) as an argument, and returns void.
+                        \\<strong style="color: #8B5CF6;"><i>fn (void) void ???</i></strong>
+                    , .{
+                        .font_size = 18,
+                    });
+
+                    Custom.HtmlText(
+                        \\<strong><i>void</i></strong> in low level languages, basically means nothing. So when we
+                        \\call a function and return void, we are saying that we don't return anything. In Zig void is represented as {}.
+                        \\So in a function which takes void as an argument we can pass {}. This is like a code block, where we can run anything inside it.
+                    , .{
+                        .font_size = 18,
+                        .margin = .{ .bottom = 16 },
+                    });
+
+                    void_code_editor.render(0);
+
+                    Custom.HtmlText(
+                        \\Here is an example using some of Fabric's components. and a print statement.
+                    , .{
+                        .font_size = 22,
+                        .margin = .{ .bottom = 16, .top = 16 },
+                    });
+
+                    full_code_editor.render(0);
+
+                    Custom.HtmlText(
+                        \\<strong style="color: #8B5CF6;"><i>fn (void) void</i></strong>
+                    , .{
+                        .margin = .{ .top = 16 },
+                        .font_size = 18,
+                    });
+
+                    Custom.HtmlText(
+                        \\This is a function that takes void <strong>({})</strong> as an argument, and returns void.
                         \\This pattern is used to create what is called a Closure, which is a function that can be called later on.
-                        \\In this case, the function Box returns a closure, which is a function that takes no arguments and returns nothing.
+                        \\In this case, the function Box returns a closure, which is a function that takes a void argument and returns nothing.
                         \\We can therefore run any code within the closure. <code><i>Box(Style{}) => return closure = fn (void) void</i>, we can now call the closure like so
                         \\ <i>Box(Style{})({});</i> and within the void argument "{}", we can add a print statment => <i>({ Fabric.println("Hello World!"); })</i></code>
                         \\ This is a very powerful pattern, and is used in many languages, including JavaScript, Python, and Rust.

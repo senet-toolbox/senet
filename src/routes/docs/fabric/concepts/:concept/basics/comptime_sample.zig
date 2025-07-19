@@ -9,35 +9,31 @@ pub fn Counter(comptime T: type, initial_value: T) type {
     return struct {
         const Self = @This();
 
-        count: *Signal(T),
-        allocator: *std.mem.Allocator,
+        var count: Signal(T) = undefined;
 
-        pub fn init(counter: *Self, allocator: *std.mem.Allocator) void {
-            counter.* = .{
-                .count = Signal(T).init(initial_value, allocator),
-                .allocator = allocator,
-            };
+        pub fn init() void {
+            count.init(initial_value);
         }
 
-        pub fn deinit(counter: *Self) void {
-            counter.count.deinit();
+        pub fn deinit() void {
+            count.deinit();
         }
 
-        fn increment(counter: *Self) void {
-            counter.count.set(counter.count.get() + 1);
+        fn increment() void {
+            count.set(count.get() + 1);
         }
 
-        fn decrement(counter: *Self) void {
-            counter.count.set(counter.count.get() - 1);
+        fn decrement() void {
+            count.set(count.get() - 1);
         }
 
-        pub fn render(counter: *Self) void {
+        pub fn render() void {
             Static.Box(.{
                 .child_alignment = .{ .x = .center, .y = .center },
                 .child_gap = 16,
                 .padding = .all(20),
             })({
-                Pure.CtxButton(decrement, .{counter}, .{
+                Pure.Button(.{ .onPress = decrement, .aria_label = "decrement" }, .{
                     .padding = .{ .top = 8, .bottom = 8, .left = 16, .right = 16 },
                     .border_radius = .all(4),
                     .background = .{ 0.2, 0.5, 0.8, 1.0 },
@@ -48,12 +44,12 @@ pub fn Counter(comptime T: type, initial_value: T) type {
                     });
                 });
 
-                Pure.AllocText("{d}", .{counter.count.get()}, .{
+                Pure.AllocText("{d}", .{count.get()}, .{
                     .font_size = 24,
                     .font_weight = .bold,
                 });
 
-                Pure.CtxButton(increment, .{counter}, .{
+                Pure.Button(.{ .onPress = increment, .aria_label = "increment" }, .{
                     .padding = .{ .top = 8, .bottom = 8, .left = 16, .right = 16 },
                     .border_radius = .all(4),
                     .background = .{ 0.2, 0.5, 0.8, 1.0 },
@@ -76,4 +72,3 @@ pub fn Counter(comptime T: type, initial_value: T) type {
 // int_counter.init(&allocator);
 // defer int_counter.deinit();
 // int_counter.render();
-
