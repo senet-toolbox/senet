@@ -5,6 +5,7 @@ import {
   moduleRoutes,
   hooksHandlers,
   observeredSections,
+  loadedSections,
 } from "./maps.js";
 import {
   applyHoverClass,
@@ -512,7 +513,6 @@ function loadSection(element) {
   wasmInstance.markUINodeTreeDirty(section.renderCmd.nodePtr);
   traverse(element, section.treeNodePtr, layoutInfo);
 }
-const loadedSections = new Set();
 function handleIntersection() {
   const options = {
     root: null,
@@ -521,10 +521,9 @@ function handleIntersection() {
   };
   const observer = new IntersectionObserver((entries) => {
     entries.forEach((entry) => {
-      console.log(entry.isIntersecting);
-      if (entry.isIntersecting && !loadedSections.has(entry.target)) {
+      if (entry.isIntersecting && !loadedSections.has(entry.target.id)) {
         console.log("Intersection", entry.target.id);
-        loadedSections.add(entry.target);
+        loadedSections.add(entry.target.id);
         loadSection(entry.target);
       }
     });
@@ -609,7 +608,7 @@ export function render() {
       removeInactiveNodes();
       wasmInstance.markCurrentTreeNotDirty();
       wasmInstance.resetRerender();
-      // handleIntersection();
+      handleIntersection();
       requestAnimationFrame(wasmInstance.cleanUp);
     } else {
       // This implies grainRerender is true

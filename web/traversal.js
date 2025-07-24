@@ -22,6 +22,7 @@ import {
   domNodeRegistry,
   eventHandlers,
   eventStorage,
+  loadedSections,
   observeredSections,
 } from "./maps.js";
 import { state } from "./state.js";
@@ -311,6 +312,7 @@ export function stripNonLayout(el) {
 
   // Now `el` has no layout descendants => safe to delete everything remaining
   domNodeRegistry.delete(el.id);
+  loadedSections.delete(el.id);
   if (el.localName === "p" || el.localName === "svg") {
     el.remove();
   } else {
