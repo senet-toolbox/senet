@@ -212,7 +212,7 @@ pub fn render() void {
                         .child_gap = 8,
                         .display = .Flex,
                         .direction = .column,
-                        .height = .min_max_vp(40, 100),
+                        .height = if (Fabric.isMobile()) .min_max_vp(60, 100) else .min_max_vp(30, 100),
                     })({
                         Static.Text("What is Fabric?", .{
                             // .margin = .{ .top = 32 },
@@ -245,7 +245,7 @@ pub fn render() void {
                     });
                     Custom.Intersection(.{
                         .id = "fabric-is-simple",
-                        .height = .min_max_vp(20, 100),
+                        .height = if (Fabric.isMobile()) .min_max_vp(30, 100) else .min_max_vp(10, 100),
                     })({
                         Static.Text("Fabric is simple by nature", .{
                             // .margin = .{ .top = 32 },
@@ -288,7 +288,7 @@ pub fn render() void {
                         .display = .Flex,
                         .direction = .column,
                         .child_gap = 8,
-                        .height = .min_max_vp(30, 100),
+                        .height = if (Fabric.isMobile()) .min_max_vp(30, 100) else .min_max_vp(50, 100),
                     })({
                         Static.Text("Opinions, Opinions, Opinions!", .{
                             .margin = .{ .top = 32 },
@@ -330,7 +330,7 @@ pub fn render() void {
                         .child_gap = 8,
                         .display = .Flex,
                         .direction = .column,
-                        .height = .min_max_vp(50, 100),
+                        .height = .min_max_vp(70, 100),
                     })({
                         Static.Text("A UI Node", .{
                             .font_size = 24,
