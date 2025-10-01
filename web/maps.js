@@ -9,5 +9,6 @@ export const hooksHandlers = new Map();
 export let eventStorage = {};
 export let observeredSections = new Map();
 export let loadedSections = new Set();
+export let pureNodeRegistry = new Map();
 
 

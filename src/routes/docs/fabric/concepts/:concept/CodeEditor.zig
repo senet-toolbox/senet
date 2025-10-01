@@ -2,6 +2,10 @@ const std = @import("std");
 const Fabric = @import("fabric");
 const Static = Fabric.Static;
 const Pure = Fabric.Pure;
+const Chain = Fabric.Chain;
+const CtxButton = Chain.CtxButton;
+const Box = Chain.Box;
+const Icon = Chain.Icon;
 // const code = @import("code/FormCode.zig").code;
 
 const Signal = Fabric.Signal;
@@ -19,7 +23,7 @@ var text_color: [4]f32 = undefined;
 
 const CodeEditor = @This();
 allocator: *std.mem.Allocator = undefined,
-processed_lines: std.ArrayList(NewLine) = undefined,
+processed_lines: std.array_list.Managed(NewLine) = undefined,
 show_cpy_btn: Signal(bool) = undefined,
 local_copy_code: []const u8 = undefined,
 
@@ -42,7 +46,7 @@ pub fn initWrapper(ptr: *anyopaque, allocator: *std.mem.Allocator, code: []const
 pub fn init(target: *CodeEditor, allocator: *std.mem.Allocator, code: []const u8) void {
     target.* = CodeEditor{
         .allocator = allocator,
-        .processed_lines = std.ArrayList(NewLine).init(allocator.*),
+        .processed_lines = std.array_list.Managed(NewLine).init(allocator.*),
     };
     target.show_cpy_btn.init(false);
     target.local_copy_code = code;
@@ -54,7 +58,7 @@ pub fn init(target: *CodeEditor, allocator: *std.mem.Allocator, code: []const u8
 
 pub fn reinit(code_editor: *CodeEditor, code: []const u8) !void {
     code_editor.local_copy_code = code;
-    code_editor.processed_lines = std.ArrayList(NewLine).init(code_editor.allocator.*);
+    code_editor.processed_lines = std.array_list.Managed(NewLine).init(code_editor.allocator.*);
     try code_editor.tokenize(code);
 }
 
@@ -83,63 +87,68 @@ pub inline fn Code() fn (void) void {
 }
 
 pub fn render(code_editor: *CodeEditor, _: f32) void {
-    Static.Block(.{
-        .width = .percent(100),
-        .height = .percent(100),
-        .overflow_y = .scroll,
+    Box.style(&.{
+        .size = .square_percent(100),
+        .scroll = .scroll_y(),
         .show_scrollbar = false,
         .direction = .column,
-        .child_alignment = .{ .x = .start, .y = .start },
-        .background = .rgb(40, 42, 54),
-        .border_radius = .all(8),
-        .padding = .{ .top = 10, .bottom = 10 },
+        .layout = .{ .x = .start, .y = .start },
+        .visual = .{
+            .background = .rgb(40, 42, 54),
+            .border_radius = .all(8),
+        },
+        .padding = .tb(10, 10),
     })({
-        Static.FlexBox(.{
-            .child_alignment = .right_center,
-            .width = .percent(100),
+        Box.style(&.{
+            .layout = .right_center,
+            .size = .w(.percent(100)),
             .padding = .horizontal(12),
         })({
-            Static.CtxButton(copy, .{code_editor}, .{
-                .width = .px(22),
-                .height = .px(22),
-                .border_radius = .all(4),
-                .display = .Center,
-                .cursor = .pointer,
+            CtxButton.style(copy, .{code_editor}).style(&.{
+                .size = .square_px(22),
                 .transition = .{ .duration = 300 },
-                .hover = .{ .background = .hex("#2D303E") },
+                .visual = .{
+                    .border_radius = .all(4),
+                    .background = .transparent,
+                    .cursor = .pointer,
+                },
+                .interactive = .{
+                    .hover = .{ .background = .hex("#2D303E") },
+                },
+                .layout = .center,
+                .cursor = .pointer,
             })({
                 if (!code_editor.show_cpy_btn.get()) {
-                    Pure.Icon("bi bi-clipboard", .{
-                        .font_size = 16,
-                        .text_color = .hex("#cccccc"),
+                    Icon("bi bi-clipboard").style(&.{
+                        .visual = .{ .font_size = 16, .text_color = .hex("#cccccc") },
                         .transition = .{ .duration = 300 },
-                        .hover = .{ .text_color = .hex("#ffffff") },
+                        .interactive = .hover_text(.hex("#ffffff")),
                     });
                 } else {
-                    Pure.Icon("bi bi-check", .{
-                        .font_size = 16,
-                        .text_color = .hex("#cccccc"),
-                        .hover = .{ .text_color = .hex("#ffffff") },
+                    Icon("bi bi-check").style(&.{
+                        .visual = .{ .font_size = 16, .text_color = .hex("#cccccc") },
+                        .transition = .{ .duration = 300 },
+                        .interactive = .hover_text(.hex("#ffffff")),
                     });
                 }
             });
         });
         Code()({
             for (code_editor.processed_lines.items) |line| {
-                Static.FlexBox(.{
-                    .height = .px(20),
+                Box.style(&.{
+                    .size = .h(.px(20)),
                     .white_space = .pre,
-                    .child_alignment = .left_center,
-                    .padding = .{
-                        .left = 30,
-                    },
+                    .layout = .left_center,
+                    .padding = .l(30),
                 })({
                     for (line.processed_text) |word| {
                         Static.Text(word.text, .{
-                            .font_size = 14,
-                            .font_weight = 500,
-                            .font_family = "JetBrains Mono,Fira Code,Consolas,monospace",
-                            .text_color = .rgb(word.color[0], word.color[1], word.color[2]),
+                            .visual = .{
+                                .font_size = 14,
+                                .font_weight = 500,
+                                .font_family = "JetBrains Mono,Fira Code,Consolas,monospace",
+                                .text_color = .rgb(word.color[0], word.color[1], word.color[2]),
+                            },
                         });
                     }
                 });
@@ -163,7 +172,7 @@ const Declarations = enum {
     Pure,
 };
 
-fn parseSubText(allocator: *std.mem.Allocator, processed_text: *std.ArrayList(TextDetails), sub_text: []const u8) !void {
+fn parseSubText(allocator: *std.mem.Allocator, processed_text: *std.array_list.Managed(TextDetails), sub_text: []const u8) !void {
     var period_itr = std.mem.tokenizeScalar(u8, sub_text, '.');
     const count = std.mem.count(u8, sub_text, ".");
     var period_counter: usize = 0;
@@ -257,7 +266,7 @@ pub fn tokenize(code_editor: *CodeEditor, text: []const u8) !void {
     outer: while (line_itr.next()) |line| {
         first_word = true;
         // var word_count: usize = 0;
-        var processed_texts: std.ArrayList(TextDetails) = std.ArrayList(TextDetails).init(allocator.*);
+        var processed_texts: std.array_list.Managed(TextDetails) = std.array_list.Managed(TextDetails).init(allocator.*);
         var word_itr = std.mem.tokenizeScalar(u8, line, ' ');
         //
         if (line.len == 0) {
@@ -277,9 +286,8 @@ pub fn tokenize(code_editor: *CodeEditor, text: []const u8) !void {
             }
             var text_deets = TextDetails{};
 
-            var buf = std.ArrayList(u8).init(allocator.*);
-            if (std.mem.indexOf(u8, word, "{}")) |_| {
-            } else if (std.mem.indexOf(u8, word, "}")) |_| {
+            var buf = std.array_list.Managed(u8).init(allocator.*);
+            if (std.mem.indexOf(u8, word, "{}")) |_| {} else if (std.mem.indexOf(u8, word, "}")) |_| {
                 depth -= 1;
             }
 

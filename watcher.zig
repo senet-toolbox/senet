@@ -233,6 +233,7 @@ pub fn mimeForPath(path: []const u8) []const u8 {
     return "text/html; charset=utf8";
 }
 
+var buffer: [2097152]u8 = undefined;
 pub fn openLocalFile(conn: std.net.Server.Connection, mime: []const u8, mimetype: []const u8) !void {
     var allocator = std.heap.page_allocator;
     var path: []const u8 = "/index.html";
@@ -282,7 +283,11 @@ pub fn openLocalFile(conn: std.net.Server.Connection, mime: []const u8, mimetype
         "\r\n" ++
         "{s}";
     const response = try std.fmt.allocPrint(allocator, httpHead, .{ mimetype, contents.len, contents });
-    _ = try conn.stream.writer().write(response);
+    var writer = conn.stream.writer(&buffer);
+    var source = &writer.interface;
+    // var writer = &conn.stream.writer(&.{}).interface;
+    _ = try source.write(response);
+    source.flush() catch {};
 }
 
 fn watchFiles(self: *WatchContext, chan: *Chan(u8)) !void {
@@ -363,7 +368,7 @@ fn watchFiles(self: *WatchContext, chan: *Chan(u8)) !void {
             try chan.send(val);
         }
 
-        std.time.sleep(1_000_000_000 / 2);
+        std.Thread.sleep(1_000_000_000 / 2);
     }
 }
 
@@ -424,7 +429,7 @@ pub fn main() !void {
                         };
                         if (val == 1) {
                             try watch_ctx.buildAndRun();
-                            std.time.sleep(1_000_000_000);
+                            std.Thread.sleep(1_000_000_000);
                             // var writer = conn.stream.writer();
                             // std.debug.print("Changed!\n", .{});
                             // const payload = "refresh";
@@ -552,7 +557,7 @@ pub fn main() !void {
     var webserver_thread = try std.Thread.spawn(.{}, web_thread.webserver, .{ &chan, ctx });
     defer webserver_thread.join();
 
-    std.time.sleep(1_000_000_000);
+    std.Thread.sleep(1_000_000_000);
 
     var watcher_thread = try std.Thread.spawn(.{}, watchFiles, .{ ctx, &chan });
     defer watcher_thread.join();

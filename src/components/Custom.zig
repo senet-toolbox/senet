@@ -4,17 +4,43 @@ const Static = Fabric.Static;
 const Pure = Fabric.Pure;
 const Style = Fabric.Style;
 
-pub inline fn HtmlText(text: []const u8, style: Style) void {
+const HtmlOptions = struct {
+    text: []const u8,
+    style: ?*const Style = null,
+};
+
+pub inline fn HtmlText(options: HtmlOptions) void {
     const elem_decl = Fabric.ElementDecl{
         .dynamic = .static,
         .elem_type = .HtmlText,
-        .text = text,
-        .style = style,
+        .text = options.text,
+        .style = options.style,
     };
     _ = Fabric.LifeCycle.open(elem_decl);
     Fabric.LifeCycle.configure(elem_decl);
     Fabric.LifeCycle.close({});
 }
+
+pub const Chain = struct {
+    const Self = @This();
+    text: []const u8,
+    elem_type: Fabric.ElementType,
+    pub fn HtmlText(text: []const u8) Self {
+        return Self{ .text = text, .elem_type = .HtmlText };
+    }
+    pub inline fn style(self: *const Self, style_ptr: *const Fabric.Style) void {
+        const elem_decl = Fabric.ElementDecl{
+            .dynamic = .static,
+            .elem_type = self.elem_type,
+            .text = self.text,
+            .style = style_ptr,
+        };
+
+        _ = Fabric.LifeCycle.open(elem_decl);
+        Fabric.LifeCycle.configure(elem_decl);
+        Fabric.LifeCycle.close({});
+    }
+};
 
 pub inline fn GradientText(text: []const u8, style: Style) void {
     const elem_decl = Fabric.ElementDecl{
@@ -61,7 +87,7 @@ pub inline fn LazyImage(link: []const u8, style: Style) void {
     Fabric.LifeCycle.close({});
 }
 
-pub inline fn Virtualize(style: Style) fn (void) void {
+pub inline fn Virtualize(style: *const Style) fn (void) void {
     const elem_decl = Fabric.ElementDecl{
         .elem_type = .Virtualize,
         .style = style,
@@ -71,7 +97,7 @@ pub inline fn Virtualize(style: Style) fn (void) void {
     return Fabric.LifeCycle.close;
 }
 
-pub inline fn Intersection(style: Style) fn (void) void {
+pub inline fn Intersection(style: *const Style) fn (void) void {
     const elem_decl = Fabric.ElementDecl{
         .elem_type = .Intersection,
         .style = style,

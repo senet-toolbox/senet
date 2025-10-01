@@ -11,9 +11,9 @@ const MenuItem = @import("../routes/docs/fabric/Menu.zig").MenuItem;
 var search_box: HtmlElement = HtmlElement{};
 var background: HtmlElement = HtmlElement{};
 var show: bool = false;
-var dynamic_menu_items: std.ArrayList(MenuItem) = undefined;
+var dynamic_menu_items: std.array_list.Managed(MenuItem) = undefined;
 pub fn init() void {
-    dynamic_menu_items = std.ArrayList(MenuItem).init(Fabric.lib.allocator_global);
+    dynamic_menu_items = std.array_list.Managed(MenuItem).init(Fabric.lib.allocator_global);
     dynamic_menu_items.appendSlice(menu_items) catch {
         Fabric.println("Error appending menu items", .{});
     };
@@ -106,18 +106,19 @@ fn toggleBorder() void {
 
 pub fn render() void {
     if (show) {
-        Static.Hooks(.{ .mounted = mount }, .{})({
+        Static.Hooks(.{ .hooks = .{ .mounted = mount } })({
             Static.Center(.{
-                .position = .{
-                    .type = .fixed,
-                    .top = .percent(0),
+                .style = &.{
+                    .position = .{
+                        .type = .fixed,
+                        .top = .percent(0),
+                    },
+                    .size = .square_percent(100),
+                    .direction = .row,
+                    .z_index = 999,
                 },
-                .height = .percent(100),
-                .width = .percent(100),
-                .direction = .row,
-                .z_index = 999,
             })({
-                Binded.Box(&background, .{
+                Binded.Box(.{ .element = &background, .style = &.{
                     .position = .{
                         .type = .fixed,
                         .top = .percent(0),
@@ -126,10 +127,9 @@ pub fn render() void {
                         .bottom = .px(0),
                     },
                     .background = .transparentizeHex("#000000", 100),
-                })({});
-                Static.Box(.{
-                    .height = .percent(80),
-                    .width = .mobile_desktop_percent(90, 36),
+                } })({});
+                Static.Box(.{ .style = &.{
+                    .size = .{ .width = .mobile_desktop_percent(90, 36), .height = .percent(80) },
                     .background = .hex("#F5F5F5"),
                     .padding = .all(12),
                     .direction = .column,
@@ -138,97 +138,109 @@ pub fn render() void {
                     .child_gap = 8,
                     .border_radius = .all(8),
                     .z_index = 1100,
-                })({
+                } })({
                     Static.Box(.{
-                        .width = .percent(100),
-                        .border_radius = .all(8),
-                        // .position = .{ .type = .relative },
-                        .child_alignment = .x_between_center,
-                        .padding = .horizontal(12),
-                        .hover = .{
-                            .border_color = .hex("#5A27FF"),
-                            .border_thickness = .all(2),
-                        },
-                        .focus = .{
-                            .border_color = .hex("#5A27FF"),
-                            .border_thickness = .all(2),
-                            .shadow = .{
-                                .color = .rgba(139, 92, 246, 200),
-                                .blur = 3,
-                                .spread = 1,
+                        .style = &.{
+                            .size = .{ .width = .percent(100) },
+                            .border_radius = .all(8),
+                            // .position = .{ .type = .relative },
+                            .child_alignment = .x_between_center,
+                            .padding = .horizontal(12),
+                            .hover = .{
+                                .border_color = .hex("#5A27FF"),
+                                .border_thickness = .all(2),
                             },
+                            .focus = .{
+                                .border_color = .hex("#5A27FF"),
+                                .border_thickness = .all(2),
+                                .shadow = .{
+                                    .color = .rgba(139, 92, 246, 200),
+                                    .blur = 3,
+                                    .spread = 1,
+                                },
+                            },
+                            .border_color = .transparent,
+                            .border_thickness = .all(2),
                         },
-                        .border_color = .transparent,
-                        .border_thickness = .all(2),
                     })({
-                        Static.Icon("bi bi-search", .{
+                        Static.Icon(.{ .icon_name = "bi bi-search", .style = &.{
                             .font_size = 16,
-                        });
-                        Binded.Input(&search_box, .{ .string = .{ .default = "Search..." } }, .{
-                            .width = .percent(100),
-                            .height = .px(60),
+                        } });
+                        Binded.Input(.{ .element = &search_box, .params = &.{ .string = .{ .default = "Search..." } }, .style = &.{
+                            .size = .{ .width = .percent(100), .height = .px(60) },
                             .padding = .{ .top = 4, .bottom = 4, .left = 8, .right = 8 },
                             .background = .transparent,
                             .font_size = 18,
                             .outline = .none,
                             .border_thickness = .all(0),
-                        });
-                        Static.Icon("bi bi-command", .{
+                        } });
+                        Static.Icon(.{ .icon_name = "bi bi-command", .style = &.{
                             .font_size = 16,
-                        });
+                        } });
                     });
 
-                    Pure.AllocText("Results {d}", .{3}, .{
+                    Pure.AllocText("Results {d}", .{3}, .{ .style = &.{
                         .font_weight = 700,
                         .font_size = 14,
-                        .width = .percent(100),
+                        .size = .{ .width = .percent(100) },
                         .margin = .{ .top = 20 },
-                    });
-                    Pure.List(.{
-                        .display = .Flex,
-                        .direction = .column,
-                        .width = .percent(100),
-                        .list_style = .none,
-                        .padding = .all(0),
-                        .child_gap = 16,
+                    } });
+                    Static.List(.{
+                        .style = &.{
+                            .layout = .Flex,
+                            .direction = .column,
+                            .size = .{ .width = .percent(100) },
+                            .list_style = .none,
+                            .padding = .all(0),
+                            .child_gap = 16,
+                        },
                     })({
                         for (dynamic_menu_items.items) |item| {
-                            Dynamic.ListItem(item.id, .{
-                                .width = .percent(100),
-                                .background = .hex("#ffffff"),
-                                .border_radius = .all(4),
+                            Dynamic.ListItem(.{
+                                .key = item.id,
+                                .style = &.{
+                                    .size = .{ .width = .percent(100) },
+                                    .background = .hex("#ffffff"),
+                                    .border_radius = .all(4),
+                                },
                             })({
                                 Static.CtxButton(navigate, .{item.link}, .{
-                                    .display = .Flex,
-                                    .width = .percent(100),
-                                    .height = .px(60),
-                                    .border_radius = .top_bottom(4, 0),
-                                    .border_color = .rgba(0, 0, 0, 0),
-                                    .border_thickness = .all(2),
-                                    .padding = .horizontal(8),
-                                    .cursor = .pointer,
-                                    .direction = .column,
-                                    .hover = .{
-                                        .border_color = .hex("#5A27FF"),
+                                    .style = &.{
+                                        .layout = .Flex,
+                                        .size = .{ .width = .percent(100), .height = .px(60) },
+                                        .border_radius = .top_bottom(4, 0),
+                                        .border_color = .rgba(0, 0, 0, 0),
                                         .border_thickness = .all(2),
+                                        .padding = .horizontal(8),
+                                        .cursor = .pointer,
+                                        .direction = .column,
+                                        .hover = .{
+                                            .border_color = .hex("#5A27FF"),
+                                            .border_thickness = .all(2),
+                                        },
+                                        .text_decoration = .none,
                                     },
-                                    .text_decoration = .none,
                                 })({
-                                    Static.Text(item.title, .{
-                                        .font_size = 18,
-                                        .text_color = .hex("#5A27FF"),
-                                        .font_weight = 700,
+                                    Static.Text(.{
+                                        .text = item.title,
+                                        .style = &.{
+                                            .font_size = 18,
+                                            .text_color = .hex("#5A27FF"),
+                                            .font_weight = 700,
+                                        },
                                     });
-                                    Static.Text(item.link, .{
-                                        .font_size = 12,
-                                        .text_color = .hex("#353535"),
+                                    Static.Text(.{
+                                        .text = item.link,
+                                        .style = &.{
+                                            .font_size = 12,
+                                            .text_color = .hex("#353535"),
+                                        },
                                     });
                                 });
                                 for (item.tags, 0..) |tag, i| {
-                                    Static.Link(.{ .aria_label = tag.sub_title, .url = tag.url }, .{
-                                        .display = .Flex,
-                                        .width = .percent(100),
-                                        .height = .px(60),
+                                    Static.Link(.{ .aria_label = tag.sub_title, .url = tag.url, .style = &.{
+                                        .layout = .Flex,
+                                        .size = .{ .width = .percent(100), .height = .px(60) },
                                         .border_color = .rgba(0, 0, 0, 0),
                                         .border_thickness = .all(2),
                                         .cursor = .pointer,
@@ -240,16 +252,16 @@ pub fn render() void {
                                             .border_thickness = .all(2),
                                             .border_radius = if (item.tags.len - 1 == i) .top_bottom(0, 4) else null,
                                         },
-                                    })({
-                                        Static.Text(tag.sub_title, .{
+                                    } })({
+                                        Static.Text(.{ .text = tag.sub_title, .style = &.{
                                             .font_size = 16,
                                             .font_weight = 700,
                                             .text_color = .hex("#353535"),
-                                        });
-                                        Static.Text(tag.description, .{
+                                        } });
+                                        Static.Text(.{ .text = tag.description, .style = &.{
                                             .font_size = 14,
                                             .text_color = .hex("#353535"),
-                                        });
+                                        } });
                                     });
                                 }
                             });

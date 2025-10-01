@@ -1,4 +1,4 @@
-Tether is a toolkit that works as a complete framework out of the box yet remains fully modular and adaptable to your exact needs.
+Tether is an open source toolkit that works as a complete framework out of the box yet remains fully modular and adaptable to your exact needs.
 Tether is composed of Fabric, Reverb, and Treehouse; The ultimate goal of Tether is too consolidate the fragemented world of application
 development. The constant churn of npm dependency hell, new framework, and changes to old framework which install code bugs, and forced 
 refactors, has lead to the undeniably burn out and lack of ambition to even attempt new ideas.
@@ -12,7 +12,7 @@ completely swapped out, as well as the reconcilers, or embedded Auth packages. E
 means that Tether is legacy immune, The days of React choosing Class components one week and Function Components the next, is no more.
 Tether does not transpile, or include a runtime, hence it can be run on bare metal architectures, no need for docker if you don't want it.
 
-Okay but what is Fabric, Reverb, and Treehouse.
+Okay but what is Fabric, Reverb, and Treehouse?
 
 Fabric:
 Fabric is a frontend WASM Framework which uses zig to build and contrustuct UI's without the need to touch or write HTML, JS, or CSS.
@@ -58,9 +58,25 @@ Fabric Includes
 - Compiles to web
 
 Reverb:
-Reverb is the web server framework for Tether, to keep it simple, reverb is inspired by golang Fiber, and Echo. Yet, is built for extreme 
-performance. Gnet is a eventloop, that it, and Reverb is on par, with Gnet, while handling HTTP parsing and requests response, as well as,
-dynamic routes, ect...
+Reverb is a backend web framework. The purpose of Reverb is to be the connection between Fabric, and Treehouse. Reverb was heavily 
+inspired by Golang Fiber, and Echo. Reverb has been built from the ground up, with a focus on simplicity in design and development, 
+yet with extreme performance baked in. Reverb uses a single threaded event-loop to handle all incoming requests and responses. 
+Yet exposes a high performance Scheduler package. Within this package, you can make use of the manual frame stack pointer swapping async, 
+an atomic lock free thread pool, and much more. All through a simple 1–2 lines API interface.Similar to Fabric, 
+Reverb takes a Event Loop and handle function as argument. The default Event Loop LOOM, handles the request and responses, while the 
+handle function is responsible for processing the requests. Within the default handle function, we parse the request headers, and then 
+search via a Radix tree to lookup our corresponding route. 
+
+This means that users can utilize there own custom Event Loop specific to any operating system architecture they choose, or change out 
+the handle function depending on the type of requests they expect.
+By default Reverb checks the web socket header, if a developer would expect to never create any web socket connections, 
+they could implement their own handler, yet use the same lookup Radix Tree. 
+
+Zero Allocation
+No messages, and data, is cloned, or allocated during the entire read and write process. the ctx: *Context values passed to every 
+handler function, holds the original data, and is mutable by default. Context values should not be used outside the handler function 
+or taken reference to after the handler function returns. If you were to offload data such as the request body, make sure to create 
+an allocation, as the *Context param, is overridden across all requests and responses.
 
 Includes
 - Middleware
@@ -86,6 +102,10 @@ of Redis, due to the idealogoy of Hot key's being more accesible than cold ones.
 datastructures via tables' like Postgres. This means that Tables which are frequently requested by the server, are kept in a Hot path, automatically.
 No more need to for defining which data you want to store in your cache. But if need be we can split and create two Treehouse instances, one for caching
 and one for Storage. Or forget Treehouse for storage, and just use it as a drop in replacement for Redis. It uses the same RESP command system.
+
+Instead of working around architectural decisions made by database authors decades ago, you can optimize for your exact use case. 
+A gaming company could write SIMD-optimized leaderboard updates. A financial firm could implement custom decimal arithmetic for trading data. 
+A social media platform could build graph-traversal optimizations directly into the storage layer.
 
 Includes
 - High performance, on par with redis 

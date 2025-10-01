@@ -8,10 +8,26 @@ const println = Fabric.println;
 const root = @import("../main.zig");
 const Search = @import("Search.zig");
 const Kit = Fabric.Kit;
+const Chain = Fabric.Chain;
+const Text = Chain.Text;
+const Box = Chain.Box;
+const Link = Chain.Link;
+const Stack = Chain.Stack;
+const Image = Chain.Image;
+const Svg = Chain.Svg;
+const Center = Chain.Center;
+const Icon = Chain.Icon;
+const List = Chain.List;
+const ListItem = Chain.ListItem;
+const CtxButton = Chain.CtxButton;
+const RedirectLink = Chain.RedirectLink;
+const ButtonCycle = Chain.ButtonCycle;
+const Button = Chain.Button;
+const Theme = @import("theme");
 
-var theme_background: Fabric.Types.Background = undefined;
-var text_color: Fabric.Types.Background = undefined;
-var tint: Fabric.Types.Background = undefined;
+var theme_background: Fabric.Types.Color = undefined;
+var text_color: Fabric.Types.Color = undefined;
+var tint: Fabric.Types.Color = undefined;
 
 var last_time: i64 = 0;
 pub fn throttle() bool {
@@ -25,10 +41,10 @@ pub fn throttle() bool {
 
 var menu: bool = false;
 fn openMenu() void {
-    if (!throttle()) {
-        menu = !menu;
-        Fabric.cycle();
-    }
+    // if (!throttle()) {
+    menu = !menu;
+    //     Fabric.cycle();
+    // }
 }
 const Url = struct {
     url: []const u8,
@@ -56,45 +72,28 @@ const urls: [5]Url = .{
         .title = "About Me",
     },
 };
-fn routes() void {
-    const current_path = Kit.getWindowPath();
+
+inline fn routes() void {
+    // const current_path = Kit.getWindowPath();
     for (urls) |url| {
-        Static.ListItem(.{
-            // .style_id = "dropdown",
-            .list_style = .none,
-            .width = .elastic(50, 130),
-            .height = .px(30),
-            .display = .Flex,
-            .child_alignment = .{ .y = .center, .x = .start },
-            .border_thickness = .{ .bottom = 1, .top = 0, .left = 0, .right = 0 },
-            .border_color = if (std.mem.eql(u8, current_path, url.url)) text_color else .transparent,
-            .hover = .{
-                .border_color = text_color,
-                .border_thickness = .{ .bottom = 1, .top = 0, .left = 0, .right = 0 },
-                // .display = .Flex,
-            },
-        })({
-            Static.Link(.{ .url = url.url, .aria_label = url.title }, .{
+        ListItem.style(&Styles.item)({
+            Link(.{ .url = url.url, .aria_label = url.title }).style(&.{
                 .text_decoration = .none,
             })({
-                Static.Text(url.title, .{
-                    .font_size = 20,
-                    .text_color = text_color,
-                });
+                Text(url.title).style(&.{ .visual = .font(20, 300, .palette(.text_color)) })({});
             });
         });
     }
-    Static.Block(.{
+    Box.style(&.{
         .style_id = "dropdown",
-        .width = .px(300),
-        .height = .px(300),
-        .display = .Flex,
+        .size = .square_px(300),
     })({});
 }
 
 const Self = @This();
-var allocator = std.heap.page_allocator;
 var show_dropdown: Signal(bool) = undefined;
+
+const svg_logo = @embedFile("../assets/logonormal.svg");
 
 const ThemeOption = struct {
     name: []const u8,
@@ -127,7 +126,6 @@ fn switchTheme(opt: []const u8) void {
 }
 
 pub fn init() void {
-    // Fabric.eventListener(.click, closeAll);
     show_dropdown.init(false);
     Search.init();
 }
@@ -154,6 +152,7 @@ pub fn setDefault() void {
 }
 
 fn openDialog() void {
+    Fabric.println("openDialog", .{});
     Search.toggle();
 }
 
@@ -163,200 +162,241 @@ fn navigate(url: []const u8) void {
     Fabric.cycle();
 }
 
+fn toggleTheme() void {
+    println("Toggle Theme", .{});
+    Theme.toggleTheme();
+    Fabric.cycle();
+}
+
+// const default = Fabric.Style{
+//     .width = .percent(100),
+// };
 pub fn render() void {
-    text_color = Fabric.Types.Background.hex("#262626");
-    tint = Fabric.Types.Background.hex("#6338FF");
-    Fabric.Layout(.{
-        .file = "/routes/",
-        .module = "",
-        .column = 0,
-        .fn_name = "",
-        .line = 0,
-    }, .{})({
-        if (!Fabric.isMobile()) {
-            Static.FlexBox(.{
-                .position = .{
-                    .type = .fixed,
-                    .right = .px(0),
-                    .left = .px(0),
-                },
-                .display = .Flex,
-                .width = .grow,
-                .height = .px(60),
+    // Fabric.Remember(.{
+    //     .file = "/routes/",
+    //     .module = "",
+    //     .column = 0,
+    //     .fn_name = "",
+    //     .line = 0,
+    // })({
+    if (Fabric.isDesktop()) {
+        Box.style(&.{
+            .id = "nav",
+            .position = .nav,
+            .size = .hw(.px(60), .grow),
+            .layout = .x_between_center,
+            .padding = .horizontal(50),
+            .blur = 2,
+            .z_index = 999,
+        })({
+            Box.style(&.{
+                .size = .{ .height = .px(50) },
                 .direction = .row,
-                .child_alignment = .{ .x = .between, .y = .center },
-                .padding = .{
-                    .left = 50,
-                    .right = 50,
-                },
-                .blur = 2,
+                .layout = .left_center,
+                .child_gap = 10,
             })({
-                Static.FlexBox(.{
-                    .height = .px(50),
-                    .direction = .row,
-                    .child_alignment = .left_center,
-                    .child_gap = 10,
+                Link(.{ .url = "/", .aria_label = "home page of tether" }).style(&.{
+                    .text_decoration = .none,
                 })({
-                    Static.Link(.{ .url = "/", .aria_label = "home page of tether" }, .{
-                        .text_decoration = .none,
+                    Center.style(&.{
+                        .size = .{ .width = .px(45) },
+                        .margin = .{ .right = 30 },
+                        .transition = .{ .duration = 100 },
+                        .interactive = .{ .hover = .{ .transform = .scale() } },
+                        .visual = .{ .text_color = .palette(.text_color) },
                     })({
-                        Static.Center(.{
-                            .width = .px(45),
-                            .margin = .{ .right = 30 },
-                        })({
-                            Static.Image("/assets/logonormal.svg", .{
-                                .width = .percent(100),
-                                .height = .percent(100),
-                                .text_color = text_color,
-                            });
-                        });
-                    });
-                    Static.List(.{
-                        .child_gap = 60,
-                        .display = .Flex,
-                        .child_alignment = .center,
-                    })({
-                        routes();
+                        Svg(.{ .svg = svg_logo }).style(&.{
+                            .size = .{ .width = .percent(100), .height = .percent(100) },
+                            .visual = .{ .text_color = .palette(.text_color) },
+                            .transition = .{ .duration = 100 },
+                            .interactive = .{ .hover = .{
+                                .text_color = .palette(.tint),
+                            } },
+                        })({});
+                        // Image(.{ .src = "/assets/logonormal.svg" }).style(&.{
+                        //     .size = .{ .width = .percent(100), .height = .percent(100) },
+                        //     .visual = .{ .text_color = .hex("#5A27FF") },
+                        // })({});
                     });
                 });
-
-                Static.Center(.{
-                    .child_gap = 24,
-                    .width = .percent(30),
+                List.style(&.{
+                    .child_gap = 60,
+                    .layout = .center,
+                    .size = .hw(.percent(100), .percent(100)),
                 })({
-                    Static.Button(.{ .onPress = openDialog, .aria_label = "search-dialog" }, .{
-                        .display = .Flex,
-                        .child_alignment = .{ .x = .between, .y = .center },
-                        .width = .percent(70),
-                        .height = .px(38),
-                        .padding = .{ .top = 4, .bottom = 4, .left = 8, .right = 8 },
-                        .border_radius = .all(8),
-                        .border_thickness = .all(1),
-                        .border_color = .hex("#E1E1E1"),
-                        .background = .hex("#ffffff"),
-                        .cursor = .pointer,
-                        .hover = .{ .border_color = .hex("#802BFF") },
-                    })({
-                        Static.FlexBox(.{
-                            .child_alignment = .left_center,
-                            .child_gap = 24,
-                        })({
-                            Static.Icon("bi bi-search", .{
-                                .font_size = 16,
-                                .text_color = .hex("#A2A2A2"),
-                            });
-                            Static.Text("Search...", .{
-                                .font_size = 16,
-                                .text_color = .hex("#A2A2A2"),
-                                .font_family = "Montserrat, sans-serif",
-                            });
-                        });
-                        Static.Icon("bi bi-command", .{
-                            .font_size = 16,
-                            .text_color = .hex("#A2A2A2"),
-                        });
-                    });
-                    Static.RedirectLink(.{ .url = "https://github.com/vic-Rokx/fabric", .aria_label = "redirect link to tether github repo" }, .{
-                        .text_decoration = .none,
-                    })({
-                        Static.Icon("bi bi-github", .{
-                            .font_size = 24,
-                            .text_color = .hex("#A2A2A2"),
-                            .hover = .{ .text_color = .hex("#592BFF") },
-                        });
-                    });
-                    Static.RedirectLink(.{ .url = "https://github.com/vic-Rokx/fabric", .aria_label = "redirect link to discord" }, .{
-                        .text_decoration = .none,
-                    })({
-                        Static.Icon("bi bi-discord", .{
-                            .font_size = 24,
-                            .text_color = .hex("#A2A2A2"),
-                            .hover = .{ .text_color = .hex("#592BFF") },
-                        });
-                    });
+                    routes();
                 });
             });
-        } else {
-            Static.FlexBox(.{
-                .child_alignment = .{ .x = .between, .y = .center },
-                .child_gap = 8,
-                .padding = .horizontal(16),
-                .height = .px(90),
-                .position = .{ .type = .fixed, .top = .px(0), .left = .percent(0), .right = .percent(0) },
-                .width = .percent(100),
-                .background = root.theme.getAttribute("background"),
+
+            Center.style(&.{
+                .child_gap = 24,
+                .size = .w(.percent(30)),
             })({
-                Static.FlexBox(.{ .child_alignment = .left_center, .child_gap = 12 })({
-                    Static.Link(.{ .url = "/", .aria_label = "home page of tether" }, .{
-                        .text_decoration = .none,
-                        .height = .px(36),
-                        .display = .Center,
-                    })({
-                        Static.Image("/assets/circlelogo.webp", .{
-                            .width = .px(48),
-                        });
-                        // Static.Svg(@embedFile("../routes/text.svg"), .{
-                        //     .width = .px(112),
-                        // });
+                ButtonCycle(.{ .on_press = openDialog, .aria_label = "search-dialog" }).style(&.{
+                    .layout = .x_between_center,
+                    .size = .hw(.px(38), .percent(70)),
+                    .padding = .tblr(4, 4, 8, 8),
+                    .visual = .button(.palette(.background), .solid(.all(1), .hex("#E1E1E1"), .all(8))),
+                    .cursor = .pointer,
+                    .interactive = .{ .hover = .{
+                        .border = .solid(.all(1), .palette(.tint), .all(8)),
+                    } },
+                })({
+                    Box.style(&.{ .layout = .left_center, .child_gap = 24 })({
+                        Icon("bi bi-search").style(&.{
+                            .visual = .{ .font_size = 16, .text_color = .palette(.icon_color) },
+                        })({});
+                        Text("Search...").style(&.{
+                            .visual = .{ .font_size = 16, .text_color = .palette(.icon_color) },
+                            .font_family = "Montserrat, sans-serif",
+                        })({});
                     });
+                    Icon("bi bi-command").style(&.{
+                        .visual = .{ .font_size = 16, .text_color = .palette(.icon_color) },
+                    })({});
                 });
-                Static.Button(.{ .onPress = openMenu }, .{
-                    .width = .px(36),
-                    .height = .px(36),
+                RedirectLink(.{ .url = "https://github.com/vic-Rokx/fabric", .aria_label = "redirect link to tether github repo" }).style(&.{
+                    .text_decoration = .none,
+                })({
+                    Icon("bi bi-github").style(&.{
+                        .visual = .{ .font_size = 24, .text_color = .palette(.icon_color) },
+                        .interactive = .{ .hover = .{ .text_color = .palette(.tint) } },
+                    })({});
+                });
+                RedirectLink(.{ .url = "https://github.com/vic-Rokx/fabric", .aria_label = "redirect link to discord" }).style(&.{
+                    .text_decoration = .none,
+                })({
+                    Icon("bi bi-discord").style(&.{
+                        .visual = .{ .font_size = 24, .text_color = .palette(.icon_color) },
+                        .interactive = .{ .hover = .{ .text_color = .palette(.tint) } },
+                    })({});
+                });
+                Button(.{ .on_press = toggleTheme }).style(&.{
+                    .visual = .{ .background = .transparent },
+                    .cursor = .pointer,
+                    .padding = .all(0),
+                    .margin = .all(0),
+                })({
+                    Icon("bi bi-cloud-moon").style(&.{
+                        .visual = .{ .font_size = 24, .text_color = .palette(.icon_color) },
+                        .interactive = .{ .hover = .{ .text_color = .palette(.tint) } },
+                    })({});
+                });
+            });
+        });
+    } else {
+        Box.style(&.{
+            .layout = .x_between_center,
+            .child_gap = 8,
+            .padding = .horizontal(16),
+            .position = .{ .type = .fixed, .top = .px(0), .left = .percent(0), .right = .percent(0) },
+            .size = .hw(.px(80), .percent(100)),
+            .visual = .bg(.palette(.background)),
+            .z_index = 999,
+        })({
+            Box.style(&.{ .layout = .left_center })({
+                Link(.{ .url = "/", .aria_label = "home page of tether" }).style(&.{
+                    .text_decoration = .none,
+                    .size = .h(.px(48)),
+                    .layout = .center,
+                })({
+                    Image(.{ .src = "/assets/circlelogo.webp" }).style(&.{
+                        .size = .w(.px(48)),
+                    })({});
+                });
+            });
+            Box.style(&.{ .layout = .right_center })({
+                ButtonCycle(.{ .on_press = openMenu }).style(&.{
+                    .size = .hw(.px(36), .px(48)),
+                    .visual = .bg(.palette(.background)),
+                })({
+                    Icon("bi bi-search").style(&.{
+                        .visual = .{ .font_size = 24, .text_color = .palette(.icon_color) },
+                        .interactive = .{ .hover = .{ .text_color = .palette(.tint) } },
+                    })({});
+                });
+
+                Button(.{ .on_press = toggleTheme }).style(&.{
+                    .visual = .bg(.palette(.background)),
+                    .size = .hw(.px(36), .px(48)),
+                    .cursor = .pointer,
+                })({
+                    Icon("bi bi-cloud-moon").style(&.{
+                        .visual = .{ .font_size = 24, .text_color = .palette(.icon_color) },
+                    })({});
+                });
+
+                ButtonCycle(.{ .on_press = openMenu }).style(&.{
+                    .size = .hw(.px(36), .px(48)),
+                    .visual = .bg(.palette(.background)),
                 })({
                     if (menu) {
-                        Pure.Icon("bi bi-x-lg", .{
-                            .font_size = 24,
-                        });
+                        Icon("bi bi-x-lg").style(&.{
+                            .id = "close-menu",
+                            .visual = .{ .font_size = 24, .text_color = .palette(.icon_color) },
+                        })({});
                     } else {
-                        Pure.Icon("bi bi-list", .{
-                            .font_size = 24,
+                        Icon("bi bi-list").style(&.{
+                            .id = "open-menu",
+                            .visual = .{ .font_size = 24, .text_color = .palette(.icon_color) },
+                        })({});
+                    }
+                });
+            });
+        });
+        if (menu) {
+            Box.style(&.{
+                .position = .{ .type = .fixed, .top = .px(80), .left = .px(0) },
+                .size = .w(.percent(100)),
+                .z_index = 999,
+                .visual = .{ .background = Theme.background, .border = .tb(.hex("#E4E4E4")) },
+            })({
+                List.style(&.{
+                    .list_style = .none,
+                    .direction = .column,
+                    .padding = .tblr(16, 16, 8, 8),
+                    .child_gap = 16,
+                    .size = .w(.percent(100)),
+                })({
+                    for (urls) |item| {
+                        ListItem.style(&.{
+                            .size = .w(.percent(70)),
+                        })({
+                            CtxButton(navigate, .{item.url}).style(&.{
+                                .size = .w(.percent(100)),
+                                .layout = .left_center,
+                                .child_gap = 12,
+                                .padding = .tblr(10, 10, 8, 8),
+                                .cursor = .pointer,
+                                .visual = .bg(.hex("#ffffff")),
+                            })({
+                                Text(item.title).style(&.{
+                                    .font_family = "Montserrat",
+                                    .visual = .font(18, 300, .hex("#262626")),
+                                })({});
+                            });
                         });
                     }
                 });
             });
-            if (menu) {
-                Static.Block(.{
-                    .position = .{ .type = .fixed, .top = .px(90), .left = .px(0) },
-                    .width = .percent(100),
-                    .background = root.theme.getAttribute("background"),
-                    .z_index = 999,
-                    .border_color = .hex("#E4E4E4"),
-                    .border_thickness = .{ .bottom = 1 },
-                })({
-                    Static.List(.{
-                        .list_style = .none,
-                        .display = .Flex,
-                        .direction = .column,
-                        .padding = .{ .top = 16, .bottom = 16, .right = 8, .left = 8 },
-                        .child_gap = 16,
-                        .width = .percent(100),
-                    })({
-                        for (urls) |item| {
-                            Static.ListItem(.{
-                                .width = .percent(70),
-                            })({
-                                Static.CtxButton(navigate, .{item.url}, .{
-                                    .display = .Flex,
-                                    .width = .percent(100),
-                                    .child_alignment = .left_center,
-                                    .child_gap = 12,
-                                    .padding = .tbrl(10,10,8,8),
-                                    .cursor = .pointer,
-                                })({
-                                    // Static.Icon(item.icon, .{});
-                                    Static.Text(item.title, .{
-                                        .text_color = .hex("#262626"),
-                                        .font_family = "Montserrat",
-                                        .font_size = 18,
-                                    });
-                                });
-                            });
-                        }
-                    });
-                });
-            }
         }
-        Search.render();
-    });
+    }
+    // Search.render();
+    // });
 }
+
+const Styles = struct {
+    pub const item = Fabric.Style{
+        .list_style = .none,
+        .size = .{ .width = .elastic(50, 130), .height = .px(30) },
+        .layout = .{ .y = .center, .x = .start },
+        .visual = .{ .border = .bottom(.transparent) },
+        // .border_color = if (std.mem.eql(u8, current_path, url.url)) text_color else .transparent,
+        .interactive = .{
+            .hover = .{
+                .border_color = .palette(.text_color),
+                .border_thickness = .{ .bottom = 1, .top = 0, .left = 0, .right = 0 },
+            },
+        },
+    };
+};
