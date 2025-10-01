@@ -5,13 +5,20 @@ const Style = Fabric.Style;
 const Static = Fabric.Static;
 const Pure = Fabric.Pure;
 const Page = Fabric.Page;
-const Navbar = @import("../../../components/Navbar.zig");
 const Custom = @import("../../../components/Custom.zig");
+const HtmlText = Custom.Chain.HtmlText;
 const root = @import("../../../main.zig");
+const Chain = Fabric.Chain;
+const ChainClose = Fabric.ChainClose;
+const Box = Chain.Box;
+const Svg = ChainClose.Svg;
+const Center = Chain.Center;
+const Text = ChainClose.Text;
+const Stack = Chain.Stack;
 
 // Initialization
 pub fn init() void {
-    Page(@src(), render, null, .{});
+    Page(@src(), render, null, &.{});
 }
 
 // Deinitialization
@@ -68,106 +75,63 @@ fn openMenu() void {
 }
 
 fn Txt(text: []const u8) void {
-    Static.Text(text, .{
-        .font_size = 18,
+    Text(text).style(&.{
+        .visual = .font(18, null, null),
     });
 }
 
 pub fn render() void {
-    Navbar.render();
-    Static.FlexBox(.{
-        .child_alignment = .{ .x = .start, .y = .start },
+    Box.style(&.{
+        .layout = .{ .x = .start, .y = .start },
         .padding = .horizontal(12),
-        .width = .percent(100),
-        .height = .percent(100),
+        .size = .hw(.percent(100), .percent(100)),
     })({
-        // Fabric.Layout(@src(), .{})({
-        // if (!Fabric.isMobile()) {
-        // } else {
-        //     Fabric.Layout(@src(), .{})({
-        //         Static.FlexBox(.{
-        //             .child_alignment = .{ .x = .between, .y = .center },
-        //             .child_gap = 8,
-        //             .padding = .horizontal(12),
-        //             .height = .px(50),
-        //             .position = .{ .type = .fixed, .top = .px(0), .left = .percent(0), .right = .percent(0) },
-        //             .width = .percent(100),
-        //             .z_index = 999,
-        //             .background = root.theme.getAttribute("background"),
-        //         })({
-        //             Static.FlexBox(.{ .child_alignment = .between_center, .child_gap = 12, .width = .percent(100) })({
-        //                 Static.Link(.{ .url = "/", .aria_label = "home page of tether" }, .{
-        //                     .text_decoration = .none,
-        //                     .height = .px(36),
-        //                     .display = .Center,
-        //                 })({
-        //                     Static.Image("/assets/circlelogo.webp", .{
-        //                         .display = .Flex,
-        //                         .child_alignment = .{ .x = .center, .y = .center },
-        //                         .width = .px(42),
-        //                         .height = .px(42),
-        //                     });
-        //                 });
-        //                 Static.Button(.{ .onPress = openMenu }, .{
-        //                     .width = .px(36),
-        //                     .height = .px(36),
-        //                 })({
-        //                     Pure.Icon("bi bi-list", .{
-        //                         .font_size = 24,
-        //                     });
-        //                 });
-        //             });
-        //         });
-        //     });
-        // }
-        Static.Center(.{
-            .width = .percent(100),
+        Center.style(&.{
+            .size = .w(.percent(100)),
             .padding = .{ .top = 60, .bottom = 120 },
             .direction = .column,
         })({
-            Static.FlexBox(.{
-                .width = .mobile_desktop_percent(100, 64),
+            Box.style(&.{
+                .size = .w(.mobile_desktop_percent(100, 64)),
                 .direction = .column,
                 .padding = .{ .bottom = 80 },
             })({
-                Static.Box(.{
+                Box.style(&.{
                     .child_gap = 16,
                     .direction = .column,
                     .margin = .{ .bottom = 32 },
-                    .width = .percent(100),
+                    .size = .w(.percent(100)),
                 })({
-                    Static.Box(.{
-                        .child_alignment = .x_between_center,
+                    Box.style(&.{
+                        .layout = .x_between_center,
                         .margin = .{ .top = 64, .bottom = 128 },
                         .child_gap = 32,
                     })({
-                        Static.Center(.{ .width = .percent(50), .margin = .{ .top = 32 } })({
-                            Static.Svg(@embedFile("metal.svg"), .{
-                                .display = .Center,
-                                .width = .percent(70),
+                        Center.style(&.{ .size = .w(.percent(50)), .margin = .{ .top = 32 } })({
+                            Svg(.{ .svg = @embedFile("metal.svg") }).style(&.{
+                                .layout = .center,
+                                .size = .w(.percent(70)),
                             });
                         });
-                        Static.Column(.{
-                            .width = .percent(50),
+                        Stack.style(&.{
+                            .size = .w(.percent(50)),
                             .child_gap = 16,
                             .padding = .{ .top = 16 },
                         })({
-                            Static.Svg(@embedFile("metal_text.svg"), .{
-                                .display = .Center,
-                                .width = .percent(70),
+                            Svg(.{ .svg = @embedFile("metal_text.svg") }).style(&.{
+                                .layout = .center,
+                                .size = .w(.percent(70)),
                             });
 
-                            Custom.HtmlText(
-                                \\<strong>Fabric, Tether, Treehouse</strong> all run on Metal, there is no need for Docker Containers or Runtimes.
-                            , .{
-                                .font_size = 24,
-                            });
+                            HtmlText(
+                                \\<strong>Fabric, Reverb, Treehouse</strong> all run on Metal, there 
+                                \\is no need for Docker Containers or
+                                \\Runtimes.
+                            ).style(&.{ .visual = .font(24, null, null) });
                         });
                     });
-                    Static.Text("The Docker Problem", .{
-                        .font_size = 48,
-                        .font_weight = 700,
-                        .text_color = .hex("#1a1a1a"),
+                    Text("The Docker Problem").style(&.{
+                        .visual = .font(48, 700, .palette(.text_color)),
                     });
 
                     Txt(
@@ -177,45 +141,30 @@ pub fn render() void {
                         \\Fabric flips that model. We ship one platform-native binary that does everything—file 
                         \\serving, routing, compression—out of the box. Tether and Treehouse follow the same pattern. If it runs on your laptop, it will run in prod, 
                         \\provided the underlying OS matches. No more “but it works on my machine.”
-                        // \\The fact is, to install a runtime, a build system, a containerization
-                        // \\system, just to serve that blog post to a user in there browser is unbeleivebly overkill. Therefore, For Fabric,
-                        // \\we one binary file which acts as a server, and handles everything. That's it!.
-                        // \\Tether and Treehouse are both just one binary each as well. This mean that whatever runs on your local system, will run exactly
-                        // \\the same on your production system, as long as the OS underlying each is the same. No more, "But it works on my machine".
                     );
 
-                    Static.Text("Binary", .{
-                        .font_size = 48,
-                        .font_weight = 700,
-                        .text_color = .hex("#1a1a1a"),
+                    Text("Binary").style(&.{
+                        .visual = .font(48, 700, .palette(.text_color)),
                     });
 
-                    Custom.HtmlText(
+                    HtmlText(
                         \\Metal is how Fabric, and Tether and Treehouse, along with NightWatch, compile and build the binaries. Depending on persmissions,
                         \\Fabric will use wasm-opt and brotli, to compress the WASM binaries, this will reduce the total bundle size. For example, the raw
                         \\WASM binary of this site it 2.4MB, after compressing using Metal, we result in 300kb total. While other frameworks may ship 100kb-200kb.
                         \\Remeber Fabric, is running WASM, so the browser not only parses this <a href="https://webassembly.org/docs/faq/">10x-20x</a> 
                         \\faster, but also runs <a href="https://hacks.mozilla.org/2018/01/oxidizing-source-maps-with-rust-and-webassembly/">1.5x-2x</a> faster.
                         \\And again, we only have one binary file running the Fabric server, and one fabric.wasm file which contains our UI, and client side functionality.
-                    , .{
-                        .font_size = 18,
+                    ).style(&.{
+                        .visual = .font(18, null, null),
                     });
-                    Static.Center(.{
-                        .width = .percent(100),
-                        .height = .px(100),
+                    Center.style(&.{
+                        .size = .hw(.px(100), .percent(100)),
                     })({
-                        Custom.HtmlText(
+                        HtmlText(
                             \\And of course best of all, no more "But it runs on my Machine?"
-                        , .{
-                            .font_size = 32,
-                            .font_weight = 700,
-                        });
+                        ).style(&.{ .visual = .font(32, 700, .palette(.text_color)) });
                     });
-                    Static.Text("Caveat", .{
-                        .font_size = 48,
-                        .font_weight = 700,
-                        .text_color = .hex("#1a1a1a"),
-                    });
+                    Text("Caveat").style(&.{ .visual = .font(48, 700, .palette(.text_color)) });
 
                     Txt(
                         \\Alot of people are going to tell you that, Yes WASM is faster, but the overhead, between JS bridging to WASM, kills

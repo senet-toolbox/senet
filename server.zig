@@ -282,8 +282,8 @@ pub fn openLocalFile(conn: std.net.Server.Connection, mime: []const u8, mimetype
         };
         break :blk default_file;
     }; // Get file size
-    const file_size = try file.getEndPos();
 
+    const file_size = try file.getEndPos();
     // Read the entire file
     const contents = try file.readToEndAlloc(allocator, file_size);
     defer allocator.free(contents);

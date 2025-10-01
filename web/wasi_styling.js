@@ -2,7 +2,7 @@ import { wasmInstance } from "./wasi_obj.js";
 export const styleSheet =
   document.styleSheets[0] ||
   document.head.appendChild(document.createElement("style")).sheet;
-const styleRuleCache = new Map(); // Track rule indices for fast updates
+export const styleRuleCache = new Map(); // Track rule indices for fast updates
 
 export function addKeyframesToStylesheet(keyframesCSS) {
   // Get or create stylesheet
@@ -22,6 +22,22 @@ export function updateComponentStyle(
   element,
 ) {
   let className = `fabric-component-${element.id}`;
+  if (element.localName === "svg") {
+    // Add new rule
+    const newIndex = styleSheet.cssRules.length;
+    styleSheet.insertRule(`.${className} { ${styleString} }`, newIndex);
+    styleRuleCache.set(className, newIndex);
+
+    // 2. Conditionally hide the scrollbar in WebKit if showScrollBar() === 0
+    if (wasmInstance.showScrollBar(nodePtr) === 0) {
+      const webkitRule = `.${className}::-webkit-scrollbar {  display: none; }`;
+      styleSheet.insertRule(webkitRule, styleSheet.cssRules.length);
+    }
+    // element.className = className;
+    element.setAttribute("class", className);
+    element.classList.add(className);
+    return;
+  }
   // Here we check if the user specfied a class name
   if (styleRuleCache.has(className)) {
     // Update existing rule
@@ -34,11 +50,12 @@ export function updateComponentStyle(
     specified_className.length > 0 &&
     styleRuleCache.has(specified_className)
   ) {
+    className = specified_className;
+    element.className = className;
     // Update existing rule
     const ruleIndex = styleRuleCache.get(className);
     styleSheet.deleteRule(ruleIndex);
     styleSheet.insertRule(`.${className} { ${styleString} }`, ruleIndex);
-    element.className = className;
     // Here we check if the user specfied a class name
   } else if (
     element.className.length === 0 &&
@@ -55,23 +72,22 @@ export function updateComponentStyle(
 
     // 2. Conditionally hide the scrollbar in WebKit if showScrollBar() === 0
     if (wasmInstance.showScrollBar(nodePtr) === 0) {
-      const webkitRule = `
-                                                                                                                                .${className}::-webkit-scrollbar {
-                                                                                                                                  display: none;
-                                                                                                                                }
-                                                                                                                              `;
+      const webkitRule = `.${className}::-webkit-scrollbar {  display: none; }`;
       styleSheet.insertRule(webkitRule, styleSheet.cssRules.length);
     }
     element.className = className;
   } else if (specified_className.length > 0 && element.localName !== "i") {
-    element.className = specified_className;
+    if (specified_className.includes("-genk")) {
+      specified_className = `fabric-component-${specified_className}`;
+    } else {
+      className = specified_className;
+    }
+    // element.class = className;
     // element.style = styleString;
     const newIndex = styleSheet.cssRules.length;
-    styleSheet.insertRule(
-      `.${specified_className} { ${styleString} }`,
-      newIndex,
-    );
-    styleRuleCache.set(specified_className, newIndex);
+    styleSheet.insertRule(`.${className} { ${styleString} }`, newIndex);
+    styleRuleCache.set(className, newIndex);
+    element.className = specified_className;
   } else {
     // This is for icons
     className = element.className;
@@ -141,7 +157,11 @@ export function applyHoverClass(element, styleId, hoverStyles) {
 
   // Determine the correct selector
   let selector;
-  if (styleId.length > 0) {
+  if (
+    styleId.length > 0 &&
+    !styleId.includes("-genk") &&
+    !styleId.includes("common-")
+  ) {
     // If styleId is provided, we need to target the element with this class
     // when the parent is hovered
     selector = `.${element.className}:hover ${styleId.startsWith(".") ? styleId : "." + styleId}`;
@@ -149,8 +169,15 @@ export function applyHoverClass(element, styleId, hoverStyles) {
     // If no styleId, apply hover directly to the element
     if (element.localName === "i") {
       selector = `.${element.className.split(" ").pop()}:hover`;
+    } else if (element.localName === "svg") {
+      const svgClassName = element.classList.item(0);
+      const parts = svgClassName.split(" ");
+      const className = parts[0];
+      selector = `.${className}:hover`;
     } else {
-      selector = `.${element.className}:hover`;
+      const parts = element.className.split(" ");
+      const className = parts[0];
+      selector = `.${className}:hover`;
     }
   }
 

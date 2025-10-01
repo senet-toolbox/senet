@@ -10,6 +10,7 @@ import {
   render,
   removeInactiveNodes,
   layoutInfo,
+  hotSwapWasmWithState,
 } from "./wasi_obj.js";
 import {
   applyHoverClass,
@@ -24,12 +25,13 @@ import {
   eventStorage,
   loadedSections,
   observeredSections,
+  pureNodeRegistry,
 } from "./maps.js";
 import { state } from "./state.js";
 
 const parser = new DOMParser();
 // Component type constants
-const COMPONENT_TYPES = {
+export const COMPONENT_TYPES = {
   RECTANGLE: 0,
   TEXT: 1,
   IMAGE: 2,
@@ -81,6 +83,15 @@ const COMPONENT_TYPES = {
   TEXT_GRADIENT: 48,
   GRADIENT: 49,
   VIRTUALIZE: 50,
+  BUTTON_CYCLE: 51,
+  GRAPHIC: 52,
+};
+
+const STATE_TYPES = {
+  STATIC: 0,
+  PURE: 1,
+  DYNAMIC: 2,
+  GRAIN: 3,
 };
 
 // Store intervals by route for cleanup
@@ -170,7 +181,6 @@ function processInputElement(element, renderCmd) {
     if (maxLen) {
       element.ariaValueMin = maxLen;
       element.maxLength = maxLen;
-      console.log(maxLen);
     }
 
     element.type = "text";
@@ -300,18 +310,19 @@ export const isLayout = (el) => {
 export function stripNonLayout(el) {
   if (!el) return;
 
-  // Visit children first so we can hoist them before we nuke their parent
+  // // Visit children first so we can hoist them before we nuke their parent
   for (const child of Array.from(el.children)) {
-    if (isLayout(child)) {
-      // -- keep it alive: re-parent one level up
-      el.parentNode.insertBefore(child, el);
-      continue; // do NOT recurse into a preserved island
-    }
+    //   if (isLayout(child)) {
+    //     // -- keep it alive: re-parent one level up
+    //     el.parentNode.insertBefore(child, el);
+    //     continue; // do NOT recurse into a preserved island
+    //   }
     stripNonLayout(child); // recurse into non-layout child
   }
 
   // Now `el` has no layout descendants => safe to delete everything remaining
   domNodeRegistry.delete(el.id);
+  pureNodeRegistry.delete(el.id);
   loadedSections.delete(el.id);
   if (el.localName === "p" || el.localName === "svg") {
     el.remove();
@@ -344,59 +355,25 @@ function createLinkElement(renderCmd, tree_node, layout) {
 
     const urlObj = new URL(clickedHref);
     const path = urlObj.pathname;
-
-    // We first mark all non layout nodes as dirty this way we can traverse and remove
-    // we use the dirty flag to indicate for removal
-    const count = wasmInstance.markAllNonLayoutNodesDirtyRemoveList();
-    // for (let i = 0; i < count; i++) {
-    //   const ptr = wasmInstance.getRemovedNode(i);
-    //   const len = wasmInstance.getRemovedNodeLength(i);
-    //
-    //   const id = readWasmString(ptr, len);
-    //   const node = domNodeRegistry.get(id);
-    //   const el = node.domNode;
-    //   domNodeRegistry.delete(id);
-    //   element.replaceWith(...Array.from(element.childNodes));
-    // }
-
-    /* ───────── main removal loop ───────── */
-    for (let i = 0; i < count; i++) {
-      const ptr = wasmInstance.getRemovedNode(i);
-      const len = wasmInstance.getRemovedNodeLength(i);
-      const id = readWasmString(ptr, len);
-      // console.log(id);
-
-      const rec = domNodeRegistry.get(id);
-      if (!rec) continue; // already gone
-
-      const el = rec.domNode;
-      if (isLayout(el)) continue; // never delete a layout root itself
-
-      stripNonLayout(el); // delete everything *except* layouts
-    }
-    // we get the current tree pointer and traverse it to remove all the nodes that are not part of the layout
-    // const current_tree = wasmInstance.getRenderTreePtr();
-    // traverseRemove(root, current_tree, layout);
-
     // we push the state and renderCycle the new path
     window.history.pushState({}, "", clickedHref);
-    rerenderRoute(path === "/" ? "/root" : path);
+    rerenderRoute(path === "/" ? "/root" : `/root${path}`);
     // wasmInstance.markAllNonLayoutNodesDirty();
     requestAnimationFrame(() => {
-      wasmInstance.setRerenderTrue();
-      requestAnimationFrame(() => {
-        const hash = window.location.hash;
-        if (hash) {
-          const id = window.location.hash.substring(1, hash.length);
-          const element = document.getElementById(id);
-          if (element) {
-            // Scroll the element into view with options
-            element.scrollIntoView({
-              block: "center", // Vertically align to the center of the screen
-            });
-          }
-        }
-      });
+      // wasmInstance.setRerenderTrue();
+      // requestAnimationFrame(() => {
+      //   const hash = window.location.hash;
+      //   if (hash) {
+      //     const id = window.location.hash.substring(1, hash.length);
+      //     const element = document.getElementById(id);
+      //     if (element) {
+      //       // Scroll the element into view with options
+      //       element.scrollIntoView({
+      //         block: "center", // Vertically align to the center of the screen
+      //       });
+      //     }
+      //   }
+      // });
     });
   });
 
@@ -404,7 +381,7 @@ function createLinkElement(renderCmd, tree_node, layout) {
 }
 
 function initJsonEditor(parent, element) {
-  element.style.caretColor = "white";
+  element.style.caretColor = "black";
   // ——— Setup status/log pane ———
   const status = document.createElement("div");
   status.className = "json-editor-status";
@@ -633,7 +610,7 @@ function createElementByType(renderCmd, tree_node, layout, parent) {
   switch (renderCmd.elemType) {
     case COMPONENT_TYPES.TEXT:
       element = document.createElement("p");
-      element.textContent = renderCmd.text;
+      element.textContent = renderCmd.props.text;
       break;
 
     case COMPONENT_TYPES.TEXT_GRADIENT:
@@ -642,17 +619,17 @@ function createElementByType(renderCmd, tree_node, layout, parent) {
         "-webkit-linear-gradient(45deg, #E04F67, #C72C4A, #4800FF)";
       element.style["-webkit-background-clip"] = "text";
       element.style["-webkit-text-fill-color"] = "transparent";
-      element.textContent = renderCmd.text;
+      element.textContent = renderCmd.props.text;
       break;
 
     case COMPONENT_TYPES.TEXT_AREA:
       element = document.createElement("textarea");
-      element.textContent = renderCmd.text;
+      element.textContent = renderCmd.props.text;
       break;
 
     case COMPONENT_TYPES.HTML_TEXT:
       element = document.createElement("p");
-      element.innerHTML = renderCmd.text;
+      element.innerHTML = renderCmd.props.text;
       break;
 
     case COMPONENT_TYPES.CODE:
@@ -661,22 +638,23 @@ function createElementByType(renderCmd, tree_node, layout, parent) {
 
     case COMPONENT_TYPES.SPAN:
       element = document.createElement("span");
-      element.innerText = renderCmd.text;
+      element.innerText = renderCmd.props.text;
       break;
 
     case COMPONENT_TYPES.JSON_EDITOR:
       element = document.createElement("textarea");
-      element.textContent = renderCmd.text;
+      element.textContent = renderCmd.props.text;
       break;
 
     case COMPONENT_TYPES.ALLOC_TEXT:
       element = document.createElement("p");
-      element.textContent = renderCmd.text;
+      element.textContent = renderCmd.props.text;
       break;
 
     case COMPONENT_TYPES.IMAGE:
       element = document.createElement("img");
       element.src = renderCmd.href;
+      // element.type = "image/svg+xml";
       break;
 
     case COMPONENT_TYPES.LAZY_IMAGE:
@@ -751,6 +729,7 @@ function createElementByType(renderCmd, tree_node, layout, parent) {
       break;
 
     case COMPONENT_TYPES.BUTTON:
+    case COMPONENT_TYPES.BUTTON_CYCLE:
       element = document.createElement("button");
       element.type = "button";
       const label = wasmInstance.getAriaLabel(renderCmd.nodePtr);
@@ -758,12 +737,20 @@ function createElementByType(renderCmd, tree_node, layout, parent) {
         const length = wasmInstance.getAriaLabelLen();
         element.ariaLabel = readWasmString(label, length);
       }
-      element.addEventListener("click", (event) => {
-        state.currentDepthNode = renderCmd.id;
-        event.preventDefault();
-        event.stopPropagation();
-        const idPtr = allocString(renderCmd.id);
-        wasmInstance.buttonCallback(idPtr);
+      element.addEventListener("click", async (event) => {
+        if (renderCmd.id === "swap-wasm") {
+          await hotSwapWasmWithState("/zig-out/bin/fabric.wasm");
+        } else {
+          state.currentDepthNode = renderCmd.id;
+          event.preventDefault();
+          event.stopPropagation();
+          const idPtr = allocString(renderCmd.id);
+          if (renderCmd.elemType === COMPONENT_TYPES.BUTTON_CYCLE) {
+            wasmInstance.buttonCycleCallback(idPtr);
+          } else {
+            wasmInstance.buttonCallback(idPtr);
+          }
+        }
       });
       break;
 
@@ -785,25 +772,32 @@ function createElementByType(renderCmd, tree_node, layout, parent) {
 
     case COMPONENT_TYPES.BLOCK:
       element = document.createElement("div");
-      element.textContent = renderCmd.text;
+      element.textContent = renderCmd.props.text;
       break;
 
     case COMPONENT_TYPES.HEADER:
       element = document.createElement("h1");
-      element.textContent = renderCmd.text;
+      element.textContent = renderCmd.props.text;
       break;
 
     case COMPONENT_TYPES.SVG:
-      element = document.createElement("div");
-      // // console.log(parent);
-      element.innerHTML = renderCmd.text;
-      // const svgDoc = parser.parseFromString(renderCmd.text, "image/svg+xml");
-      // element = svgDoc.documentElement;
-      // element.className = "";
-      // const tempDiv = document.createElement("div");
-      // tempDiv.innerHTML = renderCmd.text;
-      // element = tempDiv.querySelector("svg");
-      // element = parent.querySelector('svg');
+      // element = document.createElement("div");
+      // element.innerHTML = renderCmd.props.text;
+
+      // // Clean and parse
+      // const svgString = renderCmd.props.text;
+      // const cleanSvg = svgString.replace(/^\s+|\s+$/g, ""); // remove leading/trailing whitespace
+      // const tempContainer = document.createElement("div");
+      // tempContainer.innerHTML = cleanSvg;
+      // element = tempContainer.firstElementChild;
+
+      const svgString = renderCmd.props.text;
+      const cleanSvg = svgString.replace(/^\s+|\s+$/g, "");
+
+      // Create SVG element with proper namespace
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(cleanSvg, "image/svg+xml");
+      element = doc.documentElement;
       break;
 
     case COMPONENT_TYPES.LINK:
@@ -852,7 +846,7 @@ function createElementByType(renderCmd, tree_node, layout, parent) {
     case COMPONENT_TYPES.LABEL:
       element = document.createElement("label");
       element.htmlFor = renderCmd.href;
-      element.textContent = renderCmd.text;
+      element.textContent = renderCmd.props.text;
       break;
 
     case COMPONENT_TYPES.FORM:
@@ -888,6 +882,25 @@ function createElementByType(renderCmd, tree_node, layout, parent) {
       element = document.createElement("div");
       element.style["background"] =
         "-webkit-linear-gradient(45deg, #8886f2, #e04597, #ee6994)";
+      break;
+
+    case COMPONENT_TYPES.GRAPHIC:
+      element = document.createElement("div");
+      fetch(renderCmd.href)
+        .then((res) => {
+          return res.text();
+        })
+        .then((text) => {
+          // Encode the response back into WASM memory
+          const svgString = text;
+          const cleanSvg = svgString.replace(/^\s+|\s+$/g, ""); // remove leading/trailing whitespace
+          element.innerHTML = cleanSvg;
+        })
+        .catch((err) => {
+          console.error("Fetch failed:", err);
+          // You could call callback with ptr=0,len=0 or export an error handler
+        });
+
       break;
 
     default:
@@ -937,10 +950,18 @@ function setupElement(element, renderCmd) {
   // Register the element
 
   domNodeRegistry.set(renderCmd.id, {
+    elementType: renderCmd.elemType,
     domNode: element,
     exitAnimationId: renderCmd.exitAnimationId,
     destroyId: renderCmd.hooks.destroyId > 0 ? renderCmd.hooks.destroyId : null,
   });
+  if (renderCmd.stateType === STATE_TYPES.PURE) {
+    pureNodeRegistry.set(renderCmd.id, {
+      id: renderCmd.id,
+      state: renderCmd.props,
+      index: renderCmd.index,
+    });
+  }
 }
 
 /**
@@ -956,9 +977,9 @@ function updateElement(element, renderCmd) {
     renderCmd.elemType === COMPONENT_TYPES.ALLOC_TEXT ||
     renderCmd.elemType === COMPONENT_TYPES.TEXT_AREA
   ) {
-    element.textContent = renderCmd.text;
+    element.textContent = renderCmd.props.text;
   } else if (renderCmd.elemType === COMPONENT_TYPES.INPUT) {
-    element.value = renderCmd.text;
+    element.value = renderCmd.props.text;
   } else if (renderCmd.elemType === COMPONENT_TYPES.ICON) {
     element.className = renderCmd.href;
   }
@@ -985,6 +1006,13 @@ function updateElement(element, renderCmd) {
       renderCmd.styleId,
       renderCmd.props.focusWithinCss,
     );
+  }
+  if (renderCmd.stateType === STATE_TYPES.PURE) {
+    pureNodeRegistry.set(renderCmd.id, {
+      id: renderCmd.id,
+      state: renderCmd.props,
+      index: renderCmd.index,
+    });
   }
 }
 
@@ -1040,28 +1068,51 @@ export function traverse(parent, tree_node, layout) {
 
   const children_count = wasmInstance.getTreeNodeChildrenCount(tree_node);
 
+  const existingDOMElements = Array.from(parent.children); // Get all existing DOM nodes
+
+  // Create a map of existing DOM elements by their ID for fast lookups
+  const existingElementsMap = new Map();
+  for (const el of existingDOMElements) {
+    existingElementsMap.set(el.id, el);
+  }
+
+  const renderCmds = [];
   for (let i = 0; i < children_count; i++) {
     const child_ptr = wasmInstance.getTreeNodeChild(tree_node, i);
     const rndcmd_ptr = wasmInstance.getRenderCommandPtr(child_ptr);
     const renderCmd = readRenderCommand(rndcmd_ptr, layout);
+    renderCmds.push([renderCmd, child_ptr]);
+  }
+
+  for (let i = children_count - 1; i >= 0; i--) {
+    const renderCmd = renderCmds[i][0];
+    const child_ptr = renderCmds[i][1];
+    // const child_ptr = wasmInstance.getTreeNodeChild(tree_node, i);
+    // const rndcmd_ptr = wasmInstance.getRenderCommandPtr(child_ptr);
+    // const renderCmd = readRenderCommand(rndcmd_ptr, layout);
 
     // console.log(renderCmd.isDirty, renderCmd.id);
     activeNodeIds.add(renderCmd.id);
-
-    // Skip processing if the element has invalid dialog ID
-    if (
-      (renderCmd.elemType === COMPONENT_TYPES.DIALOG_SHOW ||
-        renderCmd.elemType === COMPONENT_TYPES.DIALOG_CLOSE) &&
-      renderCmd.props.dialogId.length === 0
-    ) {
-      continue;
-    }
-
+    let element = null;
     if (renderCmd.isDirty) {
       // Mark as processed
-      // wasmInstance.setDirtyToFalse(renderCmd.nodePtr);
-
-      let element = document.getElementById(renderCmd.id);
+      element = document.getElementById(renderCmd.id);
+      /// !!!!!!!!!!!!!!! we need to add a system for checking wether we have a duplicate or shifted element
+      // console.log(renderCmd.index, renderCmd.id);
+      // if (element) {
+      //   // check for duplicates
+      //   const target_element = parent.children[renderCmd.index];
+      //   if (target_element && target_element.id !== renderCmd.id) {
+      //     console.log(target_element);
+      //     console.log(renderCmd.index);
+      //     // here the nav element exists in the dom, already, but our render command is pointing to a different element
+      //     // we need to thus create this duplicate element
+      //     // we need to check if it shifted
+      //     console.log("Duplicate or shifted", renderCmd.id);
+      //     // if the target element is not the same as current element, it means we have a duplciate and need to clone
+      //     element = null;
+      //   }
+      // }
 
       // This is the first render, so this is where we virtualize
       if (!element || state.initial_render) {
@@ -1073,31 +1124,25 @@ export function traverse(parent, tree_node, layout) {
         // Set up the element
         setupElement(element, renderCmd);
 
-        if (renderCmd.elemType === COMPONENT_TYPES.VIRTUALIZE) {
-          // We loop through the sections, and create section elements with empty content, and attach and observer
-          // to the section element.
-          generateSections(element, child_ptr, layout);
-        } else {
-          // Process children
-          traverse(element, child_ptr, layout);
-        }
-
         // Append to parent
-        parent.appendChild(element);
-        if (renderCmd.elemType === COMPONENT_TYPES.JSON_EDITOR) {
-          requestAnimationFrame(() => {
-            initJsonEditor(parent, element);
-          });
+        // const anchor = parent.children[parent.children.length - back_index];
+        const next = renderCmds[i + 1];
+        let anchor = null;
+        if (next) {
+          const nextId = next[0]?.id; // id of the next sibling
+          anchor = nextId ? document.getElementById(nextId) : null;
         }
+        parent.insertBefore(element, anchor);
+        traverse(element, child_ptr, layout);
 
-        // Trigger hooks
         if (renderCmd.elemType === COMPONENT_TYPES.HOOKS_CTX) {
           if (renderCmd.hooks.mountedId > 0) {
             wasmInstance.ctxHooksMountedCallback(renderCmd.hooks.mountedId);
           }
         } else if (renderCmd.elemType === COMPONENT_TYPES.HOOKS) {
           if (renderCmd.hooks.mountedId > 0) {
-            wasmInstance.hooksMountedCallback(renderCmd.hooks.mountedId);
+            const idPtr = allocString(renderCmd.id);
+            wasmInstance.hooksMountedCallback(idPtr);
           }
           if (renderCmd.hooks.createdId > 0) {
             wasmInstance.hooksCreatedCallback(renderCmd.hooks.createdId);
@@ -1107,8 +1152,18 @@ export function traverse(parent, tree_node, layout) {
           }
         }
       } else {
+        // Here we may need to change the positions of the elements
         // Update existing element
         updateElement(element, renderCmd);
+
+        // Append to parent
+        const next = renderCmds[i + 1];
+        let anchor = null;
+        if (next) {
+          const nextId = next[0]?.id; // id of the next sibling
+          anchor = nextId ? document.getElementById(nextId) : null;
+        }
+        parent.insertBefore(element, anchor);
 
         // Process children
         traverse(element, child_ptr, layout);
@@ -1119,6 +1174,89 @@ export function traverse(parent, tree_node, layout) {
       traverse(element, child_ptr, layout);
     }
   }
+
+  // for (let i = 0; i < children_count; i++) {
+  //   const child_ptr = wasmInstance.getTreeNodeChild(tree_node, i);
+  //   const rndcmd_ptr = wasmInstance.getRenderCommandPtr(child_ptr);
+  //   const renderCmd = readRenderCommand(rndcmd_ptr, layout);
+  //
+  //   // console.log(renderCmd.isDirty, renderCmd.id);
+  //   activeNodeIds.add(renderCmd.id);
+  //
+  //   if (renderCmd.isDirty) {
+  //     // Mark as processed
+  //     // wasmInstance.setDirtyToFalse(renderCmd.nodePtr);
+  //
+  //     let element = document.getElementById(renderCmd.id);
+  //
+  //     // This is the first render, so this is where we virtualize
+  //     if (!element || state.initial_render) {
+  //       // Create new element
+  //       element = createElementByType(renderCmd, tree_node, layout, parent);
+  //
+  //       if (!element) continue; // Skip if element creation failed
+  //
+  //       // Set up the element
+  //       setupElement(element, renderCmd);
+  //
+  //       if (renderCmd.elemType === COMPONENT_TYPES.VIRTUALIZE) {
+  //         // We loop through the sections, and create section elements with empty content, and attach and observer
+  //         // to the section element.
+  //         generateSections(element, child_ptr, layout);
+  //       } else {
+  //         // Process children
+  //         traverse(element, child_ptr, layout);
+  //       }
+  //
+  //       // Append to parent
+  //       const referenceNode = parent.children[renderCmd.index];
+  //       parent.insertBefore(element, referenceNode);
+  //       if (renderCmd.elemType === COMPONENT_TYPES.JSON_EDITOR) {
+  //         requestAnimationFrame(() => {
+  //           initJsonEditor(parent, element);
+  //         });
+  //       }
+  //
+  //       // Trigger hooks
+  //       if (renderCmd.elemType === COMPONENT_TYPES.HOOKS_CTX) {
+  //         if (renderCmd.hooks.mountedId > 0) {
+  //           wasmInstance.ctxHooksMountedCallback(renderCmd.hooks.mountedId);
+  //         }
+  //       } else if (renderCmd.elemType === COMPONENT_TYPES.HOOKS) {
+  //         if (renderCmd.hooks.mountedId > 0) {
+  //           const idPtr = allocString(renderCmd.id);
+  //           wasmInstance.hooksMountedCallback(idPtr);
+  //         }
+  //         if (renderCmd.hooks.createdId > 0) {
+  //           wasmInstance.hooksCreatedCallback(renderCmd.hooks.createdId);
+  //         }
+  //         if (renderCmd.hooks.updatedId > 0) {
+  //           wasmInstance.hooksUpdatedCallback(renderCmd.hooks.updatedId);
+  //         }
+  //       }
+  //     } else {
+  //       // Here we may need to change the positions of the elements
+  //       // Update existing element
+  //       updateElement(element, renderCmd);
+  //
+  //       // We we grab the node that is in the wrong position
+  //       const referenceNode = parent.children[renderCmd.index];
+  //       if (referenceNode) {
+  //         console.log(renderCmd.index, referenceNode.id, element.id);
+  //         if (referenceNode.id !== renderCmd.id) {
+  //           parent.insertBefore(element, referenceNode);
+  //         }
+  //       }
+  //
+  //       // Process children
+  //       traverse(element, child_ptr, layout);
+  //     }
+  //   } else {
+  //     // Element is not dirty, just process its children
+  //     const element = document.getElementById(renderCmd.id);
+  //     traverse(element, child_ptr, layout);
+  //   }
+  // }
 }
 
 export function traverseRemove(parent, tree_node, layout) {
@@ -1136,6 +1274,7 @@ export function traverseRemove(parent, tree_node, layout) {
       const node = domNodeRegistry.get(renderCmd.id);
       const el = node.domNode;
       domNodeRegistry.delete(renderCmd.id);
+      pureNodeRegistry.delete(renderCmd.id);
       // el.remove();
       el.replaceWith(...Array.from(el.childNodes));
       wasmInstance.setDirtyToFalse(renderCmd.nodePtr);

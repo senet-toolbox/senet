@@ -19,8 +19,8 @@ pub fn BufferedChan(comptime T: type, comptime bufSize: u8) type {
         closed: bool = false,
         mut: std.Thread.Mutex = std.Thread.Mutex{},
         alloc: std.mem.Allocator = undefined,
-        recvQ: std.ArrayList(*Receiver) = undefined,
-        sendQ: std.ArrayList(*Sender) = undefined,
+        recvQ: std.array_list.Managed(*Receiver) = undefined,
+        sendQ: std.array_list.Managed(*Sender) = undefined,
 
         // represents a thread waiting on recv
         const Receiver = struct {
@@ -49,8 +49,8 @@ pub fn BufferedChan(comptime T: type, comptime bufSize: u8) type {
         pub fn init(alloc: std.mem.Allocator) Self {
             return Self{
                 .alloc = alloc,
-                .recvQ = std.ArrayList(*Receiver).init(alloc),
-                .sendQ = std.ArrayList(*Sender).init(alloc),
+                .recvQ = std.array_list.Managed(*Receiver).init(alloc),
+                .sendQ = std.array_list.Managed(*Sender).init(alloc),
             };
         }
 

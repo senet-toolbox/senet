@@ -1,4 +1,5 @@
-import { importObject, setWasiInstance } from "./wasi_env.js";
+import { importObject } from "./wasi_env.js";
+import { setWasiInstance } from "./wasi.js";
 import {
   domNodeRegistry,
   moduleCache,
@@ -6,14 +7,23 @@ import {
   hooksHandlers,
   observeredSections,
   loadedSections,
+  pureNodeRegistry,
 } from "./maps.js";
 import {
   applyHoverClass,
   updateComponentStyle,
   addKeyframesToStylesheet,
   checkMarkStyling,
+  styleSheet,
+  styleRuleCache,
 } from "./wasi_styling.js";
-import { traverse, traverseRemove } from "./traversal.js";
+import {
+  traverse,
+  traverseRemove,
+  COMPONENT_TYPES,
+  isLayout,
+  stripNonLayout,
+} from "./traversal.js";
 import { state } from "./state.js";
 
 export let wasmInstance;
@@ -132,35 +142,77 @@ let layoutInfoPtr;
 window.addEventListener("popstate", async function(event) {
   event.preventDefault();
   const path = window.location.pathname;
-  // We first mark all non layout nodes as dirty this way we can traverse and remove
-  // we use the dirty flag to indicate for removal
-  wasmInstance.markAllNonLayoutNodesDirtyRemoveList();
 
-  // we get the current tree pointer and traverse it to remove all the nodes that are not part of the layout
-  const current_tree = wasmInstance.getRenderTreePtr();
-  traverseRemove(root, current_tree, layoutInfo);
-
-  // we push the state and renderCycle the new path
-  // window.history.pushState({}, "", path);
-  rerenderRoute(path === "/" ? "/root" : path);
-  requestAnimationFrame(wasmInstance.setRerenderTrue);
+  rerenderRoute(path === "/" ? "/root" : `/root${path}`);
+  requestAnimationFrame(() => {
+    // wasmInstance.setRerenderTrue();
+  });
 });
 
 window.addEventListener("load", async () => {
-  const url = new URL(window.location.href);
-  for (const [key, handler] of hooksHandlers.entries()) {
-  }
+  // const url = new URL(window.location.href);
+  // for (const [key, handler] of hooksHandlers.entries()) {
+  // }
+  const fontLink = document.createElement("link");
+  fontLink.href =
+    "https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap";
+  fontLink.rel = "stylesheet";
+  document.head.appendChild(fontLink);
+
+  const iconLink = document.createElement("link");
+  iconLink.href =
+    "https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css";
+  iconLink.rel = "stylesheet";
+  document.head.appendChild(iconLink);
 });
 
-async function loadWasiModule() {
-  let pathname = window.location.pathname;
-  pathname = "fabric";
-  WebAssembly.instantiateStreaming(
-    fetch(`zig-out/bin/${pathname}.wasm`),
+async function loadWasm(path, imports = {}) {
+  const response = await fetch(path); // cache-bust
+  const bytes = await response.arrayBuffer();
+  const { instance } = await WebAssembly.instantiate(bytes, imports);
+  return instance;
+}
+
+export async function hotSwapWasmWithState(newPath) {
+  console.log("🔄 Swapping WASM with state preservation:", newPath);
+
+  // Grab old memory (if exists)
+  let oldMemory;
+  if (wasmInstance) {
+    oldMemory = wasmInstance.memory;
+    // oldMemory = new Uint8Array(wasmInstance.memory.buffer).slice();
+  }
+
+  // Load new instance
+  const newInstance = await loadWasm(
+    `/zig-out/bin/${pathname}.wasm`,
     importObject,
-  )
-    .then((result) => {
-      const exports = result.instance.exports;
+  );
+
+  // If memory layouts match, restore old memory into new instance
+  if (oldMemory) {
+    const newMem = new Uint8Array(newInstance.exports.memory.buffer);
+    // console.log("oldMemory", oldMemory.buffer.byteLength);
+    // console.log("oldMemory", newInstance.exports.memory.buffer.byteLength);
+    // console.log("newMemory", newMem.length);
+    newMem.set(oldMemory.subarray(0, oldMemory.length));
+  }
+
+  newInstance.exports.memory.buffer = oldMemory.buffer;
+  wasmInstance = newInstance.exports;
+  window.myWasmAPI = wasmInstance;
+
+  console.log("✅ Hot swap complete (state copied if compatible)");
+  init();
+}
+
+let pathname;
+async function loadWasiModule() {
+  pathname = window.location.pathname;
+  pathname = "fabric";
+  loadWasm(`/zig-out/bin/${pathname}.wasm`, importObject)
+    .then((instance) => {
+      const exports = instance.exports;
 
       // Initialize WASI (calls Zig's main)
       if (exports._start) {
@@ -180,6 +232,31 @@ async function loadWasiModule() {
       init(); // Your app initialization
     })
     .catch("Error", console.error);
+  // WebAssembly.instantiateStreaming(
+  //   fetch(`/zig-out/bin/${pathname}.wasm`),
+  //   importObject,
+  // )
+  //   .then((result) => {
+  //     const exports = result.instance.exports;
+  //
+  //     // Initialize WASI (calls Zig's main)
+  //     if (exports._start) {
+  //       try {
+  //         exports._start(); // Triggers Zig's `main()`
+  //       } catch (e) {
+  //         // console.log("WASI exited:", e);
+  //       }
+  //     }
+  //
+  //     moduleCache.set(pathname, exports);
+  //     moduleRoutes.add(pathname);
+  //     wasmInstance = exports;
+  //     setWasiInstance(wasmInstance);
+  //   })
+  //   .then(() => {
+  //     init(); // Your app initialization
+  //   })
+  //   .catch("Error", console.error);
 }
 
 async function initWasi() {
@@ -210,6 +287,61 @@ export const rerenderRoute = (route) => {
   slice.set(buffer);
   slice[buffer.length] = 0; // null byte to null-terminate the string
   wasmInstance.callRouteRenderCycle(pointer);
+
+  const has_dirty = wasmInstance.hasDirty();
+  const count = wasmInstance.getRemovedNodeCount();
+  /* ───────── main removal loop ───────── */
+  for (let i = 0; i < count; i++) {
+    const ptr = wasmInstance.getRemovedNode(i);
+    const node_index = wasmInstance.getRemovedNodeIndex(i);
+    const len = wasmInstance.getRemovedNodeLength(i);
+    const id = readWasmString(ptr, len);
+    console.log(id, node_index);
+
+    const elements = document.querySelectorAll(`[id="${id}"]`);
+    // Here we remove duplicates
+    check: if (elements.length > 1) {
+      // deduplicate
+      for (let element of elements) {
+        const target_child = element.parentElement.children[node_index];
+        if (target_child.id === id) {
+          console.log("found", id);
+          element.remove();
+          break check;
+        }
+      }
+    } else {
+      stripNonLayout(elements[0]); // delete everything *except* layouts
+    }
+    wasmInstance.clearRemovedNodesretainingCapacity();
+  }
+
+  if (has_dirty) {
+    tree_node = wasmInstance.getRenderTreePtr();
+    if (tree_node === 0) {
+      state.initial_render = false;
+      wasmInstance.resetRerender();
+      requestAnimationFrame(wasmInstance.cleanUp);
+      return;
+    }
+    // this active set does not include the layouts
+    activeNodeIds = new Set();
+    traverse(root, tree_node, layoutInfo);
+    state.initial_render = false;
+    wasmInstance.pendingClassesToAdd();
+    wasmInstance.pendingClassesToRemove();
+    callDestroyFncs();
+    // we need to consider the possiblity of has dirty being false and therefore the node tree does not include the current nodes
+    // we need to look into this since we dont want to remove the layouts even if they are not in the active set
+    // removeInactiveNodes();
+    wasmInstance.markCurrentTreeNotDirty();
+    wasmInstance.resetRerender();
+    handleIntersection();
+    requestAnimationFrame(wasmInstance.cleanUp);
+    // console.log(pureNodeRegistry);
+  } else {
+    wasmInstance.resetRerender();
+  }
 };
 
 export const navToRoute = (string) => {
@@ -239,210 +371,246 @@ export const allocString = (string) => {
 };
 
 export let root;
-async function init() {
-  // if ("serviceWorker" in navigator) {
-  //   navigator.serviceWorker
-  //     .register("/sw.js")
-  //     .catch((error) => console.log("SW registration failed"));
-  // }
 
-  root = document.getElementById("contents");
-
+function setupLayoutInfo() {
   // Set up listener for back/forward buttons
   // Get the memory layout information
   // So we grab the memory layout of each render command
+  // layoutInfoPtr = wasmInstance.allocateLayoutInfo();
+
+  // Corrected JavaScript code to read layout info
   layoutInfoPtr = wasmInstance.allocateLayoutInfo();
+
   layoutInfo = {
+    // Corresponds directly to the corrected Zig struct order
     renderCommandSize: new DataView(
       wasmInstance.memory.buffer,
-      layoutInfoPtr,
+      layoutInfoPtr + 0,
       4,
     ).getUint32(0, true),
-    boundingBoxOffset: new DataView(
+
+    // --- Direct offsets in RenderCommand ---
+    elemTypeOffset: new DataView(
       wasmInstance.memory.buffer,
       layoutInfoPtr + 4,
       4,
     ).getUint32(0, true),
-    elemTypeOffset: new DataView(
+    textPtrOffset: new DataView(
       wasmInstance.memory.buffer,
       layoutInfoPtr + 8,
       4,
     ).getUint32(0, true),
-    textPtrOffset: new DataView(
+    hrefPtrOffset: new DataView(
       wasmInstance.memory.buffer,
       layoutInfoPtr + 12,
       4,
     ).getUint32(0, true),
-    textLenOffset: new DataView(
+    idPtrOffset: new DataView(
       wasmInstance.memory.buffer,
       layoutInfoPtr + 16,
       4,
     ).getUint32(0, true),
-    hrefPtrOffset: new DataView(
+    indexOffset: new DataView(
       wasmInstance.memory.buffer,
       layoutInfoPtr + 20,
       4,
     ).getUint32(0, true),
-    hrefLenOffset: new DataView(
+    hooksOffset: new DataView(
       wasmInstance.memory.buffer,
       layoutInfoPtr + 24,
       4,
     ).getUint32(0, true),
-    propsOffset: new DataView(
+    nodePtrOffset: new DataView(
       wasmInstance.memory.buffer,
       layoutInfoPtr + 28,
       4,
     ).getUint32(0, true),
-    propsSize: new DataView(
+    classnamePtrOffset: new DataView(
       wasmInstance.memory.buffer,
       layoutInfoPtr + 32,
       4,
     ).getUint32(0, true),
-    propsBtnIdOffset: new DataView(
+
+    // --- Absolute offsets for fields within the nested 'style' struct ---
+    styleBtnIdOffset: new DataView(
       wasmInstance.memory.buffer,
       layoutInfoPtr + 36,
       4,
     ).getUint32(0, true),
-    dialogIdPtrOffset: new DataView(
+    styleDialogIdPtrOffset: new DataView(
       wasmInstance.memory.buffer,
       layoutInfoPtr + 40,
       4,
     ).getUint32(0, true),
-    dialogIdLenOffset: new DataView(
+    styleExitAnimationPtrOffset: new DataView(
       wasmInstance.memory.buffer,
       layoutInfoPtr + 44,
       4,
     ).getUint32(0, true),
-    idPtrOffset: new DataView(
+
+    // --- Nested struct sizes and offsets ---
+    hoverSize: new DataView(
       wasmInstance.memory.buffer,
       layoutInfoPtr + 48,
       4,
     ).getUint32(0, true),
-    idLenOffset: new DataView(
+    hoverOffset: new DataView(
       wasmInstance.memory.buffer,
       layoutInfoPtr + 52,
       4,
     ).getUint32(0, true),
-    showOffset: new DataView(
+    focusSize: new DataView(
       wasmInstance.memory.buffer,
       layoutInfoPtr + 56,
       4,
     ).getUint32(0, true),
-    hooksOffset: new DataView(
+    focusOffset: new DataView(
       wasmInstance.memory.buffer,
       layoutInfoPtr + 60,
       4,
     ).getUint32(0, true),
-    nodePtrOffset: new DataView(
+    focusWithinSize: new DataView(
       wasmInstance.memory.buffer,
       layoutInfoPtr + 64,
       4,
     ).getUint32(0, true),
-    propsHoverOffset: new DataView(
+    focusWithinOffset: new DataView(
       wasmInstance.memory.buffer,
       layoutInfoPtr + 68,
       4,
     ).getUint32(0, true),
-    propsHoverSize: new DataView(
+    renderTypeOffset: new DataView(
       wasmInstance.memory.buffer,
       layoutInfoPtr + 72,
       4,
     ).getUint32(0, true),
-    propsExitAnimation: new DataView(
-      wasmInstance.memory.buffer,
-      layoutInfoPtr + 76,
-      4,
-    ).getUint32(0, true),
-    propsExitAnimationLength: new DataView(
-      wasmInstance.memory.buffer,
-      layoutInfoPtr + 80,
-      4,
-    ).getUint32(0, true),
-    propsStyleId: new DataView(
-      wasmInstance.memory.buffer,
-      layoutInfoPtr + 84,
-      4,
-    ).getUint32(0, true),
-    propsStyleIdLength: new DataView(
-      wasmInstance.memory.buffer,
-      layoutInfoPtr + 88,
-      4,
-    ).getUint32(0, true),
-    propsFocusOffset: new DataView(
-      wasmInstance.memory.buffer,
-      layoutInfoPtr + 92,
-      4,
-    ).getUint32(0, true),
-    propsFocusSize: new DataView(
-      wasmInstance.memory.buffer,
-      layoutInfoPtr + 96,
-      4,
-    ).getUint32(0, true),
-    propsFocusWithinOffset: new DataView(
-      wasmInstance.memory.buffer,
-      layoutInfoPtr + 100,
-      4,
-    ).getUint32(0, true),
-    propsFocusWithinSize: new DataView(
-      wasmInstance.memory.buffer,
-      layoutInfoPtr + 104,
-      4,
-    ).getUint32(0, true),
   };
+}
 
-  wasmInstance.instantiate(window.innerWidth, window.innerHeight); // Example UI function
+function getSystemTheme() {
+  return window.matchMedia("(prefers-color-scheme: dark)").matches
+    ? "dark"
+    : "light";
+}
 
-  blk: while (true) {
-    const motion = wasmInstance.nextMotion();
-    if (motion > 0) {
-      const motion_ptr = wasmInstance.getKeyFrames(motion);
-      const motion_len = wasmInstance.getKeyFramesLen();
-      const keyFrames = readWasmString(motion_ptr, motion_len);
-      addKeyframesToStylesheet(keyFrames);
-    } else {
-      break blk;
+function loadTheme() {
+  const savedTheme = localStorage.getItem("theme") || getSystemTheme();
+  if (savedTheme === "dark") {
+    document.documentElement.setAttribute("data-theme", "dark");
+  } else {
+    const savedTheme = localStorage.getItem("theme");
+    if (savedTheme === "dark") {
+      document.documentElement.setAttribute("data-theme", "dark");
     }
   }
+}
 
-  // const pathname = window.location.pathname;
-  // if (pathname === "/") {
-  //   encodeString("/root");
-  // } else {
-  //   encodeString(pathname);
-  // }
+function generateThemeCSS(themes) {
+  let css = "";
 
-  // for (const [key, handler] of hooksHandlers.entries()) {
-  //   const pathEnd = key.indexOf("-");
-  //   const path = key.substring(0, pathEnd);
-  //   if (path === "/nightwatch/auth") {
-  //     handler();
-  //   } else if (path === "*") {
-  //     handler();
+  // Generate :root styles (light theme)
+  css += ":root {\n";
+  Object.entries(themes.light).forEach(([property, value]) => {
+    css += `  ${property}: ${value};\n`;
+  });
+  css += "}\n\n";
+
+  // Generate [data-theme="dark"] styles
+  css += '[data-theme="dark"] {\n';
+  Object.entries(themes.dark).forEach(([property, value]) => {
+    css += `  ${property}: ${value};\n`;
+  });
+  css += "}\n";
+
+  return css;
+}
+
+function injectThemeCSS(css) {
+  // Remove existing theme styles
+  const existingStyle = document.getElementById("dynamic-theme");
+  if (existingStyle) {
+    existingStyle.remove();
+  }
+
+  // Inject new styles
+  const style = document.createElement("style");
+  style.id = "dynamic-theme";
+  style.textContent = css;
+  document.head.appendChild(style);
+}
+
+function setupWasiInstance() {
+  wasmInstance.instantiate(window.innerWidth, window.innerHeight); // Example UI function
+
+  // blk: while (true) {
+  //   const motion = wasmInstance.nextMotion();
+  //   if (motion > 0) {
+  //     const motion_ptr = wasmInstance.getKeyFrames(motion);
+  //     const motion_len = wasmInstance.getKeyFramesLen();
+  //     const keyFrames = readWasmString(motion_ptr, motion_len);
+  //     addKeyframesToStylesheet(keyFrames);
+  //   } else {
+  //     break blk;
   //   }
   // }
 
-  // tree_node = wasmInstance.getRenderTreePtr();
-
-  root.style.width = "100%";
-  root.style.height = "100vh";
+  loadTheme();
   const currentPath = window.location.pathname;
   if (currentPath === "/") {
     route_ptr = allocString("/root");
   } else {
-    route_ptr = allocString(currentPath);
+    route_ptr = allocString(`/root${currentPath}`);
   }
   wasmInstance.renderUI(route_ptr);
   wasmInstance.markCurrentTreeDirty();
   tree_node = wasmInstance.getRenderTreePtr();
 
   activeNodeIds = new Set();
+
+  const global_style_ptr = wasmInstance.getGlobalVariablesPtr();
+  const global_style_len = wasmInstance.getGlobalVariablesLen();
+  if (global_style_ptr !== 0) {
+    const global_css = readWasmString(global_style_ptr, global_style_len);
+    injectThemeCSS(global_css);
+  }
+
+  /////////////////////////////
+  /////////////////////////////
+  // const rndcmd_ptr = wasmInstance.getRenderCommandPtr(tree_node);
+  // const renderCmd = readRenderCommand(rndcmd_ptr, layoutInfo);
+  // let className = `fabric-component-${renderCmd.id}`;
+  // if (renderCmd.styleId.length > 0) {
+  //   className = renderCmd.styleId;
+  // }
+  // const rootElement = document.createElement("div");
+  // rootElement.id = renderCmd.id;
+  // rootElement.className = className;
+  // const newIndex = styleSheet.cssRules.length;
+  // styleSheet.insertRule(`.${className} { ${renderCmd.props.css} }`, newIndex);
+  // styleRuleCache.set(className, newIndex);
+  // console.log("Inserted rule", root);
+  // root.appendChild(rootElement);
+  /////////////////////////////
+  /////////////////////////////
+  console.log("Traverse");
   traverse(root, tree_node, layoutInfo);
   state.initial_render = false;
   wasmInstance.pendingClassesToAdd();
   wasmInstance.pendingClassesToRemove();
+  const common_style_ptr = wasmInstance.getBaseStyles();
+  const common_style_len = wasmInstance.getBaseStylesLen();
+  if (common_style_ptr !== 0) {
+    const commonStyles = readWasmString(common_style_ptr, common_style_len);
+    const commonStyleElement = document.createElement("style");
+    commonStyleElement.id = "common-styles"; // Give it an ID for reference
+    commonStyleElement.textContent = commonStyles;
+    styleSheet.textContent = commonStyles;
+    document.head.appendChild(commonStyleElement);
+  }
   document.body.appendChild(root);
   wasmInstance.markCurrentTreeNotDirty();
   wasmInstance.resetRerender();
+
   const hash = window.location.hash;
   if (hash) {
     const id = window.location.hash.substring(1, hash.length);
@@ -456,51 +624,24 @@ async function init() {
   }
 
   handleIntersection();
+}
 
-  // const navLinks = document.querySelectorAll(".sidebar a");
+async function init() {
+  root = document.getElementById("contents");
 
-  // if (state.initial_render) {
-  //   state.initial_render = false;
-  //   window.location.href = window.location.href;
-  // }
-  // window.history.pushState({}, "", window.location.href);
+  // CRITICAL: Minimal setup for first paint
+  root.style.width = "100%";
+  root.style.height = "100vh";
 
-  // initEditor();
+  // Show a loading state or basic structure immediately
+  // root.innerHTML = '<div class="loading">Loading...</div>';
+  // document.body.appendChild(root);
 
-  // the reason we have this here, is since at the creation of each page we load and add the buttons context,
-  // hence the ids for each button are tied to all pages, for example lets say we render the navbar in /auth thne the ctx btns
-  // are rendered with id 1,2,3, and lets say we render navbar, is /routes then the ctx ids are 4,5,6 hence if we clear and remove,
-  // all the ctx then since we arent recreating the navbar ctx routes, then when we render /routes it uses 4,5,6 event though the new render
-  // tree ctx registry has id 1,2,3, this needs to be optimized and improved, perhaps use node uuids instead, but be carful with this
-  // const currentPath = window.location.pathname;
-  // if (currentPath === "/") {
-  //   route_ptr = allocString("/root");
-  // } else {
-  //   route_ptr = allocString(currentPath);
-  // }
-  // wasmInstance.renderUI(window.innerWidth, window.innerHeight, route_ptr);
-  // tree_node = wasmInstance.getRenderTreePtr();
-  // activeNodeIds = new Set();
-  // traverse(root, tree_node, layoutInfo);
-  // console.log("Finished rerendering ------------------------------------- ");
-  // wasmInstance.pendingClassesToAdd();
-  // wasmInstance.pendingClassesToRemove();
-  // callDestroyFncs();
-  // removeInactiveNodes();
-  // wasmInstance.resetRerender();
-  // requestAnimationFrame(wasmInstance.cleanUp);
+  // requestAnimationFrame(() => {
+  setupLayoutInfo();
+  setupWasiInstance();
 
-  // requestRerender();
-
-  // setTimeout(() => {
-  //   const currentPath = window.location.pathname;
-  //   const route_ptr = allocString(currentPath === "/" ? "/root" : currentPath);
-  //
-  //   wasmInstance.renderUI(route_ptr);
-  //   tree_node = wasmInstance.getRenderTreePtr();
-  //   activeNodeIds = new Set();
-  //   traverse(root, tree_node, layoutInfo);
-  // }, 3000);
+  // });
 }
 
 function loadSection(element) {
@@ -533,34 +674,6 @@ function handleIntersection() {
   document.querySelectorAll("section").forEach((section) => {
     observer.observe(section);
   });
-  // Wait a bit before setting up the observer
-  // const observer = new IntersectionObserver(
-  //   (entries) => {
-  //     entries.forEach((entry) => {
-  //       // Correctly get the link by its ID (without the '#')
-  //       const link = document.getElementById(`#${entry.target.id}`);
-  //
-  //       if (link) {
-  //         // Toggle the class based on whether the section is in view
-  //         if (entry.isIntersecting) {
-  //           link.classList.add("active");
-  //         } else {
-  //           link.classList.remove("active");
-  //         }
-  //       }
-  //     });
-  //   },
-  //   {
-  //     rootMargin: "-20% 0px -40% 0px", // Adjust this to change when sections are considered "active"
-  //     // threshold: [0, 0.1, 0.5, 1],
-  //     threshold: 0,
-  //   },
-  // );
-  //
-  // // Observe all <section> elements
-  // document.querySelectorAll("section").forEach((section) => {
-  //   observer.observe(section);
-  // });
 }
 
 let route_ptr = null;
@@ -578,6 +691,11 @@ export function render() {
 
   const globalRerender = wasmInstance.shouldRerender();
   const grainRerender = wasmInstance.grainRerender();
+  // const rerenderEverything = wasmInstance.rerenderEverything();
+  //
+  // if (rerenderEverything) {
+  //   document.body.innerHTML = "";
+  // }
 
   // Exit if no re-render is needed.
   if (!globalRerender && !grainRerender) {
@@ -588,55 +706,85 @@ export function render() {
     if (globalRerender) {
       const currentPath = window.location.pathname;
       const route_ptr = allocString(
-        currentPath === "/" ? "/root" : currentPath,
+        currentPath === "/" ? "/root" : `/root${currentPath}`,
       );
 
       wasmInstance.renderUI(route_ptr);
-      tree_node = wasmInstance.getRenderTreePtr();
-      if (tree_node === 0) {
-        state.initial_render = false;
-        wasmInstance.resetRerender();
-        requestAnimationFrame(wasmInstance.cleanUp);
-        return;
+      const has_dirty = wasmInstance.hasDirty();
+
+      const count = wasmInstance.getRemovedNodeCount();
+      /* ───────── main removal loop ───────── */
+      for (let i = 0; i < count; i++) {
+        const ptr = wasmInstance.getRemovedNode(i);
+        const node_index = wasmInstance.getRemovedNodeIndex(i);
+        const len = wasmInstance.getRemovedNodeLength(i);
+        const id = readWasmString(ptr, len);
+
+        const elements = document.querySelectorAll(`[id="${id}"]`);
+        // Here we remove duplicates
+        check: if (elements.length > 1) {
+          // deduplicate
+          for (let element of elements) {
+            const target_child = element.parentElement.children[node_index];
+            if (target_child.id === id) {
+              element.remove();
+              break check;
+            }
+          }
+        } else {
+          stripNonLayout(elements[0]); // delete everything *except* layouts
+        }
+        wasmInstance.clearRemovedNodesretainingCapacity();
       }
-      activeNodeIds = new Set();
-      traverse(root, tree_node, layoutInfo);
-      state.initial_render = false;
-      wasmInstance.pendingClassesToAdd();
-      wasmInstance.pendingClassesToRemove();
-      callDestroyFncs();
-      removeInactiveNodes();
-      wasmInstance.markCurrentTreeNotDirty();
-      wasmInstance.resetRerender();
-      handleIntersection();
-      requestAnimationFrame(wasmInstance.cleanUp);
+
+      if (has_dirty) {
+        tree_node = wasmInstance.getRenderTreePtr();
+        if (tree_node === 0) {
+          state.initial_render = false;
+          wasmInstance.resetRerender();
+          requestAnimationFrame(wasmInstance.cleanUp);
+          return;
+        }
+        // this active set does not include the layouts
+        activeNodeIds = new Set();
+        traverse(root, tree_node, layoutInfo);
+        state.initial_render = false;
+        wasmInstance.pendingClassesToAdd();
+        wasmInstance.pendingClassesToRemove();
+        callDestroyFncs();
+        // we need to consider the possiblity of has dirty being false and therefore the node tree does not include the current nodes
+        // we need to look into this since we dont want to remove the layouts even if they are not in the active set
+        // removeInactiveNodes();
+        wasmInstance.markCurrentTreeNotDirty();
+        wasmInstance.resetRerender();
+        handleIntersection();
+        requestAnimationFrame(wasmInstance.cleanUp);
+        // console.log(pureNodeRegistry);
+      } else {
+        // const count = wasmInstance.getRemovedNodeCount();
+        // /* ───────── main removal loop ───────── */
+        // for (let i = 0; i < count; i++) {
+        //   const ptr = wasmInstance.getRemovedNode(i);
+        //   const len = wasmInstance.getRemovedNodeLength(i);
+        //   const id = readWasmString(ptr, len);
+        //   // console.log(id);
+        //
+        //   const rec = domNodeRegistry.get(id);
+        //   if (!rec) continue; // already gone
+        //
+        //   const el = rec.domNode;
+        //   if (isLayout(el)) continue; // never delete a layout root itself
+        //
+        //   stripNonLayout(el); // delete everything *except* layouts
+        //   wasmInstance.clearRemovedNodesretainingCapacity();
+        // }
+        //
+        // wasmInstance.resetRerender();
+      }
     } else {
       // This implies grainRerender is true
       console.log("Grain Rerender");
     }
-
-    // // // --- Consolidated Logic ---
-    // const tree_node = wasmInstance.getRenderTreePtr();
-    // activeNodeIds = new Set();
-    // traverse(root, tree_node, layoutInfo);
-    // state.initial_render = false;
-    // //
-    // wasmInstance.pendingClassesToAdd();
-    // wasmInstance.pendingClassesToRemove();
-    // callDestroyFncs();
-    // removeInactiveNodes();
-    // // wasmInstance.resetRerender();
-    // //
-    // // // Reset the specific flags in wasm
-    // if (globalRerender) {
-    //   wasmInstance.resetRerender();
-    // }
-    // // if (grainRerender) {
-    // //   wasmInstance.resetGrainRerender();
-    // // }
-    // //
-    // // // The cleanup can be done in the next animation frame.
-    // requestAnimationFrame(wasmInstance.cleanUp);
   } catch (error) {
     console.error("An error occurred during the render cycle:", error);
   }
@@ -704,6 +852,7 @@ function removeNodeWithExitAnimation(domNode, nodeId, animationName) {
       // domNode.classList.remove("fade-out");
       domNode.parentNode.removeChild(domNode);
       domNodeRegistry.delete(nodeId);
+      pureNodeRegistry.delete(nodeId);
     }
   });
   return;
@@ -741,8 +890,10 @@ export function removeInactiveNodes() {
   toRemove = [];
   domNodeRegistry.forEach((node, nodeId) => {
     if (!activeNodeIds.has(nodeId)) {
+      console.log("Removing", nodeId);
       toRemove.push({ node, nodeId });
       domNodeRegistry.delete(nodeId);
+      pureNodeRegistry.delete(nodeId);
     }
   });
 
@@ -764,6 +915,10 @@ export function removeInactiveNodes() {
       el.classList.add(exitClass);
     } else {
       // no animation, just yank it
+      if (node.elementType === COMPONENT_TYPES.HOOKS) {
+        const idPtr = allocString(nodeId);
+        wasmInstance.hooksRemoveMountedKey(idPtr);
+      }
       el.remove();
       // domNodeRegistry.delete(nodeId);
     }
@@ -781,6 +936,7 @@ export function removeRouteSpecificNodes() {
     if (nodeId !== fullLayoutPath) {
       toRemove.push({ node, nodeId });
       domNodeRegistry.delete(nodeId);
+      pureNodeRegistry.delete(nodeId);
     }
   });
 
@@ -818,129 +974,125 @@ export function readRenderCommand(offset, layout) {
     offset,
     layoutInfo.renderCommandSize,
   );
+  const elemType = view.getUint8(layoutInfo.elemTypeOffset);
 
-  const nodePtr = view.getUint32(layout.nodePtrOffset, true);
+  const nodePtr = view.getUint32(layoutInfo.nodePtrOffset, true);
   const isDirty = wasmInstance.getDirtyValue(nodePtr);
 
-  // Read BoundingBox
-  const boundingBox = {
-    x: view.getFloat32(layout.boundingBoxOffset, true),
-    y: view.getFloat32(layout.boundingBoxOffset + 4, true),
-    width: view.getFloat32(layout.boundingBoxOffset + 8, true),
-    height: view.getFloat32(layout.boundingBoxOffset + 12, true),
-  };
-
-  // Read ElementType enum
-  const elemType = view.getUint8(layout.elemTypeOffset);
-
   // For text, you need to handle the string slice differently
-  const textPtr = view.getUint32(layout.textPtrOffset, true);
-  const textLen = view.getUint32(layout.textLenOffset, true);
+  const textPtr = view.getUint32(layoutInfo.textPtrOffset, true);
+  const textLen = view.getUint32(layoutInfo.textPtrOffset + 4, true);
   const text = textPtr ? readWasmString(textPtr, textLen) : "";
 
-  const hrefPtr = view.getUint32(layout.hrefPtrOffset, true);
-  const hrefLen = view.getUint32(layout.hrefLenOffset, true);
+  const hrefPtr = view.getUint32(layoutInfo.hrefPtrOffset, true);
+  const hrefLen = view.getUint32(layoutInfo.hrefPtrOffset + 4, true);
   const href = hrefPtr ? readWasmString(hrefPtr, hrefLen) : "";
-
-  const propsOffset = offset + layout.propsOffset;
-  const propsView = new DataView(
-    wasmInstance.memory.buffer,
-    propsOffset, // propsOffset is relative to the start of RenderCommand
-    layout.propsSize,
-  );
-
-  const btnId = propsView.getUint32(layout.propsBtnIdOffset, true);
 
   let css = "";
   let keyFrames = "";
   let styleId = "";
   let id = "";
-  let dialogId = "";
+  let btnId = 0;
   let hoverCss = "";
   let focusCss = "";
   let focusWithinCss = "";
   let exitAnimationId = null;
-  const show = view.getUint8(layout.showOffset, true);
+  const index = view.getUint32(layoutInfo.indexOffset, true);
   let hooks = {};
 
-  const idPtr = view.getUint32(layout.idPtrOffset, true);
-  const idLen = view.getUint32(layout.idLenOffset, true);
+  const idPtr = view.getUint32(layoutInfo.idPtrOffset, true);
+  const idLen = view.getUint32(layoutInfo.idPtrOffset + 4, true);
   id = idPtr ? readWasmString(idPtr, idLen) : "";
-
   if (isDirty) {
     const cssStylePtr = wasmInstance.getStyle(nodePtr);
-    const cssStyleLen = wasmInstance.getStyleLen();
-    css = readWasmString(cssStylePtr, cssStyleLen);
+    if (cssStylePtr !== 0) {
+      const cssStyleLen = wasmInstance.getStyleLen();
+      css = readWasmString(cssStylePtr, cssStyleLen);
+    }
 
     hooks = {
-      createdId: view.getUint32(layout.hooksOffset, true),
-      mountedId: view.getUint32(layout.hooksOffset + 4, true),
-      updatedId: view.getUint32(layout.hooksOffset + 8, true),
-      destroyId: view.getUint32(layout.hooksOffset + 12, true),
+      createdId: view.getUint32(layoutInfo.hooksOffset, true),
+      mountedId: view.getUint32(layoutInfo.hooksOffset + 4, true),
+      updatedId: view.getUint32(layoutInfo.hooksOffset + 8, true),
+      destroyId: view.getUint32(layoutInfo.hooksOffset + 12, true),
     };
 
-    const dialogIdPtr = propsView.getUint32(layout.dialogIdPtrOffset, true);
-    const dialogIdLen = propsView.getUint32(layout.dialogIdLenOffset, true);
-    dialogId = dialogIdPtr ? readWasmString(dialogIdPtr, dialogIdLen) : "";
+    // const dialogIdPtr = propsView.getUint32(layoutInfo.dialogIdPtrOffset, true);
+    // const dialogIdLen = propsView.getUint32(layoutInfo.dialogIdLenOffset, true);
+    // dialogId = dialogIdPtr ? readWasmString(dialogIdPtr, dialogIdLen) : "";
 
-    const propsHoverOffset = offset + layout.propsHoverOffset;
+    const propsHoverOffset = offset + layoutInfo.hoverOffset;
     const propsHoverView = new DataView(
       wasmInstance.memory.buffer,
       propsHoverOffset, // propsOffset is relative to the start of RenderCommand
-      layout.propsHoverSize,
+      layoutInfo.hoverSize,
     );
     const hoverExists = propsHoverView.getUint8(0, true);
     if (hoverExists > 0) {
-      const cssHoverPtr = wasmInstance.getHoverStyle(nodePtr);
-      const cssHoverLen = wasmInstance.getHoverLen();
+      const cssHoverPtr = wasmInstance.getVisualStyle(nodePtr, 0);
+      const cssHoverLen = wasmInstance.getVisualLen();
       hoverCss = readWasmString(cssHoverPtr, cssHoverLen);
     }
 
-    const propsFocusOffset = offset + layout.propsFocusOffset;
+    const propsFocusOffset = offset + layoutInfo.focusOffset;
     const propsFocusView = new DataView(
       wasmInstance.memory.buffer,
       propsFocusOffset, // propsOffset is relative to the start of RenderCommand
-      layout.propsFocusSize,
+      layoutInfo.focusSize,
     );
     const focusExists = propsFocusView.getUint8(0, true);
     if (focusExists > 0) {
-      const cssHoverPtr = wasmInstance.getFocusStyle(nodePtr);
-      const cssHoverLen = wasmInstance.getFocusLen();
+      const cssHoverPtr = wasmInstance.getVisualStyle(nodePtr, 1);
+      const cssHoverLen = wasmInstance.getVisualLen();
       focusCss = readWasmString(cssHoverPtr, cssHoverLen);
     }
 
-    const propsFocusWithinOffset = offset + layout.propsFocusWithinOffset;
+    const propsFocusWithinOffset = offset + layoutInfo.focusWithinOffset;
     const propsFocusWithinView = new DataView(
       wasmInstance.memory.buffer,
       propsFocusWithinOffset, // propsOffset is relative to the start of RenderCommand
-      layout.propsFocusWithinSize,
+      layoutInfo.focusWithinSize,
     );
     const focusWithinExists = propsFocusWithinView.getUint8(0, true);
     if (focusWithinExists > 0) {
-      const cssHoverPtr = wasmInstance.getFocusWithinStyle(nodePtr);
-      const cssHoverLen = wasmInstance.getFocusWithinLen();
+      const cssHoverPtr = wasmInstance.getVisualStyle(nodePtr, 2);
+      const cssHoverLen = wasmInstance.getVisualLen();
       focusWithinCss = readWasmString(cssHoverPtr, cssHoverLen);
     }
 
-    const exitAnimPtr = propsView.getUint32(layout.propsExitAnimation, true);
-    if (exitAnimPtr) {
-      const exitAnimLen = propsView.getUint32(
-        layout.propsExitAnimationLength,
-        true,
-      );
-      exitAnimationId = readWasmString(exitAnimPtr, exitAnimLen);
+    // const exitAnimPtr = propsView.getUint32(layoutInfo.propsExitAnimation, true);
+    // if (exitAnimPtr) {
+    //   const exitAnimLen = propsView.getUint32(
+    //     layoutInfo.propsExitAnimationLength,
+    //     true,
+    //   );
+    //   exitAnimationId = readWasmString(exitAnimPtr, exitAnimLen);
+    // }
+
+    if (cssStylePtr !== 0) {
+      // 1. Get the offset of the classname's POINTER from our new layout object.
+      const classnamePtrOffset = layoutInfo.classnamePtrOffset;
+
+      // 2. Read the actual pointer value from the RenderCommand struct.
+      const classnamePtr = view.getUint32(classnamePtrOffset, true);
+
+      // 3. If the pointer is not null, read the length and then the string.
+      if (classnamePtr) {
+        // The length is ALWAYS 4 bytes after the pointer for a slice.
+        const classnameLen = view.getUint32(classnamePtrOffset + 4, true);
+
+        // Now you have the correct pointer and length.
+        const classname = readWasmString(classnamePtr, classnameLen);
+        styleId = classname;
+      }
     }
 
-    const styleIdPtr = propsView.getUint32(layout.propsStyleId, true);
-    if (styleIdPtr) {
-      const styleIdLen = propsView.getUint32(layout.propsStyleIdLength, true);
-      styleId = readWasmString(styleIdPtr, styleIdLen);
-    }
-
-    if (wasmInstance.hasEctClasses(nodePtr)) {
-      wasmInstance.addEctClasses(nodePtr);
-    }
+    // if (wasmInstance.hasEctClasses(nodePtr)) {
+    //   wasmInstance.addEctClasses(nodePtr);
+    // }
   }
+
+  const stateType = view.getUint32(layoutInfo.renderTypeOffset, true);
 
   const props = {
     css,
@@ -948,23 +1100,22 @@ export function readRenderCommand(offset, layout) {
     focusCss,
     focusWithinCss,
     btnId,
-    dialogId,
     keyFrames,
+    text,
   };
 
   return {
-    boundingBox,
     elemType,
-    text,
     href,
     props,
     id,
-    show,
+    index,
     hooks,
     nodePtr,
     exitAnimationId,
     styleId,
     isDirty,
+    stateType,
     // ... other fields
   };
 }

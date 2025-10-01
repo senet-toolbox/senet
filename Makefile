@@ -6,7 +6,9 @@ all: build
 
 # Build the Zig codebase
 build:
-	$(ZIG) build --release=small
+	$(ZIG) build 
+	# $(ZIG) build --release=fast
+	# $(ZIG) build --release=small
 
 # Run the built executable
 run:

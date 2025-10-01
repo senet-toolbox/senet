@@ -41,6 +41,9 @@
             // .url = "https://github.com/tether-labs/fabric/archive/refs/tags/v1.1.3.tar.gz",
             // .hash = "fabric-0.0.0-KeTeudyDBwBJm-xvopUQvHLnl1KGzeBcif21pa8XP18Z",
         },
+        .consolidator = .{
+            .path = "../consolidator",
+        },
     },
     .paths = .{
         "build.zig",

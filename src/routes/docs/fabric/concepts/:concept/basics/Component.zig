@@ -1,9 +1,12 @@
 const Fabric = @import("fabric");
 const Style = Fabric.Style;
 const Static = Fabric.Static;
+const Box = Static.Box;
+const Text = Static.Text;
 
 // Initialization
 var init_text: []const u8 = "";
+const background_color = &Style{ .background = .hex("#ffffff") };
 
 pub fn init() void {
     init_text = "I was created in init()";
@@ -11,16 +14,26 @@ pub fn init() void {
 
 // Render
 pub fn render() void {
-    Static.Box(.{})({}); // 👈 {} is passed ie void, now we can run any zig code inside the empty braces;
+    // 👇 &.{} is the style struct, if we pass it we can make use of default values
+    Box.style(&.{})({}); // 👈 {} is passed, now we can run any zig code inside
+    Box.style(&.{})({
+        const name: []const u8 = "Hi I'm Fabric!"; // normal zig code
+        Text(name).style(&.{ .font_size = 24 }); // 👈 style the text
+    });
     // I am a component that takes children
-    Static.Box(Style{
-        .background = .hex("#ffffff"),
-        // 👇 {} is passed ie void, now we can run any zig code inside the empty braces
-    })({
+    Box.style(background_color)({
         // I am a component that cannot take children
-        Static.Text("I am a component!", .{});
+        Text("I am a component!").plain();
         // And so am I!
-        Static.Text(init_text, .{});
+        Text(init_text).plain();
     });
 }
+
+
+
+
+
+
+
+
 
