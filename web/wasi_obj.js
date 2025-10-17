@@ -10,21 +10,15 @@ import {
   pureNodeRegistry,
 } from "./maps.js";
 import {
-  applyHoverClass,
-  updateComponentStyle,
-  addKeyframesToStylesheet,
-  checkMarkStyling,
-  styleSheet,
-  styleRuleCache,
-} from "./wasi_styling.js";
-import {
   traverse,
   traverseRemove,
   COMPONENT_TYPES,
   isLayout,
   stripNonLayout,
+  recurseDestroy,
 } from "./traversal.js";
 import { state } from "./state.js";
+import { styleRuleCache } from "./wasi_styling.js";
 
 export let wasmInstance;
 export let activeNodeIds = new Set();
@@ -104,7 +98,7 @@ function endDrag() {
 //       // state.initial_render = true;
 //       // state.initial_render = false;
 //     } else {
-//       const currentPath = window.location.pathname;
+//       currentPath = window.location.pathname;
 //       clearIntervalsForRoute(currentPath);
 //
 //       // Update the browser URL without reloading the page
@@ -207,6 +201,7 @@ export async function hotSwapWasmWithState(newPath) {
 }
 
 let pathname;
+export let text_data;
 async function loadWasiModule() {
   pathname = window.location.pathname;
   pathname = "fabric";
@@ -228,7 +223,9 @@ async function loadWasiModule() {
       wasmInstance = exports;
       setWasiInstance(wasmInstance);
     })
-    .then(() => {
+    .then(async () => {
+      // const text_json = await fetch("/dist/text_data.json");
+      text_data = {};
       init(); // Your app initialization
     })
     .catch("Error", console.error);
@@ -277,6 +274,7 @@ export const encodeString = (string) => {
 };
 
 export const rerenderRoute = (route) => {
+  currentPath = window.location.pathname;
   const buffer = new TextEncoder().encode(route);
   const pointer = wasmInstance.allocUint8(buffer.length + 1); // ask Zig to allocate memory
   const slice = new Uint8Array(
@@ -296,7 +294,6 @@ export const rerenderRoute = (route) => {
     const node_index = wasmInstance.getRemovedNodeIndex(i);
     const len = wasmInstance.getRemovedNodeLength(i);
     const id = readWasmString(ptr, len);
-    console.log(id, node_index);
 
     const elements = document.querySelectorAll(`[id="${id}"]`);
     // Here we remove duplicates
@@ -305,17 +302,33 @@ export const rerenderRoute = (route) => {
       for (let element of elements) {
         const target_child = element.parentElement.children[node_index];
         if (target_child.id === id) {
-          console.log("found", id);
           element.remove();
           break check;
         }
       }
     } else {
-      stripNonLayout(elements[0]); // delete everything *except* layouts
+      recurseDestroy(elements[0]); // delete everything *except* layouts
     }
-    wasmInstance.clearRemovedNodesretainingCapacity();
+  }
+  wasmInstance.clearRemovedNodesretainingCapacity();
+  clearCSS();
+  styleRuleCache.clear();
+
+  loadTheme();
+  const global_style_ptr = wasmInstance.getGlobalVariablesPtr();
+  const global_style_len = wasmInstance.getGlobalVariablesLen();
+  if (global_style_ptr !== 0) {
+    const global_css = readWasmString(global_style_ptr, global_style_len);
+    injectCSS(global_css);
   }
 
+  const css = readWasmString(wasmInstance.getCSS(), wasmInstance.getCSSLen());
+  injectCSS(css);
+  // let index = 0;
+  // for (const rule of styleSheet.cssRules) {
+  //   styleRuleCache.set(rule.selectorText, index);
+  //   index += 1;
+  // }
   if (has_dirty) {
     tree_node = wasmInstance.getRenderTreePtr();
     if (tree_node === 0) {
@@ -484,6 +497,26 @@ function setupLayoutInfo() {
       layoutInfoPtr + 72,
       4,
     ).getUint32(0, true),
+    tooltipSize: new DataView(
+      wasmInstance.memory.buffer,
+      layoutInfoPtr + 76,
+      4,
+    ).getUint32(0, true),
+    tooltipOffset: new DataView(
+      wasmInstance.memory.buffer,
+      layoutInfoPtr + 80,
+      4,
+    ).getUint32(0, true),
+    styleHashOffset: new DataView(
+      wasmInstance.memory.buffer,
+      layoutInfoPtr + 84,
+      4,
+    ).getUint32(0, true),
+    propsHashOffset: new DataView(
+      wasmInstance.memory.buffer,
+      layoutInfoPtr + 88,
+      4,
+    ).getUint32(0, true),
   };
 }
 
@@ -505,57 +538,24 @@ function loadTheme() {
   }
 }
 
-function generateThemeCSS(themes) {
-  let css = "";
+export const styleSheet = new CSSStyleSheet();
+// export const styleSheet =
+//   document.styleSheets[0] ||
+//   document.head.appendChild(document.createElement("style")).sheet;
 
-  // Generate :root styles (light theme)
-  css += ":root {\n";
-  Object.entries(themes.light).forEach(([property, value]) => {
-    css += `  ${property}: ${value};\n`;
-  });
-  css += "}\n\n";
+export let currentPath;
+function setupWasiInstance() {
+  wasmInstance.init(window.innerWidth, window.innerHeight); // Example UI function
 
-  // Generate [data-theme="dark"] styles
-  css += '[data-theme="dark"] {\n';
-  Object.entries(themes.dark).forEach(([property, value]) => {
-    css += `  ${property}: ${value};\n`;
-  });
-  css += "}\n";
-
-  return css;
-}
-
-function injectThemeCSS(css) {
-  // Remove existing theme styles
-  const existingStyle = document.getElementById("dynamic-theme");
-  if (existingStyle) {
-    existingStyle.remove();
+  const animations_ptr = wasmInstance.getAnimationsPtr();
+  if (animations_ptr > 0) {
+    const animations_len = wasmInstance.getAnimationsLen();
+    const animations_css = readWasmString(animations_ptr, animations_len);
+    injectCSS(animations_css);
   }
 
-  // Inject new styles
-  const style = document.createElement("style");
-  style.id = "dynamic-theme";
-  style.textContent = css;
-  document.head.appendChild(style);
-}
-
-function setupWasiInstance() {
-  wasmInstance.instantiate(window.innerWidth, window.innerHeight); // Example UI function
-
-  // blk: while (true) {
-  //   const motion = wasmInstance.nextMotion();
-  //   if (motion > 0) {
-  //     const motion_ptr = wasmInstance.getKeyFrames(motion);
-  //     const motion_len = wasmInstance.getKeyFramesLen();
-  //     const keyFrames = readWasmString(motion_ptr, motion_len);
-  //     addKeyframesToStylesheet(keyFrames);
-  //   } else {
-  //     break blk;
-  //   }
-  // }
-
   loadTheme();
-  const currentPath = window.location.pathname;
+  currentPath = window.location.pathname;
   if (currentPath === "/") {
     route_ptr = allocString("/root");
   } else {
@@ -571,42 +571,28 @@ function setupWasiInstance() {
   const global_style_len = wasmInstance.getGlobalVariablesLen();
   if (global_style_ptr !== 0) {
     const global_css = readWasmString(global_style_ptr, global_style_len);
-    injectThemeCSS(global_css);
+    injectCSS(global_css);
   }
 
-  /////////////////////////////
-  /////////////////////////////
-  // const rndcmd_ptr = wasmInstance.getRenderCommandPtr(tree_node);
-  // const renderCmd = readRenderCommand(rndcmd_ptr, layoutInfo);
-  // let className = `fabric-component-${renderCmd.id}`;
-  // if (renderCmd.styleId.length > 0) {
-  //   className = renderCmd.styleId;
+  const css = readWasmString(wasmInstance.getCSS(), wasmInstance.getCSSLen());
+  // console.log(css);
+  console.log(css.length);
+  injectCSS(css);
+
+  // console.log(styleSheet.cssRules);
+  // let index = 0;
+  // for (const rule of styleSheet.cssRules) {
+  //   styleRuleCache.set(rule.selectorText, index);
+  //   index += 1;
   // }
-  // const rootElement = document.createElement("div");
-  // rootElement.id = renderCmd.id;
-  // rootElement.className = className;
-  // const newIndex = styleSheet.cssRules.length;
-  // styleSheet.insertRule(`.${className} { ${renderCmd.props.css} }`, newIndex);
-  // styleRuleCache.set(className, newIndex);
-  // console.log("Inserted rule", root);
-  // root.appendChild(rootElement);
-  /////////////////////////////
-  /////////////////////////////
-  console.log("Traverse");
+
+  const start = performance.now();
   traverse(root, tree_node, layoutInfo);
+  console.log("--Total render time MS--", performance.now() - start);
   state.initial_render = false;
   wasmInstance.pendingClassesToAdd();
   wasmInstance.pendingClassesToRemove();
-  const common_style_ptr = wasmInstance.getBaseStyles();
-  const common_style_len = wasmInstance.getBaseStylesLen();
-  if (common_style_ptr !== 0) {
-    const commonStyles = readWasmString(common_style_ptr, common_style_len);
-    const commonStyleElement = document.createElement("style");
-    commonStyleElement.id = "common-styles"; // Give it an ID for reference
-    commonStyleElement.textContent = commonStyles;
-    styleSheet.textContent = commonStyles;
-    document.head.appendChild(commonStyleElement);
-  }
+
   document.body.appendChild(root);
   wasmInstance.markCurrentTreeNotDirty();
   wasmInstance.resetRerender();
@@ -624,8 +610,48 @@ function setupWasiInstance() {
   }
 
   handleIntersection();
+
+  // const fontLink = document.createElement("link");
+  // fontLink.href =
+  //   "https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap";
+  // fontLink.rel = "stylesheet";
+  // document.head.appendChild(fontLink);
+  //
+  // const iconLink = document.createElement("link");
+  // iconLink.href =
+  //   "https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css&display=swap";
+  // iconLink.rel = "stylesheet";
+  // document.head.appendChild(iconLink);
 }
 
+// function injectCSS(cssString) {
+//   const sheet = new CSSStyleSheet();
+//   sheet.replaceSync(cssString);
+//   document.adoptedStyleSheets = [sheet, ...document.adoptedStyleSheets];
+//   console.log(document.adoptedStyleSheets);
+// }
+
+// Create ONE global stylesheet
+// const styleSheet = new CSSStyleSheet();
+document.adoptedStyleSheets = [...document.adoptedStyleSheets, styleSheet];
+
+function clearCSS() {
+  styleSheet.replaceSync("");
+}
+
+function injectCSS(cssString) {
+  // console.log(styleSheet);
+  // Append new CSS to the existing sheet
+  // read old rules as text
+  const existingRules = Array.from(styleSheet.cssRules)
+    .map((rule) => rule.cssText)
+    .join("\n");
+
+  // replace with old + new rules
+  styleSheet.replaceSync(`${existingRules}\n${cssString}`);
+}
+
+const frag = document.createDocumentFragment();
 async function init() {
   root = document.getElementById("contents");
 
@@ -704,7 +730,7 @@ export function render() {
 
   try {
     if (globalRerender) {
-      const currentPath = window.location.pathname;
+      currentPath = window.location.pathname;
       const route_ptr = allocString(
         currentPath === "/" ? "/root" : `/root${currentPath}`,
       );
@@ -713,6 +739,7 @@ export function render() {
       const has_dirty = wasmInstance.hasDirty();
 
       const count = wasmInstance.getRemovedNodeCount();
+      // console.log(element);
       /* ───────── main removal loop ───────── */
       for (let i = 0; i < count; i++) {
         const ptr = wasmInstance.getRemovedNode(i);
@@ -734,8 +761,8 @@ export function render() {
         } else {
           stripNonLayout(elements[0]); // delete everything *except* layouts
         }
-        wasmInstance.clearRemovedNodesretainingCapacity();
       }
+      wasmInstance.clearRemovedNodesretainingCapacity();
 
       if (has_dirty) {
         tree_node = wasmInstance.getRenderTreePtr();
@@ -796,7 +823,7 @@ export function render() {
 //   try {
 //     if (globalRerender) {
 //       console.log("attempting to rerender");
-//       const currentPath = window.location.pathname;
+//       currentPath = window.location.pathname;
 //       if (currentPath === "/") {
 //         route_ptr = allocString("/root");
 //       } else {
@@ -974,6 +1001,19 @@ export function readRenderCommand(offset, layout) {
     offset,
     layoutInfo.renderCommandSize,
   );
+
+  let css = "";
+  let keyFrames = "";
+  let styleId = "";
+  let id = "";
+  let btnId = 0;
+  let hoverCss = "";
+  let focusCss = "";
+  let focusWithinCss = "";
+  let tooltipCss = "";
+  let tooltipTitle = "";
+  let exitAnimationId = null;
+
   const elemType = view.getUint8(layoutInfo.elemTypeOffset);
 
   const nodePtr = view.getUint32(layoutInfo.nodePtrOffset, true);
@@ -987,29 +1027,16 @@ export function readRenderCommand(offset, layout) {
   const hrefPtr = view.getUint32(layoutInfo.hrefPtrOffset, true);
   const hrefLen = view.getUint32(layoutInfo.hrefPtrOffset + 4, true);
   const href = hrefPtr ? readWasmString(hrefPtr, hrefLen) : "";
-
-  let css = "";
-  let keyFrames = "";
-  let styleId = "";
-  let id = "";
-  let btnId = 0;
-  let hoverCss = "";
-  let focusCss = "";
-  let focusWithinCss = "";
-  let exitAnimationId = null;
-  const index = view.getUint32(layoutInfo.indexOffset, true);
-  let hooks = {};
+  const styleHash = view.getUint8(layoutInfo.styleHashOffset, true);
+  const propsHash = view.getUint8(layoutInfo.propsHashOffset, true);
 
   const idPtr = view.getUint32(layoutInfo.idPtrOffset, true);
   const idLen = view.getUint32(layoutInfo.idPtrOffset + 4, true);
   id = idPtr ? readWasmString(idPtr, idLen) : "";
-  if (isDirty) {
-    const cssStylePtr = wasmInstance.getStyle(nodePtr);
-    if (cssStylePtr !== 0) {
-      const cssStyleLen = wasmInstance.getStyleLen();
-      css = readWasmString(cssStylePtr, cssStyleLen);
-    }
+  const index = view.getUint32(layoutInfo.indexOffset, true);
+  let hooks = {};
 
+  if (isDirty && (styleHash > 0 || propsHash > 0)) {
     hooks = {
       createdId: view.getUint32(layoutInfo.hooksOffset, true),
       mountedId: view.getUint32(layoutInfo.hooksOffset + 4, true),
@@ -1027,12 +1054,12 @@ export function readRenderCommand(offset, layout) {
       propsHoverOffset, // propsOffset is relative to the start of RenderCommand
       layoutInfo.hoverSize,
     );
-    const hoverExists = propsHoverView.getUint8(0, true);
-    if (hoverExists > 0) {
-      const cssHoverPtr = wasmInstance.getVisualStyle(nodePtr, 0);
-      const cssHoverLen = wasmInstance.getVisualLen();
-      hoverCss = readWasmString(cssHoverPtr, cssHoverLen);
-    }
+    // const hoverExists = propsHoverView.getUint8(0, true);
+    // if (hoverExists > 0) {
+    //   const cssHoverPtr = wasmInstance.getVisualStyle(nodePtr, 0);
+    //   const cssHoverLen = wasmInstance.getVisualLen();
+    //   hoverCss = readWasmString(cssHoverPtr, cssHoverLen);
+    // }
 
     const propsFocusOffset = offset + layoutInfo.focusOffset;
     const propsFocusView = new DataView(
@@ -1060,6 +1087,23 @@ export function readRenderCommand(offset, layout) {
       focusWithinCss = readWasmString(cssHoverPtr, cssHoverLen);
     }
 
+    const toolTipOffset = offset + layoutInfo.tooltipOffset;
+    const toolTipView = new DataView(
+      wasmInstance.memory.buffer,
+      toolTipOffset, // propsOffset is relative to the start of RenderCommand
+      layoutInfo.tooltipSize,
+    );
+    const toolTipExists = toolTipView.getUint32(0, true);
+    if (toolTipExists > 0) {
+      const toolTipTextLen = toolTipView.getUint32(4, true);
+      tooltipTitle = readWasmString(toolTipExists, toolTipTextLen);
+      const tooltip_stylePtr = wasmInstance.getTooltipStyle(nodePtr);
+      if (tooltip_stylePtr !== 0) {
+        const tooltip_styleLen = wasmInstance.getTooltipStyleLen();
+        tooltipCss = readWasmString(tooltip_stylePtr, tooltip_styleLen);
+      }
+    }
+
     // const exitAnimPtr = propsView.getUint32(layoutInfo.propsExitAnimation, true);
     // if (exitAnimPtr) {
     //   const exitAnimLen = propsView.getUint32(
@@ -1069,23 +1113,22 @@ export function readRenderCommand(offset, layout) {
     //   exitAnimationId = readWasmString(exitAnimPtr, exitAnimLen);
     // }
 
-    if (cssStylePtr !== 0) {
-      // 1. Get the offset of the classname's POINTER from our new layout object.
-      const classnamePtrOffset = layoutInfo.classnamePtrOffset;
+    // if (cssStylePtr !== 0) {
+    // 1. Get the offset of the classname's POINTER from our new layout object.
+    const classnamePtrOffset = layoutInfo.classnamePtrOffset;
 
-      // 2. Read the actual pointer value from the RenderCommand struct.
-      const classnamePtr = view.getUint32(classnamePtrOffset, true);
+    // 2. Read the actual pointer value from the RenderCommand struct.
+    const classnamePtr = view.getUint32(classnamePtrOffset, true);
 
-      // 3. If the pointer is not null, read the length and then the string.
-      if (classnamePtr) {
-        // The length is ALWAYS 4 bytes after the pointer for a slice.
-        const classnameLen = view.getUint32(classnamePtrOffset + 4, true);
+    // 3. If the pointer is not null, read the length and then the string.
+    if (classnamePtr) {
+      // The length is ALWAYS 4 bytes after the pointer for a slice.
+      const classnameLen = view.getUint32(classnamePtrOffset + 4, true);
 
-        // Now you have the correct pointer and length.
-        const classname = readWasmString(classnamePtr, classnameLen);
-        styleId = classname;
-      }
+      const classname = readWasmString(classnamePtr, classnameLen);
+      styleId = classname;
     }
+    // }
 
     // if (wasmInstance.hasEctClasses(nodePtr)) {
     //   wasmInstance.addEctClasses(nodePtr);
@@ -1102,6 +1145,8 @@ export function readRenderCommand(offset, layout) {
     btnId,
     keyFrames,
     text,
+    tooltipCss,
+    tooltipTitle,
   };
 
   return {
@@ -1116,6 +1161,8 @@ export function readRenderCommand(offset, layout) {
     styleId,
     isDirty,
     stateType,
+    styleHash,
+    propsHash,
     // ... other fields
   };
 }

@@ -15,9 +15,8 @@ const box_style = Style{
     .layout = .center,
     .size = .{ .width = .px(100), .height = .px(100) },
 };
-// 👆 In JS: const box_style = { layout: "center", size: { width: 100, height: 100 } }
 
-var counter: usize = 0; // JS: let counter = 0;
+var counter: usize = 0;
 fn increment() void {
     counter += 1;
     Fabric.cycle(); // Updates the UI
@@ -26,10 +25,9 @@ fn increment() void {
 // Render
 pub fn render() void {
     // This is all normal Zig code!
-    TextFmt("{d}", .{counter}).style(&.{}); // React: <Text>{counter}</Text>
+    TextFmt("{d}", .{counter}).plain(); // React: <Text>{counter}</Text>
     // A component with children
-    Box.style(&box_style)({ // html: <div style="display: flex; justify-content: cent..."></div>
-        // A Component without children
+    Box.style(&box_style)({
         const icon: []const u8 = "bi bi-plus";
         Button(.{ .on_press = increment }).style(&.{ .size = .square_px(100) })({
             Icon(icon).plain(); // A component without children

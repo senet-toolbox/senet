@@ -3,10 +3,22 @@ const Fabric = @import("fabric");
 const Signal = Fabric.Signal;
 const Style = Fabric.Style;
 const Static = Fabric.Static;
+const Box = Static.Box;
+const Text = Static.Text;
+const Link = Static.Link;
+const Image = Static.Image;
+const Svg = Static.Svg;
+const Button = Static.Button;
+const Custom = @import("../../../../../../components/Custom.zig");
+const HtmlText = Custom.Chain.HtmlText;
+const CtxButton = Static.CtxButton;
+const List = Static.List;
+const ListItem = Static.ListItem;
+const Graphic = Static.Graphic;
+const Icon = Pure.Icon;
 const Page = Fabric.Page;
 const Pure = Fabric.Pure;
-const CodeEditor = @import("../CodeEditor.zig");
-const Custom = @import("../../../../../../components/Custom.zig");
+const CodeEditor = @import("../../../../../../components/CodeEditor.zig");
 const Grain = Fabric.Grain;
 
 // Initialization
@@ -38,66 +50,74 @@ fn toggleIcon() void {
 }
 
 fn code_snippet_single(text: []const u8) void {
-    Static.Box(.{
-        .height = .percent(100),
-        .background = .hex("#282a36"),
-        .border_radius = .all(8),
+    // Box.style(&.{
+    CtxButton(copy, .{text})
+        // .tooltip(&.{
+        //     .text = "Copy",
+        //     .position = .right,
+        //     .layout = .center,
+        //     .color = .palette(.background),
+        //     .background = .palette(.text_color),
+        //     .border = .solid(.all(0), .palette(.text_color), .all(4)),
+        // })
+        .style(&.{
+        .visual = .{
+            .border = .simple(.palette(.border_color_light)),
+            .text_color = .palette(.text_color),
+        },
         .padding = .all(8),
-        .width = .percent(100),
+        .size = .square_percent(100),
         .direction = .column,
-        .position = .{ .type = .relative },
+        .layout = .flex,
+        .interactive = .{
+            .hover = .{ .text_color = .palette(.tint), .border = .{ .color = .palette(.tint) } },
+        },
+        .position = .relative,
+        .cursor = .pointer,
     })({
-        Static.CtxButton(copy, .{text}, .{
-            .width = .px(22),
-            .height = .px(22),
-            .border_radius = .all(4),
-            .display = .Center,
-            .cursor = .pointer,
-            .transition = .{ .duration = 300 },
-            .hover = .{ .background = .hex("#2D303E") },
+        Box.style(&.{
             .position = .{ .type = .absolute, .right = .px(8), .top = .px(8) },
+            .size = .square_px(22),
+            .transition = .{ .duration = 100 },
+            .visual = .{
+                .border_radius = .all(4),
+                .background = .transparent,
+            },
+            .layout = .center,
+            .cursor = .pointer,
         })({
-
             if (copied and std.mem.eql(u8, text, copied_text)) {
-                Pure.Icon("bi bi-check", .{
-                    .font_size = 16,
-                    .text_color = .hex("#cccccc"),
-                    .transition = .{ .duration = 300 },
-                    .hover = .{ .text_color = .hex("#ffffff") },
+                Icon(.check).style(&.{
+                    .visual = .{ .font_size = 16 },
                 });
             } else {
-                Pure.Icon("bi bi-clipboard", .{
-                    .font_size = 16,
-                    .text_color = .hex("#cccccc"),
-                    .transition = .{ .duration = 300 },
-                    .hover = .{ .text_color = .hex("#ffffff") },
+                Icon(.clipboard).style(&.{
+                    .visual = .{ .font_size = 16 },
                 });
             }
         });
-        Custom.HtmlText(text, .{
-            .font_size = 16,
-            .text_color = .hex("#ffffff"),
+        HtmlText(text).style(&.{
+            .visual = .{ .font_size = 16 },
+            .font_family = "Azeret Mono, monospace",
         });
     });
 }
 
 pub fn Txt(text: []const u8) void {
-    Static.Text(text, .{
-        .font_size = 18,
+    Text(text).style(&.{
+        .visual = .font(18, null, null),
     });
 }
 
 pub fn render() void {
-    Static.FlexBox(.{
+    Box.style(&.{
         .child_gap = 24,
         .direction = .column,
-        .margin = .{ .bottom = 32 },
-        .width = .percent(100),
+        .size = .w(.percent(100)),
     })({
-        Static.Text("Just let me build!!!", .{
-            .font_size = 48,
-            .font_weight = 700,
-            .text_color = .hex("#1a1a1a"),
+        Text("Just let me build!!!").style(&.{
+            .visual = .font(32, 700, .palette(.text_color)),
+            .font_family = "IBM Plex Mono,monospace",
         });
         code_snippet_single("curl -sSL https://raw.githubusercontent.com/tether-labs/metal/main/install.sh | bash");
         code_snippet_single("metal create myapp");

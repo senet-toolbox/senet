@@ -3,19 +3,23 @@ const Fabric = @import("fabric");
 const Signal = Fabric.Signal;
 const Style = Fabric.Style;
 const Static = Fabric.Static;
+const HtmlText = Custom.Chain.HtmlText;
+const Box = Static.Box;
+const Text = Static.Text;
+const Link = Static.Link;
+const Image = Static.Image;
+const Svg = Static.Svg;
+const Button = Static.Button;
+const Center = Static.Center;
+const List = Static.List;
+const ListItem = Static.ListItem;
+const Stack = Static.Stack;
+
 const Pure = Fabric.Pure;
 const Page = Fabric.Page;
-const ViewCode = @import("../ViewCode.zig");
-const CodeEditor = @import("../CodeEditor.zig");
+const CodeEditor = @import("../../../../../../components/CodeEditor.zig");
 const Custom = @import("../../../../../../components/Custom.zig");
 
-pub fn Txt(text: []const u8) void {
-    Static.Text(text, .{
-        .font_size = 18,
-    });
-}
-
-var view_code: ViewCode = undefined;
 var code_editor: CodeEditor = undefined;
 var get_code_editor: CodeEditor = undefined;
 var set_code_editor: CodeEditor = undefined;
@@ -29,6 +33,13 @@ var fabric_code_editor: CodeEditor = undefined;
 var react_code_editor: CodeEditor = undefined;
 var svelte_code_editor: CodeEditor = undefined;
 var fabric_style_code_editor: CodeEditor = undefined;
+var pure_ui_code_example: CodeEditor = undefined;
+var pure_ui_code_example_and_text: CodeEditor = undefined;
+var reactive_ui: CodeEditor = undefined;
+var signal_increment_sample: CodeEditor = undefined;
+var effect_sample: CodeEditor = undefined;
+var non_effect_sample: CodeEditor = undefined;
+var import_example: CodeEditor = undefined;
 
 const items: []const []const u8 = &.{
     "set",
@@ -50,335 +61,239 @@ const items: []const []const u8 = &.{
 };
 // Initialization
 pub fn init() void {
-    code_editor.init(&Fabric.lib.allocator_global, @embedFile("signal_sample.zig"));
-    get_code_editor.init(&Fabric.lib.allocator_global, @embedFile("signal_get_sample.zig"));
-    set_code_editor.init(&Fabric.lib.allocator_global, @embedFile("signal_set_sample.zig"));
-    append_code_editor.init(&Fabric.lib.allocator_global, @embedFile("signal_append_sample.zig"));
-    toggle_code_editor.init(&Fabric.lib.allocator_global, @embedFile("signal_toggle_sample.zig"));
-    increment_code_editor.init(&Fabric.lib.allocator_global, @embedFile("signal_increment_sample.zig"));
-    decrement_code_editor.init(&Fabric.lib.allocator_global, @embedFile("signal_decrement_sample.zig"));
-    fabric_code_editor.init(&Fabric.lib.allocator_global, @embedFile("fabric_sample.zig"));
-    react_code_editor.init(&Fabric.lib.allocator_global, @embedFile("react_sample.js"));
-    svelte_code_editor.init(&Fabric.lib.allocator_global, @embedFile("svelte_sample.svelte"));
-    fabric_style_code_editor.init(&Fabric.lib.allocator_global, @embedFile("fabric_style_sample.zig"));
+    pure_ui_code_example.init(&Fabric.lib.allocator_global, @embedFile("pure_ui_sample.zig"));
+    pure_ui_code_example_and_text.init(&Fabric.lib.allocator_global, @embedFile("pure_ui_sample_and_text.zig"));
+    reactive_ui.init(&Fabric.lib.allocator_global, @embedFile("reactive_ui.zig"));
+    signal_increment_sample.init(&Fabric.lib.allocator_global, @embedFile("signal_increment_sample.zig"));
+    effect_sample.init(&Fabric.lib.allocator_global, @embedFile("effect_approach.zig"));
+    non_effect_sample.init(&Fabric.lib.allocator_global, @embedFile("non_effect_approach.zig"));
+    import_example.init(&Fabric.lib.allocator_global, @embedFile("import_example.zig"));
+    // code_editor.init(&Fabric.lib.allocator_global, @embedFile("signal_sample.zig"));
+    // get_code_editor.init(&Fabric.lib.allocator_global, @embedFile("signal_get_sample.zig"));
+    // set_code_editor.init(&Fabric.lib.allocator_global, @embedFile("signal_set_sample.zig"));
+    // append_code_editor.init(&Fabric.lib.allocator_global, @embedFile("signal_append_sample.zig"));
+    // toggle_code_editor.init(&Fabric.lib.allocator_global, @embedFile("signal_toggle_sample.zig"));
+    // increment_code_editor.init(&Fabric.lib.allocator_global, @embedFile("signal_increment_sample.zig"));
+    // decrement_code_editor.init(&Fabric.lib.allocator_global, @embedFile("signal_decrement_sample.zig"));
+    // fabric_code_editor.init(&Fabric.lib.allocator_global, @embedFile("fabric_sample.zig"));
+    // react_code_editor.init(&Fabric.lib.allocator_global, @embedFile("react_sample.js"));
+    // svelte_code_editor.init(&Fabric.lib.allocator_global, @embedFile("svelte_sample.svelte"));
+    // fabric_style_code_editor.init(&Fabric.lib.allocator_global, @embedFile("fabric_style_sample.zig"));
     // dyanmic_code_editor.init(&Fabric.lib.allocator_global, @embedFile("dynamic_sample.zig"));
 }
 
 // Deinitialization
-pub fn deinit() void {}
+
+pub fn Txt(text: []const u8) void {
+    Text(text).style(styles.body_text);
+}
+
+pub fn html(text: []const u8) void {
+    HtmlText(text).style(styles.body_text);
+}
+
+const BoxCode = Box.margin(.tb(8, 24)).size(.hw(.fit, .percent(100)));
 
 // Render
 pub fn render() void {
     // Page Header
-    Static.FlexBox(.{
-        .child_alignment = .{ .x = .start, .y = .start },
-        .child_gap = 16,
+    Box.style(&.{
+        .child_gap = 24,
         .direction = .column,
         .margin = .{ .bottom = 32 },
-        .width = .percent(100),
+        .size = .w(.percent(100)),
     })({
-        Static.Text("Reactivity", .{
-            .font_size = 48,
-            .font_weight = 700,
-            .text_color = .hex("#1a1a1a"),
+        Text("Reactivity").style(&.{
+            .font_family = "IBM Plex Sans",
+            .visual = .font(32, 700, .palette(.text_color)),
         });
-        Static.Block(.{})({
-            Custom.HtmlText(
-                \\Reactivity in Fabric can be defined by 3 component types 
-                \\<code style="border-radius: 4px; background: #802bff; padding: 4px; color: white;">
-                \\Static</code>, 
-                \\<code style="border-radius: 4px; background: #802bff; padding: 4px; color: white;">
-                \\Pure</code>, and
-                \\<code style="border-radius: 4px; background: #802bff; padding: 4px; color: white;">
-                \\Grain</code>. 
-            , .{
-                .display = .Inline,
-                .font_size = 18,
-                .text_color = .hex("#666666"),
+        html(
+            \\If you're new to application development, reactivity, is the concept of being able to update your application in real time, without having to refresh the page.
+        );
+        html(
+            \\Many frameworks, such as React, Svelte, and Vue, have there own reactivity system, with their own pros and cons.
+            \\All of these reactivity systems, are known as Signal based systems. When a value is changed, only the component that 
+            \\depends on that value will be updated.
+        );
+        Text("Signal Types").style(styles.heading);
+        List.direction(.column)
+            .body()({
+            ListItem.body()({
+                html(
+                    \\<strong>React</strong> has, <code style="color: rgb(var(--tint))">useState</code>, 
+                    \\<code style="color: rgb(var(--tint))">useEffect</code>, and <code style="color: rgb(var(--tint))">useRef</code>, to achieve this.
+                );
             });
-            Custom.HtmlText(
-                \\While many frameworks have taken the approach that state should be described by functions <code>useState, $state, or createSignal()</code>
-                \\which return variables that define which parts of the UI will change.
-                \\Fabric's approach is to go from UI to code instead. What this means is, that the UI description itself defines how 
-                \\state is updated. Instead of <code>useState()</code> being plastered everywhere. Just changing the Component type from
-                \\Static to Pure, will tell Fabric to update this component if the UI changes.
-            , .{
-                .display = .Inline,
-                .font_size = 18,
-                .text_color = .hex("#666666"),
+            ListItem.body()({
+                html(
+                    \\<strong>Svelte</strong> has Runes, <code style="color: rgb(var(--tint))">$state</code>, 
+                    \\<code style="color: rgb(var(--tint))">$effect</code>, or <code style="color: rgb(var(--tint))">$derived</code>.
+                );
+            });
+            ListItem.body()({
+                html(
+                    \\<strong>Vue</strong> has, <code style="color: rgb(var(--tint))">useRef</code>, 
+                    \\<code style="color: rgb(var(--tint))">reactive</code>, and more.
+                );
             });
         });
-    });
-    Static.Center(.{
-        .width = .percent(100),
-        .height = .percent(100),
-    })({
-        Static.Svg(@embedFile("reactivity.svg"), .{
-            .width = .percent(70),
-            .height = .percent(70),
+        html(
+            \\The issue with all of these, is the requirement for both the UI and the functions to use the same reactivity variable. This means that
+            \\Updating a value in a JS function, like <code style="color: rgb(var(--tint))">let x = 1; x+=1;</code>. 
+            \\Will not update the UI. This is because React, Svelte, Vue, and many other frameworks are transpiled.
+        );
+        html(
+            \\For new developers, the <code style="color: rgb(var(--tint))">useState</code>, <code style="color: rgb(var(--tint))">useEffect</code>, symptom, 
+            \\has become an overwhelming and complex issue.
+            \\Tracking down dependency chains, or having to use
+            \\<code style="color: rgb(var(--tint))">useMemo</code>, to avoid cascading updates, has caused developers to become frustrated.
+        );
+
+        html(
+            \\Moreover, this means that the developer must now understand both the UI's functional nature, and the language's own nature. We must switch
+            \\contexts, when working with these frameworks. 
+        );
+
+        Text("UI as reactivity").style(styles.heading);
+        html(
+            \\Fabric, has taken the concept of reactivity, and <i>Inversed It!</i> 
+            \\Instead of defining a reactive variable like <code style="color: rgb(var(--tint))">var counter: usize = 0;</code> 
+            \\ we define our UI as reactive.
+        );
+        HtmlText("<code style=\"color: rgb(var(--tint))\">Pure.TextFmt(...)</code>").style(&.{
+            .layout = .center,
+            .visual = .font(20, null, null),
         });
-    });
-    Static.Text("From UI to Code", .{
-        .font_size = 32,
-        .font_weight = 700,
-        .text_color = .hex("#1a1a1a"),
-    });
-    Custom.HtmlText(
-        \\Any component marked with Pure, Dynamic, or Grain will rerender if any of their props change. This means, that if you were to create
-        \\a counter <code>{ var count = 0; }</code>, and then increment the count <code>{ count += 1 }</code>, and then call <code>Fabric.cycle()</code> anywhere in your codebase
-        \\the new count will be displayed to the screen. However, if you were to use Static, then this Component will render the count once, and never again.
-    , .{
-        .font_size = 18,
-    });
-    Static.Svg(@embedFile("fabric_cycle.svg"), .{
-        .width = .percent(100),
-    });
-    Custom.HtmlText(
-        \\This is akin to how Svelte handled state in the past where everything marked as <code>let</code> was considered state. Fabric takes a similar 
-        \\approach, but gives you the Developer control of when the state should update. Fabric exposes <code>Signal(comptime T: type)</code> for greater granular control.
-        \\This means we get the best of both worlds. We can just call <code>Fabric.cycle()</code>, and Fabric will handle what state to update, but if we have a large file, or codebase. We can 
-        \\use Signals to be explicit about how our state is handled.
-    , .{
-        .font_size = 18,
-    });
-    Static.Text("Static, Pure, Dynamic, Grain", .{
-        .font_size = 32,
-        .font_weight = 600,
-        .text_color = .hex("#1a1a1a"),
-    });
-    Txt("The differentiation between Static, Pure, Dynamic, and Grain Components, is due to Fabric's core philosophy of explicit and readable code. Within Fabric and Tether, coding is meant to be more cumbersome than reading code.");
-    Txt("For example in a typical React or Svelte App we have this situation the ui layout and syntax is simpler than Fabric");
-    Static.Text("React", .{ .font_size = 18, .margin = .{ .top = 8 } });
-    Static.Block(.{ .width = .percent(100) })({
-        react_code_editor.render(0);
-    });
 
-    Static.Text("Svelte", .{ .font_size = 18, .margin = .{ .top = 8 } });
-    Static.Block(.{ .width = .percent(100) })({
-        svelte_code_editor.render(0);
-    });
-    Static.Text("Fabric", .{ .font_size = 18, .margin = .{ .top = 8 } });
-    Static.Block(.{ .width = .percent(100) })({
-        fabric_code_editor.render(0);
-    });
-    Txt("While Svelte offers clean, intuitive syntax, this simplicity comes with constraints. Svelte's reactive syntax only functions within .svelte files, creating architectural limitations. For instance, if you need to integrate Svelte components with utility classes like a Builder pattern, you must move that logic into the Svelte file itself, breaking separation of concerns.");
-    Static.Block(.{})({
-        Static.Text("In larger Svelte applications, distinguishing between static and reactive content becomes challenging. Developers must scan through code looking for the ", .{
-            .display = .Inline,
-            .font_size = 18,
+        Text("UI Types").style(styles.heading);
+        List.direction(.column)
+            .body()({
+            ListItem.body()({
+                html(
+                    \\<strong>Static</strong> components, will never update!
+                );
+            });
+            ListItem.body()({
+                html(
+                    \\<strong>Pure</strong> components, will only update if their styles or props change.
+                );
+            });
         });
-        Static.Text("{{ state }}", .{
-            .display = .Inline,
-            .font_size = 16,
-            .background = .hex("#802bff"),
-            .text_color = .hex("#ffffff"),
-            .padding = .all(4),
-            .border_radius = .all(4),
+
+        html(
+            \\This means that if we define a <code style="color: rgb(var(--tint))">var counter: usize = 0;</code> and then we increment it 
+            \\<code style="color: rgb(var(--tint))">counter += 1;</code> then the Pure UI will update.
+        );
+
+        BoxCode.body()({
+            reactive_ui.render(0);
         });
-        Static.Text(" syntax to identify where reactivity occurs. This lack of explicit state declaration can make codebases harder to maintain and debug.", .{
-            .display = .Inline,
-            .font_size = 18,
+
+        HtmlText("80% of content in an application is static").style(styles.mini_heading);
+        html(
+            \\While it may seem like overhead to have to define what is Static, or Pure, 80% of the time, you'll import the 
+            \\<code style="color: rgb(var(--tint))">Static</code> module.
+            \\Grab out the Component types you need, and be done with it!
+        );
+        BoxCode.body()({
+            import_example.render(0);
         });
-    });
-    Static.Block(.{})({
-        Static.Text("In contrast, Fabric provides a clearer architectural patterns where developers can easily identify ", .{
-            .display = .Inline,
-            .font_size = 18,
+
+        HtmlText("Using Fabric.cycle()").style(styles.mini_heading);
+        BoxCode.body()({
+            pure_ui_code_example.render(0);
         });
-        Static.Text("Pure", .{
-            .display = .Inline,
-            .font_size = 18,
-            .background = .hex("#802bff"),
-            .text_color = .hex("#ffffff"),
-            .padding = .all(4),
-            .border_radius = .all(4),
+        html(
+            \\You have probably noticed the <code style="color: rgb(var(--tint))">Fabric.cycle()</code> function...
+        );
+        html(
+            \\This function tells Fabric, to update the UI, this is agnostic to the variables. It will update all the UI that has changed, not just
+            \\the <code style="color: rgb(var(--tint))">counter</code> variable. For example the following will udpate both the 
+            \\<code style="color: rgb(var(--tint))">counter</code> and the <code style="color: rgb(var(--tint))">text</code>.
+        );
+        BoxCode.body()({
+            pure_ui_code_example_and_text.render(0);
         });
-        Static.Text(" or ", .{
-            .display = .Inline,
-            .font_size = 18,
+        Text("Zig is meant to be Explicit!").style(styles.heading);
+        html(
+            \\Developers and Zig users alike, will most likely want to have explicit control over the UI, and not depend on the framework.
+            \\Svelte, came to this realization, and implemented runes, which are explicit UI variables.
+        );
+        html("Fabric, has the same concept. When need be developers can define their own UI variables through the <code style=\"color: rgb(var(--tint))\">Signal</code> type.");
+        Text("Signal").style(styles.heading);
+        html(
+            \\<code style="color: rgb(var(--tint))">Signal</code> is a type that is used to define UI variables. 
+            \\It is a wrapper around a <code style="color: rgb(var(--tint))">Fabric.cycle()</code>.
+        );
+        BoxCode.body()({
+            signal_increment_sample.render(0);
         });
-        //
-        Static.Text("Dynamic", .{
-            .display = .Inline,
-            .font_size = 18,
-            .background = .hex("#802bff"),
-            .text_color = .hex("#ffffff"),
-            .padding = .all(4),
-            .border_radius = .all(4),
-        });
-        Static.Text(" components through simple lookups, making the codebase more navigable and maintainable.", .{
-            .display = .Inline,
-            .font_size = 18,
-        });
-    });
-
-    Txt("Both Svelte and React rely on the integration of three distinct languages: HTML, JavaScript, and CSS. These languages weren't designed to work together seamlessly, requiring various workarounds and \"tricks\" to achieve proper integration.");
-    Txt("Consider a common scenario: passing parameters from JavaScript into HTML that CSS can then utilize. This seemingly simple task requires complex coordination between the three languages, often resulting in brittle or verbose solutions.");
-    Txt("The HTML-based approach in both frameworks introduces type safety issues, particularly with styling. Inline styles lack compile-time validation, allowing errors like width: 100$; to pass through the build process and cause runtime issues.");
-    Static.Block(.{ .width = .percent(100) })({
-        fabric_style_code_editor.render(0);
-    });
-    Txt("Additionally, since styles must be defined as strings, developers lose the powerful programmatic capabilities that structured approaches like Fabric's Style struct provide. Fabric enables programmatic style composition through Style.merge() and Style.override(), compile-time validation of properties, and full IDE support with autocomplete and type checking. In contrast, string-based styling cannot be easily composed, validated, or manipulated as first-class data structures, making Fabric's structured approach significantly more maintainable for complex styling requirements.");
-    Txt("Furthermore, since every component in Fabric is a function, this means we can utilise varying patterns to return components based of input arguments, enums, or even comptime types.");
-    Txt("This software architecture, becomes even more powerful, when creating your own Style Components Library.");
-    Txt("These patterns are used for the Generic button component in Opaque Components Library.");
-
-    Custom.HtmlText("<strong>Static Components</strong>", .{
-        .font_size = 24,
-        .font_weight = 600,
-        .text_color = .hex("#1a1a1a"),
-    });
-    Txt("Static Components are instantiated and rendered once, thus if their props, styling or anything else changes, they will not be rerendered. However, using the force_all_rerender global variable, will cause the Static Components and all other components to rerender.");
-    Txt("Static components are best used for Text, Boxes, or components which are mainly used for layout or static content such as Headers or documentation.");
-
-    Custom.HtmlText("<strong>Pure Components</strong>", .{
-        .font_size = 24,
-        .font_weight = 600,
-        .text_color = .hex("#1a1a1a"),
-    });
-    Txt("Pure components work just like Static components, except during reconciliation there props are checked, between both trees, thus if any of their fields or props, or arguments have changed they will rerender.");
-
-    Custom.HtmlText("<strong>Dynamic Components</strong>", .{
-        .font_size = 24,
-        .font_weight = 600,
-        .text_color = .hex("#1a1a1a"),
-    });
-    Txt("Dynamic components take a Signal by default, this attaches the signal to the element itself, ie the UI node subscribes to this signal, and will rerender when that Signal is changed.");
-
-    Static.Text("Grain Components", .{
-        .font_size = 24,
-        .font_weight = 600,
-        .text_color = .hex("#1a1a1a"),
-    });
-    Txt("Grain components take a Signal as well, but are the most surgical component type in Fabric, no reconciliation will occur, no diffing nothing, only this specfic grain component will be rerendered, none of its children or parents. This is best used as the ListItem in a massive List.");
-
-    Static.Text("Recommendation", .{
-        .font_size = 24,
-        .font_weight = 600,
-        .text_color = .hex("#1a1a1a"),
-    });
-    Txt("Just use Static and Pure components, Grain and Dynamic are overated and very niche use case, the entirety of NightWatch is built with Static and Pure components, and Fabric's reconciliation algo, and rerendering is incredibly fast.");
-
-    Static.Text("Signals", .{
-        .font_size = 24,
-        .font_weight = 600,
-        .text_color = .hex("#1a1a1a"),
-    });
-    Txt("Signals are used to update the UI nodes in your UI tree.");
-    Static.Text("Signal(comptime T: type)", .{
-        .font_size = 18,
-        .font_weight = 600,
-        .text_color = .hex("#802BFF"),
-        .font_family = "monospace",
-    });
-    Static.Svg(@embedFile("signal_diagram.svg"), .{
-        .width = .percent(100),
-        .height = .percent(100),
-    });
-
-    Static.Block(.{
-        .width = .percent(100),
-    })({
-        code_editor.render(0);
-    });
-
-    Static.Text("Signal Operations", .{
-        .font_size = 48,
-        .font_weight = 700,
-        .text_color = .hex("#1a1a1a"),
-    });
-    // Core Functions Section
-    Static.Column(.{
-        .child_gap = 16,
-        .margin = .{ .bottom = 32 },
-        .width = .percent(100),
-    })({
-        Static.List(.{
-            .display = .Flex,
-            .direction = .column,
-            .padding = .{ .left = 16 },
-            .child_gap = 12,
-        })({
-            for (items) |item| {
-                Static.ListItem(.{})({
-                    Static.Text(item, .{
-                        .font_size = 18,
-                        .text_color = .hex("#2a2a2a"),
-                    });
+        html(
+            \\<code style="color: rgb(var(--tint))">Signal</code> has a number of methods, that can be used to change or update the state variable.
+        );
+        List.layout(.flex).direction(.column).childGap(8).body()({
+            for (METHODS) |label| {
+                ListItem.body()({
+                    HtmlText(label).style(styles.body_text);
                 });
             }
         });
-    });
-    Static.Text("Get", .{
-        .font_size = 18,
-        .font_weight = 700,
-    });
-    Static.Text("get the current value of the signal", .{
-        .font_size = 18,
-    });
-    Static.Block(.{
-        .width = .percent(100),
-    })({
-        get_code_editor.render(0);
-    });
-    Static.Text("Set", .{
-        .font_size = 18,
-        .font_weight = 700,
-    });
-    Static.Text("set the signal value", .{
-        .font_size = 18,
-    });
-    Static.Block(.{
-        .width = .percent(100),
-    })({
-        set_code_editor.render(0);
-    });
-    Static.Text("Append", .{
-        .font_size = 18,
-        .font_weight = 700,
-    });
-    Static.Text("append a new value only works on type Signal(ArrayList(T))", .{
-        .font_size = 18,
-    });
-    Static.Block(.{
-        .width = .percent(100),
-    })({
-        append_code_editor.render(0);
-    });
-    Static.Text("Toggle", .{
-        .font_size = 18,
-        .font_weight = 700,
-    });
-    Static.Text("toggle the boolean signal value only works on type Signal(bool)", .{
-        .font_size = 18,
-    });
-    Static.Block(.{
-        .width = .percent(100),
-    })({
-        toggle_code_editor.render(0);
-    });
-    Static.Text("Increment", .{
-        .font_size = 18,
-        .font_weight = 700,
-    });
-    Static.Text("increment the current value only works on number types", .{
-        .font_size = 18,
-    });
-    Static.Block(.{
-        .width = .percent(100),
-    })({
-        increment_code_editor.render(0);
-    });
-    Static.Text("Decrement", .{
-        .font_size = 18,
-        .font_weight = 700,
-    });
-    Static.Text("decrement the current value only works on number types", .{
-        .font_size = 18,
-    });
-    Static.Block(.{
-        .width = .percent(100),
-    })({
-        decrement_code_editor.render(0);
+        html(
+            \\Fabric, has decided to completely remove the concept of useEffect, useMemo, and subscriptions, entirely. 
+            \\Instead, a function approach should be used. 
+        );
+        Text("With the concept of effects").style(styles.mini_heading);
+        BoxCode.body()({
+            effect_sample.render(0);
+        });
+        Text("Without the concept of effects").style(styles.mini_heading);
+        BoxCode.body()({
+            non_effect_sample.render(0);
+        });
+        html(
+            \\While Fabric, takes a strong stance against the use of effects, subscriptions, and such, it does not mean you cannot build your own effect system.
+            \\I did this originally, to determine if Fabric needed a effect system, however with the complexity and histroy of issues with effects, I removed it.
+            \\If you truly want one, then you are going to have to build it yourself.
+        );
+        Text("Its just Zig").style(styles.mini_heading);
+        html(
+            \\Since Fabric is not transpiled, and is just Zig, this means the variables can be passed from file to file. 
+            \\Instead of defining <code style="color: rgb(var(--tint))">const [counter, setCounter] = useState(0)</code> variables, 
+            \\and then passing them down the tree, to use in a child component. 
+        );
+        html(
+            \\We can just import the variable where needed. <div><code style="color: rgb(var(--tint))">const Parent = @import("parent.zig");</code></div>
+            \\<code style="color: rgb(var(--tint))">Parent.counter += 1;</code>
+        );
+        html(
+            \\This also means that we can pass variables from parent to child, or child to parent. 
+            \\This shows the immense power of Zig, and keeping the framework away from transpilation!
+        );
     });
 }
+
+const METHODS = [_][]const u8{
+    "<p><code style=\"color: rgb(var(--tint))\">get</code>()</p>",
+    "<p><code style=\"color: rgb(var(--tint))\">set</code>()</p>",
+    "<p><code style=\"color: rgb(var(--tint))\">increment</code>()</p>",
+    "<p><code style=\"color: rgb(var(--tint))\">decrement</code>()</p>",
+    "<p><code style=\"color: rgb(var(--tint))\">toggle</code>()</p>",
+    "<p><code style=\"color: rgb(var(--tint))\">append</code>(value: T)</p>",
+    "<p><code style=\"color: rgb(var(--tint))\">getElement</code>(index: usize)</p>",
+    "<p><code style=\"color: rgb(var(--tint))\">compare</code>()</p>",
+};
+
+const styles = struct {
+    pub const heading = &Fabric.Style{
+        .font_family = "IBM Plex Sans",
+        .visual = .font(24, 700, .palette(.text_color)),
+    };
+    pub const mini_heading = &Fabric.Style{
+        .font_family = "IBM Plex Sans",
+        .visual = .font(20, 700, .palette(.text_color)),
+        .margin = .t(12),
+    };
+    pub const body_text = &Fabric.Style{
+        .visual = .font(18, null, null),
+    };
+};

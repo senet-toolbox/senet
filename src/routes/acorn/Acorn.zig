@@ -43,7 +43,12 @@ fn render() void {
                 }
                 Text("Acorn").style(&.{ .visual = .font(32, 500, .palette(.text_color)) });
             });
-            HtmlText("<i>A dashboard for manging your Tether projects, coming soon...</i>").style(&.{ .visual = .font(18, 500, .palette(.text_color)) });
+            HtmlText(
+                \\<i>A dashboard for managing your <strong style="color: var(--tint)">Tether</strong> projects, <strong>coming soon</strong>...</i>
+            ).style(&.{
+                .visual = .font(18, 500, .palette(.text_color)),
+                .font_family = "IBM Plex Mono,monospace",
+            });
         });
     });
 }

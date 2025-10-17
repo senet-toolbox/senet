@@ -5,18 +5,16 @@ const Custom = @import("../../components/Custom.zig");
 const Signal = Fabric.Signal;
 const Style = Fabric.Style;
 const Static = Fabric.Static;
-const Chain = Fabric.Chain;
-const ChainClose = Fabric.ChainClose;
-const Center = Chain.Center;
-const Box = Chain.Box;
-const Image = ChainClose.Image;
-const Text = ChainClose.Text;
+const Center = Static.Center;
+const Box = Static.Box;
+const Image = Static.Image;
+const Text = Static.Text;
 const Page = Fabric.Page;
 const Pure = Fabric.Pure;
 const HtmlText = Custom.Chain.HtmlText;
-const Graphic = Chain.Graphic;
-const Icon = ChainClose.Icon;
-const Button = Chain.Button;
+const Graphic = Static.Graphic;
+const Icon = Static.Icon;
+const Button = Static.Button;
 
 // Initialization
 pub fn init() void {
@@ -71,7 +69,8 @@ pub fn render() void {
             .padding = .horizontal(12),
         })({
             Text("Install").style(heading);
-            HtmlText("Lets first install <strong style=\"color: #f7a41d;\">Z</strong><strong>IG</strong> via zvm <a href=\"https://www.zvm.app/\">ZVM</a>").style(&.{ .visual = .{ .font_size = 20 } });
+            // Text("Install").style(heading);
+            // HtmlText("Lets first install <strong style=\"color: #f7a41d;\">Z</strong><strong>IG</strong> via zvm <a href=\"https://www.zvm.app/\">ZVM</a>").style(&.{ .visual = .{ .font_size = 20 } });
             Image(.{ .src = "/assets/ZVM.png" }).style(&.{
                 .position = .{ .type = .absolute, .top = .percent(10), .right = .percent(20) },
                 .size = .w(if (Fabric.isMobile()) .percent(30) else .percent(10)),
@@ -80,23 +79,23 @@ pub fn render() void {
                 .position = .{ .type = .absolute, .bottom = .percent(5), .left = .percent(20) },
                 .size = .hw(.percent(30), .mobile_desktop_percent(40, 30)),
             });
-            Text("Now Lets install the Metal CLI, paste the following into your terminal...").style(muted_text);
+            // Text("Now Lets install the Metal CLI, paste the following into your terminal...").style(muted_text);
             Box.style(&.{
                 .visual = .{ .border = .solid(.all(1), .palette(.border_color), .all(8)) },
                 .padding = .all(12),
                 .size = .hw(.px(64), .percent(100)),
                 .layout = .x_between_center,
             })({
-                Text("curl -sSL https://raw.githubusercontent.com/tether-labs/metal/main/install.sh | bash").style(&.{
-                    .visual = .{ .font_size = 18 },
-                    .font_family = "Azeret Mono, monospace",
-                    .layout = .center,
-                    .size = .w(.grow),
-                });
+                // Text("curl -sSL https://raw.githubusercontent.com/tether-labs/metal/main/install.sh | bash").style(&.{
+                //     .visual = .{ .font_size = 18 },
+                //     .font_family = "Azeret Mono, monospace",
+                //     .layout = .center,
+                //     .size = .w(.grow),
+                // });
                 Button(.{ .on_press = copy }).style(&.{
                     .visual = .bg(.transparent),
                 })({
-                    Icon("bi bi-clipboard").style(&.{
+                    Icon(.clipboard).style(&.{
                         .visual = .{ .font_size = 20, .text_color = .palette(.text_color) },
                         .interactive = .hover_text(.palette(.tint)),
                     });

@@ -11,6 +11,14 @@ const Kit = Fabric.Kit;
 const println = Fabric.println;
 const logo = @embedFile("logo.svg");
 const Binded = Fabric.Binded;
+const Box = Static.Box;
+const Text = Static.Text;
+const Link = Static.Link;
+const Image = Static.Image;
+const Svg = Static.Svg;
+const Button = Static.Button;
+const Center = Static.Center;
+const Icon = Pure.Icon;
 
 var current_route: usize = 0;
 const routes: []const []const u8 = &.{
@@ -78,69 +86,69 @@ fn setCurrentRoute(path: []const u8) void {
 pub fn render() void {
     const path = Fabric.Kit.getWindowPath();
     setCurrentRoute(path);
-    Static.FlexBox(.{
-        .width = .percent(100),
-        .child_alignment = .{ .x = .end, .y = .center },
+    Box.style(&.{
+        .size = .w(.percent(100)),
+        .layout = .{ .x = .end, .y = .center },
         .child_gap = 32,
     })({
         if (getPrevPathTitle()) |title| {
-            Static.Button(.{ .onPress = gotoPrevRoute }, .{
-                .width = .percent(50),
-                .height = .px(72),
-                .border_radius = .all(4),
-                .border_color = .hex("#ebedf0"),
-                .border_thickness = .all(1),
-                .display = .Flex,
+            Button(.{ .on_press = gotoPrevRoute }).style(&.{
+                .size = .hw(.px(72), .percent(50)),
+                .visual = .{
+                    .border = .simple(.palette(.border_color_light)),
+                    .background = .transparent,
+                },
+                .layout = .{ .x = .start, .y = .start },
                 .padding = .all(12),
                 .direction = .column,
-                .transition = .{},
-                .hover = .{ .border_color = .hex("#802BFF"), .border_thickness = .all(1) },
+                .transition = .{ .duration = 100 },
+                .interactive = .{
+                    .hover = .{ .border_color = .palette(.tint), .border_thickness = .all(1) },
+                },
                 .cursor = .pointer,
             })({
-                Static.Text("Prev", .{
-                    .font_size = 16,
+                Text("Prev").style(&.{
+                    .visual = .{ .font_size = 16 },
                 });
-                Static.Center(.{
+                Center.style(&.{
                     .child_gap = 12,
                 })({
-                    Static.Text(title, .{
-                        .font_size = 18,
-                        .text_color = .hex("#282a36"),
+                    Text(title).style(&.{
+                        .visual = .{ .font_size = 18, .text_color = .hex("#282a36") },
                     });
-                    Static.Icon("bi bi-arrow-return-left", .{
-                        .font_size = 16,
+                    Icon(.arrow_return_left).style(&.{
+                        .visual = .{ .font_size = 16 },
                     });
                 });
             });
         }
         if (getNextPathTitle()) |title| {
-            Static.Button(.{ .onPress = gotoNextRoute }, .{
-                .width = .percent(50),
-                .height = .px(72),
-                .border_radius = .all(4),
-                .border_color = .hex("#ebedf0"),
-                .border_thickness = .all(1),
-                .display = .Flex,
+            Button(.{ .on_press = gotoNextRoute }).style(&.{
+                .size = .hw(.px(72), .percent(50)),
+                .visual = .{
+                    .border = .simple(.palette(.border_color_light)),
+                    .background = .transparent,
+                },
                 .padding = .all(12),
-                .child_alignment = .{ .x = .end, .y = .start },
                 .direction = .column,
-                .transition = .{},
-                .hover = .{ .border_color = .hex("#802BFF"), .border_thickness = .all(1) },
+                .transition = .{ .duration = 100 },
+                .interactive = .{
+                    .hover = .{ .border_color = .palette(.tint), .border_thickness = .all(1) },
+                },
                 .cursor = .pointer,
-                .background = .transparent,
+                .layout = .{ .x = .end, .y = .start },
             })({
-                Static.Text("Next", .{
-                    .font_size = 16,
+                Text("Next").style(&.{
+                    .visual = .{ .font_size = 16 },
                 });
-                Static.Center(.{
+                Center.style(&.{
                     .child_gap = 12,
                 })({
-                    Static.Icon("bi bi-arrow-return-right", .{
-                        .font_size = 16,
+                    Icon(.arrow_return_right).style(&.{
+                        .visual = .{ .font_size = 16 },
                     });
-                    Static.Text(title, .{
-                        .font_size = 18,
-                        .text_color = .hex("#282a36"),
+                    Text(title).style(&.{
+                        .visual = .{ .font_size = 18, .text_color = .hex("#282a36") },
                     });
                 });
             });

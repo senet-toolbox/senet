@@ -1,17 +1,14 @@
-import { wasmInstance, styleSheet, readWasmString } from "./wasi_obj.js";
-// export const styleSheet =
-// document.styleSheets[0] ||
-// document.head.appendChild(document.createElement("style")).sheet;
-
+import { wasmInstance, styleSheet } from "./wasi_obj.js";
 export const styleRuleCache = new Map(); // Track rule indices for fast updates
+
 export function addKeyframesToStylesheet(keyframesCSS) {
-  // // Get or create stylesheet
-  // const styleSheet =
-  //   document.styleSheets[0] ||
-  //   document.head.appendChild(document.createElement("style")).sheet;
-  //
-  // // Insert keyframes rule into the stylesheet
-  // styleSheet.insertRule(keyframesCSS, styleSheet.cssRules.length);
+  // Get or create stylesheet
+  const styleSheet =
+    document.styleSheets[0] ||
+    document.head.appendChild(document.createElement("style")).sheet;
+
+  // Insert keyframes rule into the stylesheet
+  styleSheet.insertRule(keyframesCSS, styleSheet.cssRules.length);
 }
 
 // Function to add or update a component's style
@@ -21,70 +18,18 @@ export function updateComponentStyle(
   styleString,
   element,
 ) {
-  let className = specified_className;
-  // console.log(element);
-  if (className.length === 0) return;
-  const style_slice = className.split(" ");
-  while (true) {
-    className = style_slice.pop();
-    if (className === undefined) {
-      break;
-    }
-    if (className.length === 0) continue;
-    if (!styleRuleCache.has(`.${className}`)) {
-      const ptr = wasmInstance.getVisualStyle(nodePtr, 3);
-      const len = wasmInstance.getVisualLen();
-      const css = readWasmString(ptr, len);
-      const newIndex = styleSheet.cssRules.length;
-      styleSheet.insertRule(`.${className} { ${css} }`, newIndex);
-      styleRuleCache.set(`.${className}`, newIndex);
-    }
-    //   const ruleIndex = styleRuleCache.get(`.${className}`);
-    //   styleSheet.deleteRule(ruleIndex);
-    //   styleSheet.insertRule(`.${className} { ${styleString} }`, ruleIndex);
-    // } else if (className.length > 0 && element.localName !== "i") {
-    //   const newIndex = styleSheet.cssRules.length;
-    //   styleSheet.insertRule(`.${className} { ${styleString} }`, newIndex);
-    //   styleRuleCache.set(`.${className}`, newIndex);
-    // } else {
-    //   // This is for icons
-    //   const newIndex = styleSheet.cssRules.length;
-    //   styleSheet.insertRule(
-    //     `.${className.split(" ").pop()} { ${styleString} }`,
-    //     newIndex,
-    //   );
-    //   styleRuleCache.set(`.${className}`, newIndex);
-    // }
-  }
-  // Here we check if the user specfied a class name
-  // Apply class to element
-
-  if (element.localName === "svg") {
-    element.setAttribute("class", specified_className);
-    element.classList.add(specified_className);
-  } else {
-    element.className = specified_className;
-  }
-  return specified_className;
-}
-
-// Function to add or update a component's style
-export function setRuleStyle(specified_className, element) {
-  let className = "";
-  if (specified_className.length > 0) {
-    className = specified_className;
-  }
+  let className = `fabric-component-${element.id}`;
   if (element.localName === "svg") {
     // Add new rule
-    // const newIndex = styleSheet.cssRules.length;
-    // styleSheet.insertRule(`.${className} { ${styleString} }`, newIndex);
-    // styleRuleCache.set(className, newIndex);
+    const newIndex = styleSheet.cssRules.length;
+    styleSheet.insertRule(`.${className} { ${styleString} }`, newIndex);
+    styleRuleCache.set(className, newIndex);
 
     // 2. Conditionally hide the scrollbar in WebKit if showScrollBar() === 0
-    // if (wasmInstance.showScrollBar(nodePtr) === 0) {
-    //   const webkitRule = `.${className}::-webkit-scrollbar {  display: none; }`;
-    //   styleSheet.insertRule(webkitRule, styleSheet.cssRules.length);
-    // }
+    if (wasmInstance.showScrollBar(nodePtr) === 0) {
+      const webkitRule = `.${className}::-webkit-scrollbar {  display: none; }`;
+      styleSheet.insertRule(webkitRule, styleSheet.cssRules.length);
+    }
     // element.className = className;
     element.setAttribute("class", className);
     element.classList.add(className);
@@ -93,10 +38,10 @@ export function setRuleStyle(specified_className, element) {
   // Here we check if the user specfied a class name
   if (styleRuleCache.has(className)) {
     // Update existing rule
-    // const ruleIndex = styleRuleCache.get(className);
+    const ruleIndex = styleRuleCache.get(className);
     // To ensure proper update, delete and re-insert
-    // styleSheet.deleteRule(ruleIndex);
-    // styleSheet.insertRule(`.${className} { ${styleString} }`, ruleIndex);
+    styleSheet.deleteRule(ruleIndex);
+    styleSheet.insertRule(`.${className} { ${styleString} }`, ruleIndex);
     element.className = className;
   } else if (
     specified_className.length > 0 &&
@@ -105,47 +50,51 @@ export function setRuleStyle(specified_className, element) {
     className = specified_className;
     element.className = className;
     // Update existing rule
-    // const ruleIndex = styleRuleCache.get(className);
-    // styleSheet.deleteRule(ruleIndex);
-    // styleSheet.insertRule(`.${className} { ${styleString} }`, ruleIndex);
+    const ruleIndex = styleRuleCache.get(className);
+    styleSheet.deleteRule(ruleIndex);
+    styleSheet.insertRule(`.${className} { ${styleString} }`, ruleIndex);
     // Here we check if the user specfied a class name
   } else if (
     element.className.length === 0 &&
     specified_className.length === 0
   ) {
+    if ("carousel-component-1" === element.id) {
+      console.log(styleString);
+      console.log(element, specified_className, nodePtr);
+    }
     // Add new rule
-    // const newIndex = styleSheet.cssRules.length;
-    // styleSheet.insertRule(`.${className} { ${styleString} }`, newIndex);
-    // styleRuleCache.set(className, newIndex);
+    const newIndex = styleSheet.cssRules.length;
+    styleSheet.insertRule(`.${className} { ${styleString} }`, newIndex);
+    styleRuleCache.set(className, newIndex);
 
     // 2. Conditionally hide the scrollbar in WebKit if showScrollBar() === 0
-    // if (wasmInstance.showScrollBar(nodePtr) === 0) {
-    //   const webkitRule = `.${className}::-webkit-scrollbar {  display: none; }`;
-    //   styleSheet.insertRule(webkitRule, styleSheet.cssRules.length);
-    // }
+    if (wasmInstance.showScrollBar(nodePtr) === 0) {
+      const webkitRule = `.${className}::-webkit-scrollbar {  display: none; }`;
+      styleSheet.insertRule(webkitRule, styleSheet.cssRules.length);
+    }
     element.className = className;
   } else if (specified_className.length > 0 && element.localName !== "i") {
     if (specified_className.includes("-genk")) {
-      specified_className = `${specified_className}`;
+      specified_className = `fabric-component-${specified_className}`;
     } else {
       className = specified_className;
     }
     // element.class = className;
     // element.style = styleString;
-    // const newIndex = styleSheet.cssRules.length;
-    // styleSheet.insertRule(`.${className} { ${styleString} }`, newIndex);
-    // styleRuleCache.set(className, newIndex);
+    const newIndex = styleSheet.cssRules.length;
+    styleSheet.insertRule(`.${className} { ${styleString} }`, newIndex);
+    styleRuleCache.set(className, newIndex);
     element.className = specified_className;
   } else {
     // This is for icons
     className = element.className;
     // element.style = styleString;
-    // const newIndex = styleSheet.cssRules.length;
-    // styleSheet.insertRule(
-    //   `.${className.split(" ").pop()} { ${styleString} }`,
-    //   newIndex,
-    // );
-    // styleRuleCache.set(className, newIndex);
+    const newIndex = styleSheet.cssRules.length;
+    styleSheet.insertRule(
+      `.${className.split(" ").pop()} { ${styleString} }`,
+      newIndex,
+    );
+    styleRuleCache.set(className, newIndex);
   }
 
   // Apply class to element
@@ -158,7 +107,7 @@ export function checkMarkStyling(id, element, styleId, checkmarkstyle) {
     styleId = "." + styleId;
   }
   // const className = `check-mark-${Math.random().toString(36).substr(2, 9)}`;
-  const className = `${id}`;
+  const className = `fabric-component-${id}`;
   // const className = `hover-${element.id}`;
 
   // Check if we already have this class
@@ -197,30 +146,6 @@ export function checkMarkStyling(id, element, styleId, checkmarkstyle) {
       console.error("Failed to add CSS rule:", error);
       console.log("Attempted CSS:", checkedStyle);
     }
-  }
-}
-
-export function applyTooltipClass(element, styleId, tooltipStyles) {
-  // Determine the correct selector
-  let selectorAfter = `.${styleId}::after`;
-  let selectorHoverAfter = `.${styleId}:hover::after`;
-
-  // Check if we already have this class
-  if (styleRuleCache.has(selectorAfter)) {
-    // Update existing rule
-    const ruleIndex = styleRuleCache.get(selectorAfter);
-    const hoverCSS = `${selectorAfter} { ${tooltipStyles} }`;
-    styleSheet.deleteRule(ruleIndex);
-    styleSheet.insertRule(hoverCSS, ruleIndex);
-  } else {
-    // Define and insert the hover rule
-    const tooltipCSS = `${selectorAfter} { ${tooltipStyles} }`;
-    const tooltipCSSHover = `${selectorHoverAfter} { opacity: 1; transition-delay: 0.5s; }`;
-    const newIndex = styleSheet.cssRules.length;
-    styleSheet.insertRule(tooltipCSS, newIndex);
-    styleRuleCache.set(selectorAfter, newIndex);
-    styleSheet.insertRule(tooltipCSSHover, newIndex);
-    styleRuleCache.set(selectorHoverAfter, newIndex + 1);
   }
 }
 

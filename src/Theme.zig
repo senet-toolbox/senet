@@ -7,14 +7,13 @@ pub const Mode = enum {
     dark,
 };
 
-pub const ThemeColors = struct {
+pub const Colors = struct {
     border_color: Color,
     text_color: Color,
     background: Color,
     primary: Color,
     secondary: Color,
     font_family: []const u8,
-    border_cache_color: Color,
     btn_color: Color,
     tint: Color,
     text_tint_color: Color,
@@ -35,20 +34,25 @@ pub const ThemeColors = struct {
     image_bg: Color,
     code_background: Color,
     highlight_color: Color,
+    border_color_light: Color,
+    grid_color: Color,
+    code_text_color: Color,
+    code_function_color: Color,
+    code_keyword_color: Color,
+    disabled: Color,
 };
 
-pub const Light = ThemeColors{
+pub const Light = Colors{
     .border_color = .hex("#262626"),
     .text_color = .rgba(0, 0, 0, 255),
     .background = .white,
     .primary = .rgba(255, 255, 255, 255),
     .secondary = .rgba(0, 0, 0, 255),
-    .border_cache_color = .rgba(0, 0, 0, 40),
     .font_family = "Montserrat",
-    .btn_color = .rgba(67, 64, 240, 255),
-    .tint = .rgba(67, 64, 240, 255),
+    .btn_color = .hex("#2108FF"),
+    .tint = .hex("#2108FF"),
     .text_tint_color = .white,
-    .alternate_tint = .rgba(67, 64, 240, 255),
+    .alternate_tint = .hex("#2108FF"),
     .btn_tint = .hex("#FF3838"),
     .dark_text = .hex("#FDFDFD"),
     .form_input_border_color = .hex("#E9E9E9"),
@@ -63,38 +67,49 @@ pub const Light = ThemeColors{
     .gradient_end_100stop_color = .hex("#FFFFFF"),
     .icon_color = .hex("#A2A2A2"),
     .image_bg = .hex("#ffffff"),
-    .code_background = .hex("#1A1B2B"),
+    .code_background = .hex("#FAFAFA"),
     .highlight_color = .hex("#EDEDED"),
+    .border_color_light = .hex("#e4e4e4"),
+    .grid_color = .hex("#f6f6f6"),
+    .code_text_color = .hex("#262626"),
+    .code_function_color = .hex("#0074c2"),
+    .code_keyword_color = .hex("#D4883C"),
+    .disabled = .hex("#A2A2A2"),
 };
 
-pub const Dark = ThemeColors{
+pub const Dark = Colors{
     .border_color = .hex("#27272a"),
-    .text_color = .rgba(255, 255, 255, 255),
+    .text_color = .hex("#EAEAEA"),
     .background = .hex("#0F0F0F"),
     .primary = .rgba(0, 0, 0, 255),
-    .secondary = .rgba(255, 255, 255, 255),
-    .border_cache_color = .rgba(255, 255, 255, 40),
+    .secondary = .rgba(255, 255, 255, 1),
     .font_family = "Montserrat",
-    .btn_color = .hex("#E5FF54"),
-    .tint = .hex("#E5FF54"),
-    .text_tint_color = .hex("#E5FF54"),
+    .btn_color = .hex("#FBFB28"),
+    .tint = .hex("#FBFB28"),
+    .text_tint_color = .hex("#FBFB28"),
     .alternate_tint = .hex("#6338FF"),
     .btn_tint = .hex("#FF3838"),
     .dark_text = .hex("#0B0B0B"),
     .form_input_border_color = .hex("#27272a"),
-    .danger = .rgba(255, 78, 51, 255),
+    .danger = .rgba(255, 78, 51, 1),
     .alternate_background = .hex("#000000"),
     .alternate_border_color = .white,
-    .alternate_text_color = .hex("#262626"),
-    .logo = .hex("#121212"),
+    .alternate_text_color = .hex("#FBFB28"),
+    .logo = .hex("#0F0F0F"),
     .gradient_start_0stop_color = .hex("#EEFF00"),
     .gradient_start_100stop_color = .hex("#ccff00"),
     .gradient_end_0stop_color = .hex("#FFFFFF"),
     .gradient_end_100stop_color = .hex("#ffffff"),
     .icon_color = .hex("#484848"),
     .image_bg = .hex("#0F0F0F"),
-    .code_background = .hex("#0A0B11"),
+    .code_background = .hex("#181818"),
     .highlight_color = .hex("#27272a"),
+    .border_color_light = .hex("#1E1E1E"),
+    .grid_color = .hex("#1E1E1E"),
+    .code_text_color = .hex("#F6F5FB"),
+    .code_function_color = .hex("#0074c2"),
+    .code_keyword_color = .hex("#d43008"),
+    .disabled = .hex("#A2A2A2"),
 };
 
 const ColorTheme = @This();
@@ -117,14 +132,14 @@ pub var dark_text: Color = .hex("#8C8C8C");
 pub var form_input_border_color: Color = .hex("#E9E9E9");
 pub var danger: Color = .rgba(255, 78, 51, 255);
 
-pub fn getDefaultThemeColors(self: ColorTheme) ThemeColors {
+pub fn getDefaultThemeColors(self: ColorTheme) Colors {
     return switch (self.theme) {
         .light => Light,
         .dark => Dark,
     };
 }
 
-pub fn getThemeColors(self: ColorTheme) ThemeColors {
+pub fn getThemeColors(self: ColorTheme) Colors {
     return switch (self.theme) {
         .light => Light,
         .dark => Dark,
@@ -154,7 +169,6 @@ pub fn toggleTheme() void {
         .dark => .light,
         .light => .dark,
     };
-    Fabric.println("New toggleTheme {any}", .{mode});
     Fabric.lib.setLocalStorageString("theme", @tagName(mode));
 
     // border_color = theme.border_color;

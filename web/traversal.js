@@ -11,6 +11,9 @@ import {
   removeInactiveNodes,
   layoutInfo,
   hotSwapWasmWithState,
+  text_data,
+  currentPath,
+  styleSheet,
 } from "./wasi_obj.js";
 import {
   applyHoverClass,
@@ -18,6 +21,8 @@ import {
   updateComponentStyle,
   checkMarkStyling,
   applyFocusWithinClass,
+  setRuleStyle,
+  applyTooltipClass,
 } from "./wasi_styling.js";
 import {
   domNodeRegistry,
@@ -307,17 +312,11 @@ export const isLayout = (el) => {
  * 2. If a child is (or contains) a layout root, move it out before deleting.
  * 3. Finally delete the now-layout-free wrapper node itself.
  */
-export function stripNonLayout(el) {
+export function recurseDestroy(el) {
   if (!el) return;
 
-  // // Visit children first so we can hoist them before we nuke their parent
   for (const child of Array.from(el.children)) {
-    //   if (isLayout(child)) {
-    //     // -- keep it alive: re-parent one level up
-    //     el.parentNode.insertBefore(child, el);
-    //     continue; // do NOT recurse into a preserved island
-    //   }
-    stripNonLayout(child); // recurse into non-layout child
+    recurseDestroy(child); // recurse into non-layout child
   }
 
   // Now `el` has no layout descendants => safe to delete everything remaining
@@ -329,7 +328,44 @@ export function stripNonLayout(el) {
   } else {
     el.replaceWith(...Array.from(el.childNodes));
   }
-  // el.remove(); // removes element + any text nodes inside
+}
+
+/**
+ * Delete a subtree while preserving any descendant whose id contains "layout".
+ * 1. DFS through children.
+ * 2. If a child is (or contains) a layout root, move it out before deleting.
+ * 3. Finally delete the now-layout-free wrapper node itself.
+ */
+export function stripNonLayout(el) {
+  if (!el) return;
+
+  // Visit children first so we can hoist them before we nuke their parent
+  for (const child of Array.from(el.children)) {
+    stripNonLayout(child); // recurse into non-layout child
+  }
+
+  // Now `el` has no layout descendants => safe to delete everything remaining
+  const node = domNodeRegistry.get(el.id);
+  domNodeRegistry.delete(el.id);
+  pureNodeRegistry.delete(el.id);
+  loadedSections.delete(el.id);
+  if (el.localName === "p" || el.localName === "svg") {
+    el.remove();
+  } else {
+    // if (node !== undefined) {
+    //   const hasExitAnimation = wasmInstance.hasExitAnimation(node.node_ptr);
+    //   if (hasExitAnimation) {
+    //     const onEnd = (e) => {
+    //       el.removeEventListener("animationend", onEnd);
+    //       el.replaceWith(...Array.from(el.childNodes));
+    //     };
+    //     el.addEventListener("animationend", onEnd);
+    //     el.classList.add("exit-animation");
+    //   }
+    // } else {
+    el.replaceWith(...Array.from(el.childNodes));
+    // }
+  }
 }
 /**
  * Create a link element with route handling
@@ -338,9 +374,15 @@ export function stripNonLayout(el) {
  * @param {Object} layout - The layout information
  * @returns {HTMLAnchorElement} - The created link element
  */
-function createLinkElement(renderCmd, tree_node, layout) {
+function createLinkElement(renderCmd, route) {
   const element = document.createElement("a");
-  element.href = renderCmd.href;
+
+  const href = getTextData(route, renderCmd.id);
+  if (href === null) {
+    element.href = renderCmd.href;
+  } else {
+    element.href = href;
+  }
 
   const label = wasmInstance.getAriaLabel(renderCmd.nodePtr);
   if (label) {
@@ -597,6 +639,16 @@ function initJsonEditor(parent, element) {
   });
 }
 
+function getTextData(route, id) {
+  if (text_data !== undefined) {
+    if (text_data[route] === undefined) {
+      return null;
+    }
+    return text_data[route][id];
+  }
+  return null;
+}
+
 /**
  * Create an element based on its type
  * @param {Object} renderCmd - The render command
@@ -606,11 +658,19 @@ function initJsonEditor(parent, element) {
  */
 function createElementByType(renderCmd, tree_node, layout, parent) {
   let element;
+  let text;
+  let href;
+  let route = currentPath === "/" ? "/root" : `/root${currentPath}`;
 
   switch (renderCmd.elemType) {
     case COMPONENT_TYPES.TEXT:
       element = document.createElement("p");
-      element.textContent = renderCmd.props.text;
+      text = getTextData(route, renderCmd.id);
+      if (text === null) {
+        element.textContent = renderCmd.props.text;
+      } else {
+        element.textContent = text;
+      }
       break;
 
     case COMPONENT_TYPES.TEXT_GRADIENT:
@@ -629,7 +689,12 @@ function createElementByType(renderCmd, tree_node, layout, parent) {
 
     case COMPONENT_TYPES.HTML_TEXT:
       element = document.createElement("p");
-      element.innerHTML = renderCmd.props.text;
+      text = getTextData(route, renderCmd.id);
+      if (text === null) {
+        element.innerHTML = renderCmd.props.text;
+      } else {
+        element.innerHTML = text;
+      }
       break;
 
     case COMPONENT_TYPES.CODE:
@@ -781,17 +846,11 @@ function createElementByType(renderCmd, tree_node, layout, parent) {
       break;
 
     case COMPONENT_TYPES.SVG:
-      // element = document.createElement("div");
-      // element.innerHTML = renderCmd.props.text;
-
-      // // Clean and parse
-      // const svgString = renderCmd.props.text;
-      // const cleanSvg = svgString.replace(/^\s+|\s+$/g, ""); // remove leading/trailing whitespace
-      // const tempContainer = document.createElement("div");
-      // tempContainer.innerHTML = cleanSvg;
-      // element = tempContainer.firstElementChild;
-
-      const svgString = renderCmd.props.text;
+      const svg_text = getTextData(route, renderCmd.id);
+      let svgString = svg_text;
+      if (svg_text === null) {
+        svgString = renderCmd.props.text;
+      }
       const cleanSvg = svgString.replace(/^\s+|\s+$/g, "");
 
       // Create SVG element with proper namespace
@@ -801,12 +860,17 @@ function createElementByType(renderCmd, tree_node, layout, parent) {
       break;
 
     case COMPONENT_TYPES.LINK:
-      element = createLinkElement(renderCmd, tree_node, layout);
+      element = createLinkElement(renderCmd, route);
       break;
 
     case COMPONENT_TYPES.REDIRECT_LINK:
+      href = getTextData(route, renderCmd.id);
       element = document.createElement("a");
-      element.href = renderCmd.href;
+      if (href === null) {
+        element.href = renderCmd.href;
+      } else {
+        element.href = href;
+      }
       break;
 
     case COMPONENT_TYPES.EMBEDLINK:
@@ -919,19 +983,36 @@ function createElementByType(renderCmd, tree_node, layout, parent) {
  */
 function setupElement(element, renderCmd) {
   element.id = renderCmd.id;
+
   if (renderCmd.elemType === COMPONENT_TYPES.ICON) {
-    element.className = renderCmd.href;
+    element.className = renderCmd.styleId;
   }
 
   // Apply styles
-  updateComponentStyle(
-    renderCmd.nodePtr,
-    renderCmd.styleId,
-    renderCmd.props.css,
-    element,
-  );
+  if (state.initial_render && renderCmd.styleId.length > 0) {
+    setRuleStyle(renderCmd.styleId, element);
+  } else if (!state.initial_render && renderCmd.styleId.length > 0) {
+    const cssStylePtr = wasmInstance.getStyle(renderCmd.nodePtr);
+    if (cssStylePtr !== 0) {
+      const cssStyleLen = wasmInstance.getStyleLen();
+      renderCmd.props.css = readWasmString(cssStylePtr, cssStyleLen);
+    }
 
-  if (renderCmd.props.hoverCss.length > 0) {
+    // Update styling
+    updateComponentStyle(
+      renderCmd.nodePtr,
+      renderCmd.styleId,
+      renderCmd.props.css,
+      element,
+    );
+  }
+
+  if (renderCmd.props.tooltipTitle.length > 0) {
+    element.setAttribute("data-tooltip", renderCmd.props.tooltipTitle);
+    applyTooltipClass(element, renderCmd.styleId, renderCmd.props.tooltipCss);
+  }
+
+  if (renderCmd.props.hoverCss.length > 0 && renderCmd.styleId.length > 0) {
     applyHoverClass(element, renderCmd.styleId, renderCmd.props.hoverCss);
   }
 
@@ -951,6 +1032,7 @@ function setupElement(element, renderCmd) {
 
   domNodeRegistry.set(renderCmd.id, {
     elementType: renderCmd.elemType,
+    node_ptr: renderCmd.nodePtr,
     domNode: element,
     exitAnimationId: renderCmd.exitAnimationId,
     destroyId: renderCmd.hooks.destroyId > 0 ? renderCmd.hooks.destroyId : null,
@@ -971,41 +1053,53 @@ function setupElement(element, renderCmd) {
  */
 function updateElement(element, renderCmd) {
   // Update text content if needed
-  if (
-    renderCmd.elemType === COMPONENT_TYPES.TEXT ||
-    renderCmd.elemType === COMPONENT_TYPES.HEADER ||
-    renderCmd.elemType === COMPONENT_TYPES.ALLOC_TEXT ||
-    renderCmd.elemType === COMPONENT_TYPES.TEXT_AREA
-  ) {
-    element.textContent = renderCmd.props.text;
-  } else if (renderCmd.elemType === COMPONENT_TYPES.INPUT) {
-    element.value = renderCmd.props.text;
-  } else if (renderCmd.elemType === COMPONENT_TYPES.ICON) {
-    element.className = renderCmd.href;
+  if (renderCmd.propsHash > 0) {
+    if (
+      renderCmd.elemType === COMPONENT_TYPES.TEXT ||
+      renderCmd.elemType === COMPONENT_TYPES.HEADER ||
+      renderCmd.elemType === COMPONENT_TYPES.ALLOC_TEXT ||
+      renderCmd.elemType === COMPONENT_TYPES.TEXT_AREA
+    ) {
+      element.textContent = renderCmd.props.text;
+    } else if (renderCmd.elemType === COMPONENT_TYPES.INPUT) {
+      element.value = renderCmd.props.text;
+    } else if (renderCmd.elemType === COMPONENT_TYPES.ICON) {
+      element.className = renderCmd.href;
+    } else if (renderCmd.elemType === COMPONENT_TYPES.HTML_TEXT) {
+      element.innerHTML = renderCmd.props.text;
+    }
   }
 
-  // Update styling
-  updateComponentStyle(
-    renderCmd.nodePtr,
-    renderCmd.styleId,
-    renderCmd.props.css,
-    element,
-  );
-
-  if (renderCmd.props.hoverCss.length > 0) {
-    applyHoverClass(element, renderCmd.styleId, renderCmd.props.hoverCss);
-  }
-
-  if (renderCmd.props.focusCss.length > 0) {
-    applyFocusClass(element, renderCmd.styleId, renderCmd.props.focusCss);
-  }
-
-  if (renderCmd.props.focusWithinCss.length > 0) {
-    applyFocusWithinClass(
-      element,
+  // This means that the style hash has changed and we need to update
+  if (renderCmd.styleHash > 0) {
+    const cssStylePtr = wasmInstance.getStyle(renderCmd.nodePtr);
+    if (cssStylePtr !== 0) {
+      const cssStyleLen = wasmInstance.getStyleLen();
+      renderCmd.props.css = readWasmString(cssStylePtr, cssStyleLen);
+    }
+    // Update styling
+    updateComponentStyle(
+      renderCmd.nodePtr,
       renderCmd.styleId,
-      renderCmd.props.focusWithinCss,
+      renderCmd.props.css,
+      element,
     );
+
+    if (renderCmd.props.hoverCss.length > 0) {
+      applyHoverClass(element, renderCmd.styleId, renderCmd.props.hoverCss);
+    }
+
+    if (renderCmd.props.focusCss.length > 0) {
+      applyFocusClass(element, renderCmd.styleId, renderCmd.props.focusCss);
+    }
+
+    if (renderCmd.props.focusWithinCss.length > 0) {
+      applyFocusWithinClass(
+        element,
+        renderCmd.styleId,
+        renderCmd.props.focusWithinCss,
+      );
+    }
   }
   if (renderCmd.stateType === STATE_TYPES.PURE) {
     pureNodeRegistry.set(renderCmd.id, {

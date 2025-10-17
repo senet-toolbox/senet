@@ -8,13 +8,12 @@ const Page = Fabric.Page;
 const Custom = @import("../../../components/Custom.zig");
 const HtmlText = Custom.Chain.HtmlText;
 const root = @import("../../../main.zig");
-const Chain = Fabric.Chain;
-const ChainClose = Fabric.ChainClose;
-const Box = Chain.Box;
-const Svg = ChainClose.Svg;
-const Center = Chain.Center;
-const Text = ChainClose.Text;
-const Stack = Chain.Stack;
+const Box = Static.Box;
+const Svg = Static.Svg;
+const Graphic = Static.Graphic;
+const Center = Static.Center;
+const Text = Static.Text;
+const Stack = Static.Stack;
 
 // Initialization
 pub fn init() void {
@@ -108,7 +107,7 @@ pub fn render() void {
                         .child_gap = 32,
                     })({
                         Center.style(&.{ .size = .w(.percent(50)), .margin = .{ .top = 32 } })({
-                            Svg(.{ .svg = @embedFile("metal.svg") }).style(&.{
+                            Graphic(.{ .src = "src/routes/docs/metal/metal.svg" }).style(&.{
                                 .layout = .center,
                                 .size = .w(.percent(70)),
                             });
@@ -118,7 +117,7 @@ pub fn render() void {
                             .child_gap = 16,
                             .padding = .{ .top = 16 },
                         })({
-                            Svg(.{ .svg = @embedFile("metal_text.svg") }).style(&.{
+                            Graphic(.{ .src = "src/routes/docs/metal/metal_text.svg" }).style(&.{
                                 .layout = .center,
                                 .size = .w(.percent(70)),
                             });
