@@ -11,21 +11,22 @@ const println = Fabric.println;
 const logo = @embedFile("logo.svg");
 const Binded = Fabric.Binded;
 const Search = @import("Search.zig");
-const Chain = Fabric.Chain;
-const ChainClose = Fabric.ChainClose;
-const Center = Chain.Center;
-const Box = Chain.Box;
-const Image = ChainClose.Image;
-const Text = ChainClose.Text;
+const Center = Static.Center;
+const Box = Static.Box;
+const Image = Static.Image;
+const Text = Static.Text;
 const Page = Fabric.Page;
 const Pure = Fabric.Pure;
-const Graphic = Chain.Graphic;
-const Icon = ChainClose.Icon;
-const Button = Chain.Button;
-const ButtonCycle = Chain.ButtonCycle;
-const Link = Chain.Link;
-const List = Chain.List;
-const ListItem = Chain.ListItem;
+const Graphic = Static.Graphic;
+const Icon = Static.Icon;
+const Button = Static.Button;
+const ButtonCycle = Static.ButtonCycle;
+const Link = Static.Link;
+const List = Static.List;
+const ListItem = Static.ListItem;
+const RedirectLink = Static.RedirectLink;
+const Theme = @import("theme");
+const IconTokens = @import("user_config").IconTokens;
 
 var theme_background: [4]u8 = undefined;
 var border_color: [4]u8 = undefined;
@@ -49,7 +50,7 @@ pub const MenuItem = struct {
     id: []const u8,
     title: []const u8,
     link: []const u8,
-    icon: []const u8,
+    icon: *const IconTokens,
     tags: []const Tag = &.{},
 };
 
@@ -58,7 +59,7 @@ pub const menu_items: []const MenuItem = &.{
         .id = "home",
         .title = "Home",
         .link = "/docs/fabric",
-        .icon = "bi bi-house", // Keep as is - perfect for home
+        .icon = .house, // Keep as is - perfect for home
         .tags = &.{
             Tag{
                 .keywords = &.{ "fabric home", "fabric", "docs", "home" },
@@ -72,7 +73,7 @@ pub const menu_items: []const MenuItem = &.{
         .id = "just-let-me-build",
         .title = "Just let me build!!!!",
         .link = "/docs/fabric/concepts/justletmebuild",
-        .icon = "bi bi-fire", // Keep as is - perfect for home
+        .icon = .fire, // Keep as is - perfect for home
         .tags = &.{
             Tag{
                 .keywords = &.{ "started", "installation", "fabric", "immediate", "create app", "fabric create app" },
@@ -86,7 +87,7 @@ pub const menu_items: []const MenuItem = &.{
         .id = "introduction",
         .title = "Introduction",
         .link = "/docs/fabric/concepts/introduction",
-        .icon = "bi bi-book", // Book icon for introductory content
+        .icon = .book, // Book icon for introductory content
         .tags = &.{
             Tag{
                 .keywords = &.{ "introduction", "installation", "fabric" },
@@ -107,7 +108,7 @@ pub const menu_items: []const MenuItem = &.{
         .id = "basics",
         .title = "Basics",
         .link = "/docs/fabric/concepts/basics",
-        .icon = "bi bi-mortarboard", // Graduation cap for learning basics
+        .icon = .mortarboard, // Graduation cap for learning basics
         .tags = &.{
             Tag{
                 .keywords = &.{ "basics", "learning", "fabric", "docs", "reconciler", "rendering" },
@@ -127,7 +128,7 @@ pub const menu_items: []const MenuItem = &.{
         .id = "project-structure",
         .title = "Project Structure",
         .link = "/docs/fabric/concepts/project",
-        .icon = "bi bi-diagram-3",
+        .icon = .diagram_3,
         .tags = &.{
             Tag{
                 .keywords = &.{"routing"},
@@ -147,7 +148,7 @@ pub const menu_items: []const MenuItem = &.{
         .id = "routing",
         .title = "Routing",
         .link = "/docs/fabric/concepts/routing",
-        .icon = "bi bi-signpost", // Signpost for navigation/routing
+        .icon = .signpost, // Signpost for navigation/routing
         .tags = &.{
             Tag{
                 .keywords = &.{ "dynamic", "routes", "dynamic routes" },
@@ -161,7 +162,7 @@ pub const menu_items: []const MenuItem = &.{
         .id = "reactivity",
         .title = "Reactivity",
         .link = "/docs/fabric/concepts/reactivity",
-        .icon = "bi bi-arrow-repeat", // Circular arrows for reactive updates
+        .icon = .arrow_repeat, // Circular arrows for reactive updates
         .tags = &.{
             Tag{
                 .keywords = &.{ "ui to code", "ui reactivity" },
@@ -175,7 +176,7 @@ pub const menu_items: []const MenuItem = &.{
         .id = "layout",
         .title = "Layout",
         .link = "/docs/fabric/concepts/layout",
-        .icon = "bi bi-columns", // Circular arrows for reactive updates
+        .icon = .columns, // Circular arrows for reactive updates
         .tags = &.{
             Tag{
                 .keywords = &.{ "layout", "defaults", "spacing", "overlay" },
@@ -189,43 +190,43 @@ pub const menu_items: []const MenuItem = &.{
         .id = "styling",
         .title = "Styling",
         .link = "/docs/fabric/concepts/styling",
-        .icon = "bi bi-paint-bucket", // Circular arrows for reactive updates
+        .icon = .paint_bucket, // Circular arrows for reactive updates
     },
     MenuItem{
         .id = "kit",
         .title = "Kit",
         .link = "/docs/fabric/concepts/kit",
-        .icon = "bi bi-tools", // Tools icon for toolkit/kit
+        .icon = .tools, // Tools icon for toolkit/kit
     },
     MenuItem{
         .id = "events-and-handlers",
         .title = "Events & Handlers",
         .link = "/docs/fabric/concepts/events",
-        .icon = "bi bi-cursor",
+        .icon = .cursor,
     },
     MenuItem{
         .id = "lifecycle-hooks",
         .title = "Lifecycle Hooks",
         .link = "/docs/fabric/concepts/hooks",
-        .icon = "bi bi-hourglass-split",
+        .icon = .hourglass_split,
     },
     MenuItem{
         .id = "js-libs",
         .title = "JS Libs",
         .link = "/docs/fabric/concepts/jslibs",
-        .icon = "bi bi-filetype-js", // Tools icon for toolkit/kit
+        .icon = .filetype_js, // Tools icon for toolkit/kit
     },
     MenuItem{
         .id = "wasm-bridge",
         .title = "WASM Bridge",
         .link = "/docs/fabric/concepts/bridge",
-        .icon = "bi bi-ethernet",
+        .icon = .ethernet,
     },
     MenuItem{
         .id = "keystone",
         .title = "KeyStone",
         .link = "/docs/fabric/concepts/keystone",
-        .icon = "bi bi-unlock",
+        .icon = .unlock,
         .tags = &.{
             Tag{
                 .keywords = &.{ "keystone", "auth", "authentication", "login", "signup", "registration", "login", "signup", "registration" },
@@ -239,20 +240,20 @@ pub const menu_items: []const MenuItem = &.{
         .id = "gotchas",
         .title = "Gotchas",
         .link = "/docs/fabric/concepts/gotchas",
-        .icon = "bi bi-exclamation-triangle", // Warning triangle for gotchas/pitfalls
+        .icon = .exclamation_triangle, // Warning triangle for gotchas/pitfalls
     },
     MenuItem{
         .id = "tutorials",
         .title = "Tutorials",
         .link = "/docs/fabric/concepts/tutorials",
-        .icon = "bi bi-award",
+        .icon = .award,
     },
 
     MenuItem{
         .id = "metal",
         .title = "Metal",
         .link = "/docs/metal",
-        .icon = "bi bi-motherboard", // Graduation cap for learning basics
+        .icon = .motherboard, // Graduation cap for learning basics
         .tags = &.{
             Tag{
                 .keywords = &.{ "metal", "docker" },
@@ -269,14 +270,20 @@ fn openDialog() void {
     Search.toggle();
 }
 
+fn toggleTheme() void {
+    println("Toggle Theme", .{});
+    Theme.toggleTheme();
+    Fabric.cycle();
+}
+
 fn list() void {
     const current_path = Fabric.Kit.getWindowPath();
     Box.style(&.{
         .layout = .x_between_center,
         .child_gap = 8,
         .padding = .{ .top = 8, .bottom = 8, .left = 12, .right = 12 },
-        .position = .{ .type = .fixed, .top = .px(0), .left = .percent(0), .right = .percent(0) },
-        .size = .hw(.mobile_desktop_percent(8, 6), .percent(100)),
+        .position = .{ .type = .fixed, .top = .px(0), .left = .percent(8), .right = .percent(0) },
+        .size = .hw(.mobile_desktop_percent(8, 6), .percent(100 - 8)),
         .z_index = 400,
         .blur = 3,
     })({
@@ -286,7 +293,7 @@ fn list() void {
             .size = .h(.percent(100)),
         })({
             Link(.{ .url = "/", .aria_label = "home page of tether" }).style(&.{
-                .text_decoration = .none,
+                .visual = .{ .text_decoration = .none },
                 .cursor = .pointer,
             })({
                 Image(.{ .src = "/assets/circlelogo.webp" }).style(&.{
@@ -339,16 +346,16 @@ fn list() void {
 
             ButtonCycle(.{ .on_press = openDialog, .aria_label = "search-dialog" }).style(&.{
                 .layout = .x_between_center,
-                .size = .hw(.px(38), .percent(20)),
+                .size = .hw(.px(38), .percent(50)),
                 .padding = .tblr(4, 4, 8, 8),
-                .visual = .button(.palette(.background), .solid(.all(1), .hex("#E1E1E1"), .all(8))),
+                .visual = .button(.palette(.background), .simple(.hex("#E1E1E1"))),
                 .cursor = .pointer,
                 .interactive = .{ .hover = .{
-                    .border = .solid(.all(1), .palette(.tint), .all(8)),
+                    .border = .simple(.palette(.tint)),
                 } },
             })({
                 Box.style(&.{ .layout = .left_center, .child_gap = 24 })({
-                    Icon("bi bi-search").style(&.{
+                    Icon(.search).style(&.{
                         .visual = .{ .font_size = 16, .text_color = .palette(.icon_color) },
                     });
                     Text("Search...").style(&.{
@@ -356,14 +363,31 @@ fn list() void {
                         .font_family = "Montserrat, sans-serif",
                     });
                 });
-                Icon("bi bi-command").style(&.{
+                Icon(.command).style(&.{
                     .visual = .{ .font_size = 16, .text_color = .palette(.icon_color) },
+                });
+            });
+            // Box.plain();
+            Box.style(&.{
+                .size = .{ .width = .percent(20), .height = .percent(100) },
+                .layout = .right_center,
+                .padding = .horizontal(12),
+                .child_gap = 24,
+            })({
+                Button(.{ .on_press = toggleTheme }).style(&.{
+                    .visual = .{ .background = .transparent },
+                    .cursor = .pointer,
+                })({
+                    Icon(.cloud_moon).style(&.{
+                        .visual = .{ .font_size = 24, .text_color = .palette(.icon_color) },
+                        .interactive = .{ .hover = .{ .text_color = .palette(.tint) } },
+                    });
                 });
             });
         }
     });
     Box.style(&.{
-        .position = .{ .type = .fixed, .top = if (Fabric.isMobile()) .percent(8) else .percent(6), .left = .percent(0) },
+        .position = .{ .type = .fixed, .top = if (Fabric.isMobile()) .percent(8) else .percent(8), .left = .percent(8) },
         .size = .hw(.percent(100), .mobile_desktop_percent(100, 14)),
         .z_index = 999,
     })({
@@ -371,7 +395,7 @@ fn list() void {
             .list_style = .none,
             .direction = .column,
             .padding = .{ .top = 16, .bottom = 64, .right = 8, .left = 8 },
-            .child_gap = 24,
+            .child_gap = 12,
             .size = .hw(.percent(95), .percent(100)),
             .scroll = .scroll_y(),
             .show_scrollbar = false,
@@ -382,17 +406,17 @@ fn list() void {
                     .size = .hw(.fit, .percent(100)),
                     // .border_radius = .all(4),
                     .visual = .{
-                        .background = if (std.mem.eql(u8, current_path, item.link)) .transparentizeHex("#802BFF", 30) else .transparent,
-                        .border = .r(2, if (std.mem.eql(u8, current_path, item.link)) .hex("#802BFF") else .transparent),
+                        .background = if (std.mem.eql(u8, current_path, item.link)) .transparentizeHex(.palette(.tint), 0.1) else .transparent,
+                        .border = .r(2, if (std.mem.eql(u8, current_path, item.link)) .palette(.tint) else .transparent),
                     },
                     .interactive = .{
                         .hover = .{
-                            .background = if (std.mem.eql(u8, current_path, item.link)) .transparentizeHex("#802BFF", 30) else .palette(.highlight_color),
+                            .background = if (std.mem.eql(u8, current_path, item.link)) .transparentizeHex(.palette(.tint), 0.1) else .palette(.highlight_color),
                         },
                     },
                 })({
                     Link(.{ .url = item.link, .aria_label = item.title }).style(&.{
-                        .text_decoration = .none,
+                        .visual = .{ .text_decoration = .none },
                         .size = .w(.percent(100)),
                         .layout = .left_center,
                         .child_gap = 12,
@@ -400,11 +424,11 @@ fn list() void {
                         .cursor = .pointer,
                     })({
                         Icon(item.icon).style(&.{
-                            .visual = .{ .text_color = if (std.mem.eql(u8, current_path, item.link)) .darken("#802BFF", 30) else .palette(.text_color) },
+                            .visual = .{ .text_color = if (std.mem.eql(u8, current_path, item.link)) .palette(.tint) else .palette(.text_color) },
                         });
                         Text(item.title).style(&.{
                             .visual = .{
-                                .text_color = if (std.mem.eql(u8, current_path, item.link)) .darken("#802BFF", 30) else .palette(.text_color),
+                                .text_color = if (std.mem.eql(u8, current_path, item.link)) .palette(.tint) else .palette(.text_color),
                                 .font_size = 14,
                             },
                         });

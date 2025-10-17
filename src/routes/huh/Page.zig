@@ -5,16 +5,14 @@ const Custom = @import("../../components/Custom.zig");
 const Signal = Fabric.Signal;
 const Style = Fabric.Style;
 const Static = Fabric.Static;
-const Chain = Fabric.Chain;
-const ChainClose = Fabric.ChainClose;
-const Center = Chain.Center;
-const Box = Chain.Box;
-const Image = ChainClose.Image;
-const Text = ChainClose.Text;
+const Center = Static.Center;
+const Box = Static.Box;
+const Image = Static.Image;
+const Text = Static.Text;
 const Page = Fabric.Page;
 const Pure = Fabric.Pure;
 const HtmlText = Custom.Chain.HtmlText;
-const Graphic = Chain.Graphic;
+const Graphic = Static.Graphic;
 
 // Initialization
 pub fn init() void {
@@ -76,7 +74,7 @@ pub fn render() void {
                 Graphic(.{ .src = "src/assets/tether.svg" }).style(&.{
                     .size = .hw(.percent(100), .percent(50)),
                     .visual = .{ .text_color = .palette(.text_color) },
-                })({});
+                });
             });
 
             Text("How the Internet works").style(heading);
@@ -91,7 +89,7 @@ pub fn render() void {
             Graphic(.{ .src = "src/assets/theinternet.svg" }).style(&.{
                 .size = .hw(.percent(100), .percent(100)),
                 .visual = .{ .text_color = .palette(.text_color) },
-            })({});
+            });
 
             Text("And then theres today...").style(&.{
                 .visual = heading.visual,
@@ -102,7 +100,7 @@ pub fn render() void {
                 Graphic(.{ .src = "src/assets/webdev.svg" }).style(&.{
                     .size = .hw(.percent(100), .percent(100)),
                     .visual = .{ .text_color = .palette(.text_color) },
-                })({});
+                });
             });
 
             Text("Hitting Reset").style(&.{

@@ -9,28 +9,20 @@ const HtmlOptions = struct {
     style: ?*const Style = null,
 };
 
-pub inline fn HtmlText(options: HtmlOptions) void {
-    const elem_decl = Fabric.ElementDecl{
-        .dynamic = .static,
-        .elem_type = .HtmlText,
-        .text = options.text,
-        .style = options.style,
-    };
-    _ = Fabric.LifeCycle.open(elem_decl);
-    Fabric.LifeCycle.configure(elem_decl);
-    Fabric.LifeCycle.close({});
-}
-
 pub const Chain = struct {
     const Self = @This();
-    text: []const u8,
+    text: []const u8 = "",
     elem_type: Fabric.ElementType,
     pub fn HtmlText(text: []const u8) Self {
-        return Self{ .text = text, .elem_type = .HtmlText };
+        return Self{
+            .elem_type = .HtmlText,
+            .text = if (Fabric.lib.isGenerated) "" else text,
+            // .text = text,
+        };
     }
     pub inline fn style(self: *const Self, style_ptr: *const Fabric.Style) void {
         const elem_decl = Fabric.ElementDecl{
-            .dynamic = .static,
+            .state_type = .static,
             .elem_type = self.elem_type,
             .text = self.text,
             .style = style_ptr,
@@ -44,7 +36,7 @@ pub const Chain = struct {
 
 pub inline fn GradientText(text: []const u8, style: Style) void {
     const elem_decl = Fabric.ElementDecl{
-        .dynamic = .static,
+        .state_type = .static,
         .elem_type = .TextGradient,
         .text = text,
         .style = style,
@@ -56,7 +48,7 @@ pub inline fn GradientText(text: []const u8, style: Style) void {
 
 pub inline fn Gradient(style: Style) fn (void) void {
     const elem_decl = Fabric.ElementDecl{
-        .dynamic = .static,
+        .state_type = .static,
         .elem_type = .Gradient,
         .style = style,
     };
@@ -160,9 +152,9 @@ pub fn code_snippet_single(text: []const u8) void {
                 });
             }
         });
-        HtmlText(text, .{
-            .font_size = 16,
-            .text_color = .hex("#ffffff"),
-        });
+        // HtmlText(text, .{
+        //     .font_size = 16,
+        //     .text_color = .hex("#ffffff"),
+        // });
     });
 }

@@ -4,12 +4,12 @@ import {
   eventStorage,
   domNodeRegistry,
 } from "./maps.js";
-import { styleSheet } from "./wasi_styling.js";
 import {
   allocString,
   readWasmString,
   rerenderRoute,
   requestRerender,
+  styleSheet,
 } from "./wasi_obj.js";
 import { isLayout, stripNonLayout } from "./traversal.js";
 
@@ -23,6 +23,7 @@ export const env = {
   requestRerenderWasm: () => {
     requestRerender();
   },
+  performance_now: () => performance.now(),
 
   consoleLogWasm: (ptr, len) => {
     if (!wasmInstance) {

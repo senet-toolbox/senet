@@ -349,7 +349,7 @@ fn list() void {
             .display = .Flex,
             .direction = .column,
             .padding = .{ .top = 16, .bottom = 64, .right = 8, .left = 8 },
-            .child_gap = 16,
+            .child_gap = 8,
             .width = .percent(100),
             .overflow_y = .scroll,
             .height = .percent(95),

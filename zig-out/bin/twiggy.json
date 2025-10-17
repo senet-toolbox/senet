@@ -1,0 +1,2342 @@
+[
+  {
+    "name": "data[0]",
+    "shallow_size": 129522,
+    "shallow_size_percent": 30.651379077775015
+  },
+  {
+    "name": "code[60]",
+    "shallow_size": 52444,
+    "shallow_size_percent": 12.410871700211802
+  },
+  {
+    "name": "code[3]",
+    "shallow_size": 25097,
+    "shallow_size_percent": 5.939204619407665
+  },
+  {
+    "name": "code[170]",
+    "shallow_size": 17124,
+    "shallow_size_percent": 4.052394306201413
+  },
+  {
+    "name": "code[169]",
+    "shallow_size": 15218,
+    "shallow_size_percent": 3.6013394389028903
+  },
+  {
+    "name": "code[29]",
+    "shallow_size": 13751,
+    "shallow_size_percent": 3.2541739140723913
+  },
+  {
+    "name": "code[66]",
+    "shallow_size": 10165,
+    "shallow_size_percent": 2.4055470755978368
+  },
+  {
+    "name": "code[32]",
+    "shallow_size": 10047,
+    "shallow_size_percent": 2.3776223776223775
+  },
+  {
+    "name": "code[0]",
+    "shallow_size": 9573,
+    "shallow_size_percent": 2.2654502857548544
+  },
+  {
+    "name": "code[97]",
+    "shallow_size": 8972,
+    "shallow_size_percent": 2.1232236460662857
+  },
+  {
+    "name": "code[67]",
+    "shallow_size": 8017,
+    "shallow_size_percent": 1.897222912451339
+  },
+  {
+    "name": "code[115]",
+    "shallow_size": 6187,
+    "shallow_size_percent": 1.4641534438488752
+  },
+  {
+    "name": "code[206]",
+    "shallow_size": 6004,
+    "shallow_size_percent": 1.420846496988629
+  },
+  {
+    "name": "code[243]",
+    "shallow_size": 5317,
+    "shallow_size_percent": 1.258267958775573
+  },
+  {
+    "name": "code[69]",
+    "shallow_size": 4979,
+    "shallow_size_percent": 1.1782802645746808
+  },
+  {
+    "name": "code[46]",
+    "shallow_size": 4783,
+    "shallow_size_percent": 1.131896867937477
+  },
+  {
+    "name": "code[65]",
+    "shallow_size": 4045,
+    "shallow_size_percent": 0.9572491805994345
+  },
+  {
+    "name": "code[240]",
+    "shallow_size": 3684,
+    "shallow_size_percent": 0.871818536793156
+  },
+  {
+    "name": "code[39]",
+    "shallow_size": 2976,
+    "shallow_size_percent": 0.7042703489403997
+  },
+  {
+    "name": "code[92]",
+    "shallow_size": 2635,
+    "shallow_size_percent": 0.6235727047909789
+  },
+  {
+    "name": "code[71]",
+    "shallow_size": 2578,
+    "shallow_size_percent": 0.610083655768935
+  },
+  {
+    "name": "code[172]",
+    "shallow_size": 2561,
+    "shallow_size_percent": 0.6060606060606061
+  },
+  {
+    "name": "code[228]",
+    "shallow_size": 2345,
+    "shallow_size_percent": 0.5549442097665448
+  },
+  {
+    "name": "code[233]",
+    "shallow_size": 2319,
+    "shallow_size_percent": 0.5487913102126301
+  },
+  {
+    "name": "code[95]",
+    "shallow_size": 2298,
+    "shallow_size_percent": 0.5438216605729296
+  },
+  {
+    "name": "code[9]",
+    "shallow_size": 2153,
+    "shallow_size_percent": 0.5095074130607126
+  },
+  {
+    "name": "code[231]",
+    "shallow_size": 1955,
+    "shallow_size_percent": 0.4626507164578231
+  },
+  {
+    "name": "code[4]",
+    "shallow_size": 1891,
+    "shallow_size_percent": 0.44750511755587896
+  },
+  {
+    "name": "code[137]",
+    "shallow_size": 1819,
+    "shallow_size_percent": 0.4304663187911919
+  },
+  {
+    "name": "code[177]",
+    "shallow_size": 1513,
+    "shallow_size_percent": 0.35805142404127177
+  },
+  {
+    "name": "code[15]",
+    "shallow_size": 1302,
+    "shallow_size_percent": 0.30811827766142486
+  },
+  {
+    "name": "code[10]",
+    "shallow_size": 1299,
+    "shallow_size_percent": 0.3074083277128963
+  },
+  {
+    "name": "code[41]",
+    "shallow_size": 1248,
+    "shallow_size_percent": 0.29533917858790953
+  },
+  {
+    "name": "code[183]",
+    "shallow_size": 1248,
+    "shallow_size_percent": 0.29533917858790953
+  },
+  {
+    "name": "code[171]",
+    "shallow_size": 1238,
+    "shallow_size_percent": 0.2929726787594808
+  },
+  {
+    "name": "code[89]",
+    "shallow_size": 1223,
+    "shallow_size_percent": 0.28942292901683764
+  },
+  {
+    "name": "code[147]",
+    "shallow_size": 1223,
+    "shallow_size_percent": 0.28942292901683764
+  },
+  {
+    "name": "code[64]",
+    "shallow_size": 1110,
+    "shallow_size_percent": 0.26268148095559263
+  },
+  {
+    "name": "code[242]",
+    "shallow_size": 940,
+    "shallow_size_percent": 0.22245098387230366
+  },
+  {
+    "name": "code[142]",
+    "shallow_size": 878,
+    "shallow_size_percent": 0.20777868493604534
+  },
+  {
+    "name": "code[178]",
+    "shallow_size": 823,
+    "shallow_size_percent": 0.19476293587968715
+  },
+  {
+    "name": "code[94]",
+    "shallow_size": 818,
+    "shallow_size_percent": 0.19357968596547276
+  },
+  {
+    "name": "code[61]",
+    "shallow_size": 797,
+    "shallow_size_percent": 0.18861003632577236
+  },
+  {
+    "name": "code[179]",
+    "shallow_size": 778,
+    "shallow_size_percent": 0.18411368665175773
+  },
+  {
+    "name": "code[130]",
+    "shallow_size": 730,
+    "shallow_size_percent": 0.17275448747529965
+  },
+  {
+    "name": "code[186]",
+    "shallow_size": 715,
+    "shallow_size_percent": 0.1692047377326565
+  },
+  {
+    "name": "code[43]",
+    "shallow_size": 615,
+    "shallow_size_percent": 0.1455397394483689
+  },
+  {
+    "name": "code[175]",
+    "shallow_size": 601,
+    "shallow_size_percent": 0.1422266396885686
+  },
+  {
+    "name": "code[116]",
+    "shallow_size": 585,
+    "shallow_size_percent": 0.1384402399630826
+  },
+  {
+    "name": "code[96]",
+    "shallow_size": 577,
+    "shallow_size_percent": 0.1365470401003396
+  },
+  {
+    "name": "code[232]",
+    "shallow_size": 537,
+    "shallow_size_percent": 0.12708104078662455
+  },
+  {
+    "name": "code[320]",
+    "shallow_size": 519,
+    "shallow_size_percent": 0.12282134109545277
+  },
+  {
+    "name": "code[222]",
+    "shallow_size": 478,
+    "shallow_size_percent": 0.11311869179889485
+  },
+  {
+    "name": "code[102]",
+    "shallow_size": 470,
+    "shallow_size_percent": 0.11122549193615183
+  },
+  {
+    "name": "code[84]",
+    "shallow_size": 467,
+    "shallow_size_percent": 0.11051554198762321
+  },
+  {
+    "name": "code[216]",
+    "shallow_size": 465,
+    "shallow_size_percent": 0.11004224202193745
+  },
+  {
+    "name": "code[244]",
+    "shallow_size": 446,
+    "shallow_size_percent": 0.1055458923479228
+  },
+  {
+    "name": "code[86]",
+    "shallow_size": 441,
+    "shallow_size_percent": 0.10436264243370844
+  },
+  {
+    "name": "code[98]",
+    "shallow_size": 436,
+    "shallow_size_percent": 0.10317939251949404
+  },
+  {
+    "name": "code[279]",
+    "shallow_size": 425,
+    "shallow_size_percent": 0.10057624270822241
+  },
+  {
+    "name": "code[6]",
+    "shallow_size": 412,
+    "shallow_size_percent": 0.09749979293126501
+  },
+  {
+    "name": "code[199]",
+    "shallow_size": 398,
+    "shallow_size_percent": 0.09418669317146475
+  },
+  {
+    "name": "code[235]",
+    "shallow_size": 389,
+    "shallow_size_percent": 0.09205684332587886
+  },
+  {
+    "name": "code[329]",
+    "shallow_size": 385,
+    "shallow_size_percent": 0.09111024339450735
+  },
+  {
+    "name": "code[2]",
+    "shallow_size": 384,
+    "shallow_size_percent": 0.09087359341166447
+  },
+  {
+    "name": "code[187]",
+    "shallow_size": 383,
+    "shallow_size_percent": 0.0906369434288216
+  },
+  {
+    "name": "code[25]",
+    "shallow_size": 382,
+    "shallow_size_percent": 0.09040029344597872
+  },
+  {
+    "name": "code[224]",
+    "shallow_size": 378,
+    "shallow_size_percent": 0.08945369351460722
+  },
+  {
+    "name": "code[58]",
+    "shallow_size": 359,
+    "shallow_size_percent": 0.08495734384059257
+  },
+  {
+    "name": "code[118]",
+    "shallow_size": 358,
+    "shallow_size_percent": 0.08472069385774969
+  },
+  {
+    "name": "code[315]",
+    "shallow_size": 357,
+    "shallow_size_percent": 0.08448404387490682
+  },
+  {
+    "name": "code[19]",
+    "shallow_size": 355,
+    "shallow_size_percent": 0.08401074390922107
+  },
+  {
+    "name": "code[145]",
+    "shallow_size": 350,
+    "shallow_size_percent": 0.08282749399500668
+  },
+  {
+    "name": "code[262]",
+    "shallow_size": 350,
+    "shallow_size_percent": 0.08282749399500668
+  },
+  {
+    "name": "code[70]",
+    "shallow_size": 337,
+    "shallow_size_percent": 0.0797510442180493
+  },
+  {
+    "name": "code[217]",
+    "shallow_size": 333,
+    "shallow_size_percent": 0.0788044442866778
+  },
+  {
+    "name": "code[226]",
+    "shallow_size": 332,
+    "shallow_size_percent": 0.07856779430383491
+  },
+  {
+    "name": "code[100]",
+    "shallow_size": 327,
+    "shallow_size_percent": 0.07738454438962053
+  },
+  {
+    "name": "code[324]",
+    "shallow_size": 324,
+    "shallow_size_percent": 0.0766745944410919
+  },
+  {
+    "name": "code[220]",
+    "shallow_size": 310,
+    "shallow_size_percent": 0.07336149468129163
+  },
+  {
+    "name": "code[24]",
+    "shallow_size": 305,
+    "shallow_size_percent": 0.07217824476707725
+  },
+  {
+    "name": "code[56]",
+    "shallow_size": 302,
+    "shallow_size_percent": 0.07146829481854863
+  },
+  {
+    "name": "code[291]",
+    "shallow_size": 301,
+    "shallow_size_percent": 0.07123164483570575
+  },
+  {
+    "name": "code[44]",
+    "shallow_size": 298,
+    "shallow_size_percent": 0.07052169488717712
+  },
+  {
+    "name": "code[149]",
+    "shallow_size": 297,
+    "shallow_size_percent": 0.07028504490433424
+  },
+  {
+    "name": "code[101]",
+    "shallow_size": 293,
+    "shallow_size_percent": 0.06933844497296274
+  },
+  {
+    "name": "code[38]",
+    "shallow_size": 287,
+    "shallow_size_percent": 0.06791854507590547
+  },
+  {
+    "name": "code[330]",
+    "shallow_size": 281,
+    "shallow_size_percent": 0.06649864517884822
+  },
+  {
+    "name": "code[27]",
+    "shallow_size": 279,
+    "shallow_size_percent": 0.06602534521316247
+  },
+  {
+    "name": "code[237]",
+    "shallow_size": 276,
+    "shallow_size_percent": 0.06531539526463384
+  },
+  {
+    "name": "code[111]",
+    "shallow_size": 275,
+    "shallow_size_percent": 0.06507874528179097
+  },
+  {
+    "name": "code[112]",
+    "shallow_size": 275,
+    "shallow_size_percent": 0.06507874528179097
+  },
+  {
+    "name": "code[322]",
+    "shallow_size": 273,
+    "shallow_size_percent": 0.06460544531610521
+  },
+  {
+    "name": "code[246]",
+    "shallow_size": 272,
+    "shallow_size_percent": 0.06436879533326234
+  },
+  {
+    "name": "code[200]",
+    "shallow_size": 268,
+    "shallow_size_percent": 0.06342219540189084
+  },
+  {
+    "name": "code[13]",
+    "shallow_size": 264,
+    "shallow_size_percent": 0.062475595470519334
+  },
+  {
+    "name": "code[14]",
+    "shallow_size": 264,
+    "shallow_size_percent": 0.062475595470519334
+  },
+  {
+    "name": "code[42]",
+    "shallow_size": 264,
+    "shallow_size_percent": 0.062475595470519334
+  },
+  {
+    "name": "code[51]",
+    "shallow_size": 264,
+    "shallow_size_percent": 0.062475595470519334
+  },
+  {
+    "name": "code[62]",
+    "shallow_size": 264,
+    "shallow_size_percent": 0.062475595470519334
+  },
+  {
+    "name": "code[63]",
+    "shallow_size": 264,
+    "shallow_size_percent": 0.062475595470519334
+  },
+  {
+    "name": "code[108]",
+    "shallow_size": 252,
+    "shallow_size_percent": 0.05963579567640481
+  },
+  {
+    "name": "code[180]",
+    "shallow_size": 251,
+    "shallow_size_percent": 0.05939914569356193
+  },
+  {
+    "name": "code[190]",
+    "shallow_size": 249,
+    "shallow_size_percent": 0.05892584572787619
+  },
+  {
+    "name": "code[193]",
+    "shallow_size": 249,
+    "shallow_size_percent": 0.05892584572787619
+  },
+  {
+    "name": "code[167]",
+    "shallow_size": 242,
+    "shallow_size_percent": 0.05726929584797605
+  },
+  {
+    "name": "code[12]",
+    "shallow_size": 241,
+    "shallow_size_percent": 0.05703264586513318
+  },
+  {
+    "name": "code[81]",
+    "shallow_size": 240,
+    "shallow_size_percent": 0.0567959958822903
+  },
+  {
+    "name": "code[59]",
+    "shallow_size": 237,
+    "shallow_size_percent": 0.05608604593376167
+  },
+  {
+    "name": "code[37]",
+    "shallow_size": 233,
+    "shallow_size_percent": 0.055139446002390166
+  },
+  {
+    "name": "code[123]",
+    "shallow_size": 233,
+    "shallow_size_percent": 0.055139446002390166
+  },
+  {
+    "name": "code[113]",
+    "shallow_size": 232,
+    "shallow_size_percent": 0.05490279601954729
+  },
+  {
+    "name": "code[17]",
+    "shallow_size": 230,
+    "shallow_size_percent": 0.05442949605386154
+  },
+  {
+    "name": "code[248]",
+    "shallow_size": 227,
+    "shallow_size_percent": 0.0537195461053329
+  },
+  {
+    "name": "code[182]",
+    "shallow_size": 226,
+    "shallow_size_percent": 0.053482896122490034
+  },
+  {
+    "name": "code[21]",
+    "shallow_size": 224,
+    "shallow_size_percent": 0.053009596156804284
+  },
+  {
+    "name": "code[119]",
+    "shallow_size": 224,
+    "shallow_size_percent": 0.053009596156804284
+  },
+  {
+    "name": "code[31]",
+    "shallow_size": 223,
+    "shallow_size_percent": 0.0527729461739614
+  },
+  {
+    "name": "code[260]",
+    "shallow_size": 221,
+    "shallow_size_percent": 0.052299646208275645
+  },
+  {
+    "name": "code[122]",
+    "shallow_size": 219,
+    "shallow_size_percent": 0.051826346242589895
+  },
+  {
+    "name": "code[144]",
+    "shallow_size": 218,
+    "shallow_size_percent": 0.05158969625974702
+  },
+  {
+    "name": "code[191]",
+    "shallow_size": 218,
+    "shallow_size_percent": 0.05158969625974702
+  },
+  {
+    "name": "code[218]",
+    "shallow_size": 218,
+    "shallow_size_percent": 0.05158969625974702
+  },
+  {
+    "name": "code[76]",
+    "shallow_size": 210,
+    "shallow_size_percent": 0.04969649639700401
+  },
+  {
+    "name": "code[250]",
+    "shallow_size": 209,
+    "shallow_size_percent": 0.04945984641416114
+  },
+  {
+    "name": "data[1]",
+    "shallow_size": 209,
+    "shallow_size_percent": 0.04945984641416114
+  },
+  {
+    "name": "code[8]",
+    "shallow_size": 208,
+    "shallow_size_percent": 0.049223196431318256
+  },
+  {
+    "name": "code[300]",
+    "shallow_size": 208,
+    "shallow_size_percent": 0.049223196431318256
+  },
+  {
+    "name": "code[317]",
+    "shallow_size": 208,
+    "shallow_size_percent": 0.049223196431318256
+  },
+  {
+    "name": "code[181]",
+    "shallow_size": 204,
+    "shallow_size_percent": 0.048276596499946756
+  },
+  {
+    "name": "code[314]",
+    "shallow_size": 201,
+    "shallow_size_percent": 0.047566646551418124
+  },
+  {
+    "name": "code[16]",
+    "shallow_size": 200,
+    "shallow_size_percent": 0.04732999656857525
+  },
+  {
+    "name": "code[88]",
+    "shallow_size": 199,
+    "shallow_size_percent": 0.047093346585732374
+  },
+  {
+    "name": "code[53]",
+    "shallow_size": 198,
+    "shallow_size_percent": 0.0468566966028895
+  },
+  {
+    "name": "code[135]",
+    "shallow_size": 198,
+    "shallow_size_percent": 0.0468566966028895
+  },
+  {
+    "name": "code[90]",
+    "shallow_size": 196,
+    "shallow_size_percent": 0.04638339663720374
+  },
+  {
+    "name": "code[150]",
+    "shallow_size": 192,
+    "shallow_size_percent": 0.045436796705832234
+  },
+  {
+    "name": "code[83]",
+    "shallow_size": 190,
+    "shallow_size_percent": 0.044963496740146484
+  },
+  {
+    "name": "code[201]",
+    "shallow_size": 186,
+    "shallow_size_percent": 0.044016896808774984
+  },
+  {
+    "name": "code[156]",
+    "shallow_size": 185,
+    "shallow_size_percent": 0.04378024682593211
+  },
+  {
+    "name": "code[261]",
+    "shallow_size": 179,
+    "shallow_size_percent": 0.042360346928874845
+  },
+  {
+    "name": "code[221]",
+    "shallow_size": 176,
+    "shallow_size_percent": 0.04165039698034622
+  },
+  {
+    "name": "code[5]",
+    "shallow_size": 175,
+    "shallow_size_percent": 0.04141374699750334
+  },
+  {
+    "name": "code[40]",
+    "shallow_size": 174,
+    "shallow_size_percent": 0.04117709701466046
+  },
+  {
+    "name": "code[207]",
+    "shallow_size": 172,
+    "shallow_size_percent": 0.04070379704897471
+  },
+  {
+    "name": "code[165]",
+    "shallow_size": 169,
+    "shallow_size_percent": 0.03999384710044609
+  },
+  {
+    "name": "code[110]",
+    "shallow_size": 168,
+    "shallow_size_percent": 0.03975719711760321
+  },
+  {
+    "name": "code[49]",
+    "shallow_size": 167,
+    "shallow_size_percent": 0.03952054713476033
+  },
+  {
+    "name": "code[143]",
+    "shallow_size": 160,
+    "shallow_size_percent": 0.0378639972548602
+  },
+  {
+    "name": "code[34]",
+    "shallow_size": 158,
+    "shallow_size_percent": 0.03739069728917445
+  },
+  {
+    "name": "code[126]",
+    "shallow_size": 158,
+    "shallow_size_percent": 0.03739069728917445
+  },
+  {
+    "name": "code[1]",
+    "shallow_size": 155,
+    "shallow_size_percent": 0.03668074734064582
+  },
+  {
+    "name": "code[134]",
+    "shallow_size": 155,
+    "shallow_size_percent": 0.03668074734064582
+  },
+  {
+    "name": "code[36]",
+    "shallow_size": 152,
+    "shallow_size_percent": 0.03597079739211719
+  },
+  {
+    "name": "code[82]",
+    "shallow_size": 152,
+    "shallow_size_percent": 0.03597079739211719
+  },
+  {
+    "name": "code[11]",
+    "shallow_size": 147,
+    "shallow_size_percent": 0.03478754747790281
+  },
+  {
+    "name": "code[50]",
+    "shallow_size": 147,
+    "shallow_size_percent": 0.03478754747790281
+  },
+  {
+    "name": "code[127]",
+    "shallow_size": 147,
+    "shallow_size_percent": 0.03478754747790281
+  },
+  {
+    "name": "code[313]",
+    "shallow_size": 147,
+    "shallow_size_percent": 0.03478754747790281
+  },
+  {
+    "name": "code[198]",
+    "shallow_size": 146,
+    "shallow_size_percent": 0.034550897495059935
+  },
+  {
+    "name": "code[229]",
+    "shallow_size": 146,
+    "shallow_size_percent": 0.034550897495059935
+  },
+  {
+    "name": "code[234]",
+    "shallow_size": 146,
+    "shallow_size_percent": 0.034550897495059935
+  },
+  {
+    "name": "code[85]",
+    "shallow_size": 145,
+    "shallow_size_percent": 0.03431424751221705
+  },
+  {
+    "name": "code[117]",
+    "shallow_size": 145,
+    "shallow_size_percent": 0.03431424751221705
+  },
+  {
+    "name": "code[230]",
+    "shallow_size": 145,
+    "shallow_size_percent": 0.03431424751221705
+  },
+  {
+    "name": "code[80]",
+    "shallow_size": 144,
+    "shallow_size_percent": 0.03407759752937418
+  },
+  {
+    "name": "code[196]",
+    "shallow_size": 144,
+    "shallow_size_percent": 0.03407759752937418
+  },
+  {
+    "name": "code[7]",
+    "shallow_size": 143,
+    "shallow_size_percent": 0.0338409475465313
+  },
+  {
+    "name": "code[311]",
+    "shallow_size": 141,
+    "shallow_size_percent": 0.03336764758084555
+  },
+  {
+    "name": "code[20]",
+    "shallow_size": 134,
+    "shallow_size_percent": 0.03171109770094542
+  },
+  {
+    "name": "code[304]",
+    "shallow_size": 129,
+    "shallow_size_percent": 0.03052784778673104
+  },
+  {
+    "name": "code[312]",
+    "shallow_size": 129,
+    "shallow_size_percent": 0.03052784778673104
+  },
+  {
+    "name": "code[68]",
+    "shallow_size": 128,
+    "shallow_size_percent": 0.03029119780388816
+  },
+  {
+    "name": "code[236]",
+    "shallow_size": 128,
+    "shallow_size_percent": 0.03029119780388816
+  },
+  {
+    "name": "code[35]",
+    "shallow_size": 123,
+    "shallow_size_percent": 0.029107947889673778
+  },
+  {
+    "name": "code[139]",
+    "shallow_size": 123,
+    "shallow_size_percent": 0.029107947889673778
+  },
+  {
+    "name": "code[266]",
+    "shallow_size": 122,
+    "shallow_size_percent": 0.0288712979068309
+  },
+  {
+    "name": "code[158]",
+    "shallow_size": 119,
+    "shallow_size_percent": 0.02816134795830227
+  },
+  {
+    "name": "code[328]",
+    "shallow_size": 119,
+    "shallow_size_percent": 0.02816134795830227
+  },
+  {
+    "name": "code[133]",
+    "shallow_size": 117,
+    "shallow_size_percent": 0.027688047992616517
+  },
+  {
+    "name": "code[189]",
+    "shallow_size": 117,
+    "shallow_size_percent": 0.027688047992616517
+  },
+  {
+    "name": "code[146]",
+    "shallow_size": 115,
+    "shallow_size_percent": 0.02721474802693077
+  },
+  {
+    "name": "code[48]",
+    "shallow_size": 113,
+    "shallow_size_percent": 0.026741448061245017
+  },
+  {
+    "name": "code[136]",
+    "shallow_size": 113,
+    "shallow_size_percent": 0.026741448061245017
+  },
+  {
+    "name": "code[259]",
+    "shallow_size": 111,
+    "shallow_size_percent": 0.026268148095559263
+  },
+  {
+    "name": "code[298]",
+    "shallow_size": 109,
+    "shallow_size_percent": 0.02579484812987351
+  },
+  {
+    "name": "code[309]",
+    "shallow_size": 109,
+    "shallow_size_percent": 0.02579484812987351
+  },
+  {
+    "name": "code[52]",
+    "shallow_size": 104,
+    "shallow_size_percent": 0.024611598215659128
+  },
+  {
+    "name": "code[93]",
+    "shallow_size": 104,
+    "shallow_size_percent": 0.024611598215659128
+  },
+  {
+    "name": "code[114]",
+    "shallow_size": 103,
+    "shallow_size_percent": 0.024374948232816253
+  },
+  {
+    "name": "code[129]",
+    "shallow_size": 103,
+    "shallow_size_percent": 0.024374948232816253
+  },
+  {
+    "name": "code[160]",
+    "shallow_size": 103,
+    "shallow_size_percent": 0.024374948232816253
+  },
+  {
+    "name": "code[294]",
+    "shallow_size": 102,
+    "shallow_size_percent": 0.024138298249973378
+  },
+  {
+    "name": "code[296]",
+    "shallow_size": 102,
+    "shallow_size_percent": 0.024138298249973378
+  },
+  {
+    "name": "code[138]",
+    "shallow_size": 101,
+    "shallow_size_percent": 0.023901648267130503
+  },
+  {
+    "name": "code[299]",
+    "shallow_size": 101,
+    "shallow_size_percent": 0.023901648267130503
+  },
+  {
+    "name": "code[99]",
+    "shallow_size": 98,
+    "shallow_size_percent": 0.02319169831860187
+  },
+  {
+    "name": "code[247]",
+    "shallow_size": 98,
+    "shallow_size_percent": 0.02319169831860187
+  },
+  {
+    "name": "code[321]",
+    "shallow_size": 98,
+    "shallow_size_percent": 0.02319169831860187
+  },
+  {
+    "name": "code[215]",
+    "shallow_size": 94,
+    "shallow_size_percent": 0.022245098387230367
+  },
+  {
+    "name": "code[22]",
+    "shallow_size": 91,
+    "shallow_size_percent": 0.02153514843870174
+  },
+  {
+    "name": "code[125]",
+    "shallow_size": 90,
+    "shallow_size_percent": 0.021298498455858864
+  },
+  {
+    "name": "code[251]",
+    "shallow_size": 89,
+    "shallow_size_percent": 0.021061848473015985
+  },
+  {
+    "name": "code[154]",
+    "shallow_size": 88,
+    "shallow_size_percent": 0.02082519849017311
+  },
+  {
+    "name": "code[128]",
+    "shallow_size": 85,
+    "shallow_size_percent": 0.02011524854164448
+  },
+  {
+    "name": "code[131]",
+    "shallow_size": 85,
+    "shallow_size_percent": 0.02011524854164448
+  },
+  {
+    "name": "code[164]",
+    "shallow_size": 85,
+    "shallow_size_percent": 0.02011524854164448
+  },
+  {
+    "name": "code[326]",
+    "shallow_size": 85,
+    "shallow_size_percent": 0.02011524854164448
+  },
+  {
+    "name": "code[327]",
+    "shallow_size": 85,
+    "shallow_size_percent": 0.02011524854164448
+  },
+  {
+    "name": "code[106]",
+    "shallow_size": 82,
+    "shallow_size_percent": 0.019405298593115853
+  },
+  {
+    "name": "code[211]",
+    "shallow_size": 82,
+    "shallow_size_percent": 0.019405298593115853
+  },
+  {
+    "name": "code[212]",
+    "shallow_size": 82,
+    "shallow_size_percent": 0.019405298593115853
+  },
+  {
+    "name": "code[213]",
+    "shallow_size": 82,
+    "shallow_size_percent": 0.019405298593115853
+  },
+  {
+    "name": "elem[0]",
+    "shallow_size": 81,
+    "shallow_size_percent": 0.019168648610272974
+  },
+  {
+    "name": "code[238]",
+    "shallow_size": 79,
+    "shallow_size_percent": 0.018695348644587224
+  },
+  {
+    "name": "code[275]",
+    "shallow_size": 79,
+    "shallow_size_percent": 0.018695348644587224
+  },
+  {
+    "name": "code[132]",
+    "shallow_size": 77,
+    "shallow_size_percent": 0.01822204867890147
+  },
+  {
+    "name": "code[155]",
+    "shallow_size": 77,
+    "shallow_size_percent": 0.01822204867890147
+  },
+  {
+    "name": "code[331]",
+    "shallow_size": 76,
+    "shallow_size_percent": 0.017985398696058596
+  },
+  {
+    "name": "code[30]",
+    "shallow_size": 75,
+    "shallow_size_percent": 0.01774874871321572
+  },
+  {
+    "name": "code[57]",
+    "shallow_size": 75,
+    "shallow_size_percent": 0.01774874871321572
+  },
+  {
+    "name": "code[173]",
+    "shallow_size": 74,
+    "shallow_size_percent": 0.017512098730372842
+  },
+  {
+    "name": "code[280]",
+    "shallow_size": 74,
+    "shallow_size_percent": 0.017512098730372842
+  },
+  {
+    "name": "code[295]",
+    "shallow_size": 72,
+    "shallow_size_percent": 0.01703879876468709
+  },
+  {
+    "name": "code[91]",
+    "shallow_size": 71,
+    "shallow_size_percent": 0.016802148781844214
+  },
+  {
+    "name": "code[197]",
+    "shallow_size": 71,
+    "shallow_size_percent": 0.016802148781844214
+  },
+  {
+    "name": "code[162]",
+    "shallow_size": 67,
+    "shallow_size_percent": 0.01585554885047271
+  },
+  {
+    "name": "code[245]",
+    "shallow_size": 67,
+    "shallow_size_percent": 0.01585554885047271
+  },
+  {
+    "name": "code[33]",
+    "shallow_size": 66,
+    "shallow_size_percent": 0.015618898867629833
+  },
+  {
+    "name": "code[105]",
+    "shallow_size": 65,
+    "shallow_size_percent": 0.015382248884786957
+  },
+  {
+    "name": "code[109]",
+    "shallow_size": 65,
+    "shallow_size_percent": 0.015382248884786957
+  },
+  {
+    "name": "code[55]",
+    "shallow_size": 64,
+    "shallow_size_percent": 0.01514559890194408
+  },
+  {
+    "name": "code[174]",
+    "shallow_size": 64,
+    "shallow_size_percent": 0.01514559890194408
+  },
+  {
+    "name": "code[103]",
+    "shallow_size": 62,
+    "shallow_size_percent": 0.014672298936258326
+  },
+  {
+    "name": "code[77]",
+    "shallow_size": 60,
+    "shallow_size_percent": 0.014198998970572575
+  },
+  {
+    "name": "code[124]",
+    "shallow_size": 60,
+    "shallow_size_percent": 0.014198998970572575
+  },
+  {
+    "name": "code[159]",
+    "shallow_size": 60,
+    "shallow_size_percent": 0.014198998970572575
+  },
+  {
+    "name": "code[163]",
+    "shallow_size": 60,
+    "shallow_size_percent": 0.014198998970572575
+  },
+  {
+    "name": "code[166]",
+    "shallow_size": 60,
+    "shallow_size_percent": 0.014198998970572575
+  },
+  {
+    "name": "code[241]",
+    "shallow_size": 60,
+    "shallow_size_percent": 0.014198998970572575
+  },
+  {
+    "name": "code[157]",
+    "shallow_size": 59,
+    "shallow_size_percent": 0.013962348987729698
+  },
+  {
+    "name": "code[161]",
+    "shallow_size": 59,
+    "shallow_size_percent": 0.013962348987729698
+  },
+  {
+    "name": "code[168]",
+    "shallow_size": 59,
+    "shallow_size_percent": 0.013962348987729698
+  },
+  {
+    "name": "code[148]",
+    "shallow_size": 55,
+    "shallow_size_percent": 0.013015749056358194
+  },
+  {
+    "name": "code[188]",
+    "shallow_size": 54,
+    "shallow_size_percent": 0.012779099073515317
+  },
+  {
+    "name": "code[47]",
+    "shallow_size": 53,
+    "shallow_size_percent": 0.01254244909067244
+  },
+  {
+    "name": "code[239]",
+    "shallow_size": 53,
+    "shallow_size_percent": 0.01254244909067244
+  },
+  {
+    "name": "code[227]",
+    "shallow_size": 52,
+    "shallow_size_percent": 0.012305799107829564
+  },
+  {
+    "name": "code[223]",
+    "shallow_size": 51,
+    "shallow_size_percent": 0.012069149124986689
+  },
+  {
+    "name": "code[301]",
+    "shallow_size": 51,
+    "shallow_size_percent": 0.012069149124986689
+  },
+  {
+    "name": "code[75]",
+    "shallow_size": 50,
+    "shallow_size_percent": 0.011832499142143812
+  },
+  {
+    "name": "code[141]",
+    "shallow_size": 50,
+    "shallow_size_percent": 0.011832499142143812
+  },
+  {
+    "name": "code[192]",
+    "shallow_size": 47,
+    "shallow_size_percent": 0.011122549193615184
+  },
+  {
+    "name": "code[195]",
+    "shallow_size": 47,
+    "shallow_size_percent": 0.011122549193615184
+  },
+  {
+    "name": "code[202]",
+    "shallow_size": 47,
+    "shallow_size_percent": 0.011122549193615184
+  },
+  {
+    "name": "code[204]",
+    "shallow_size": 47,
+    "shallow_size_percent": 0.011122549193615184
+  },
+  {
+    "name": "code[225]",
+    "shallow_size": 47,
+    "shallow_size_percent": 0.011122549193615184
+  },
+  {
+    "name": "code[308]",
+    "shallow_size": 47,
+    "shallow_size_percent": 0.011122549193615184
+  },
+  {
+    "name": "code[272]",
+    "shallow_size": 46,
+    "shallow_size_percent": 0.010885899210772307
+  },
+  {
+    "name": "code[274]",
+    "shallow_size": 46,
+    "shallow_size_percent": 0.010885899210772307
+  },
+  {
+    "name": "code[219]",
+    "shallow_size": 45,
+    "shallow_size_percent": 0.010649249227929432
+  },
+  {
+    "name": "code[26]",
+    "shallow_size": 44,
+    "shallow_size_percent": 0.010412599245086555
+  },
+  {
+    "name": "code[203]",
+    "shallow_size": 44,
+    "shallow_size_percent": 0.010412599245086555
+  },
+  {
+    "name": "code[73]",
+    "shallow_size": 43,
+    "shallow_size_percent": 0.010175949262243678
+  },
+  {
+    "name": "code[74]",
+    "shallow_size": 43,
+    "shallow_size_percent": 0.010175949262243678
+  },
+  {
+    "name": "code[310]",
+    "shallow_size": 43,
+    "shallow_size_percent": 0.010175949262243678
+  },
+  {
+    "name": "code[153]",
+    "shallow_size": 40,
+    "shallow_size_percent": 0.00946599931371505
+  },
+  {
+    "name": "code[290]",
+    "shallow_size": 40,
+    "shallow_size_percent": 0.00946599931371505
+  },
+  {
+    "name": "code[28]",
+    "shallow_size": 39,
+    "shallow_size_percent": 0.009229349330872173
+  },
+  {
+    "name": "export \"clearRemovedNodesretainingCapacity\"",
+    "shallow_size": 38,
+    "shallow_size_percent": 0.008992699348029298
+  },
+  {
+    "name": "code[54]",
+    "shallow_size": 38,
+    "shallow_size_percent": 0.008992699348029298
+  },
+  {
+    "name": "code[104]",
+    "shallow_size": 37,
+    "shallow_size_percent": 0.008756049365186421
+  },
+  {
+    "name": "code[297]",
+    "shallow_size": 37,
+    "shallow_size_percent": 0.008756049365186421
+  },
+  {
+    "name": "code[120]",
+    "shallow_size": 34,
+    "shallow_size_percent": 0.008046099416657793
+  },
+  {
+    "name": "import env::getLocalStorageStringWasm",
+    "shallow_size": 32,
+    "shallow_size_percent": 0.00757279945097204
+  },
+  {
+    "name": "import env::setLocalStorageStringWasm",
+    "shallow_size": 32,
+    "shallow_size_percent": 0.00757279945097204
+  },
+  {
+    "name": "import env::getWindowInformationWasm",
+    "shallow_size": 31,
+    "shallow_size_percent": 0.007336149468129163
+  },
+  {
+    "name": "code[140]",
+    "shallow_size": 30,
+    "shallow_size_percent": 0.007099499485286287
+  },
+  {
+    "name": "code[249]",
+    "shallow_size": 30,
+    "shallow_size_percent": 0.007099499485286287
+  },
+  {
+    "name": "import env::getLocalStorageU32Wasm",
+    "shallow_size": 29,
+    "shallow_size_percent": 0.006862849502443411
+  },
+  {
+    "name": "code[316]",
+    "shallow_size": 29,
+    "shallow_size_percent": 0.006862849502443411
+  },
+  {
+    "name": "code[318]",
+    "shallow_size": 29,
+    "shallow_size_percent": 0.006862849502443411
+  },
+  {
+    "name": "code[319]",
+    "shallow_size": 29,
+    "shallow_size_percent": 0.006862849502443411
+  },
+  {
+    "name": "import env::consoleLogColoredWasm",
+    "shallow_size": 28,
+    "shallow_size_percent": 0.0066261995196005355
+  },
+  {
+    "name": "export \"getTreeNodeChildrenCount\"",
+    "shallow_size": 28,
+    "shallow_size_percent": 0.0066261995196005355
+  },
+  {
+    "name": "code[121]",
+    "shallow_size": 28,
+    "shallow_size_percent": 0.0066261995196005355
+  },
+  {
+    "name": "export \"getTreeNodeChildCommand\"",
+    "shallow_size": 27,
+    "shallow_size_percent": 0.006389549536757659
+  },
+  {
+    "name": "export \"markCurrentTreeNotDirty\"",
+    "shallow_size": 27,
+    "shallow_size_percent": 0.006389549536757659
+  },
+  {
+    "name": "export \"ctxHooksMountedCallback\"",
+    "shallow_size": 27,
+    "shallow_size_percent": 0.006389549536757659
+  },
+  {
+    "name": "import env::createEventListener",
+    "shallow_size": 26,
+    "shallow_size_percent": 0.006152899553914782
+  },
+  {
+    "name": "import env::eventPreventDefault",
+    "shallow_size": 26,
+    "shallow_size_percent": 0.006152899553914782
+  },
+  {
+    "name": "import env::requestRerenderWasm",
+    "shallow_size": 26,
+    "shallow_size_percent": 0.006152899553914782
+  },
+  {
+    "name": "export \"getUiNodeChildrenCount\"",
+    "shallow_size": 26,
+    "shallow_size_percent": 0.006152899553914782
+  },
+  {
+    "name": "export \"pendingClassesToRemove\"",
+    "shallow_size": 26,
+    "shallow_size_percent": 0.006152899553914782
+  },
+  {
+    "name": "code[288]",
+    "shallow_size": 26,
+    "shallow_size_percent": 0.006152899553914782
+  },
+  {
+    "name": "export \"getGlobalVariablesPtr\"",
+    "shallow_size": 25,
+    "shallow_size_percent": 0.005916249571071906
+  },
+  {
+    "name": "export \"getGlobalVariablesLen\"",
+    "shallow_size": 25,
+    "shallow_size_percent": 0.005916249571071906
+  },
+  {
+    "name": "export \"hooksRemoveMountedKey\"",
+    "shallow_size": 25,
+    "shallow_size_percent": 0.005916249571071906
+  },
+  {
+    "name": "export \"markCurrentTreeDirty\"",
+    "shallow_size": 24,
+    "shallow_size_percent": 0.005679599588229029
+  },
+  {
+    "name": "export \"getRemovedNodeLength\"",
+    "shallow_size": 24,
+    "shallow_size_percent": 0.005679599588229029
+  },
+  {
+    "name": "export \"callRouteRenderCycle\"",
+    "shallow_size": 24,
+    "shallow_size_percent": 0.005679599588229029
+  },
+  {
+    "name": "export \"getRenderCommandSize\"",
+    "shallow_size": 24,
+    "shallow_size_percent": 0.005679599588229029
+  },
+  {
+    "name": "export \"timeoutCtxCallBackId\"",
+    "shallow_size": 24,
+    "shallow_size_percent": 0.005679599588229029
+  },
+  {
+    "name": "export \"hooksMountedCallback\"",
+    "shallow_size": 24,
+    "shallow_size_percent": 0.005679599588229029
+  },
+  {
+    "name": "export \"hooksCreatedCallback\"",
+    "shallow_size": 24,
+    "shallow_size_percent": 0.005679599588229029
+  },
+  {
+    "name": "export \"hooksUpdatedCallback\"",
+    "shallow_size": 24,
+    "shallow_size_percent": 0.005679599588229029
+  },
+  {
+    "name": "export \"hooksDestroyCallback\"",
+    "shallow_size": 24,
+    "shallow_size_percent": 0.005679599588229029
+  },
+  {
+    "name": "code[176]",
+    "shallow_size": 24,
+    "shallow_size_percent": 0.005679599588229029
+  },
+  {
+    "name": "import env::getEventDataWasm",
+    "shallow_size": 23,
+    "shallow_size_percent": 0.005442949605386153
+  },
+  {
+    "name": "export \"getRenderCommandPtr\"",
+    "shallow_size": 23,
+    "shallow_size_percent": 0.005442949605386153
+  },
+  {
+    "name": "export \"getRemovedNodeCount\"",
+    "shallow_size": 23,
+    "shallow_size_percent": 0.005442949605386153
+  },
+  {
+    "name": "export \"markUINodeTreeDirty\"",
+    "shallow_size": 23,
+    "shallow_size_percent": 0.005442949605386153
+  },
+  {
+    "name": "export \"getRemovedNodeIndex\"",
+    "shallow_size": 23,
+    "shallow_size_percent": 0.005442949605386153
+  },
+  {
+    "name": "export \"pendingClassesToAdd\"",
+    "shallow_size": 23,
+    "shallow_size_percent": 0.005442949605386153
+  },
+  {
+    "name": "export \"buttonCycleCallback\"",
+    "shallow_size": 23,
+    "shallow_size_percent": 0.005442949605386153
+  },
+  {
+    "name": "code[194]",
+    "shallow_size": 23,
+    "shallow_size_percent": 0.005442949605386153
+  },
+  {
+    "name": "import env::toggleThemeWasm",
+    "shallow_size": 22,
+    "shallow_size_percent": 0.0052062996225432775
+  },
+  {
+    "name": "import env::performance_now",
+    "shallow_size": 22,
+    "shallow_size_percent": 0.0052062996225432775
+  },
+  {
+    "name": "export \"getTooltipStyleLen\"",
+    "shallow_size": 22,
+    "shallow_size_percent": 0.0052062996225432775
+  },
+  {
+    "name": "export \"allocateLayoutInfo\"",
+    "shallow_size": 22,
+    "shallow_size_percent": 0.0052062996225432775
+  },
+  {
+    "name": "export \"resetGrainRerender\"",
+    "shallow_size": 22,
+    "shallow_size_percent": 0.0052062996225432775
+  },
+  {
+    "name": "export \"rerenderEverything\"",
+    "shallow_size": 22,
+    "shallow_size_percent": 0.0052062996225432775
+  },
+  {
+    "name": "export \"timeOutCtxCallback\"",
+    "shallow_size": 22,
+    "shallow_size_percent": 0.0052062996225432775
+  },
+  {
+    "name": "export \"getOnInputCallback\"",
+    "shallow_size": 22,
+    "shallow_size_percent": 0.0052062996225432775
+  },
+  {
+    "name": "export \"setRouteRenderTree\"",
+    "shallow_size": 22,
+    "shallow_size_percent": 0.0052062996225432775
+  },
+  {
+    "name": "code[23]",
+    "shallow_size": 22,
+    "shallow_size_percent": 0.0052062996225432775
+  },
+  {
+    "name": "code[152]",
+    "shallow_size": 22,
+    "shallow_size_percent": 0.0052062996225432775
+  },
+  {
+    "name": "code[276]",
+    "shallow_size": 22,
+    "shallow_size_percent": 0.0052062996225432775
+  },
+  {
+    "name": "code[277]",
+    "shallow_size": 22,
+    "shallow_size_percent": 0.0052062996225432775
+  },
+  {
+    "name": "code[278]",
+    "shallow_size": 22,
+    "shallow_size_percent": 0.0052062996225432775
+  },
+  {
+    "name": "import env::consoleLogWasm",
+    "shallow_size": 21,
+    "shallow_size_percent": 0.004969649639700402
+  },
+  {
+    "name": "export \"eventInstCallback\"",
+    "shallow_size": 21,
+    "shallow_size_percent": 0.004969649639700402
+  },
+  {
+    "name": "export \"checkBoxInputSize\"",
+    "shallow_size": 21,
+    "shallow_size_percent": 0.004969649639700402
+  },
+  {
+    "name": "export \"ctxButtonCallback\"",
+    "shallow_size": 21,
+    "shallow_size_percent": 0.004969649639700402
+  },
+  {
+    "name": "code[79]",
+    "shallow_size": 21,
+    "shallow_size_percent": 0.004969649639700402
+  },
+  {
+    "name": "code[209]",
+    "shallow_size": 21,
+    "shallow_size_percent": 0.004969649639700402
+  },
+  {
+    "name": "code[210]",
+    "shallow_size": 21,
+    "shallow_size_percent": 0.004969649639700402
+  },
+  {
+    "name": "code[214]",
+    "shallow_size": 21,
+    "shallow_size_percent": 0.004969649639700402
+  },
+  {
+    "name": "code[292]",
+    "shallow_size": 21,
+    "shallow_size_percent": 0.004969649639700402
+  },
+  {
+    "name": "export \"hookInstCallback\"",
+    "shallow_size": 20,
+    "shallow_size_percent": 0.004732999656857525
+  },
+  {
+    "name": "export \"getTreeNodeChild\"",
+    "shallow_size": 20,
+    "shallow_size_percent": 0.004732999656857525
+  },
+  {
+    "name": "export \"getBaseStylesLen\"",
+    "shallow_size": 20,
+    "shallow_size_percent": 0.004732999656857525
+  },
+  {
+    "name": "code[208]",
+    "shallow_size": 20,
+    "shallow_size_percent": 0.004732999656857525
+  },
+  {
+    "name": "import env::navigateWasm",
+    "shallow_size": 19,
+    "shallow_size_percent": 0.004496349674014649
+  },
+  {
+    "name": "import env::copyTextWasm",
+    "shallow_size": 19,
+    "shallow_size_percent": 0.004496349674014649
+  },
+  {
+    "name": "export \"getRenderTreePtr\"",
+    "shallow_size": 19,
+    "shallow_size_percent": 0.004496349674014649
+  },
+  {
+    "name": "export \"getTooltipStyle\"",
+    "shallow_size": 19,
+    "shallow_size_percent": 0.004496349674014649
+  },
+  {
+    "name": "export \"getCtxNodeChild\"",
+    "shallow_size": 19,
+    "shallow_size_percent": 0.004496349674014649
+  },
+  {
+    "name": "export \"setDirtyToFalse\"",
+    "shallow_size": 19,
+    "shallow_size_percent": 0.004496349674014649
+  },
+  {
+    "name": "export \"setRerenderTrue\"",
+    "shallow_size": 19,
+    "shallow_size_percent": 0.004496349674014649
+  },
+  {
+    "name": "export \"resumeExecution\"",
+    "shallow_size": 19,
+    "shallow_size_percent": 0.004496349674014649
+  },
+  {
+    "name": "export \"getAriaLabelLen\"",
+    "shallow_size": 19,
+    "shallow_size_percent": 0.004496349674014649
+  },
+  {
+    "name": "import env::removeClass",
+    "shallow_size": 18,
+    "shallow_size_percent": 0.004259699691171772
+  },
+  {
+    "name": "export \"getGlobalStyle\"",
+    "shallow_size": 18,
+    "shallow_size_percent": 0.004259699691171772
+  },
+  {
+    "name": "export \"getRemovedNode\"",
+    "shallow_size": 18,
+    "shallow_size_percent": 0.004259699691171772
+  },
+  {
+    "name": "export \"shouldRerender\"",
+    "shallow_size": 18,
+    "shallow_size_percent": 0.004259699691171772
+  },
+  {
+    "name": "export \"resumeCallback\"",
+    "shallow_size": 18,
+    "shallow_size_percent": 0.004259699691171772
+  },
+  {
+    "name": "export \"buttonCallback\"",
+    "shallow_size": 18,
+    "shallow_size_percent": 0.004259699691171772
+  },
+  {
+    "name": "code[107]",
+    "shallow_size": 18,
+    "shallow_size_percent": 0.004259699691171772
+  },
+  {
+    "name": "code[265]",
+    "shallow_size": 18,
+    "shallow_size_percent": 0.004259699691171772
+  },
+  {
+    "name": "import env::timeoutCtx",
+    "shallow_size": 17,
+    "shallow_size_percent": 0.004023049708328896
+  },
+  {
+    "name": "export \"getVisualStyle\"",
+    "shallow_size": 17,
+    "shallow_size_percent": 0.004023049708328896
+  },
+  {
+    "name": "export \"showScrollBar\"",
+    "shallow_size": 17,
+    "shallow_size_percent": 0.004023049708328896
+  },
+  {
+    "name": "export \"eventCallback\"",
+    "shallow_size": 17,
+    "shallow_size_percent": 0.004023049708328896
+  },
+  {
+    "name": "export \"getDirtyValue\"",
+    "shallow_size": 17,
+    "shallow_size_percent": 0.004023049708328896
+  },
+  {
+    "name": "export \"grainRerender\"",
+    "shallow_size": 17,
+    "shallow_size_percent": 0.004023049708328896
+  },
+  {
+    "name": "export \"resetRerender\"",
+    "shallow_size": 17,
+    "shallow_size_percent": 0.004023049708328896
+  },
+  {
+    "name": "export \"getBaseStyles\"",
+    "shallow_size": 17,
+    "shallow_size_percent": 0.004023049708328896
+  },
+  {
+    "name": "export \"textInputSize\"",
+    "shallow_size": 17,
+    "shallow_size_percent": 0.004023049708328896
+  },
+  {
+    "name": "code[45]",
+    "shallow_size": 17,
+    "shallow_size_percent": 0.004023049708328896
+  },
+  {
+    "name": "code[264]",
+    "shallow_size": 17,
+    "shallow_size_percent": 0.004023049708328896
+  },
+  {
+    "name": "export \"getVisualLen\"",
+    "shallow_size": 16,
+    "shallow_size_percent": 0.00378639972548602
+  },
+  {
+    "name": "code[72]",
+    "shallow_size": 16,
+    "shallow_size_percent": 0.00378639972548602
+  },
+  {
+    "name": "code[87]",
+    "shallow_size": 16,
+    "shallow_size_percent": 0.00378639972548602
+  },
+  {
+    "name": "code[323]",
+    "shallow_size": 16,
+    "shallow_size_percent": 0.00378639972548602
+  },
+  {
+    "name": "import env::addClass",
+    "shallow_size": 15,
+    "shallow_size_percent": 0.0035497497426431436
+  },
+  {
+    "name": "export \"getInputType\"",
+    "shallow_size": 15,
+    "shallow_size_percent": 0.0035497497426431436
+  },
+  {
+    "name": "export \"getInputSize\"",
+    "shallow_size": 15,
+    "shallow_size_percent": 0.0035497497426431436
+  },
+  {
+    "name": "export \"getAriaLabel\"",
+    "shallow_size": 15,
+    "shallow_size_percent": 0.0035497497426431436
+  },
+  {
+    "name": "export \"getStyleLen\"",
+    "shallow_size": 15,
+    "shallow_size_percent": 0.0035497497426431436
+  },
+  {
+    "name": "code[78]",
+    "shallow_size": 15,
+    "shallow_size_percent": 0.0035497497426431436
+  },
+  {
+    "name": "code[271]",
+    "shallow_size": 15,
+    "shallow_size_percent": 0.0035497497426431436
+  },
+  {
+    "name": "export \"instantiate\"",
+    "shallow_size": 14,
+    "shallow_size_percent": 0.0033130997598002677
+  },
+  {
+    "name": "export \"createInput\"",
+    "shallow_size": 14,
+    "shallow_size_percent": 0.0033130997598002677
+  },
+  {
+    "name": "export \"allocUint8\"",
+    "shallow_size": 14,
+    "shallow_size_percent": 0.0033130997598002677
+  },
+  {
+    "name": "code[18]",
+    "shallow_size": 14,
+    "shallow_size_percent": 0.0033130997598002677
+  },
+  {
+    "name": "export \"getCSSLen\"",
+    "shallow_size": 13,
+    "shallow_size_percent": 0.003076449776957391
+  },
+  {
+    "name": "code[252]",
+    "shallow_size": 13,
+    "shallow_size_percent": 0.003076449776957391
+  },
+  {
+    "name": "code[253]",
+    "shallow_size": 13,
+    "shallow_size_percent": 0.003076449776957391
+  },
+  {
+    "name": "code[254]",
+    "shallow_size": 13,
+    "shallow_size_percent": 0.003076449776957391
+  },
+  {
+    "name": "code[255]",
+    "shallow_size": 13,
+    "shallow_size_percent": 0.003076449776957391
+  },
+  {
+    "name": "code[256]",
+    "shallow_size": 13,
+    "shallow_size_percent": 0.003076449776957391
+  },
+  {
+    "name": "code[270]",
+    "shallow_size": 13,
+    "shallow_size_percent": 0.003076449776957391
+  },
+  {
+    "name": "code[285]",
+    "shallow_size": 13,
+    "shallow_size_percent": 0.003076449776957391
+  },
+  {
+    "name": "code[287]",
+    "shallow_size": 13,
+    "shallow_size_percent": 0.003076449776957391
+  },
+  {
+    "name": "code[303]",
+    "shallow_size": 13,
+    "shallow_size_percent": 0.003076449776957391
+  },
+  {
+    "name": "code[307]",
+    "shallow_size": 13,
+    "shallow_size_percent": 0.003076449776957391
+  },
+  {
+    "name": "export \"renderUI\"",
+    "shallow_size": 12,
+    "shallow_size_percent": 0.0028397997941145147
+  },
+  {
+    "name": "export \"hasDirty\"",
+    "shallow_size": 12,
+    "shallow_size_percent": 0.0028397997941145147
+  },
+  {
+    "name": "export \"callback\"",
+    "shallow_size": 12,
+    "shallow_size_percent": 0.0028397997941145147
+  },
+  {
+    "name": "export \"allocate\"",
+    "shallow_size": 12,
+    "shallow_size_percent": 0.0028397997941145147
+  },
+  {
+    "name": "code[205]",
+    "shallow_size": 12,
+    "shallow_size_percent": 0.0028397997941145147
+  },
+  {
+    "name": "code[268]",
+    "shallow_size": 12,
+    "shallow_size_percent": 0.0028397997941145147
+  },
+  {
+    "name": "code[273]",
+    "shallow_size": 12,
+    "shallow_size_percent": 0.0028397997941145147
+  },
+  {
+    "name": "code[325]",
+    "shallow_size": 12,
+    "shallow_size_percent": 0.0028397997941145147
+  },
+  {
+    "name": "type[16]: (i32, i32, i32, i32, i32, i32, i32, i32) -> nil",
+    "shallow_size": 11,
+    "shallow_size_percent": 0.0026031498112716388
+  },
+  {
+    "name": "export \"getStyle\"",
+    "shallow_size": 11,
+    "shallow_size_percent": 0.0026031498112716388
+  },
+  {
+    "name": "export \"cleanUp\"",
+    "shallow_size": 11,
+    "shallow_size_percent": 0.0026031498112716388
+  },
+  {
+    "name": "code section headers",
+    "shallow_size": 11,
+    "shallow_size_percent": 0.0026031498112716388
+  },
+  {
+    "name": "type[3]: (i32, i32, i32, i32, i32, i32) -> i32",
+    "shallow_size": 10,
+    "shallow_size_percent": 0.0023664998284287624
+  },
+  {
+    "name": "export \"getCSS\"",
+    "shallow_size": 10,
+    "shallow_size_percent": 0.0023664998284287624
+  },
+  {
+    "name": "code[151]",
+    "shallow_size": 10,
+    "shallow_size_percent": 0.0023664998284287624
+  },
+  {
+    "name": "code[269]",
+    "shallow_size": 10,
+    "shallow_size_percent": 0.0023664998284287624
+  },
+  {
+    "name": "code[281]",
+    "shallow_size": 10,
+    "shallow_size_percent": 0.0023664998284287624
+  },
+  {
+    "name": "code[289]",
+    "shallow_size": 10,
+    "shallow_size_percent": 0.0023664998284287624
+  },
+  {
+    "name": "code[302]",
+    "shallow_size": 10,
+    "shallow_size_percent": 0.0023664998284287624
+  },
+  {
+    "name": "type[17]: (i32, i32, i32, i32, i32, i32) -> nil",
+    "shallow_size": 9,
+    "shallow_size_percent": 0.002129849845585886
+  },
+  {
+    "name": "type[25]: (i32, i64, i64, i64, i64, i32) -> nil",
+    "shallow_size": 9,
+    "shallow_size_percent": 0.002129849845585886
+  },
+  {
+    "name": "export \"memory\"",
+    "shallow_size": 9,
+    "shallow_size_percent": 0.002129849845585886
+  },
+  {
+    "name": "export \"_start\"",
+    "shallow_size": 9,
+    "shallow_size_percent": 0.002129849845585886
+  },
+  {
+    "name": "code[263]",
+    "shallow_size": 9,
+    "shallow_size_percent": 0.002129849845585886
+  },
+  {
+    "name": "code[267]",
+    "shallow_size": 9,
+    "shallow_size_percent": 0.002129849845585886
+  },
+  {
+    "name": "wasm magic bytes",
+    "shallow_size": 8,
+    "shallow_size_percent": 0.00189319986274301
+  },
+  {
+    "name": "type[0]: (i32, i32, i32, i32) -> i32",
+    "shallow_size": 8,
+    "shallow_size_percent": 0.00189319986274301
+  },
+  {
+    "name": "type[2]: (i32, i32, i32, i32, i32) -> nil",
+    "shallow_size": 8,
+    "shallow_size_percent": 0.00189319986274301
+  },
+  {
+    "name": "type[24]: (i32, i64, i64, i64, i64) -> nil",
+    "shallow_size": 8,
+    "shallow_size_percent": 0.00189319986274301
+  },
+  {
+    "name": "type[26]: (i64, i64, i64, i32) -> i64",
+    "shallow_size": 8,
+    "shallow_size_percent": 0.00189319986274301
+  },
+  {
+    "name": "global[0]",
+    "shallow_size": 8,
+    "shallow_size_percent": 0.00189319986274301
+  },
+  {
+    "name": "type[8]: (i32, i32, i32) -> i32",
+    "shallow_size": 7,
+    "shallow_size_percent": 0.0016565498799001339
+  },
+  {
+    "name": "type[10]: (i32, i32, i32, i32) -> nil",
+    "shallow_size": 7,
+    "shallow_size_percent": 0.0016565498799001339
+  },
+  {
+    "name": "type[19]: (i32, i64, i32, i32) -> nil",
+    "shallow_size": 7,
+    "shallow_size_percent": 0.0016565498799001339
+  },
+  {
+    "name": "type[20]: (i64, i32, i32) -> i64",
+    "shallow_size": 7,
+    "shallow_size_percent": 0.0016565498799001339
+  },
+  {
+    "name": "type[23]: (i32, i64, i64, i32) -> nil",
+    "shallow_size": 7,
+    "shallow_size_percent": 0.0016565498799001339
+  },
+  {
+    "name": "code[282]",
+    "shallow_size": 7,
+    "shallow_size_percent": 0.0016565498799001339
+  },
+  {
+    "name": "code[306]",
+    "shallow_size": 7,
+    "shallow_size_percent": 0.0016565498799001339
+  },
+  {
+    "name": "type[4]: (i32, i32, i32) -> nil",
+    "shallow_size": 6,
+    "shallow_size_percent": 0.0014198998970572573
+  },
+  {
+    "name": "type[7]: (i32, i32) -> i32",
+    "shallow_size": 6,
+    "shallow_size_percent": 0.0014198998970572573
+  },
+  {
+    "name": "type[12]: (i32, i32) -> i64",
+    "shallow_size": 6,
+    "shallow_size_percent": 0.0014198998970572573
+  },
+  {
+    "name": "type[21]: (i64, i32) -> i32",
+    "shallow_size": 6,
+    "shallow_size_percent": 0.0014198998970572573
+  },
+  {
+    "name": "code[184]",
+    "shallow_size": 6,
+    "shallow_size_percent": 0.0014198998970572573
+  },
+  {
+    "name": "code[185]",
+    "shallow_size": 6,
+    "shallow_size_percent": 0.0014198998970572573
+  },
+  {
+    "name": "code[257]",
+    "shallow_size": 6,
+    "shallow_size_percent": 0.0014198998970572573
+  },
+  {
+    "name": "code[258]",
+    "shallow_size": 6,
+    "shallow_size_percent": 0.0014198998970572573
+  },
+  {
+    "name": "code[283]",
+    "shallow_size": 6,
+    "shallow_size_percent": 0.0014198998970572573
+  },
+  {
+    "name": "code[286]",
+    "shallow_size": 6,
+    "shallow_size_percent": 0.0014198998970572573
+  },
+  {
+    "name": "code[293]",
+    "shallow_size": 6,
+    "shallow_size_percent": 0.0014198998970572573
+  },
+  {
+    "name": "code[305]",
+    "shallow_size": 6,
+    "shallow_size_percent": 0.0014198998970572573
+  },
+  {
+    "name": "type[6]: (i32, i32) -> nil",
+    "shallow_size": 5,
+    "shallow_size_percent": 0.0011832499142143812
+  },
+  {
+    "name": "type[13]: (f32, f32) -> nil",
+    "shallow_size": 5,
+    "shallow_size_percent": 0.0011832499142143812
+  },
+  {
+    "name": "type[14]: (i32) -> i32",
+    "shallow_size": 5,
+    "shallow_size_percent": 0.0011832499142143812
+  },
+  {
+    "name": "type[15]: (i32) -> i64",
+    "shallow_size": 5,
+    "shallow_size_percent": 0.0011832499142143812
+  },
+  {
+    "name": "type[18]: (i32, f32) -> nil",
+    "shallow_size": 5,
+    "shallow_size_percent": 0.0011832499142143812
+  },
+  {
+    "name": "type[22]: (i64) -> i32",
+    "shallow_size": 5,
+    "shallow_size_percent": 0.0011832499142143812
+  },
+  {
+    "name": "data section headers",
+    "shallow_size": 5,
+    "shallow_size_percent": 0.0011832499142143812
+  },
+  {
+    "name": "type[5]: (i32) -> nil",
+    "shallow_size": 4,
+    "shallow_size_percent": 0.000946599931371505
+  },
+  {
+    "name": "type[9]: () -> i32",
+    "shallow_size": 4,
+    "shallow_size_percent": 0.000946599931371505
+  },
+  {
+    "name": "type[11]: () -> f64",
+    "shallow_size": 4,
+    "shallow_size_percent": 0.000946599931371505
+  },
+  {
+    "name": "type section headers",
+    "shallow_size": 4,
+    "shallow_size_percent": 0.000946599931371505
+  },
+  {
+    "name": "import section headers",
+    "shallow_size": 4,
+    "shallow_size_percent": 0.000946599931371505
+  },
+  {
+    "name": "table[0]",
+    "shallow_size": 4,
+    "shallow_size_percent": 0.000946599931371505
+  },
+  {
+    "name": "export section headers",
+    "shallow_size": 4,
+    "shallow_size_percent": 0.000946599931371505
+  },
+  {
+    "name": "code[284]",
+    "shallow_size": 4,
+    "shallow_size_percent": 0.000946599931371505
+  },
+  {
+    "name": "type[1]: () -> nil",
+    "shallow_size": 3,
+    "shallow_size_percent": 0.0007099499485286287
+  },
+  {
+    "name": "table section headers",
+    "shallow_size": 3,
+    "shallow_size_percent": 0.0007099499485286287
+  },
+  {
+    "name": "memory section headers",
+    "shallow_size": 3,
+    "shallow_size_percent": 0.0007099499485286287
+  },
+  {
+    "name": "global section headers",
+    "shallow_size": 3,
+    "shallow_size_percent": 0.0007099499485286287
+  },
+  {
+    "name": "element section headers",
+    "shallow_size": 3,
+    "shallow_size_percent": 0.0007099499485286287
+  },
+  {
+    "name": "memory[0]",
+    "shallow_size": 2,
+    "shallow_size_percent": 0.0004732999656857525
+  }
+]

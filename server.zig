@@ -235,13 +235,12 @@ pub fn mimeForPath(path: []const u8) []const u8 {
     return "text/html; charset=utf8";
 }
 
+var buffer: [2097152]u8 = undefined;
 pub fn openLocalFile(conn: std.net.Server.Connection, mime: []const u8, mimetype: []const u8, content_encoding: []const u8) !void {
     var allocator = std.heap.page_allocator;
     var path: []const u8 = "/index.html";
     if (mime.len > 1) {
         if (std.mem.indexOf(u8, mime, ".wasm") != null) {
-            path = mime;
-        } else if (std.mem.indexOf(u8, mime, ".br") != null) {
             path = mime;
         } else if (std.mem.indexOf(u8, mime, ".ico") != null) {
             path = "/favicon.ico";
@@ -255,12 +254,15 @@ pub fn openLocalFile(conn: std.net.Server.Connection, mime: []const u8, mimetype
             path = mime;
         } else if (std.mem.indexOf(u8, mime, ".txt") != null) {
             path = mime;
+        } else if (std.mem.indexOf(u8, mime, ".woff") != null) {
+            path = mime;
         } else if (std.mem.indexOf(u8, mime, ".woff2") != null) {
             path = mime;
         } else {
             path = "/index.html";
         }
     }
+
     var encoding: []const u8 = "";
     if (content_encoding.len > 1 and std.mem.eql(u8, mimetype, "application/wasm")) {
         if (std.mem.indexOf(u8, content_encoding, "br") != null) {
@@ -271,19 +273,15 @@ pub fn openLocalFile(conn: std.net.Server.Connection, mime: []const u8, mimetype
             path = "/zig-out/bin/fabric-optimized.wasm.gzip";
         }
     }
+
     const file_cwd = try std.fmt.allocPrint(allocator, ".{s}", .{path});
     const cwd = std.fs.cwd();
-    var file = cwd.openFile(file_cwd, .{}) catch |err| blk: {
-        std.debug.print("Error opening file: {} {s}\n", .{ err, file_cwd });
-        encoding = "";
-        const default_file = cwd.openFile("./zig-out/bin/fabric-optimized.wasm", .{}) catch |default_err| {
-            std.debug.print("Default Error opening file: {}\n", .{default_err});
-            return;
-        };
-        break :blk default_file;
+    var file = cwd.openFile(file_cwd, .{}) catch {
+        // std.debug.print("Error opening file: {}\n", .{err});
+        return;
     }; // Get file size
-
     const file_size = try file.getEndPos();
+
     // Read the entire file
     const contents = try file.readToEndAlloc(allocator, file_size);
     defer allocator.free(contents);
@@ -294,13 +292,18 @@ pub fn openLocalFile(conn: std.net.Server.Connection, mime: []const u8, mimetype
         "Access-Control-Allow-Origin: *\r\n" ++
         "Access-Control-Allow-Methods: GET, POST, OPTIONS\r\n" ++
         "Access-Control-Allow-Headers: Content-Type, Authorization\r\n" ++
+        "Cache-Control: public, max-age=31536000, immutable\r\n" ++
         "Content-Type: {s}\r\n" ++
         "Content-Encoding: {s}\r\n" ++
         "Content-Length: {}\r\n" ++
         "\r\n" ++
         "{s}";
     const response = try std.fmt.allocPrint(allocator, httpHead, .{ mimetype, encoding, contents.len, contents });
-    _ = try conn.stream.writer().write(response);
+    var writer = conn.stream.writer(&buffer);
+    var source = &writer.interface;
+    // var writer = &conn.stream.writer(&.{}).interface;
+    _ = try source.write(response);
+    source.flush() catch {};
 }
 
 var global_writer: *std.net.Server.Connection = undefined;

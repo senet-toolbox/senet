@@ -1,16 +1,16 @@
 const Fabric = @import("fabric");
-const Style = Fabric.Style;
 const Page = Fabric.Page;
 
 // Page Initialization
 pub fn init() void {
-    Page(@src(), render, deinit, Style{
-        .background = .hex("#ffffff"),
-    });
+    Page(@src(), render, deinit);
 }
 
 // Page Deinitialization
-pub fn deinit() void {}
+pub fn deinit() void {
+    Fabric.println("I get called when you navigate away from this page", .{});
+}
 
-// Render Root of the Page
-pub fn render() void {}
+pub fn render() void {
+    Fabric.println("I get rendered when you navigate to this page", .{});
+}

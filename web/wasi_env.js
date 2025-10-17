@@ -13,6 +13,10 @@ export const importObject = {
       view.setBigUint64(resultPtr, now, true);
       return 0;
     },
+    path_open: () => {
+      console.warn("path_open() called but not implemented in browser");
+      return 0; // WASI return code for OK (or adjust as needed)
+    },
     poll_oneoff: async (
       inSubscriptionsPtr,
       outEventsPtr,

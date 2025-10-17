@@ -2,25 +2,25 @@ const std = @import("std");
 const Fabric = @import("fabric");
 const Static = Fabric.Static;
 const Pure = Fabric.Pure;
-const Chain = Fabric.Chain;
-const ChainClose = Fabric.ChainClose;
-const ChainPure = Pure.Chain;
-const ChainPureClose = Pure.ChainClose;
-const CtxButton = Chain.CtxButton;
-const Box = Chain.Box;
-const Icon = ChainPureClose.Icon;
-const Text = ChainClose.Text;
+const CtxButton = Static.CtxButton;
+const Box = Static.Box;
+const Graphic = Static.Graphic;
+const Icon = Pure.Icon;
+const Text = Static.Text;
 const theme = @import("theme");
+const Color = Fabric.Types.Color;
 // const code = @import("code/FormCode.zig").code;
 
 const Signal = Fabric.Signal;
 
 const NewLine = struct {
     processed_text: []TextDetails = undefined,
+    is_removed: bool = false,
+    is_added: bool = false,
 };
 
 const TextDetails = struct {
-    color: [4]u8 = Fabric.hexToRgba("#F6F5FB"),
+    color: Color = .palette(.code_text_color),
     text: []const u8 = "",
 };
 
@@ -28,7 +28,7 @@ var text_color: [4]f32 = undefined;
 
 const CodeEditor = @This();
 allocator: *std.mem.Allocator = undefined,
-processed_lines: std.array_list.Managed(NewLine) ,
+processed_lines: std.array_list.Managed(NewLine),
 // show_cpy_btn: Signal(bool) = undefined,
 show_cpy_btn: bool = false,
 local_copy_code: []const u8 = undefined,
@@ -86,16 +86,16 @@ pub fn deinit(code_editor: *CodeEditor) void {
 
 pub inline fn Code() fn (void) void {
     const elem_decl = Fabric.ElementDecl{
-        .dynamic = .static,
+        .state_type = .static,
         .elem_type = .Code,
+        // .style = &.{},
     };
     _ = Fabric.LifeCycle.open(elem_decl);
     Fabric.LifeCycle.configure(elem_decl);
     return Fabric.LifeCycle.close;
 }
-
 pub fn render(code_editor: *CodeEditor, _: f32) void {
-    ChainPure.Box.style(&.{
+    Box.style(&.{
         .size = .square_percent(100),
         .scroll = .scroll_y(),
         .show_scrollbar = false,
@@ -103,78 +103,121 @@ pub fn render(code_editor: *CodeEditor, _: f32) void {
         .layout = .{ .x = .start, .y = .start },
         .visual = .{
             .background = .palette(.code_background),
-            .border_radius = .all(8),
+            // .border_radius = .all(8),
         },
         .padding = .tb(10, 10),
     })({
         Box.style(&.{
             .layout = .x_between_center,
             .size = .w(.percent(100)),
-            .padding = .horizontal(12),
+            .padding = .tblr(0, 8, 12, 12),
+            .visual = .{
+                .border = .bottom(.palette(.disabled)),
+            },
         })({
             Box.style(&.{
                 .size = .h(.percent(100)),
                 .child_gap = 8,
             })({
-                Box.style(&.{
-                    .size = .square_px(14),
-                    .visual = .{ .border_radius = .all(99), .background = .hex("#FF0000") },
-                })({});
-                Box.style(&.{
-                    .size = .square_px(14),
-                    .visual = .{ .border_radius = .all(99), .background = .hex("#FFFF00") },
-                })({});
-                Box.style(&.{
-                    .size = .square_px(14),
-                    .visual = .{ .border_radius = .all(99), .background = .hex("#09FF00") },
-                })({});
+                // Box.style(&.{
+                //     .size = .square_px(14),
+                //     .visual = .{ .border_radius = .all(0), .background = .hex("#FF0000") },
+                // })({});
+                // Box.style(&.{
+                //     .size = .square_px(14),
+                //     .visual = .{ .border_radius = .all(0), .background = .hex("#FFFF00") },
+                // })({});
+                // Box.style(&.{
+                //     .size = .square_px(14),
+                //     .visual = .{ .border_radius = .all(0), .background = .hex("#09FF00") },
+                // })({});
+                Text("Example").font(14, 600, .palette(.text_color)).close();
             });
-            CtxButton(copy, .{code_editor}).style(&.{
-                .size = .square_px(22),
-                .transition = .{ .duration = 100 },
-                .visual = .{
-                    .border_radius = .all(4),
-                    .background = .transparent,
-                },
-                .interactive = .hover_text(.white),
-                .layout = .center,
-                .cursor = .pointer,
+            Box.style(&.{
+                .size = .w(.percent(10)),
+                .layout = .x_even_center,
             })({
-                if (!code_editor.show_cpy_btn) {
-                    Icon("bi bi-clipboard").style(&.{
-                        .visual = .{ .font_size = 16, .text_color = .hex("#cccccc") },
-                        .transition = .{ .duration = 300 },
-                        .interactive = .hover_text(.hex("#ffffff")),
-                    });
-                } else {
-                    Icon("bi bi-check").style(&.{
-                        .visual = .{ .font_size = 16, .text_color = .hex("#cccccc") },
-                        .transition = .{ .duration = 300 },
-                        .interactive = .hover_text(.hex("#ffffff")),
-                    });
-                }
-            });
-        });
-        Code()({
-            for (code_editor.processed_lines.items) |line| {
-                Box.style(&.{
-                    .size = .h(.px(20)),
-                    .white_space = .pre,
-                    .layout = .left_center,
-                    .padding = .l(30),
+                CtxButton(copy, .{code_editor})
+                    // .tooltip(&.{
+                    //     .text = "Copy",
+                    //     .position = .bottom,
+                    //     .layout = .center,
+                    //     .color = .palette(.text_color),
+                    //     .delay = 100,
+                    // })
+                    .style(&.{
+                    .position = .relative,
+                    .size = .square_px(22),
+                    .transition = .{ .duration = 100 },
+                    .visual = .{
+                        .border_radius = .all(4),
+                        .background = .transparent,
+                        .text_color = .palette(.disabled),
+                        .cursor = .pointer,
+                    },
+                    .interactive = .{
+                        .hover = .{ .text_color = .palette(.text_color) },
+                    },
+                    .layout = .center,
                 })({
-                    for (line.processed_text) |word| {
-                        Text(word.text).style(&.{
-                            .visual = .{
-                                .font_size = if (Fabric.isMobile()) 16 else 18,
-                                .font_weight = 500,
-                                .text_color = .rgb(word.color[0], word.color[1], word.color[2]),
-                            },
-                            .font_family = "JetBrains Mono,Fira Code,Consolas,monospace",
+                    if (!code_editor.show_cpy_btn) {
+                        Icon(.clipboard).style(&.{
+                            .visual = .{ .font_size = 16 },
+                        });
+                    } else {
+                        Icon(.check).style(&.{
+                            .visual = .{ .font_size = 16 },
                         });
                     }
                 });
-            }
+                // Icon("bi bi-code").style(&.{
+                //     .visual = .{
+                //         .font_size = 16,
+                //         .text_color = .palette(.disabled),
+                //     },
+                // });
+                Graphic(.{ .src = "/src/assets/zig_simple.svg" }).style(&.{
+                    .size = .{ .height = .px(16), .width = .px(16) },
+                    .visual = .{ .text_color = .palette(.tint) },
+                });
+            });
+        });
+        Box.style(&.{
+            .size = .square_percent(100),
+            .scroll = .scroll_x(),
+            .direction = .column,
+            .layout = .{ .x = .start, .y = .start },
+            .padding = .tb(10, 10),
+        })({
+            Code()({
+                for (code_editor.processed_lines.items) |line| {
+                    const color = if (line.is_removed) blk: {
+                        break :blk Fabric.Types.Background.transparentizeHex(.hex("#FF0000"), 0.1);
+                    } else if (line.is_added) blk: {
+                        break :blk Fabric.Types.Background.transparentizeHex(.hex("#00FF00"), 0.1);
+                    } else blk: {
+                        break :blk Fabric.Types.Background.transparent;
+                    };
+                    Box.style(&.{
+                        .size = .h(.px(20)),
+                        .white_space = .pre,
+                        .layout = .left_center,
+                        .padding = .l(24),
+                        .visual = .{ .background = color },
+                        .font_family = "JetBrains Mono,Fira Code,Consolas,monospace",
+                    })({
+                        for (line.processed_text) |word| {
+                            Text(word.text).style(&.{
+                                .visual = .{
+                                    .font_size = if (Fabric.isMobile()) 16 else 16,
+                                    .font_weight = 500,
+                                    .text_color = word.color,
+                                },
+                            });
+                        }
+                    });
+                }
+            });
         });
     });
 }
@@ -233,6 +276,8 @@ fn parseSubText(allocator: *std.mem.Allocator, processed_text: *std.array_list.M
                 appendPeriod(processed_text) catch return;
             } else if (count == 1 and period_itr.peek() == null) {
                 appendPeriod(processed_text) catch return;
+            } else if (sub_text[0] == '.') {
+                appendPeriod(processed_text) catch return;
             }
             var text_deets = TextDetails{};
             if (sub_slice[0] == '@') {
@@ -246,9 +291,8 @@ fn parseSubText(allocator: *std.mem.Allocator, processed_text: *std.array_list.M
             const includes_close_bracket = std.mem.indexOf(u8, sub_slice, ")");
             // Here we check if the subslice contains the open bracket and its not the first one
             if (includes_bracket != null and includes_bracket != 0 and includes_close_bracket != null and count_bracket_open == count_bracket_closed and containsAlphabetic(sub_slice)) {
-                // Fabric.println("Found bracket () {s}", .{sub_slice});
                 var split = std.mem.splitScalar(u8, sub_slice, '(');
-                text_deets.color = Fabric.hexToRgba("#E5FF54");
+                text_deets.color = .palette(.code_function_color);
                 text_deets.text = try std.fmt.allocPrint(allocator.*, "{s}", .{split.next().?});
                 var text_deets_second = TextDetails{};
                 const result_sec = try std.fmt.allocPrint(allocator.*, "({s}", .{split.next().?});
@@ -256,9 +300,8 @@ fn parseSubText(allocator: *std.mem.Allocator, processed_text: *std.array_list.M
                 try processed_text.append(text_deets);
                 try processed_text.append(text_deets_second);
             } else if (includes_bracket != null and includes_bracket != 0 and containsAlphabetic(sub_slice)) {
-                // Fabric.println("Found bracket {s}", .{sub_slice});
                 var split = std.mem.splitScalar(u8, sub_slice, '(');
-                text_deets.color = Fabric.hexToRgba("#E5FF54");
+                text_deets.color = .palette(.code_function_color);
                 text_deets.text = try std.fmt.allocPrint(allocator.*, "{s}", .{split.next().?});
                 try processed_text.append(text_deets);
                 while (split.next()) |sub_sub_slice| {
@@ -272,11 +315,11 @@ fn parseSubText(allocator: *std.mem.Allocator, processed_text: *std.array_list.M
                 text_deets.text = try std.fmt.allocPrint(allocator.*, "{s}", .{sub_slice});
                 try processed_text.append(text_deets);
             } else if (includes(sub_slice, "Box")) {
-                text_deets.color = Fabric.hexToRgba("#E5FF54");
+                // text_deets.color = Fabric.hexToRgba("#E5FF54");
                 text_deets.text = try std.fmt.allocPrint(allocator.*, "{s}", .{sub_slice});
                 try processed_text.append(text_deets);
             } else if (includes(sub_slice, "Text")) {
-                text_deets.color = Fabric.hexToRgba("#E5FF54");
+                // text_deets.color = Fabric.hexToRgba("#E5FF54");
                 text_deets.text = try std.fmt.allocPrint(allocator.*, "{s}", .{sub_slice});
                 try processed_text.append(text_deets);
             } else {
@@ -308,7 +351,7 @@ fn parseSubText(allocator: *std.mem.Allocator, processed_text: *std.array_list.M
                     text_deets.text = try std.fmt.allocPrint(allocator.*, ".{s}", .{sub_slice});
                     period_counter += 1;
                 } else {
-                    text_deets.color = .{ 184, 187, 221, 255 };
+                    // text_deets.color = .{ 184, 187, 221, 255 };
                     text_deets.text = try std.fmt.allocPrint(allocator.*, "{s}", .{sub_slice});
                 }
             } else {
@@ -347,7 +390,6 @@ pub fn tokenize(code_editor: *CodeEditor, text: []const u8) !void {
         var word_itr = std.mem.tokenizeScalar(u8, line, ' ');
         const brace_open_count: usize = @intCast(std.mem.count(u8, line, "{"));
         const brace_close_count: usize = @intCast(std.mem.count(u8, line, "}"));
-
         //
         if (line.len == 0) {
             var text_deets = TextDetails{};
@@ -367,13 +409,14 @@ pub fn tokenize(code_editor: *CodeEditor, text: []const u8) !void {
             var text_deets = TextDetails{};
 
             var buf = std.array_list.Managed(u8).init(allocator.*);
-            if (first_word and word_itr.peek() == null and depth > 0) {
+            if (first_word and word_itr.peek() == null and depth > 0 and !containsAlphabetic(word)) {
                 depth -= 1;
                 try buf.appendNTimes(' ', @intCast(depth * 4));
                 depth += 1;
             } else if (first_word and depth > 0) {
                 try buf.appendNTimes(' ', @intCast(depth * 4));
             }
+
             first_word = false;
             const padding = try buf.toOwnedSlice();
             const result = try std.fmt.allocPrint(allocator.*, "{s}{s} ", .{ padding, word });
@@ -382,35 +425,18 @@ pub fn tokenize(code_editor: *CodeEditor, text: []const u8) !void {
             if (!is_comment) {
                 if (is_decl) |decl| {
                     switch (decl) {
-                        Declarations.@"const" => {
-                            text_deets.color = Fabric.hexToRgba("#858C60");
-                        },
-                        Declarations.@"var" => {
-                            text_deets.color = Fabric.hexToRgba("#E5FF54");
-                        },
-                        Declarations.@"defer" => {
-                            text_deets.color = Fabric.hexToRgba("#E5FF54");
-                        },
-                        Declarations.@"while" => {
-                            text_deets.color = Fabric.hexToRgba("#E5FF54");
-                        },
-                        Declarations.@"fn" => {
-                            text_deets.color = Fabric.hexToRgba("#858C60");
-                        },
-                        Declarations.@"switch" => {
-                            text_deets.color = Fabric.hexToRgba("#E5FF54");
-                        },
-                        Declarations.@"try" => {
-                            text_deets.color = Fabric.hexToRgba("#E5FF54");
-                        },
-                        Declarations.@"if" => {
-                            text_deets.color = Fabric.hexToRgba("#E5FF54");
-                        },
-                        Declarations.@"else" => {
-                            text_deets.color = Fabric.hexToRgba("#E5FF54");
-                        },
-                        Declarations.@"pub" => {
-                            text_deets.color = Fabric.hexToRgba("#858C60");
+                        Declarations.@"const",
+                        Declarations.@"var",
+                        Declarations.@"defer",
+                        Declarations.@"while",
+                        Declarations.@"fn",
+                        Declarations.@"switch",
+                        Declarations.@"try",
+                        Declarations.@"if",
+                        Declarations.@"else",
+                        Declarations.@"pub",
+                        => {
+                            text_deets.color = .palette(.tint);
                         },
                     }
                     text_deets.text = result;
@@ -422,7 +448,7 @@ pub fn tokenize(code_editor: *CodeEditor, text: []const u8) !void {
                 } else if (includes(result, "(") and containsAlphabetic(result)) {
                     // Fabric.println("Found bracket ( {s}", .{result});
                     var split = std.mem.splitScalar(u8, result, '(');
-                    text_deets.color = Fabric.hexToRgba("#E5FF54");
+                    text_deets.color = .palette(.code_keyword_color);
                     text_deets.text = try std.fmt.allocPrint(allocator.*, "{s}", .{split.next().?});
                     try processed_texts.append(text_deets);
                     var text_deets_second = TextDetails{};
@@ -435,12 +461,14 @@ pub fn tokenize(code_editor: *CodeEditor, text: []const u8) !void {
                 }
             } else {
                 text_deets.text = result;
-                text_deets.color = Fabric.hexToRgba("#88859D");
+                // text_deets.color = Fabric.hexToRgba("#88859D");
                 try processed_texts.append(text_deets);
             }
         }
         const new_line = NewLine{
             .processed_text = try processed_texts.toOwnedSlice(),
+            .is_removed = if (includes(line, "--")) true else false,
+            .is_added = if (includes(line, "++")) true else false,
         };
         try code_editor.processed_lines.append(new_line);
 

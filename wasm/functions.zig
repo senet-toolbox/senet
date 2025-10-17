@@ -15,13 +15,13 @@ pub extern fn createElementEventInstListener(element_ptr: [*]const u8, element_l
 pub extern fn removeElementEventListener(element_ptr: [*]const u8, element_len: usize, event_ptr: [*]const u8, event_type_len: usize, cb_id: u32) void;
 
 /// Retrieves event data as a string or byte sequence.
-pub extern fn getEventDataWasm(id: u32, ptr: [*]const u8, len: u32) [*:0]u8;
+pub extern fn getEventDataWasm(id: u32, ptr: [*]const u8, len: usize) [*:0]u8;
 
 /// Gets input value associated with an event.
 pub extern fn getEventDataInputWasm(id: u32) [*:0]u8;
 
 /// Extracts a numeric property from event data.
-pub extern fn getEventDataNumberWasm(id: u32, ptr: [*]const u8, len: u32) f32;
+pub extern fn getEventDataNumberWasm(id: u32, ptr: [*]const u8, len: usize) f32;
 
 /// Prevents the default action for the specified event.
 pub extern fn eventPreventDefault(id: u32) void;
@@ -72,41 +72,41 @@ pub extern fn callClickWASM(id_ptr: [*]const u8, id_len: usize) void;
 // =====================================
 
 /// Retrieves the current value of an input element.
-pub extern fn getInputValueWasm(ptr: [*]const u8, len: u32) [*:0]u8;
+pub extern fn getInputValueWasm(ptr: [*]const u8, len: usize) [*:0]u8;
 
 /// Sets the value of an input element.
-pub extern fn setInputValueWasm(ptr: [*]const u8, len: u32, text_ptr: [*]const u8, text_len: u32) void;
+pub extern fn setInputValueWasm(ptr: [*]const u8, len: usize, text_ptr: [*]const u8, text_len: usize) void;
 
 // =====================================
 // Storage APIs - Local Storage
 // =====================================
 
 /// Stores a string value in local storage.
-pub extern fn setLocalStorageStringWasm(ptr: [*]const u8, len: u32, value_ptr: [*]const u8, value_len: u32) void;
+pub extern fn setLocalStorageStringWasm(ptr: [*]const u8, len: usize, value_ptr: [*]const u8, value_len: usize) void;
 
 /// Retrieves a string value from local storage.
-pub extern fn getLocalStorageStringWasm(ptr: [*]const u8, len: u32) [*:0]u8;
+pub extern fn getLocalStorageStringWasm(ptr: [*]const u8, len: usize) [*:0]u8;
 
 /// Removes a key from local storage.
-pub extern fn removeLocalStorageWasm(ptr: [*]const u8, len: u32) void;
+pub extern fn removeLocalStorageWasm(ptr: [*]const u8, len: usize) void;
 
 /// Clears all stored values in local storage.
 pub extern fn clearLocalStorageWasm() void;
 
 /// Stores a number in local storage.
-pub extern fn setLocalStorageNumberWasm(ptr: [*]const u8, len: u32, value: u32) void;
+pub extern fn setLocalStorageNumberWasm(ptr: [*]const u8, len: usize, value: u32) void;
 
 /// Retrieves a signed integer from local storage.
-pub extern fn getLocalStorageI32Wasm(ptr: [*]const u8, len: u32) i32;
+pub extern fn getLocalStorageI32Wasm(ptr: [*]const u8, len: usize) i32;
 
 /// Retrieves an unsigned integer from local storage.
-pub extern fn getLocalStorageU32Wasm(ptr: [*]const u8, len: u32) u32;
+pub extern fn getLocalStorageU32Wasm(ptr: [*]const u8, len: usize) u32;
 
 /// Retrieves an unsigned integer (alias).
-pub extern fn getLocalStorageUIntWasm(ptr: [*]const u8, len: u32) u32;
+pub extern fn getLocalStorageUIntWasm(ptr: [*]const u8, len: usize) u32;
 
 /// Retrieves a floating-point number (encoded) from local storage.
-pub extern fn getLocalStorageF32Wasm(ptr: [*]const u8, len: u32) u32;
+pub extern fn getLocalStorageF32Wasm(ptr: [*]const u8, len: usize) u32;
 
 // =====================================
 // Storage APIs - Cookies
@@ -147,13 +147,13 @@ pub extern fn createHookWASM(urlPtr: [*]const u8, urlLen: usize, cb_id: u32) voi
 pub extern fn getWindowInformationWasm() [*:0]u8;
 
 /// Gets element’s bounding rectangle (x, y, width, height).
-pub extern fn getBoundingClientRectWasm(ptr: [*]const u8, len: u32) [*]f32;
+pub extern fn getBoundingClientRectWasm(ptr: [*]const u8, len: usize) [*]f32;
 
 /// Gets element offsets relative to its parent.
-pub extern fn getOffsetsWasm(ptr: [*]const u8, len: u32) [*]f32;
+pub extern fn getOffsetsWasm(ptr: [*]const u8, len: usize) [*]f32;
 
 /// Retrieves numeric attributes (e.g., width, height).
-pub extern fn getAttributeWasmNumber(ptr: [*]const u8, len: u32, attribute_ptr: [*]const u8, attribute_len: u32) u32;
+pub extern fn getAttributeWasmNumber(ptr: [*]const u8, len: usize, attribute_ptr: [*]const u8, attribute_len: usize) u32;
 
 // =====================================
 // System Utilities

@@ -278,6 +278,7 @@ pub fn openLocalFile(conn: std.net.Server.Connection, mime: []const u8, mimetype
         "Access-Control-Allow-Origin: *\r\n" ++
         "Access-Control-Allow-Methods: GET, POST, OPTIONS\r\n" ++
         "Access-Control-Allow-Headers: Content-Type, Authorization\r\n" ++
+        // "Cache-Control: public, max-age=31536000, immutable\r\n" ++
         "Content-Type: {s}\r\n" ++
         "Content-Length: {}\r\n" ++
         "\r\n" ++
