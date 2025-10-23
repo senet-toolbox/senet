@@ -15,12 +15,12 @@ const TestPage = @import("routes/TestPage.zig");
 fn registerLayouts() !void {
     initLayouts();
     try Fabric.lib.registerLayout("/", layout, .{});
-    // try Fabric.lib.registerLayout("/docs", layoutDocs, .{ .reset = true });
+    try Fabric.lib.registerLayout("/docs", layoutDocs, .{ .reset = true });
 }
 
 fn initLayouts() void {
     Navbar.init();
-    // DocsNavbar.init();
+    DocsNavbar.init();
 }
 
 pub fn layout(page: *const fn () void) void {
@@ -41,7 +41,7 @@ fn layoutAcorn(page: *const fn () void) void {
 fn initPages() void {
     // TestPage.init();
     RootPage.init();
-    // FabricDocs.init();
+    FabricDocs.init();
     // FabricDocsConcepts.init();
     // MetalDocs.init();
     // Huh.init();

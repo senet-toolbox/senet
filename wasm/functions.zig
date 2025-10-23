@@ -63,6 +63,7 @@ pub extern fn clearHoverHighlight() void;
 
 /// Focuses a DOM element (e.g., input).
 pub extern fn elementFocusWasm(element_ptr: [*]const u8, element_len: usize) void;
+pub extern fn elementFocusedWasm(element_ptr: [*]const u8, element_len: usize) bool;
 
 /// Programmatically triggers a click on an element.
 pub extern fn callClickWASM(id_ptr: [*]const u8, id_len: usize) void;
@@ -180,3 +181,5 @@ pub extern fn consoleLogWasm(ptr: [*]const u8, len: usize) i32;
 
 /// Logs a styled/colored message to the console.
 pub extern fn consoleLogColoredWasm(ptr: [*]const u8, len: usize, style_ptr_1: [*]const u8, style_len_1: usize, style_ptr_2: [*]const u8, style_len_2: usize) i32;
+
+pub extern fn createObserverWasm(ptr: [*]const u8, len: usize) void;

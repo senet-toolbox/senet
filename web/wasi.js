@@ -3,6 +3,7 @@ import {
   elementDimensions,
   eventStorage,
   domNodeRegistry,
+  loadedSections,
 } from "./maps.js";
 import {
   allocString,
@@ -10,6 +11,7 @@ import {
   rerenderRoute,
   requestRerender,
   styleSheet,
+  loadSection,
 } from "./wasi_obj.js";
 import { isLayout, stripNonLayout } from "./traversal.js";
 
@@ -157,17 +159,29 @@ export const env = {
       );
     });
   },
+
+  elementFocusedWasm: (idPtr, idLen) => {
+    if (!wasmInstance) {
+      console.error("WASM instance not initialized");
+      return;
+    }
+
+    const elementId = readWasmString(idPtr, idLen);
+    const element = document.getElementById(elementId);
+    if (element) {
+      const isFocused = document.activeElement === element;
+      return isFocused;
+    }
+    console.log("Element is null, could not add focus", elementId);
+  },
+
   elementFocusWasm: (idPtr, idLen) => {
     requestAnimationFrame(() => {
       if (!wasmInstance) {
         console.error("WASM instance not initialized");
         return;
       }
-
-      const memory = new Uint8Array(wasmInstance.memory.buffer);
-      const elementId = new TextDecoder().decode(
-        memory.subarray(idPtr, idPtr + idLen),
-      );
+      const elementId = readWasmString(idPtr, idLen);
       const element = document.getElementById(elementId);
       if (element) {
         element.focus();
@@ -959,6 +973,27 @@ export const env = {
         console.error("Fetch failed:", err);
         // You could call callback with ptr=0,len=0 or export an error handler
       });
+  },
+
+  createObserverWasm(ptr, len) {
+    const options = {
+      root: null,
+      rootMargin: "0px", // Only 50px buffer at bottom
+      threshold: 0.1,
+    };
+    const name = readWasmString(ptr, len);
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        const callback_id = allocString(name);
+        const data_ptr = allocString(entry.target.id);
+        wasmInstance.callbackCtx(callback_id, data_ptr, entry.isIntersecting);
+      });
+    }, options);
+
+    // Observe all <section> elements
+    document.querySelectorAll("section").forEach((section) => {
+      observer.observe(section);
+    });
   },
 
   toggleThemeWasm: () => {

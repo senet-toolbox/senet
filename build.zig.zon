@@ -28,7 +28,7 @@
 
     // Tracks the earliest Zig version that the package considers to be a
     // supported use case.
-    .minimum_zig_version = "0.14.0",
+    .minimum_zig_version = "0.15.1",
 
     // This field is optional.
     // Each dependency must either provide a `url` and `hash`, or a `path`.
@@ -36,13 +36,13 @@
     // Once all dependencies are fetched, `zig build` no longer requires
     // internet connectivity.
     .dependencies = .{
+        .vaporize = .{
+            .path = "../vaporize",
+        },
         .fabric = .{
             .path = "../fabric",
             // .url = "https://github.com/tether-labs/fabric/archive/refs/tags/v1.1.3.tar.gz",
             // .hash = "fabric-0.0.0-KeTeudyDBwBJm-xvopUQvHLnl1KGzeBcif21pa8XP18Z",
-        },
-        .consolidator = .{
-            .path = "../consolidator",
         },
     },
     .paths = .{

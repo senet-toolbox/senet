@@ -11,7 +11,7 @@ pub const ElementType = enum(u8) {
     Text,
     Image,
     FlexBox,
-    Input,
+    TextField,
     Button,
     Block,
     Box,
@@ -60,6 +60,12 @@ pub const ElementType = enum(u8) {
     Virtualize,
     ButtonCycle,
     Graphic,
+    Heading1,
+    Heading2,   
+    Heading3,
+    Heading4,
+    Heading5,
+    Heading6,
 };
 
 pub const ThemeTokens = enum(u8) {

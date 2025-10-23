@@ -35,7 +35,7 @@ pub const Config = struct {
     make_command: []const []const u8 = &.{"make"}, // Default build command
     run_dev_command: []const []const u8 = &.{ "zig", "run", "src/main.zig" },
     run_command: []const []const u8 = &.{"zig-out/bin/app"}, // Default run command
-    file_extensions: []const []const u8 = &.{ ".zig", ".html" }, // File extensions to watch
+    file_extensions: []const []const u8 = &.{ ".zig", ".html", ".md" }, // File extensions to watch
     exclude_dirs: []const []const u8 = &.{ "zig-cache", "zig-out" }, // Directories to ignore
     debounce_ms: u64 = 100,
 };
