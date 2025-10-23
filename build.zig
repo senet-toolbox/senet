@@ -108,6 +108,14 @@ pub fn build(b: *std.Build) void {
             .{ .name = "fabric", .module = fabric_module },
         },
     });
+
+    const vaporize = b.dependency("vaporize", .{
+        .target = wasm_target,
+        .optimize = optimize,
+    });
+    const vaporize_module = vaporize.module("vaporize");
+    vaporize_module.addImport("fabric", fabric_module);
+
     fabric_module.addImport("theme", theme_module);
     // We will also create a module for our other entry point, 'main.zig'.
     const exe_mod = b.createModule(.{
@@ -116,6 +124,7 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
         .imports = &.{
             .{ .name = "fabric", .module = fabric_module },
+            .{ .name = "vaporize", .module = vaporize_module },
             .{ .name = "theme", .module = theme_module }, // ADD THIS
             .{ .name = "user_config", .module = user_config_module },
         },

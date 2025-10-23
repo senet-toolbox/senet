@@ -41,7 +41,7 @@ export const COMPONENT_TYPES = {
   TEXT: 1,
   IMAGE: 2,
   FLEXBOX: 3,
-  INPUT: 4,
+  TEXTFIELD: 4,
   BUTTON: 5,
   BLOCK: 6,
   BOX: 7,
@@ -90,6 +90,12 @@ export const COMPONENT_TYPES = {
   VIRTUALIZE: 50,
   BUTTON_CYCLE: 51,
   GRAPHIC: 52,
+  HEADING1: 53,
+  HEADING2: 54,
+  HEADING3: 55,
+  HEADING4: 56,
+  HEADING5: 57,
+  HEADING6: 58,
 };
 
 const STATE_TYPES = {
@@ -121,182 +127,249 @@ export function clearIntervalsForRoute(path) {
  * @param {Object} renderCmd - The render command
  */
 function processInputElement(element, renderCmd) {
-  const nodePtr = renderCmd.nodePtr;
-  const type = wasmInstance.getInputType(nodePtr);
-  const inputPtr = wasmInstance.createInput(nodePtr);
-  const inputSize = wasmInstance.getInputSize(nodePtr);
-  const inputCallback = wasmInstance.getOnInputCallback(nodePtr);
-  const inputView = new DataView(
-    wasmInstance.memory.buffer,
-    inputPtr,
-    inputSize,
-  );
+  const idPtr = allocString(renderCmd.id);
+  const elementPtr = wasmInstance.getElementPtr(idPtr);
+  // const elementView = new DataView(
+  //   wasmInstance.memory.buffer,
+  //   elementPtr,
+  //   elementSize,
+  // );
 
-  let offset = 0;
-  offset += 8; // Skip initial bytes
-
-  // Process name attribute
-  const namePtr = inputView.getUint32(offset, true);
-  offset += 4;
-  if (namePtr) {
-    const nameLen = inputView.getUint32(offset, true);
-    const name = readWasmString(namePtr, nameLen);
-    element.name = name;
-  }
-  offset += 8;
-
-  // Process type-specific attributes
-  if (type === 0) {
-    // Number input
-    const placeholder = inputView.getUint32(offset, true);
-    if (placeholder) {
-      element.placeholder = placeholder;
-    }
-    offset += 8;
-    const value = inputView.getUint32(offset, true);
-    if (value) {
-      element.value = value;
-    }
-    element.type = "number";
-  } else if (type === 2) {
-    // Text input
-    const placeholderPtr = inputView.getUint32(offset, true);
-    offset += 4;
-    if (placeholderPtr) {
-      const placeholderLen = inputView.getUint32(offset, true);
-      const placeholder = readWasmString(placeholderPtr, placeholderLen);
-      element.placeholder = placeholder;
-    }
-    offset += 8;
-    const valuePtr = inputView.getUint32(offset, true);
-    offset += 4;
-    if (valuePtr) {
-      const valueLen = inputView.getUint32(offset, true);
-      const value = readWasmString(valuePtr, valueLen);
-      element.value = value;
-    }
-    offset += 8;
-    const minLen = inputView.getUint32(offset, true);
-    if (minLen) {
-      element.ariaValueMin = minLen;
-      element.minLength = minLen;
-    }
-    offset += 8;
-    const maxLen = inputView.getUint32(offset, true);
-    if (maxLen) {
-      element.ariaValueMin = maxLen;
-      element.maxLength = maxLen;
-    }
-
-    element.type = "text";
-  } else if (type === 4) {
-    // Radio input
-    const valuePtr = inputView.getUint32(offset, true);
-    offset += 4;
-    if (valuePtr) {
-      const valueLen = inputView.getUint32(offset, true);
-      const value = readWasmString(valuePtr, valueLen);
-      element.value = value;
-    }
-    element.type = "radio";
-
-    // Apply checkmark styling if available
-    const cssCheckMarkPtr = wasmInstance.getCheckMarkStylePtr(nodePtr);
-    if (cssCheckMarkPtr > 0) {
-      const cssCheckMarkLen = wasmInstance.getCheckMarkLen();
-      const checkMarkCss = readWasmString(cssCheckMarkPtr, cssCheckMarkLen);
-      if (checkMarkCss.length > 0) {
-        checkMarkStyling(
-          renderCmd.id,
-          element,
-          renderCmd.styleId,
-          checkMarkCss,
-        );
-      }
-    }
-  } else if (type === 5) {
-    console.log("Password");
-    // Text input
-    const placeholderPtr = inputView.getUint32(offset, true);
-    offset += 4;
-    if (placeholderPtr) {
-      const placeholderLen = inputView.getUint32(offset, true);
-      const placeholder = readWasmString(placeholderPtr, placeholderLen);
-      element.placeholder = placeholder;
-    }
-    offset += 8;
-    const valuePtr = inputView.getUint32(offset, true);
-    offset += 4;
-    if (valuePtr) {
-      const valueLen = inputView.getUint32(offset, true);
-      const value = readWasmString(valuePtr, valueLen);
-      element.value = value;
-    }
-    offset += 8;
-    const minLen = inputView.getUint32(offset, true);
-    if (minLen) {
-      element.ariaValueMin = minLen;
-      element.minLength = minLen;
-    }
-    offset += 8;
-    const maxLen = inputView.getUint32(offset, true);
-    if (maxLen) {
-      element.ariaValueMin = maxLen;
-      element.maxLength = maxLen;
-      console.log(maxLen);
-    }
-    element.type = "password";
-  } else if (type === 6) {
-    console.log("Email");
-    // Text input
-    const placeholderPtr = inputView.getUint32(offset, true);
-    offset += 4;
-    if (placeholderPtr) {
-      const placeholderLen = inputView.getUint32(offset, true);
-      const placeholder = readWasmString(placeholderPtr, placeholderLen);
-      element.placeholder = placeholder;
-    }
-    offset += 8;
-    const valuePtr = inputView.getUint32(offset, true);
-    offset += 4;
-    if (valuePtr) {
-      const valueLen = inputView.getUint32(offset, true);
-      const value = readWasmString(valuePtr, valueLen);
-      element.value = value;
-    }
-    offset += 8;
-    const minLen = inputView.getUint32(offset, true);
-    if (minLen) {
-      element.ariaValueMin = minLen;
-      element.minLength = minLen;
-    }
-    offset += 8;
-    const maxLen = inputView.getUint32(offset, true);
-    if (maxLen) {
-      element.ariaValueMin = maxLen;
-      element.maxLength = maxLen;
-      console.log(maxLen);
-    }
-    element.type = "email";
-  } else if (type === 7) {
-    element.type = "file";
-  }
-  if (inputCallback) {
+  const onBlur = wasmInstance.getOnBlurCallback(elementPtr) >>> 0;
+  if (onBlur > 0) {
     requestAnimationFrame(() => {
-      eventHandlers.set(
-        `fb-evt-hd-${inputCallback}-${renderCmd.id}`,
-        (event) => {
-          eventStorage[inputCallback] = event;
-          // console.log(event, event.srcElement);
-          wasmInstance.eventCallback(inputCallback);
-        },
-      );
-      element.addEventListener(
-        "input",
-        eventHandlers.get(`fb-evt-hd-${inputCallback}-${renderCmd.id}`),
-      );
+      eventHandlers.set(`fb-evt-hd-${onBlur}-${renderCmd.id}`, (event) => {
+        eventStorage[onBlur] = event;
+        wasmInstance.eventCallback(onBlur);
+      });
+      element.addEventListener("focusout", (event) => {
+        eventHandlers.get(`fb-evt-hd-${onBlur}-${renderCmd.id}`)(event);
+      });
     });
   }
+
+  const onChange = wasmInstance.getOnChangeCallback(elementPtr);
+  if (onChange > 0) {
+    // element.addEventListener("input", async (event) => {
+    //   event.preventDefault();
+    //   event.stopPropagation();
+    // });
+    requestAnimationFrame(() => {
+      eventHandlers.set(`fb-evt-hd-${onChange}-${renderCmd.id}`, (event) => {
+        eventStorage[onChange] = event;
+        wasmInstance.eventCallback(onChange);
+      });
+      element.addEventListener("input", (event) => {
+        const idPtr = allocString(renderCmd.id);
+        wasmInstance.inputCallback(idPtr);
+        eventHandlers.get(`fb-evt-hd-${onChange}-${renderCmd.id}`)(event);
+      });
+    });
+  } else {
+    element.addEventListener("input", async (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      const idPtr = allocString(renderCmd.id);
+      wasmInstance.inputCallback(idPtr);
+    });
+  }
+
+  const onFocus = wasmInstance.getOnChangeCallback(elementPtr);
+  if (onFocus > 0) {
+    requestAnimationFrame(() => {
+      eventHandlers.set(`fb-evt-hd-${onFocus}-${renderCmd.id}`, (event) => {
+        eventStorage[onFocus] = event;
+        wasmInstance.eventCallback(onFocus);
+      });
+      element.addEventListener("focus", (event) => {
+        eventHandlers.get(`fb-evt-hd-${onFocus}-${renderCmd.id}`)(event);
+      });
+    });
+  }
+
+  // element.addEventListener("input", async (event) => {
+  //   // if (renderCmd.id === "swap-wasm") {
+  //   //   await hotSwapWasmWithState("/zig-out/bin/fabric.wasm");
+  //   // } else {
+  //   event.preventDefault();
+  //   event.stopPropagation();
+  //   const idPtr = allocString(renderCmd.id);
+  //   wasmInstance.inputCallback(idPtr);
+  //   // }
+  // });
+
+  // const type = wasmInstance.getInputType(nodePtr);
+  // const inputPtr = wasmInstance.createInput(nodePtr);
+  // const inputSize = wasmInstance.getInputSize(nodePtr);
+  // const inputCallback = wasmInstance.getOnInputCallback(nodePtr);
+  // const inputView = new DataView(
+  //   wasmInstance.memory.buffer,
+  //   inputPtr,
+  //   inputSize,
+  // );
+  //
+  // let offset = 0;
+  // offset += 8; // Skip initial bytes
+  //
+  // // Process name attribute
+  // const namePtr = inputView.getUint32(offset, true);
+  // offset += 4;
+  // if (namePtr) {
+  //   const nameLen = inputView.getUint32(offset, true);
+  //   const name = readWasmString(namePtr, nameLen);
+  //   element.name = name;
+  // }
+  // offset += 8;
+  //
+  // // Process type-specific attributes
+  // if (type === 0) {
+  //   // Number input
+  //   const placeholder = inputView.getUint32(offset, true);
+  //   if (placeholder) {
+  //     element.placeholder = placeholder;
+  //   }
+  //   offset += 8;
+  //   const value = inputView.getUint32(offset, true);
+  //   if (value) {
+  //     element.value = value;
+  //   }
+  //   element.type = "number";
+  // } else if (type === 2) {
+  //   // Text input
+  //   const placeholderPtr = inputView.getUint32(offset, true);
+  //   offset += 4;
+  //   if (placeholderPtr) {
+  //     const placeholderLen = inputView.getUint32(offset, true);
+  //     const placeholder = readWasmString(placeholderPtr, placeholderLen);
+  //     element.placeholder = placeholder;
+  //   }
+  //   offset += 8;
+  //   const valuePtr = inputView.getUint32(offset, true);
+  //   offset += 4;
+  //   if (valuePtr) {
+  //     const valueLen = inputView.getUint32(offset, true);
+  //     const value = readWasmString(valuePtr, valueLen);
+  //     element.value = value;
+  //   }
+  //   offset += 8;
+  //   const minLen = inputView.getUint32(offset, true);
+  //   if (minLen) {
+  //     element.ariaValueMin = minLen;
+  //     element.minLength = minLen;
+  //   }
+  //   offset += 8;
+  //   const maxLen = inputView.getUint32(offset, true);
+  //   if (maxLen) {
+  //     element.ariaValueMin = maxLen;
+  //     element.maxLength = maxLen;
+  //   }
+  //
+  //   element.type = "text";
+  // } else if (type === 4) {
+  //   // Radio input
+  //   const valuePtr = inputView.getUint32(offset, true);
+  //   offset += 4;
+  //   if (valuePtr) {
+  //     const valueLen = inputView.getUint32(offset, true);
+  //     const value = readWasmString(valuePtr, valueLen);
+  //     element.value = value;
+  //   }
+  //   element.type = "radio";
+  //
+  //   // Apply checkmark styling if available
+  //   const cssCheckMarkPtr = wasmInstance.getCheckMarkStylePtr(nodePtr);
+  //   if (cssCheckMarkPtr > 0) {
+  //     const cssCheckMarkLen = wasmInstance.getCheckMarkLen();
+  //     const checkMarkCss = readWasmString(cssCheckMarkPtr, cssCheckMarkLen);
+  //     if (checkMarkCss.length > 0) {
+  //       checkMarkStyling(
+  //         renderCmd.id,
+  //         element,
+  //         renderCmd.styleId,
+  //         checkMarkCss,
+  //       );
+  //     }
+  //   }
+  // } else if (type === 5) {
+  //   console.log("Password");
+  //   // Text input
+  //   const placeholderPtr = inputView.getUint32(offset, true);
+  //   offset += 4;
+  //   if (placeholderPtr) {
+  //     const placeholderLen = inputView.getUint32(offset, true);
+  //     const placeholder = readWasmString(placeholderPtr, placeholderLen);
+  //     element.placeholder = placeholder;
+  //   }
+  //   offset += 8;
+  //   const valuePtr = inputView.getUint32(offset, true);
+  //   offset += 4;
+  //   if (valuePtr) {
+  //     const valueLen = inputView.getUint32(offset, true);
+  //     const value = readWasmString(valuePtr, valueLen);
+  //     element.value = value;
+  //   }
+  //   offset += 8;
+  //   const minLen = inputView.getUint32(offset, true);
+  //   if (minLen) {
+  //     element.ariaValueMin = minLen;
+  //     element.minLength = minLen;
+  //   }
+  //   offset += 8;
+  //   const maxLen = inputView.getUint32(offset, true);
+  //   if (maxLen) {
+  //     element.ariaValueMin = maxLen;
+  //     element.maxLength = maxLen;
+  //     console.log(maxLen);
+  //   }
+  //   element.type = "password";
+  // } else if (type === 6) {
+  //   console.log("Email");
+  //   // Text input
+  //   const placeholderPtr = inputView.getUint32(offset, true);
+  //   offset += 4;
+  //   if (placeholderPtr) {
+  //     const placeholderLen = inputView.getUint32(offset, true);
+  //     const placeholder = readWasmString(placeholderPtr, placeholderLen);
+  //     element.placeholder = placeholder;
+  //   }
+  //   offset += 8;
+  //   const valuePtr = inputView.getUint32(offset, true);
+  //   offset += 4;
+  //   if (valuePtr) {
+  //     const valueLen = inputView.getUint32(offset, true);
+  //     const value = readWasmString(valuePtr, valueLen);
+  //     element.value = value;
+  //   }
+  //   offset += 8;
+  //   const minLen = inputView.getUint32(offset, true);
+  //   if (minLen) {
+  //     element.ariaValueMin = minLen;
+  //     element.minLength = minLen;
+  //   }
+  //   offset += 8;
+  //   const maxLen = inputView.getUint32(offset, true);
+  //   if (maxLen) {
+  //     element.ariaValueMin = maxLen;
+  //     element.maxLength = maxLen;
+  //     console.log(maxLen);
+  //   }
+  //   element.type = "email";
+  // } else if (type === 7) {
+  //   element.type = "file";
+  // }
+  // if (inputCallback) {
+  // requestAnimationFrame(() => {
+  //   eventHandlers.set(`fb-evt-hd-${inputCallback}-${renderCmd.id}`, (event) => {
+  //     eventStorage[inputCallback] = event;
+  //     // console.log(event, event.srcElement);
+  //     wasmInstance.eventCallback(inputCallback);
+  //   });
+  //   element.addEventListener(
+  //     "input",
+  //     eventHandlers.get(`fb-evt-hd-${inputCallback}-${renderCmd.id}`),
+  //   );
+  // });
+  // }
 }
 /* ───────── helpers ───────── */
 export const isLayout = (el) => {
@@ -399,23 +472,25 @@ function createLinkElement(renderCmd, route) {
     const path = urlObj.pathname;
     // we push the state and renderCycle the new path
     window.history.pushState({}, "", clickedHref);
-    rerenderRoute(path === "/" ? "/root" : `/root${path}`);
     // wasmInstance.markAllNonLayoutNodesDirty();
     requestAnimationFrame(() => {
+      if (window.location.pathname !== path) {
+        rerenderRoute(path === "/" ? "/root" : `/root${path}`);
+      }
       // wasmInstance.setRerenderTrue();
-      // requestAnimationFrame(() => {
-      //   const hash = window.location.hash;
-      //   if (hash) {
-      //     const id = window.location.hash.substring(1, hash.length);
-      //     const element = document.getElementById(id);
-      //     if (element) {
-      //       // Scroll the element into view with options
-      //       element.scrollIntoView({
-      //         block: "center", // Vertically align to the center of the screen
-      //       });
-      //     }
-      //   }
-      // });
+      requestAnimationFrame(() => {
+        const hash = window.location.hash;
+        if (hash) {
+          const id = window.location.hash.substring(1, hash.length);
+          const element = document.getElementById(id);
+          if (element) {
+            // Scroll the element into view with options
+            element.scrollIntoView({
+              block: "center", // Vertically align to the center of the screen
+            });
+          }
+        }
+      });
     });
   });
 
@@ -699,6 +774,7 @@ function createElementByType(renderCmd, tree_node, layout, parent) {
 
     case COMPONENT_TYPES.CODE:
       element = document.createElement("code");
+      element.textContent = renderCmd.props.text;
       break;
 
     case COMPONENT_TYPES.SPAN:
@@ -788,8 +864,9 @@ function createElementByType(renderCmd, tree_node, layout, parent) {
       element = document.createElement("div");
       break;
 
-    case COMPONENT_TYPES.INPUT:
+    case COMPONENT_TYPES.TEXTFIELD:
       element = document.createElement("input");
+      element.value = renderCmd.props.text;
       processInputElement(element, renderCmd);
       break;
 
@@ -803,19 +880,19 @@ function createElementByType(renderCmd, tree_node, layout, parent) {
         element.ariaLabel = readWasmString(label, length);
       }
       element.addEventListener("click", async (event) => {
-        if (renderCmd.id === "swap-wasm") {
-          await hotSwapWasmWithState("/zig-out/bin/fabric.wasm");
+        // if (renderCmd.id === "swap-wasm") {
+        //   await hotSwapWasmWithState("/zig-out/bin/fabric.wasm");
+        // } else {
+        state.currentDepthNode = renderCmd.id;
+        event.preventDefault();
+        event.stopPropagation();
+        const idPtr = allocString(renderCmd.id);
+        if (renderCmd.elemType === COMPONENT_TYPES.BUTTON_CYCLE) {
+          wasmInstance.buttonCycleCallback(idPtr);
         } else {
-          state.currentDepthNode = renderCmd.id;
-          event.preventDefault();
-          event.stopPropagation();
-          const idPtr = allocString(renderCmd.id);
-          if (renderCmd.elemType === COMPONENT_TYPES.BUTTON_CYCLE) {
-            wasmInstance.buttonCycleCallback(idPtr);
-          } else {
-            wasmInstance.buttonCallback(idPtr);
-          }
+          wasmInstance.buttonCallback(idPtr);
         }
+        // }
       });
       break;
 
@@ -967,6 +1044,36 @@ function createElementByType(renderCmd, tree_node, layout, parent) {
 
       break;
 
+    case COMPONENT_TYPES.HEADING1:
+      element = document.createElement("h1");
+      element.textContent = renderCmd.props.text;
+      break;
+
+    case COMPONENT_TYPES.HEADING2:
+      element = document.createElement("h2");
+      element.textContent = renderCmd.props.text;
+      break;
+
+    case COMPONENT_TYPES.HEADING3:
+      element = document.createElement("h3");
+      element.textContent = renderCmd.props.text;
+      break;
+
+    case COMPONENT_TYPES.HEADING4:
+      element = document.createElement("h4");
+      element.textContent = renderCmd.props.text;
+      break;
+
+    case COMPONENT_TYPES.HEADING5:
+      element = document.createElement("h5");
+      element.textContent = renderCmd.props.text;
+      break;
+
+    case COMPONENT_TYPES.HEADING6:
+      element = document.createElement("h6");
+      element.textContent = renderCmd.props.text;
+      break;
+
     default:
       element = document.createElement("div");
       break;
@@ -982,6 +1089,7 @@ function createElementByType(renderCmd, tree_node, layout, parent) {
  * @param {Object} renderCmd - The render command
  */
 function setupElement(element, renderCmd) {
+  // console.log("SET ELEMENT", element);
   element.id = renderCmd.id;
 
   if (renderCmd.elemType === COMPONENT_TYPES.ICON) {
@@ -997,14 +1105,15 @@ function setupElement(element, renderCmd) {
       const cssStyleLen = wasmInstance.getStyleLen();
       renderCmd.props.css = readWasmString(cssStylePtr, cssStyleLen);
     }
+    element.className = renderCmd.styleId;
 
     // Update styling
-    updateComponentStyle(
-      renderCmd.nodePtr,
-      renderCmd.styleId,
-      renderCmd.props.css,
-      element,
-    );
+    // updateComponentStyle(
+    //   renderCmd.nodePtr,
+    //   renderCmd.styleId,
+    //   renderCmd.props.css,
+    //   element,
+    // );
   }
 
   if (renderCmd.props.tooltipTitle.length > 0) {
@@ -1053,53 +1162,49 @@ function setupElement(element, renderCmd) {
  */
 function updateElement(element, renderCmd) {
   // Update text content if needed
-  if (renderCmd.propsHash > 0) {
-    if (
-      renderCmd.elemType === COMPONENT_TYPES.TEXT ||
-      renderCmd.elemType === COMPONENT_TYPES.HEADER ||
-      renderCmd.elemType === COMPONENT_TYPES.ALLOC_TEXT ||
-      renderCmd.elemType === COMPONENT_TYPES.TEXT_AREA
-    ) {
-      element.textContent = renderCmd.props.text;
-    } else if (renderCmd.elemType === COMPONENT_TYPES.INPUT) {
-      element.value = renderCmd.props.text;
-    } else if (renderCmd.elemType === COMPONENT_TYPES.ICON) {
-      element.className = renderCmd.href;
-    } else if (renderCmd.elemType === COMPONENT_TYPES.HTML_TEXT) {
-      element.innerHTML = renderCmd.props.text;
-    }
+  if (
+    renderCmd.elemType === COMPONENT_TYPES.TEXT ||
+    renderCmd.elemType === COMPONENT_TYPES.HEADER ||
+    renderCmd.elemType === COMPONENT_TYPES.ALLOC_TEXT ||
+    renderCmd.elemType === COMPONENT_TYPES.TEXT_AREA
+  ) {
+    element.textContent = renderCmd.props.text;
+  } else if (renderCmd.elemType === COMPONENT_TYPES.TEXTFIELD) {
+    element.value = renderCmd.props.text;
+  } else if (renderCmd.elemType === COMPONENT_TYPES.ICON) {
+    element.className = renderCmd.href;
+  } else if (renderCmd.elemType === COMPONENT_TYPES.HTML_TEXT) {
+    element.innerHTML = renderCmd.props.text;
   }
 
   // This means that the style hash has changed and we need to update
-  if (renderCmd.styleHash > 0) {
-    const cssStylePtr = wasmInstance.getStyle(renderCmd.nodePtr);
-    if (cssStylePtr !== 0) {
-      const cssStyleLen = wasmInstance.getStyleLen();
-      renderCmd.props.css = readWasmString(cssStylePtr, cssStyleLen);
-    }
-    // Update styling
-    updateComponentStyle(
-      renderCmd.nodePtr,
-      renderCmd.styleId,
-      renderCmd.props.css,
+  const cssStylePtr = wasmInstance.getStyle(renderCmd.nodePtr);
+  if (cssStylePtr !== 0) {
+    const cssStyleLen = wasmInstance.getStyleLen();
+    renderCmd.props.css = readWasmString(cssStylePtr, cssStyleLen);
+  }
+  // Update styling
+  updateComponentStyle(
+    renderCmd.nodePtr,
+    renderCmd.styleId,
+    renderCmd.props.css,
+    element,
+  );
+
+  if (renderCmd.props.hoverCss.length > 0) {
+    applyHoverClass(element, renderCmd.styleId, renderCmd.props.hoverCss);
+  }
+
+  if (renderCmd.props.focusCss.length > 0) {
+    applyFocusClass(element, renderCmd.styleId, renderCmd.props.focusCss);
+  }
+
+  if (renderCmd.props.focusWithinCss.length > 0) {
+    applyFocusWithinClass(
       element,
+      renderCmd.styleId,
+      renderCmd.props.focusWithinCss,
     );
-
-    if (renderCmd.props.hoverCss.length > 0) {
-      applyHoverClass(element, renderCmd.styleId, renderCmd.props.hoverCss);
-    }
-
-    if (renderCmd.props.focusCss.length > 0) {
-      applyFocusClass(element, renderCmd.styleId, renderCmd.props.focusCss);
-    }
-
-    if (renderCmd.props.focusWithinCss.length > 0) {
-      applyFocusWithinClass(
-        element,
-        renderCmd.styleId,
-        renderCmd.props.focusWithinCss,
-      );
-    }
   }
   if (renderCmd.stateType === STATE_TYPES.PURE) {
     pureNodeRegistry.set(renderCmd.id, {
@@ -1157,7 +1262,8 @@ export function generateSections(virtual, virtual_ptr, layout) {
  * @param {HTMLElement} tree_node - The current tree node  *UINode
  * @param {Object} layout - The layout information
  */
-export function traverse(parent, tree_node, layout) {
+export function traverse(parent, has_children, tree_node, layout) {
+  // if (has_children === 0) return;
   if (!parent) return;
 
   const children_count = wasmInstance.getTreeNodeChildrenCount(tree_node);
@@ -1181,32 +1287,11 @@ export function traverse(parent, tree_node, layout) {
   for (let i = children_count - 1; i >= 0; i--) {
     const renderCmd = renderCmds[i][0];
     const child_ptr = renderCmds[i][1];
-    // const child_ptr = wasmInstance.getTreeNodeChild(tree_node, i);
-    // const rndcmd_ptr = wasmInstance.getRenderCommandPtr(child_ptr);
-    // const renderCmd = readRenderCommand(rndcmd_ptr, layout);
-
-    // console.log(renderCmd.isDirty, renderCmd.id);
     activeNodeIds.add(renderCmd.id);
     let element = null;
     if (renderCmd.isDirty) {
       // Mark as processed
       element = document.getElementById(renderCmd.id);
-      /// !!!!!!!!!!!!!!! we need to add a system for checking wether we have a duplicate or shifted element
-      // console.log(renderCmd.index, renderCmd.id);
-      // if (element) {
-      //   // check for duplicates
-      //   const target_element = parent.children[renderCmd.index];
-      //   if (target_element && target_element.id !== renderCmd.id) {
-      //     console.log(target_element);
-      //     console.log(renderCmd.index);
-      //     // here the nav element exists in the dom, already, but our render command is pointing to a different element
-      //     // we need to thus create this duplicate element
-      //     // we need to check if it shifted
-      //     console.log("Duplicate or shifted", renderCmd.id);
-      //     // if the target element is not the same as current element, it means we have a duplciate and need to clone
-      //     element = null;
-      //   }
-      // }
 
       // This is the first render, so this is where we virtualize
       if (!element || state.initial_render) {
@@ -1218,6 +1303,11 @@ export function traverse(parent, tree_node, layout) {
         // Set up the element
         setupElement(element, renderCmd);
 
+        observeredSections.set(renderCmd.id, {
+          renderCmd,
+          treeNodePtr: child_ptr,
+        });
+
         // Append to parent
         // const anchor = parent.children[parent.children.length - back_index];
         const next = renderCmds[i + 1];
@@ -1227,7 +1317,7 @@ export function traverse(parent, tree_node, layout) {
           anchor = nextId ? document.getElementById(nextId) : null;
         }
         parent.insertBefore(element, anchor);
-        traverse(element, child_ptr, layout);
+        traverse(element, renderCmd.props.has_children, child_ptr, layout);
 
         if (renderCmd.elemType === COMPONENT_TYPES.HOOKS_CTX) {
           if (renderCmd.hooks.mountedId > 0) {
@@ -1260,12 +1350,12 @@ export function traverse(parent, tree_node, layout) {
         parent.insertBefore(element, anchor);
 
         // Process children
-        traverse(element, child_ptr, layout);
+        traverse(element, renderCmd.props.has_children, child_ptr, layout);
       }
     } else {
       // Element is not dirty, just process its children
       const element = document.getElementById(renderCmd.id);
-      traverse(element, child_ptr, layout);
+      traverse(element, renderCmd.props.has_children, child_ptr, layout);
     }
   }
 

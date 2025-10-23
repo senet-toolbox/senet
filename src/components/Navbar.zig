@@ -202,10 +202,11 @@ pub fn render() void {
                         // });
                         Graphic(.{ .src = "/src/assets/logonormal.svg" }).style(&.{
                             .size = .{ .width = .percent(100), .height = .percent(100) },
-                            .visual = .{ .text_color = .palette(.text_color) },
+                            .visual = .{ .fill = .palette(.text_color), .stroke = .palette(.text_color) },
                             .transition = .{ .duration = 100 },
                             .interactive = .{ .hover = .{
-                                .text_color = .palette(.tint),
+                                .fill = .palette(.tint),
+                                .stroke = .palette(.tint),
                             } },
                         });
                         // Image(.{ .src = "/assets/logonormal.svg" }).style(&.{
@@ -241,8 +242,8 @@ pub fn render() void {
                             .visual = .{ .font_size = 16, .text_color = .palette(.icon_color) },
                         });
                         Text("Search...").style(&.{
-                            .visual = .{ .font_size = 16, .text_color = .palette(.icon_color) },
-                            .font_family = "Montserrat, sans-serif",
+                            .visual = .font(16, 500, .palette(.icon_color)),
+                            .font_family = "IBM Plex Mono,monospace",
                         });
                     });
                     Icon(.command).style(&.{
@@ -268,7 +269,7 @@ pub fn render() void {
                 RedirectLink(.{ .url = "https://ziglang.org/", .aria_label = "redirect link to ziglang" }).style(&.{
                     .visual = .{ .text_decoration = .none },
                 })({
-                    Graphic(.{ .src = "src/assets/zig_simple.svg" }).style(&.{
+                    Graphic(.{ .src = "/src/assets/zig_simple.svg" }).style(&.{
                         .size = .{ .height = .px(24), .width = .px(24) },
                         .visual = .{ .fill = .palette(.icon_color) },
                         .interactive = .{ .hover = .{ .fill = .palette(.tint) } },
@@ -398,11 +399,11 @@ const Styles = struct {
         .size = .{ .width = .elastic(50, 130), .height = .px(30) },
         .layout = .{ .y = .center, .x = .start },
         .visual = .{ .border = .bottom(.transparent) },
+        // .transition = .{ .duration = 100 },
         // .border_color = if (std.mem.eql(u8, current_path, url.url)) text_color else .transparent,
         .interactive = .{
             .hover = .{
-                .border_color = .palette(.text_color),
-                .border_thickness = .{ .bottom = 1, .top = 0, .left = 0, .right = 0 },
+                .border = .bottom(.palette(.text_color)),
             },
         },
     };

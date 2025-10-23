@@ -42,6 +42,43 @@ pub const Colors = struct {
     disabled: Color,
 };
 
+pub const Blue = Colors{
+    .border_color = .white,
+    .text_color = .white,
+    .background = .hex("#0400ff"),
+    .primary = .rgba(255, 255, 255, 255),
+    .secondary = .rgba(0, 0, 0, 255),
+    .font_family = "Montserrat",
+    .btn_color = .white,
+    .tint = .hex("#0400ff"),
+    .text_tint_color = .white,
+    .alternate_tint = .white,
+    .btn_tint = .hex("#FF3838"),
+    .dark_text = .hex("#ffffff"),
+    .form_input_border_color = .hex("#E9E9E9"),
+    .danger = .rgba(255, 78, 51, 255),
+    .alternate_background = .hex("#262626"),
+    .alternate_border_color = .hex("#262626"),
+    .alternate_text_color = .hex("#ffffff"),
+    .logo = .hex("#ffffff"),
+    .gradient_start_0stop_color = .hex("#4800FF"),
+    .gradient_start_100stop_color = .hex("#7A38FF"),
+    .gradient_end_0stop_color = .hex("#FFE09E"),
+    .gradient_end_100stop_color = .hex("#FFFFFF"),
+    .icon_color = .hex("#A2A2A2"),
+    .image_bg = .hex("#ffffff"),
+    .code_background = .hex("#FAFAFA"),
+    .highlight_color = .hex("#EDEDED"),
+    .border_color_light = .hex("#e4e4e4"),
+    .grid_color = .hex("#f6f6f6"),
+    .code_text_color = .hex("#262626"),
+    .code_function_color = .hex("#0074c2"),
+    .code_keyword_color = .hex("#D4883C"),
+    .disabled = .hex("#A2A2A2"),
+};
+
+
+
 pub const Light = Colors{
     .border_color = .hex("#262626"),
     .text_color = .rgba(0, 0, 0, 255),
@@ -73,7 +110,7 @@ pub const Light = Colors{
     .grid_color = .hex("#f6f6f6"),
     .code_text_color = .hex("#262626"),
     .code_function_color = .hex("#0074c2"),
-    .code_keyword_color = .hex("#D4883C"),
+    .code_keyword_color = .hex("#d97706"),
     .disabled = .hex("#A2A2A2"),
 };
 

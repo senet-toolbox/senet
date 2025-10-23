@@ -23,10 +23,13 @@ const Button = Static.Button;
 const ButtonCycle = Static.ButtonCycle;
 const Link = Static.Link;
 const List = Static.List;
+const CtxButton = Static.CtxButton;
 const ListItem = Static.ListItem;
 const RedirectLink = Static.RedirectLink;
 const Theme = @import("theme");
 const IconTokens = @import("user_config").IconTokens;
+const Hooks = Static.Hooks;
+const Observer = Fabric.Kit.Observer;
 
 var theme_background: [4]u8 = undefined;
 var border_color: [4]u8 = undefined;
@@ -49,6 +52,7 @@ const Keywords = []const []const u8;
 pub const MenuItem = struct {
     id: []const u8,
     title: []const u8,
+    sections: []const *const struct { title: []const u8, link: []const u8 } = &.{},
     link: []const u8,
     icon: *const IconTokens,
     tags: []const Tag = &.{},
@@ -59,6 +63,13 @@ pub const menu_items: []const MenuItem = &.{
         .id = "home",
         .title = "Home",
         .link = "/docs/fabric",
+        .sections = &.{
+            &.{ .title = "What is Fabric?", .link = "what-is-fabric" },
+            &.{ .title = "Fabric is simple", .link = "fabric-is-simple" },
+            &.{ .title = "Making a button", .link = "making-a-button" },
+            &.{ .title = "A glimpse under the hood", .link = "a-glimpse-under-the-hood" },
+            &.{ .title = "UI Node", .link = "ui-node" },
+        },
         .icon = .house, // Keep as is - perfect for home
         .tags = &.{
             Tag{
@@ -264,7 +275,13 @@ pub const menu_items: []const MenuItem = &.{
         },
     },
 };
-pub fn init() void {}
+
+var current_menu_item: MenuItem = menu_items[0];
+var current_section: []const u8 = "";
+var sections: std.StringArrayHashMap(void) = undefined;
+pub fn init() void {
+    sections = std.StringArrayHashMap(void).init(Fabric.lib.frame_arena.persistentAllocator());
+}
 
 fn openDialog() void {
     Search.toggle();
@@ -276,165 +293,240 @@ fn toggleTheme() void {
     Fabric.cycle();
 }
 
+fn goto(url: []const u8) void {
+    for (menu_items) |item| {
+        if (std.mem.eql(u8, url, item.link)) {
+            current_menu_item = item;
+            return;
+        }
+    }
+    Fabric.Kit.navigate(url);
+}
+
+fn handleSection(target: Observer.Target) void {
+    if (target.is_in_view) {
+        sections.put(target.url, {}) catch unreachable;
+    } else {
+        _ = sections.swapRemove(target.url);
+    }
+    Fabric.cycle();
+}
+
+fn mount() void {
+    _ = Observer.new("menu-bar", handleSection);
+}
+
 fn list() void {
     const current_path = Fabric.Kit.getWindowPath();
-    Box.style(&.{
-        .layout = .x_between_center,
-        .child_gap = 8,
-        .padding = .{ .top = 8, .bottom = 8, .left = 12, .right = 12 },
-        .position = .{ .type = .fixed, .top = .px(0), .left = .percent(8), .right = .percent(0) },
-        .size = .hw(.mobile_desktop_percent(8, 6), .percent(100 - 8)),
-        .z_index = 400,
-        .blur = 3,
-    })({
+    Hooks(.{ .mounted = mount })({
         Box.style(&.{
             .layout = .x_between_center,
             .child_gap = 8,
-            .size = .h(.percent(100)),
+            .padding = .{ .top = 8, .bottom = 8, .left = 12, .right = 12 },
+            .position = .{ .type = .fixed, .top = .px(0), .left = .percent(8), .right = .percent(0) },
+            .size = .hw(.mobile_desktop_percent(8, 6), .percent(100 - 8)),
+            .z_index = 400,
+            .visual = .{ .blur = 3 },
         })({
-            Link(.{ .url = "/", .aria_label = "home page of tether" }).style(&.{
-                .visual = .{ .text_decoration = .none },
-                .cursor = .pointer,
-            })({
-                Image(.{ .src = "/assets/circlelogo.webp" }).style(&.{
-                    .layout = .center,
-                    .size = .square_px(42),
-                });
-            });
-            Text("Tether").style(&.{
-                .visual = .{ .font_weight = 500, .font_size = 18 },
-            });
-            // Svg(@embedFile("text.svg"), .{
-            //     .size = .{ .w(.px(80),
-            // });
             Box.style(&.{
-                .visual = .{ .border = .l(1, .rgb(0, 0, 0)) },
-                .size = .{ .height = .px(24) },
-            })({});
-            Text("Docs").style(&.{
-                .visual = .{ .font_weight = 700, .font_size = 18 },
-            });
-        });
-        if (!Fabric.isMobile()) {
-            // Button(.{ .on_press = openDialog, .aria_label = "search-dialog" }).style(&.{
-            //     .layout = .x_between_center,
-            //     .size = .hw(.px(38), .percent(20)),
-            //     .padding = .{ .top = 4, .bottom = 4, .left = 8, .right = 8 },
-            //     .visual = .{
-            //         .border = .solid(.all(1), .hex("#E1E1E1"), .all(8)),
-            //         .background = .transparentizeHex("#ffffff", 70),
-            //     },
-            //     .cursor = .pointer,
-            //     .interactive = .{ .hover = .{ .border_color = .hex("#802BFF") } },
-            // })({
-            //     Box.style(&.{
-            //         .layout = .left_center,
-            //         .child_gap = 24,
-            //     })({
-            //         Icon("bi bi-search").style(&.{
-            //             .visual = .{ .font_size = 16, .text_color = .hex("#A2A2A2") },
-            //         });
-            //         Text("Search...").style(&.{
-            //             .visual = .{ .font_size = 16, .text_color = .hex("#A2A2A2") },
-            //             .font_family = "Montserrat",
-            //         });
-            //     });
-            //     Icon("bi bi-command").style(&.{
-            //         .visual = .{ .font_size = 16, .text_color = .hex("#A2A2A2") },
-            //     });
-            // });
-
-            ButtonCycle(.{ .on_press = openDialog, .aria_label = "search-dialog" }).style(&.{
                 .layout = .x_between_center,
-                .size = .hw(.px(38), .percent(50)),
-                .padding = .tblr(4, 4, 8, 8),
-                .visual = .button(.palette(.background), .simple(.hex("#E1E1E1"))),
-                .cursor = .pointer,
-                .interactive = .{ .hover = .{
-                    .border = .simple(.palette(.tint)),
-                } },
+                .child_gap = 8,
+                .size = .h(.percent(100)),
             })({
-                Box.style(&.{ .layout = .left_center, .child_gap = 24 })({
-                    Icon(.search).style(&.{
-                        .visual = .{ .font_size = 16, .text_color = .palette(.icon_color) },
-                    });
-                    Text("Search...").style(&.{
-                        .visual = .{ .font_size = 16, .text_color = .palette(.icon_color) },
-                        .font_family = "Montserrat, sans-serif",
+                Link(.{ .url = "/", .aria_label = "home page of tether" }).style(&.{
+                    .visual = .{ .text_decoration = .none, .cursor = .pointer },
+                })({
+                    Image(.{ .src = "/assets/circlelogo.webp" }).style(&.{
+                        .layout = .center,
+                        .size = .square_px(42),
                     });
                 });
-                Icon(.command).style(&.{
-                    .visual = .{ .font_size = 16, .text_color = .palette(.icon_color) },
+                Text("Tether").style(&.{
+                    .visual = .{ .font_weight = 500, .font_size = 18 },
+                });
+                // Svg(@embedFile("text.svg"), .{
+                //     .size = .{ .w(.px(80),
+                // });
+                Box.style(&.{
+                    .visual = .{ .border = .l(1, .rgb(0, 0, 0)) },
+                    .size = .{ .height = .px(24) },
+                })({});
+                Text("Docs").style(&.{
+                    .visual = .{ .font_weight = 700, .font_size = 18 },
                 });
             });
-            // Box.plain();
-            Box.style(&.{
-                .size = .{ .width = .percent(20), .height = .percent(100) },
-                .layout = .right_center,
-                .padding = .horizontal(12),
-                .child_gap = 24,
-            })({
-                Button(.{ .on_press = toggleTheme }).style(&.{
-                    .visual = .{ .background = .transparent },
-                    .cursor = .pointer,
+            if (!Fabric.isMobile()) {
+                // Button(.{ .on_press = openDialog, .aria_label = "search-dialog" }).style(&.{
+                //     .layout = .x_between_center,
+                //     .size = .hw(.px(38), .percent(20)),
+                //     .padding = .{ .top = 4, .bottom = 4, .left = 8, .right = 8 },
+                //     .visual = .{
+                //         .border = .solid(.all(1), .hex("#E1E1E1"), .all(8)),
+                //         .background = .transparentizeHex("#ffffff", 70),
+                //     },
+                //     .cursor = .pointer,
+                //     .interactive = .{ .hover = .{ .border_color = .hex("#802BFF") } },
+                // })({
+                //     Box.style(&.{
+                //         .layout = .left_center,
+                //         .child_gap = 24,
+                //     })({
+                //         Icon("bi bi-search").style(&.{
+                //             .visual = .{ .font_size = 16, .text_color = .hex("#A2A2A2") },
+                //         });
+                //         Text("Search...").style(&.{
+                //             .visual = .{ .font_size = 16, .text_color = .hex("#A2A2A2") },
+                //             .font_family = "Montserrat",
+                //         });
+                //     });
+                //     Icon("bi bi-command").style(&.{
+                //         .visual = .{ .font_size = 16, .text_color = .hex("#A2A2A2") },
+                //     });
+                // });
+
+                ButtonCycle(.{ .on_press = openDialog, .aria_label = "search-dialog" }).style(&.{
+                    .layout = .x_between_center,
+                    .size = .hw(.px(38), .percent(50)),
+                    .padding = .tblr(4, 4, 8, 8),
+                    .visual = .{ .border = .simple(.hex("#E1E1E1")), .background = .transparent, .cursor = .pointer },
+                    .interactive = .{ .hover = .{
+                        .border = .simple(.palette(.tint)),
+                    } },
                 })({
-                    Icon(.cloud_moon).style(&.{
-                        .visual = .{ .font_size = 24, .text_color = .palette(.icon_color) },
-                        .interactive = .{ .hover = .{ .text_color = .palette(.tint) } },
-                    });
-                });
-            });
-        }
-    });
-    Box.style(&.{
-        .position = .{ .type = .fixed, .top = if (Fabric.isMobile()) .percent(8) else .percent(8), .left = .percent(8) },
-        .size = .hw(.percent(100), .mobile_desktop_percent(100, 14)),
-        .z_index = 999,
-    })({
-        List.style(&.{
-            .list_style = .none,
-            .direction = .column,
-            .padding = .{ .top = 16, .bottom = 64, .right = 8, .left = 8 },
-            .child_gap = 12,
-            .size = .hw(.percent(95), .percent(100)),
-            .scroll = .scroll_y(),
-            .show_scrollbar = false,
-            .layout = .{},
-        })({
-            for (menu_items) |item| {
-                ListItem.style(&.{
-                    .size = .hw(.fit, .percent(100)),
-                    // .border_radius = .all(4),
-                    .visual = .{
-                        .background = if (std.mem.eql(u8, current_path, item.link)) .transparentizeHex(.palette(.tint), 0.1) else .transparent,
-                        .border = .r(2, if (std.mem.eql(u8, current_path, item.link)) .palette(.tint) else .transparent),
-                    },
-                    .interactive = .{
-                        .hover = .{
-                            .background = if (std.mem.eql(u8, current_path, item.link)) .transparentizeHex(.palette(.tint), 0.1) else .palette(.highlight_color),
-                        },
-                    },
-                })({
-                    Link(.{ .url = item.link, .aria_label = item.title }).style(&.{
-                        .visual = .{ .text_decoration = .none },
-                        .size = .w(.percent(100)),
-                        .layout = .left_center,
-                        .child_gap = 12,
-                        .padding = .{ .top = 10, .bottom = 10, .right = 8, .left = 8 },
-                        .cursor = .pointer,
-                    })({
-                        Icon(item.icon).style(&.{
-                            .visual = .{ .text_color = if (std.mem.eql(u8, current_path, item.link)) .palette(.tint) else .palette(.text_color) },
+                    Box.style(&.{ .layout = .left_center, .child_gap = 24 })({
+                        Icon(.search).style(&.{
+                            .visual = .{ .font_size = 16, .text_color = .palette(.icon_color) },
                         });
-                        Text(item.title).style(&.{
-                            .visual = .{
-                                .text_color = if (std.mem.eql(u8, current_path, item.link)) .palette(.tint) else .palette(.text_color),
-                                .font_size = 14,
-                            },
+                        Text("Search...").style(&.{
+                            .visual = .{ .font_size = 16, .text_color = .palette(.icon_color) },
+                            .font_family = "Montserrat, sans-serif",
+                        });
+                    });
+                    Icon(.command).style(&.{
+                        .visual = .{ .font_size = 16, .text_color = .palette(.icon_color) },
+                    });
+                });
+                // Box.plain();
+                Box.style(&.{
+                    .size = .{ .width = .percent(20), .height = .percent(100) },
+                    .layout = .right_center,
+                    .padding = .horizontal(12),
+                    .child_gap = 24,
+                })({
+                    Button(.{ .on_press = toggleTheme }).style(&.{
+                        .visual = .{ .background = .transparent, .cursor = .pointer },
+                    })({
+                        Icon(.cloud_moon).style(&.{
+                            .visual = .{ .font_size = 24, .text_color = .palette(.icon_color) },
+                            .interactive = .{ .hover = .{ .text_color = .palette(.tint) } },
                         });
                     });
                 });
             }
+        });
+        Box.style(&.{
+            .position = .{ .type = .fixed, .top = if (Fabric.isMobile()) .percent(8) else .percent(8), .left = .percent(8) },
+            .size = .hw(.percent(100), .mobile_desktop_percent(100, 14)),
+            .z_index = 999,
+        })({
+            List.style(&.{
+                .list_style = .none,
+                .direction = .column,
+                .padding = .{ .top = 16, .bottom = 64, .right = 8, .left = 8 },
+                .child_gap = 12,
+                .size = .hw(.percent(95), .percent(100)),
+                .scroll = .scroll_y(),
+                .show_scrollbar = false,
+                .layout = .{},
+            })({
+                for (menu_items) |item| {
+                    ListItem.style(&.{
+                        .size = .hw(.fit, .percent(100)),
+                        // .border_radius = .all(4),
+                        .visual = .{
+                            .background = if (std.mem.eql(u8, current_path, item.link)) .transparentizeHex(.palette(.tint), 0.1) else .transparent,
+                            .border = .r(2, if (std.mem.eql(u8, current_path, item.link)) .palette(.tint) else .transparent),
+                        },
+                        .interactive = .{
+                            .hover = .{
+                                .background = if (std.mem.eql(u8, current_path, item.link)) .transparentizeHex(.palette(.tint), 0.1) else .palette(.highlight_color),
+                            },
+                        },
+                    })({
+                        CtxButton(goto, .{item.link}).style(&.{
+                            .visual = .{
+                                .text_decoration = .none,
+                                .cursor = .pointer,
+                                .background = .transparent,
+                            },
+                            .size = .w(.percent(100)),
+                            .layout = .left_center,
+                            .child_gap = 12,
+                            .padding = .tblr(10, 10, 8, 8),
+                        })({
+                            Icon(item.icon).style(&.{
+                                .visual = .{ .text_color = if (std.mem.eql(u8, current_path, item.link)) .palette(.tint) else .palette(.text_color) },
+                            });
+                            Text(item.title).style(&.{
+                                .visual = .{
+                                    .text_color = if (std.mem.eql(u8, current_path, item.link)) .palette(.tint) else .palette(.text_color),
+                                    .font_size = 14,
+                                },
+                                .font_family = "Montserrat",
+                            });
+                        });
+                    });
+                }
+            });
+        });
+        Box.style(&.{
+            .position = .{ .type = .fixed, .top = if (Fabric.isMobile()) .percent(8) else .percent(8), .right = .percent(0) },
+            .size = .hw(.percent(100), .mobile_desktop_percent(100, 14)),
+            .z_index = 999,
+        })({
+            List.style(&.{
+                .list_style = .none,
+                .direction = .column,
+                .padding = .{ .top = 16, .bottom = 64, .right = 8, .left = 8 },
+                .child_gap = 12,
+                .size = .hw(.percent(95), .percent(100)),
+                .scroll = .scroll_y(),
+                .show_scrollbar = false,
+                .layout = .{},
+            })({
+                for (current_menu_item.sections) |section| {
+                    const url = Fabric.fmtln("#{s}", .{section.link});
+                    const title = section.title;
+                    ListItem.style(&.{
+                        .size = .hw(.fit, .percent(100)),
+                        // .border_radius = .all(4),
+                        // .visual = .{
+                        //     .background = if (std.mem.eql(u8, current_path, section)) .transparentizeHex(.palette(.tint), 0.1) else .transparent,
+                        //     .border = .r(2, if (std.mem.eql(u8, current_path, section)) .palette(.tint) else .transparent),
+                        // },
+                        // .interactive = .{
+                        //     .hover = .{
+                        //         .background = if (std.mem.eql(u8, current_path, section)) .transparentizeHex(.palette(.tint), 0.1) else .palette(.highlight_color),
+                        //     },
+                        // },
+                    })({
+                        Link(.{ .url = url, .aria_label = title }).style(&.{
+                            .visual = .{ .text_decoration = .none, .cursor = .pointer },
+                            .size = .w(.percent(100)),
+                            .layout = .left_center,
+                            .child_gap = 12,
+                            .padding = .{ .top = 10, .bottom = 10, .right = 8, .left = 8 },
+                        })({
+                            Text(title).style(&.{
+                                .visual = .{
+                                    .text_color = if (sections.get(section.link) != null) .palette(.tint) else .palette(.text_color),
+                                    .font_size = 14,
+                                },
+                            });
+                        });
+                    });
+                }
+            });
         });
     });
     // Search.render();

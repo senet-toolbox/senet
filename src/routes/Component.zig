@@ -19,18 +19,16 @@ const box_style = Style{
 var counter: usize = 0;
 fn increment() void {
     counter += 1;
-    Fabric.cycle(); // Updates the UI
+    Fabric.cycle(); // Call to updates the UI
 }
 
 // Render
 pub fn render() void {
     // This is all normal Zig code!
-    TextFmt("{d}", .{counter}).plain(); // React: <Text>{counter}</Text>
     // A component with children
     Box.style(&box_style)({
-        const icon: []const u8 = "bi bi-plus";
-        Button(.{ .on_press = increment }).style(&.{ .size = .square_px(100) })({
-            Icon(icon).plain(); // A component without children
+        Button(.{ .on_press = increment }).size(.square_px(100)).body()({
+            TextFmt("{d}", .{counter}).plain(); // React: <Text>{counter}</Text>
         });
     });
 }
