@@ -2,6 +2,8 @@
 // Event Handling
 // =====================================
 
+const Vapor = @import("vapor");
+
 /// Registers a global event listener for a given event type and callback.
 pub extern fn createEventListener(event_ptr: [*]const u8, event_type_len: usize, cb_id: u32) void;
 
@@ -138,7 +140,7 @@ pub extern "env" fn timeoutCtx(ms: u32, callbackId: u32) void;
 pub extern "env" fn createInterval(name_ptr: [*]const u8, name_len: usize, delay: u32) void;
 
 /// Creates a network hook with callback.
-pub extern fn createHookWASM(urlPtr: [*]const u8, urlLen: usize, cb_id: u32) void;
+pub extern fn createHookWASM(urlPtr: [*]const u8, urlLen: usize, cb_id: u32, hook_type: u8) void;
 
 // =====================================
 // Window & Layout Info
@@ -182,4 +184,20 @@ pub extern fn consoleLogWasm(ptr: [*]const u8, len: usize) i32;
 /// Logs a styled/colored message to the console.
 pub extern fn consoleLogColoredWasm(ptr: [*]const u8, len: usize, style_ptr_1: [*]const u8, style_len_1: usize, style_ptr_2: [*]const u8, style_len_2: usize) i32;
 
-pub extern fn createObserverWasm(ptr: [*]const u8, len: usize) void;
+pub extern fn createObserverWasm(ptr: [*]const u8, len: usize, options_ptr: *const Vapor.Kit.ObserverOptions) void;
+
+pub extern fn reinitObserverWasm(ptr: [*]const u8, len: usize) void;
+
+pub extern fn destroyObserverWasm(ptr: [*]const u8, len: usize) void;
+
+pub extern fn startVideoWasm(id_ptr: [*]const u8, id_len: usize) void;
+pub extern fn playVideoWasm(id_ptr: [*]const u8, id_len: usize) void;
+pub extern fn pauseVideoWasm(id_ptr: [*]const u8, id_len: usize) void;
+pub extern fn stopCameraWasm(id_ptr: [*]const u8, id_len: usize) void;
+pub extern fn seekVideoWasm(id_ptr: [*]const u8, id_len: usize, seconds: f32) void;
+pub extern fn setVolumeWasm(id_ptr: [*]const u8, id_len: usize, volume: f32) void;
+pub extern fn muteVideoWasm(id_ptr: [*]const u8, id_len: usize, mute: bool) void;
+pub extern fn getVideoDurationWasm(id_ptr: [*]const u8, id_len: usize) f32;
+pub extern fn getVideoCurrentTimeWasm(id_ptr: [*]const u8, id_len: usize) f32;
+
+pub extern fn scrollToWasm(x: f32, y: f32) void;

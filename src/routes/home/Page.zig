@@ -1,13 +1,13 @@
 const std = @import("std");
-const Fabric = @import("fabric");
+const Vapor = @import("vapor");
 const Navbar = @import("../components/Navbar.zig");
-const Signal = Fabric.Signal;
-const Static = Fabric.Static;
-const Pure = Fabric.Pure;
-const Style = Fabric.Style;
+const Signal = Vapor.Signal;
+const Static = Vapor.Static;
+const Pure = Vapor.Pure;
+const Style = Vapor.Style;
 const Custom = @import("../components/Custom.zig");
 const root = @import("../main.zig");
-const Chain = Fabric.Chain;
+const Chain = Vapor.Chain;
 const ChainPure = Pure.Chain;
 const Text = Chain.Text;
 const Box = Chain.Box;
@@ -31,16 +31,16 @@ var buffer: [10]usize = undefined;
 var counter: u32 = 0;
 var text: []const u8 = "Hello World";
 pub fn init() void {
-    counter = Fabric.lib.getPersist(u32, "counter") orelse 0;
-    text = Fabric.lib.getPersist([]const u8, "text") orelse "Default";
+    counter = Vapor.lib.getPersist(u32, "counter") orelse 0;
+    text = Vapor.lib.getPersist([]const u8, "text") orelse "Default";
     for (0..10) |i| {
         buffer[i] = i;
     }
     Navbar.init();
     rand_num = random.random().intRangeAtMost(usize, 1, 5);
     random.random().shuffle(usize, &buffer);
-    Fabric.lib.registerLayout("/", layout);
-    Fabric.Page(@src(), render, null, &.{});
+    Vapor.lib.registerLayout("/", layout);
+    Vapor.Page(@src(), render, null, &.{});
 }
 
 pub fn layout(page: *const fn () void) void {
@@ -49,14 +49,14 @@ pub fn layout(page: *const fn () void) void {
 }
 
 pub fn shuffle() void {
-    // Fabric.println("Before", .{});
+    // Vapor.println("Before", .{});
     // for (buffer[0..]) |i| {
-    //     Fabric.println("elem: {d}", .{i});
+    //     Vapor.println("elem: {d}", .{i});
     // }
     random.random().shuffle(usize, &buffer);
-    // Fabric.println("After", .{});
+    // Vapor.println("After", .{});
     // for (buffer[0..]) |i| {
-    //     Fabric.println("elem: {d}", .{i});
+    //     Vapor.println("elem: {d}", .{i});
     // }
 
     rand_num = random.random().intRangeAtMost(usize, 1, 5);
@@ -64,14 +64,14 @@ pub fn shuffle() void {
 
 pub fn increment() void {
     counter += 1;
-    Fabric.lib.persist("counter", counter);
-    Fabric.println("count: {any}", .{counter});
+    Vapor.lib.persist("counter", counter);
+    Vapor.println("count: {any}", .{counter});
 }
 
 const blocks: []const struct { title: []const u8, description: []const u8 } = &.{
     .{
-        .title = "Fabric",
-        .description = "Fabric is a renderer agnostic framework, and compiles down to native. No Bloat, No Build. No Runtime.",
+        .title = "Vapor",
+        .description = "Vapor is a renderer agnostic framework, and compiles down to native. No Bloat, No Build. No Runtime.",
     },
     .{
         .title = "Reverb",
@@ -90,7 +90,7 @@ pub fn render() void {
         .layout = .x_even_center,
         .visual = .{ .background = .palette(.background) },
     })({
-        if (Fabric.isDesktop()) {
+        if (Vapor.isDesktop()) {
             Stack.style(&.{
                 .size = .hw(.percent(100), .mobile_desktop_percent(100, 50)),
                 .child_gap = 12,
@@ -161,7 +161,7 @@ pub fn render() void {
                 // })({
                 //     for (buffer[0..]) |i| {
                 //         AllocText("Content {d}", .{i}).style(&.{
-                //             .id = Fabric.fmtln("elem-{d}", .{i}),
+                //             .id = Vapor.fmtln("elem-{d}", .{i}),
                 //         })({});
                 //     }
                 // });
@@ -173,7 +173,7 @@ pub fn render() void {
             .direction = .column,
             .layout = .center,
         })({
-            if (Fabric.isMobile()) {
+            if (Vapor.isMobile()) {
                 Stack.style(&.{
                     .layout = .center,
                     .margin = .tb(30, 40),
@@ -217,7 +217,7 @@ pub fn render() void {
                 });
             }
 
-            if (Fabric.isMobile()) {
+            if (Vapor.isMobile()) {
                 Center.style(&.{
                     .direction = .column,
                     .padding = .horizontal(12),
@@ -269,7 +269,7 @@ pub fn render() void {
         });
     });
 
-    if (Fabric.isDesktop()) {
+    if (Vapor.isDesktop()) {
         Box.style(&.{
             .size = .w(.percent(100)),
             .padding = .tb(64, 64),

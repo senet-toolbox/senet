@@ -1,38 +1,39 @@
 const std = @import("std");
-const Fabric = @import("fabric");
-const Static = Fabric.Static;
-const Pure = Fabric.Pure;
-const Binded = Fabric.Binded;
-const Dynamic = Fabric.Dynamic;
-const HtmlElement = Fabric.Element;
-const menu_items = @import("../routes/docs/fabric/Menu.zig").menu_items;
-const MenuItem = @import("../routes/docs/fabric/Menu.zig").MenuItem;
+const Vapor = @import("vapor");
+const Static = Vapor.Static;
+const Pure = Vapor.Pure;
+const Binded = Vapor.Binded;
+const Dynamic = Vapor.Dynamic;
+const HtmlElement = Vapor.Binded;
+const menu_items = @import("../components/DocNavbar.zig").menu_items;
+const MenuItem = @import("../components/DocNavbar.zig").MenuItem;
 
 var search_box: HtmlElement = HtmlElement{};
-var background: HtmlElement = HtmlElement{};
+var background: Vapor.Binded = .{};
 var show: bool = false;
 var dynamic_menu_items: std.array_list.Managed(MenuItem) = undefined;
 pub fn init() void {
-    dynamic_menu_items = std.array_list.Managed(MenuItem).init(Fabric.lib.allocator_global);
+    dynamic_menu_items = std.array_list.Managed(MenuItem).init(Vapor.lib.allocator_global);
     dynamic_menu_items.appendSlice(menu_items) catch {
-        Fabric.println("Error appending menu items", .{});
+        Vapor.println("Error appending menu items", .{});
     };
 }
 
 pub fn toggle() void {
     show = !show;
-    Fabric.cycle();
+    Vapor.cycle();
 }
 
 pub fn mount() void {
-    _ = background.addListener(.click, close);
-    _ = search_box.addListener(.input, search);
-    _ = search_box.focus();
+    // _ = background.addListener(.click, closeEvent);
+    // _ = search_box.addListener(.input, search);
+    // _ = search_box.focus();
 }
 
 /// Searches the item's title and all relevant fields within its tags.
-fn search(_: *Fabric.Event) void {
-    const text = search_box.getInputValue() orelse return;
+var binded_searchbar: Binded = .{};
+fn search(evt: *Vapor.Event) void {
+    const text = evt.text();
 
     // Clear the list to rebuild it for the new search
     dynamic_menu_items.clearRetainingCapacity();
@@ -40,7 +41,7 @@ fn search(_: *Fabric.Event) void {
     // If the search box is empty, show all items
     if (text.len == 0) {
         dynamic_menu_items.appendSlice(menu_items) catch {};
-        Fabric.cycle();
+        Vapor.cycle();
         return;
     }
 
@@ -85,190 +86,217 @@ fn search(_: *Fabric.Event) void {
         }
     }
 
-    Fabric.cycle();
+    Vapor.cycle();
 }
 
-fn close(_: *Fabric.Event) void {
-    toggle();
+fn closeEvent(_: *Vapor.Event) void {
+    show = false;
+    Vapor.cycle();
+}
+
+fn close() void {
+    show = false;
+    Vapor.cycle();
 }
 
 fn navigate(link: []const u8) void {
-    Fabric.Kit.navigate(link);
+    Vapor.Kit.navigate(link);
     toggle();
 }
 
 var showBorder: bool = false;
 fn toggleBorder() void {
-    Fabric.println("Border toggled", .{});
+    Vapor.println("Border toggled", .{});
     showBorder = !showBorder;
-    Fabric.cycle();
+    Vapor.cycle();
+}
+
+var current_item: ?MenuItem = null;
+fn onHover(_: *Vapor.Event, item: MenuItem) void {
+    current_item = item;
+    // Vapor.print("onHover {s}", .{item.id});
+    Vapor.cycle();
+    // showBorder = true;
+}
+
+fn onLeave(_: *Vapor.Event) void {
+    // Vapor.print("onLeave", .{});
+    current_item = null;
+    Vapor.cycle();
 }
 
 pub fn render() void {
     if (show) {
-        Static.Hooks(.{ .hooks = .{ .mounted = mount } })({
-            Static.Center(.{
-                .style = &.{
-                    .position = .{
-                        .type = .fixed,
-                        .top = .percent(0),
-                    },
-                    .size = .square_percent(100),
-                    .direction = .row,
-                    .z_index = 999,
+        Static.Hooks(.{ .mounted = mount })({
+            Static.Center.style(&.{
+                .position = .{
+                    .type = .fixed,
+                    .top = .percent(0),
+                    .bottom = .percent(0),
+                    .left = .percent(0),
+                    .right = .percent(0),
+                    .z_index = 1100,
                 },
+                .size = .square_percent(100),
+                .direction = .row,
             })({
-                Binded.Box(.{ .element = &background, .style = &.{
+                // Static.Box.bind(&background).style(&.{
+                Static.Button(.{ .on_press = close }).style(&.{
                     .position = .{
                         .type = .fixed,
-                        .top = .percent(0),
+                        .top = .px(0),
                         .right = .px(0),
                         .left = .px(0),
                         .bottom = .px(0),
+                        .z_index = 1100,
                     },
-                    .background = .transparentizeHex("#000000", 100),
-                } })({});
-                Static.Box(.{ .style = &.{
-                    .size = .{ .width = .mobile_desktop_percent(90, 36), .height = .percent(80) },
-                    .background = .hex("#F5F5F5"),
+                    .visual = .{ .background = .transparentizeHex(.hex("#000000"), 0.1) },
+                })({});
+                Static.Box.style(&.{
+                    .size = .{ .width = .mobile_desktop_percent(90, 40), .height = .percent(80) },
+                    .visual = .{
+                        .border = .simple(.palette(.text_color)),
+                        // .border_radius = .all(8),
+                        .background = .palette(.background),
+                    },
                     .padding = .all(12),
                     .direction = .column,
-                    .child_alignment = .top_center,
-                    .overflow_y = .scroll,
+                    .layout = .top_center,
+                    .scroll = .scroll_y(),
                     .child_gap = 8,
-                    .border_radius = .all(8),
-                    .z_index = 1100,
-                } })({
-                    Static.Box(.{
-                        .style = &.{
-                            .size = .{ .width = .percent(100) },
-                            .border_radius = .all(8),
-                            // .position = .{ .type = .relative },
-                            .child_alignment = .x_between_center,
-                            .padding = .horizontal(12),
+                    .position = .{ .type = .relative, .z_index = 1101 },
+                })({
+                    Static.Box.style(&.{
+                        .size = .{ .width = .percent(100) },
+                        // .position = .{ .type = .relative },
+                        .layout = .x_between_center,
+                        .padding = .horizontal(12),
+                        .interactive = .{
                             .hover = .{
-                                .border_color = .hex("#5A27FF"),
-                                .border_thickness = .all(2),
+                                .border = .simple(.palette(.tint)),
                             },
-                            .focus = .{
-                                .border_color = .hex("#5A27FF"),
-                                .border_thickness = .all(2),
-                                .shadow = .{
-                                    .color = .rgba(139, 92, 246, 200),
-                                    .blur = 3,
-                                    .spread = 1,
-                                },
-                            },
-                            .border_color = .transparent,
-                            .border_thickness = .all(2),
                         },
+                        .visual = .{ .border = .simple(.hex("#E1E1E1")), .cursor = .pointer, .background = .palette(.background) },
+                        // .focus = .{
+                        //     .border_color = .hex("#5A27FF"),
+                        //     .border_thickness = .all(2),
+                        //     .shadow = .{
+                        //         .color = .rgba(139, 92, 246, 200),
+                        //         .blur = 3,
+                        //         .spread = 1,
+                        //     },
+                        // },
                     })({
-                        Static.Icon(.{ .icon_name = "bi bi-search", .style = &.{
-                            .font_size = 16,
-                        } });
-                        Binded.Input(.{ .element = &search_box, .params = &.{ .string = .{ .default = "Search..." } }, .style = &.{
-                            .size = .{ .width = .percent(100), .height = .px(60) },
-                            .padding = .{ .top = 4, .bottom = 4, .left = 8, .right = 8 },
-                            .background = .transparent,
-                            .font_size = 18,
+                        Static.Icon(.search).style(&.{
+                            .visual = .{ .font_size = 16 },
+                        });
+                        Static.TextField(.string).onChange(search).style(&.{
+                            .size = .hw(.px(38), .grow),
+                            .padding = .tblr(4, 4, 8, 8),
+                            .visual = .{ .border = .none, .font_size = 18 },
+                            .font_family = "IBM Plex Mono,monospace",
                             .outline = .none,
-                            .border_thickness = .all(0),
-                        } });
-                        Static.Icon(.{ .icon_name = "bi bi-command", .style = &.{
-                            .font_size = 16,
-                        } });
+                        });
+                        Static.Icon(.command).style(&.{
+                            .visual = .{ .font_size = 16 },
+                        });
                     });
 
-                    Pure.AllocText("Results {d}", .{3}, .{ .style = &.{
-                        .font_weight = 700,
-                        .font_size = 14,
+                    Pure.TextFmt("Results {d}", .{3}).style(&.{
+                        .visual = .{ .font_weight = 700, .font_size = 14 },
                         .size = .{ .width = .percent(100) },
                         .margin = .{ .top = 20 },
-                    } });
-                    Static.List(.{
-                        .style = &.{
-                            .layout = .Flex,
-                            .direction = .column,
-                            .size = .{ .width = .percent(100) },
-                            .list_style = .none,
-                            .padding = .all(0),
-                            .child_gap = 16,
-                        },
+                    });
+                    Static.List.style(&.{
+                        .direction = .column,
+                        .size = .{ .width = .percent(100) },
+                        .list_style = .none,
+                        .padding = .all(0),
+                        .child_gap = 16,
                     })({
-                        for (dynamic_menu_items.items) |item| {
-                            Dynamic.ListItem(.{
-                                .key = item.id,
-                                .style = &.{
-                                    .size = .{ .width = .percent(100) },
-                                    .background = .hex("#ffffff"),
-                                    .border_radius = .all(4),
+                        for (dynamic_menu_items.items, 0..) |item, j| {
+                            const border: Vapor.Types.BorderGrouped = if (j != 0) .sharp(.tblr(1, 1, 1, 1), .palette(.text_color)) else .simple(.palette(.text_color));
+                            Static.ListItem.id(item.id)
+                                .onHoverCtx(onHover, item)
+                                .onLeave(onLeave)
+                                .style(&.{
+                                .size = .{ .width = .percent(100), .height = .fit },
+                                .visual = .{
+                                    .cursor = .pointer,
+                                    .border = border,
+                                },
+                                .margin = .b(-1),
+                                .padding = .tblr(8, 8, 8, 8),
+                                .interactive = .{
+                                    .hover = .{
+                                        .border = .simple(.palette(.tint)),
+                                    },
+                                    .hover_position = .{ .z_index = 1000, .type = .relative },
                                 },
                             })({
-                                Static.CtxButton(navigate, .{item.link}, .{
-                                    .style = &.{
-                                        .layout = .Flex,
-                                        .size = .{ .width = .percent(100), .height = .px(60) },
-                                        .border_radius = .top_bottom(4, 0),
-                                        .border_color = .rgba(0, 0, 0, 0),
-                                        .border_thickness = .all(2),
-                                        .padding = .horizontal(8),
-                                        .cursor = .pointer,
-                                        .direction = .column,
-                                        .hover = .{
-                                            .border_color = .hex("#5A27FF"),
-                                            .border_thickness = .all(2),
-                                        },
-                                        .text_decoration = .none,
-                                    },
-                                })({
-                                    Static.Text(.{
-                                        .text = item.title,
-                                        .style = &.{
-                                            .font_size = 18,
-                                            .text_color = .hex("#5A27FF"),
-                                            .font_weight = 700,
-                                        },
+                                const text_color: Vapor.Types.Color = if (current_item) |c_item| if (std.mem.eql(u8, c_item.id, item.id)) .palette(.tint) else .palette(.text_color) else .palette(.text_color);
+                                Static.Link(.{ .url = item.link, .aria_label = item.title })
+                                    .textDecoration(.none)
+                                    .body()({
+                                    // Static.CtxButton(navigate, .{item.link}).style(&.{
+                                    //     .size = .{ .width = .percent(100), .height = .px(60) },
+                                    //     .visual = .{
+                                    //         .border_radius = .top_bottom(4, 0),
+                                    //         .border_color = .transparent,
+                                    //         .border_thickness = .all(2),
+                                    //         .cursor = .pointer,
+                                    //         .text_decoration = .none,
+                                    //     },
+                                    //     .padding = .horizontal(8),
+                                    //     .direction = .column,
+                                    //     .interactive = .{
+                                    //         .hover = .{
+                                    //             .border_color = .hex("#5A27FF"),
+                                    //             .border_thickness = .all(2),
+                                    //         },
+                                    //     },
+                                    // })({
+                                    Static.Text(item.title).style(&.{
+                                        .visual = .{ .font_size = 18, .text_color = text_color, .font_weight = 700 },
+                                        .font_family = "IBM Plex Mono,monospace",
                                     });
-                                    Static.Text(.{
-                                        .text = item.link,
-                                        .style = &.{
-                                            .font_size = 12,
-                                            .text_color = .hex("#353535"),
-                                        },
+                                    Static.Text(item.link).style(&.{
+                                        .visual = .{ .font_size = 12, .text_color = text_color },
                                     });
+                                    // });
+                                    for (item.tags) |tag| {
+                                        Static.Link(.{ .aria_label = tag.sub_title, .url = tag.url }).style(&.{
+                                            .layout = .left_center,
+                                            .size = .{ .width = .fit, .height = .fit },
+                                            .visual = .{
+                                                .cursor = .pointer,
+                                                .text_decoration = .none,
+                                                .border = .bottom(.transparent),
+                                            },
+                                            .direction = .column,
+                                            // .padding = .horizontal(8),
+                                            .interactive = .{
+                                                .hover = .{
+                                                    .border = .bottom(.palette(.tint)),
+                                                },
+                                            },
+                                        })({
+                                            Static.Text(tag.sub_title).style(&.{
+                                                .visual = .{ .font_size = 14, .font_weight = 700, .text_color = text_color },
+                                            });
+                                            Static.Text(tag.description).style(&.{
+                                                .visual = .{ .font_size = 14, .text_color = text_color },
+                                            });
+                                        });
+                                    }
                                 });
-                                for (item.tags, 0..) |tag, i| {
-                                    Static.Link(.{ .aria_label = tag.sub_title, .url = tag.url, .style = &.{
-                                        .layout = .Flex,
-                                        .size = .{ .width = .percent(100), .height = .px(60) },
-                                        .border_color = .rgba(0, 0, 0, 0),
-                                        .border_thickness = .all(2),
-                                        .cursor = .pointer,
-                                        .direction = .column,
-                                        .padding = .horizontal(8),
-                                        .text_decoration = .none,
-                                        .hover = .{
-                                            .border_color = .hex("#5A27FF"),
-                                            .border_thickness = .all(2),
-                                            .border_radius = if (item.tags.len - 1 == i) .top_bottom(0, 4) else null,
-                                        },
-                                    } })({
-                                        Static.Text(.{ .text = tag.sub_title, .style = &.{
-                                            .font_size = 16,
-                                            .font_weight = 700,
-                                            .text_color = .hex("#353535"),
-                                        } });
-                                        Static.Text(.{ .text = tag.description, .style = &.{
-                                            .font_size = 14,
-                                            .text_color = .hex("#353535"),
-                                        } });
-                                    });
-                                }
                             });
                         }
                     });
                 });
             });
         });
+    } else {
+        Static.Null();
     }
 }

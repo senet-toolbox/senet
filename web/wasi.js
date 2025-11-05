@@ -2,8 +2,9 @@ import {
   eventHandlers,
   elementDimensions,
   eventStorage,
-  domNodeRegistry,
-  loadedSections,
+  beforeHooksHandlers,
+  afterHooksHandlers,
+  observers,
 } from "./maps.js";
 import {
   allocString,
@@ -11,11 +12,165 @@ import {
   rerenderRoute,
   requestRerender,
   styleSheet,
-  loadSection,
 } from "./wasi_obj.js";
-import { isLayout, stripNonLayout } from "./traversal.js";
 
 let wasmInstance = null;
+
+let structBridge = undefined;
+
+export function setWasiStructBridge() {
+  // Initialize the bridge
+  structBridge = new WasmStructBridge(wasmInstance);
+
+  // Register schemas once at startup
+  structBridge.registerSchema(
+    "ObserverOptions",
+    "getObserverOptionsSchema",
+    "getObserverOptionsSchemaLength",
+  );
+}
+
+export class WasmStructBridge {
+  constructor(wasmInstance) {
+    this.wasm = wasmInstance;
+    this.schemas = new Map();
+  }
+
+  // Register a schema for a struct type
+  registerSchema(name, getSchemaFn, getSchemaLengthFn) {
+    // Register a schema for a struct type
+    const length = this.wasm[getSchemaLengthFn]();
+    const schemaPtr = this.wasm[getSchemaFn]();
+
+    const fields = [];
+    const memory = new DataView(this.wasm.memory.buffer);
+
+    const FIELD_DESCRIPTOR_SIZE = 16; // 1 + 4 + 4 + 4
+
+    for (let i = 0; i < length; i++) {
+      const offset = schemaPtr + i * FIELD_DESCRIPTOR_SIZE; // ✅ 13 bytes per field
+
+      const fieldType = memory.getUint8(offset);
+      const fieldOffset = memory.getUint32(offset + 1, true); // ✅ Starts at byte 1
+      const namePtr = memory.getUint32(offset + 5, true); // ✅ Starts at byte 5
+      const nameLen = memory.getUint32(offset + 9, true); // ✅ Starts at byte 9
+
+      const fieldName = readWasmString(namePtr, nameLen);
+
+      fields.push({
+        name: fieldName,
+        type: fieldType,
+        offset: fieldOffset,
+      });
+    }
+
+    this.schemas.set(name, fields);
+  }
+
+  // Read any struct generically
+  readStruct(structName, ptr) {
+    const schema = this.schemas.get(structName);
+    if (!schema) {
+      throw new Error(`Schema not registered for: ${structName}`);
+    }
+
+    const memory = new DataView(this.wasm.memory.buffer);
+    const result = {};
+
+    for (const field of schema) {
+      const fieldPtr = ptr + field.offset;
+      result[field.name] = this.readField(memory, fieldPtr, field.type);
+    }
+
+    return result;
+  }
+
+  readField(memory, ptr, fieldType) {
+    const FieldType = {
+      u8_type: 0,
+      i8_type: 1,
+      u16_type: 2,
+      i16_type: 3,
+      u32_type: 4,
+      i32_type: 5,
+      u64_type: 6,
+      i64_type: 7,
+      f32_type: 8,
+      f64_type: 9,
+      bool_type: 10,
+      string_type: 11,
+    };
+
+    switch (fieldType) {
+      case FieldType.u8_type:
+        return memory.getUint8(ptr);
+      case FieldType.i8_type:
+        return memory.getInt8(ptr);
+      case FieldType.u16_type:
+        return memory.getUint16(ptr, true);
+      case FieldType.i16_type:
+        return memory.getInt16(ptr, true);
+      case FieldType.u32_type:
+        return memory.getUint32(ptr, true);
+      case FieldType.i32_type:
+        return memory.getInt32(ptr, true);
+      case FieldType.u64_type:
+        return memory.getBigUint64(ptr, true);
+      case FieldType.i64_type:
+        return memory.getBigInt64(ptr, true);
+      case FieldType.f32_type:
+        return memory.getFloat32(ptr, true);
+      case FieldType.f64_type:
+        return memory.getFloat64(ptr, true);
+      case FieldType.bool_type:
+        return memory.getUint8(ptr) !== 0;
+      case FieldType.string_type:
+        const strPtr = memory.getUint32(ptr, true);
+        const strLen = memory.getUint32(ptr + 4, true);
+        return readWasmString(strPtr, strLen);
+      default:
+        throw new Error(`Unknown field type: ${fieldType}`);
+    }
+  }
+}
+
+class StructReader {
+  constructor(wasmMemory, ptr) {
+    this.view = new DataView(wasmMemory.buffer);
+    this.ptr = ptr;
+    this.offset = 0;
+  }
+
+  f32() {
+    const val = this.view.getFloat32(this.ptr + this.offset, true);
+    this.offset += 4;
+    return val;
+  }
+
+  i32() {
+    const val = this.view.getInt32(this.ptr + this.offset, true);
+    this.offset += 4;
+    return val;
+  }
+
+  u32() {
+    const val = this.view.getUint32(this.ptr + this.offset, true);
+    this.offset += 4;
+    return val;
+  }
+
+  bool() {
+    const val = this.view.getUint8(this.ptr + this.offset);
+    this.offset += 1;
+    return val !== 0;
+  }
+
+  string() {
+    const ptr = this.u32();
+    const len = this.u32();
+    return readWasmString(ptr, len);
+  }
+}
 
 export const env = {
   /**
@@ -95,7 +250,7 @@ export const env = {
     const cb = eventHandlers.get(`fb-evt-hd-${id}-${elementId}`);
     element.removeEventListener(event_type, cb);
   },
-  createElementEventInstListener: (idPtr, idLen, ptr, len, id) => {
+  createElementEventInstListener: (idPtr, idLen, ptr, len, onid) => {
     requestAnimationFrame(() => {
       if (!wasmInstance) {
         console.error("WASM instance not initialized");
@@ -113,51 +268,71 @@ export const env = {
         return;
       }
 
-      const event_type = new TextDecoder().decode(
-        memory.subarray(ptr, ptr + len),
-      );
+      // const event_type = new TextDecoder().decode(
+      //   memory.subarray(ptr, ptr + len),
+      // );
+      //
+      const event_id = onid >>> 0;
+      const event_type = readWasmString(ptr, len);
+      let eventData = eventHandlers.get(elementId);
+      const handler = (event) => {
+        eventStorage[event_id] = event;
+        wasmInstance.eventInstCallback(event_id);
+      };
 
-      eventHandlers.set(`fb-inst-evt-hd-${id}-${elementId}`, (event) => {
-        eventStorage[id] = event;
-        wasmInstance.eventInstCallback(id);
-      });
-
-      element.addEventListener(event_type, (event) => {
-        eventHandlers.get(`fb-inst-evt-hd-${id}-${elementId}`)(event);
-      });
+      if (eventData === undefined) {
+        eventData = {};
+        eventData[event_type] = handler;
+        element.addEventListener(event_type, handler);
+      } else {
+        if (eventData[event_type] === undefined) {
+          eventData[event_type] = handler;
+          element.addEventListener(event_type, handler);
+        }
+      }
+      eventHandlers.set(elementId, eventData);
     });
   },
 
-  createElementEventListener: (idPtr, idLen, ptr, len, id) => {
-    requestAnimationFrame(() => {
-      if (!wasmInstance) {
-        console.error("WASM instance not initialized");
-        return;
-      }
-      const memory = new Uint8Array(wasmInstance.memory.buffer);
+  createElementEventListener: (idPtr, idLen, ptr, len, onid) => {
+    // requestAnimationFrame(() => {
+    if (!wasmInstance) {
+      console.error("WASM instance not initialized");
+      return;
+    }
+    const memory = new Uint8Array(wasmInstance.memory.buffer);
 
-      const elementId = new TextDecoder().decode(
-        memory.subarray(idPtr, idPtr + idLen),
-      );
+    const elementId = new TextDecoder().decode(
+      memory.subarray(idPtr, idPtr + idLen),
+    );
 
-      const element = document.getElementById(elementId);
-      if (element === null) {
-        console.log("Is Null");
-        return;
+    const element = document.getElementById(elementId);
+    if (element === null) {
+      console.log("Could not attach listener element is Null", elementId);
+      return;
+    }
+
+    const event_id = onid >>> 0;
+    const event_type = readWasmString(ptr, len);
+    const eventData = eventHandlers.get(elementId);
+    const handler = (event) => {
+      eventStorage[event_id] = event;
+      wasmInstance.eventCallback(event_id);
+    };
+
+    if (eventData === undefined) {
+      const newEventData = {};
+      newEventData[event_type] = handler;
+      element.addEventListener(event_type, handler);
+      eventHandlers.set(elementId, newEventData);
+    } else {
+      if (eventData[event_type] === undefined) {
+        eventData[event_type] = handler;
+        element.addEventListener(event_type, handler);
+        eventHandlers.set(elementId, eventData);
       }
-      const event_type = new TextDecoder().decode(
-        memory.subarray(ptr, ptr + len),
-      );
-      eventHandlers.set(`fb-evt-hd-${id}-${elementId}`, (event) => {
-        eventStorage[id] = event;
-        // console.log(event, event.srcElement);
-        wasmInstance.eventCallback(id);
-      });
-      element.addEventListener(
-        event_type,
-        eventHandlers.get(`fb-evt-hd-${id}-${elementId}`),
-      );
-    });
+    }
+    // });
   },
 
   elementFocusedWasm: (idPtr, idLen) => {
@@ -311,6 +486,7 @@ export const env = {
       return;
     }
 
+    id = id >>> 0;
     const event = eventStorage[id];
     const value = event.target.value;
     return allocString(value);
@@ -323,6 +499,7 @@ export const env = {
 
     const memory = new Uint8Array(wasmInstance.memory.buffer);
     const key = new TextDecoder().decode(memory.subarray(ptr, ptr + len));
+    id = id >>> 0;
     const event = eventStorage[id];
     const keyValue = event[key];
     return allocString(keyValue);
@@ -470,30 +647,28 @@ export const env = {
   },
 
   getBoundingClientRectWasm: (idPtr, idLen) => {
-    requestAnimationFrame(() => {
-      if (!wasmInstance) {
-        console.error("WASM instance not initialized");
-        return;
-      }
-      const memory = new Uint8Array(wasmInstance.memory.buffer);
+    if (!wasmInstance) {
+      console.error("WASM instance not initialized");
+      return;
+    }
+    const memory = new Uint8Array(wasmInstance.memory.buffer);
+    const elementId = new TextDecoder().decode(
+      memory.subarray(idPtr, idPtr + idLen),
+    );
+    const ptr = wasmInstance.allocate(6);
+    const bounds = new Float32Array(memory.buffer, ptr, 6);
+    const element = document.getElementById(elementId);
+    const rectBounds = element.getBoundingClientRect();
 
-      const elementId = new TextDecoder().decode(
-        memory.subarray(idPtr, idPtr + idLen),
-      );
+    // Add scroll offsets to get document-relative positions
+    bounds[0] = rectBounds.top + window.scrollY; // top
+    bounds[1] = rectBounds.left + window.scrollX; // left
+    bounds[2] = rectBounds.right + window.scrollX; // right
+    bounds[3] = rectBounds.bottom + window.scrollY; // bottom
+    bounds[4] = rectBounds.width;
+    bounds[5] = rectBounds.height;
 
-      const ptr = wasmInstance.allocate(6);
-      const bounds = new Float32Array(memory.buffer, ptr, 6);
-
-      const element = document.getElementById(elementId);
-      const rectBounds = element.getBoundingClientRect();
-      bounds[0] = rectBounds.top;
-      bounds[1] = rectBounds.left;
-      bounds[2] = rectBounds.right;
-      bounds[3] = rectBounds.bottom;
-      bounds[4] = rectBounds.width;
-      bounds[5] = rectBounds.height;
-      return ptr;
-    });
+    return ptr;
   },
   getElementData: (id, ptr, len) => {
     if (!wasmInstance) {
@@ -518,17 +693,13 @@ export const env = {
   },
 
   timeout: (ms, callbackId) => {
-    console.log(`Setting timeout for ${ms}ms with callback ID ${callbackId}`);
     setTimeout(() => {
-      console.log(`Timeout complete, resuming with callback ID ${callbackId}`);
       wasmInstance.buttonCallback(callbackId);
     }, ms);
   },
 
   timeoutCtx: (ms, callbackId) => {
-    console.log(`Setting timeout for ${ms}ms with callback ID ${callbackId}`);
     setTimeout(() => {
-      console.log(`Timeout complete, resuming with callback ID ${callbackId}`);
       wasmInstance.timeoutCtxCallBackId(callbackId);
     }, ms);
   },
@@ -637,6 +808,7 @@ export const env = {
         return;
       }
 
+      console.log("element", element, attribute, value);
       if (attribute === "top" || attribute === "left") {
         element.style[attribute] = `${value}px`;
       } else {
@@ -872,27 +1044,13 @@ export const env = {
 
   navigateWasm: (pathPtr, pathLen) => {
     const path = readWasmString(pathPtr, pathLen);
-    const count = wasmInstance.markAllNonLayoutNodesDirtyRemoveList();
-
-    /* ───────── main removal loop ───────── */
-    for (let i = 0; i < count; i++) {
-      const ptr = wasmInstance.getRemovedNode(i);
-      const len = wasmInstance.getRemovedNodeLength(i);
-      const id = readWasmString(ptr, len);
-
-      const rec = domNodeRegistry.get(id);
-      if (!rec) continue; // already gone
-
-      const el = rec.domNode;
-      if (isLayout(el)) continue; // never delete a layout root itself
-
-      stripNonLayout(el); // delete everything *except* layouts
-    }
-    // we push the state and renderCycle the new path
-    window.history.pushState({}, "", path);
-    rerenderRoute(path === "/" ? "/" : path);
+    const currentPath = window.location.pathname;
     requestAnimationFrame(() => {
-      wasmInstance.setRerenderTrue();
+      if (currentPath !== path) {
+        rerenderRoute(path);
+        // wasmInstance.callAllMountedCallbacks();
+      }
+
       requestAnimationFrame(() => {
         const hash = window.location.hash;
         if (hash) {
@@ -904,7 +1062,12 @@ export const env = {
               block: "center", // Vertically align to the center of the screen
             });
           }
+        } else {
+          // window.scrollTo({
+          //   top: 0,
+          // });
         }
+        // wasmInstance.callAllMountedCallbacks();
       });
     });
   },
@@ -975,29 +1138,70 @@ export const env = {
       });
   },
 
-  createObserverWasm(ptr, len) {
+  destroyObserverWasm(ptr, len) {
+    observers.delete(readWasmString(ptr, len));
+  },
+
+  reinitObserverWasm(ptr, len) {
+    const name = readWasmString(ptr, len);
+    const observer = observers.get(name);
+
+    if (!observer) {
+      console.warn(`Observer ${name} not found`);
+      return;
+    }
+
+    // Get all sections
+    const sections = document.querySelectorAll("section");
+
+    // Note: There's no direct way to get observed elements from IntersectionObserver
+    // So we track them or re-observe all
+
+    // Option A: Disconnect and re-observe everything with updated indices
+    observer.disconnect();
+    sections.forEach((section, index) => {
+      section.dataset.sectionIndex = index;
+      observer.observe(section);
+    });
+  },
+
+  createObserverWasm(ptr, len, optionsPtr) {
+    const reader = new StructReader(wasmInstance.memory, optionsPtr);
+
+    const opts = structBridge.readStruct("ObserverOptions", optionsPtr);
+
     const options = {
+      threshold: reader.f32(),
+      rootMargin: `${opts.rootMargin_top}px ${opts.rootMargin_right}px ${opts.rootMargin_bottom}px ${opts.rootMargin_left}px`,
       root: null,
-      rootMargin: "0px", // Only 50px buffer at bottom
-      threshold: 0.1,
     };
+
     const name = readWasmString(ptr, len);
     const observer = new IntersectionObserver((entries) => {
       entries.forEach((entry) => {
         const callback_id = allocString(name);
         const data_ptr = allocString(entry.target.id);
-        wasmInstance.callbackCtx(callback_id, data_ptr, entry.isIntersecting);
+        // Get the actual index from the dataset
+        const actualIndex = parseInt(entry.target.dataset.sectionIndex, 10);
+        // console.log("Section", entry.target.id, actualIndex);
+        wasmInstance.callbackCtx(
+          callback_id,
+          data_ptr,
+          entry.isIntersecting,
+          actualIndex, // Use the stored index instead of forEach index
+        );
       });
     }, options);
 
-    // Observe all <section> elements
-    document.querySelectorAll("section").forEach((section) => {
+    // Store the index on each section as you observe it
+    document.querySelectorAll("section").forEach((section, index) => {
+      section.dataset.sectionIndex = index;
       observer.observe(section);
     });
+    observers.set(name, observer);
   },
 
   toggleThemeWasm: () => {
-    console.log("Toggle Theme");
     const body = document.documentElement; // or document.body
     const currentTheme = body.getAttribute("data-theme");
 
@@ -1008,6 +1212,103 @@ export const env = {
       body.setAttribute("data-theme", "dark"); // Switch to dark
       localStorage.setItem("theme", "dark");
     }
+  },
+
+  createHookWASM: (endpointPtr, endpointLen, id, hookType) => {
+    const endpoint = readWasmString(endpointPtr, endpointLen);
+    const hookId = `${endpoint}-${id}`;
+
+    if (hookType === 0) {
+      beforeHooksHandlers.set(hookId, () => {
+        wasmInstance.hookInstCallback(id);
+      });
+    } else if (hookType === 1) {
+      afterHooksHandlers.set(hookId, () => {
+        wasmInstance.hookInstCallback(id);
+      });
+    }
+  },
+  startVideoWasm: (idPtr, idLen) => {
+    const id = readWasmString(idPtr, idLen);
+    const video = document.getElementById(id);
+    if (video === null) return;
+
+    async function startCamera() {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: true,
+          audio: false,
+        });
+        video.srcObject = stream;
+      } catch (error) {
+        console.error("Camera access denied:", error);
+      }
+    }
+
+    startCamera();
+  },
+  // play video
+  playVideoWasm: (idPtr, idLen) => {
+    const id = readWasmString(idPtr, idLen);
+    const video = document.getElementById(id);
+    video.play();
+  },
+
+  // pause video
+  pauseVideoWasm: (idPtr, idLen) => {
+    const id = readWasmString(idPtr, idLen);
+    const video = document.getElementById(id);
+    video.pause();
+  },
+
+  // stop camera & remove stream
+  stopCameraWasm: (idPtr, idLen) => {
+    const id = readWasmString(idPtr, idLen);
+    const video = document.getElementById(id);
+
+    if (video.srcObject) {
+      const tracks = video.srcObject.getTracks();
+      tracks.forEach((track) => track.stop());
+      video.srcObject = null;
+    }
+  },
+
+  // seek to seconds
+  seekVideoWasm: (idPtr, idLen, seconds) => {
+    const id = readWasmString(idPtr, idLen);
+    const video = document.getElementById(id);
+    video.currentTime = seconds;
+  },
+
+  // set volume (0.0 – 1.0)
+  setVolumeWasm: (idPtr, idLen, volume) => {
+    const id = readWasmString(idPtr, idLen);
+    const video = document.getElementById(id);
+    video.volume = volume;
+  },
+
+  // mute/unmute
+  muteVideoWasm: (idPtr, idLen, mute) => {
+    const id = readWasmString(idPtr, idLen);
+    const video = document.getElementById(id);
+    video.muted = !!mute;
+  },
+
+  // get duration (returns seconds)
+  getVideoDurationWasm: (idPtr, idLen) => {
+    const id = readWasmString(idPtr, idLen);
+    const video = document.getElementById(id);
+    return video.duration;
+  },
+
+  // get current playback time
+  getVideoCurrentTimeWasm: (idPtr, idLen) => {
+    const id = readWasmString(idPtr, idLen);
+    const video = document.getElementById(id);
+    return video.currentTime;
+  },
+  scrollToWasm: (x, y) => {
+    window.scrollTo(x, y);
   },
 };
 

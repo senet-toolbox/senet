@@ -1,6 +1,6 @@
 const std = @import("std");
-const Fabric = @import("fabric");
-const Color = Fabric.Types.Color;
+const Vapor = @import("vapor");
+const Color = Vapor.Types.Color;
 pub const Mode = enum {
     light,
     dark,
@@ -60,12 +60,9 @@ pub const ElementType = enum(u8) {
     Virtualize,
     ButtonCycle,
     Graphic,
-    Heading1,
-    Heading2,   
-    Heading3,
-    Heading4,
-    Heading5,
-    Heading6,
+    Heading,
+    Video,
+    Noop,
 };
 
 pub const ThemeTokens = enum(u8) {
@@ -101,11 +98,13 @@ pub const ThemeTokens = enum(u8) {
     code_function_color,
     code_keyword_color,
     disabled,
+    light_text,
 };
 
 pub const IconTokens = struct {
     web: ?[]const u8 = null,
     svg: ?[]const u8 = null,
+    pub const list_task = &IconTokens{ .web = "bi bi-view-list", .svg = "\u{f0e1}" };
     pub const cloud_download_fill = &IconTokens{ .web = "bi bi-cloud-download-fill", .svg = "\u{f0e2}" };
     pub const plus = &IconTokens{ .web = "bi bi-plus", .svg = "\u{f0fe}" };
     pub const arrow_right = &IconTokens{ .web = "bi bi-arrow-right", .svg = "\u{f0e9}" };

@@ -3,13 +3,13 @@ const std = @import("std");
 const App = @import("app.zig");
 
 // Import your shared framework/component modules
-const fabric = @import("fabric");
+const vapor = @import("vapor");
 const theme = @import("theme");
 
 pub fn main() !void {
     std.debug.print("Running documentation generator...\n", .{});
     App.instantiate(1200, 1200, std.heap.page_allocator);
-    fabric.lib.generateTextData();
+    vapor.lib.generateTextData();
     // 1. Create an instance of your root component or app
     //    (This code is hypothetical and depends on your framework's API)
     //    const site_vdom = my_framework.render(theme.DocumentationSite, allocator);

@@ -6,14 +6,14 @@ all: build
 
 # Build the Zig codebase
 build:
-	$(ZIG) build 
-	# $(ZIG) build --release=fast
+	# $(ZIG) build 
+	$(ZIG) build --release=fast
 	# $(ZIG) build --release=safe
 	# $(ZIG) build --release=small -Drelease=true
 
 # Run the built executable
 run:
-	./zig-out/bin/fabric
+	./zig-out/bin/vapor
 
 runrel:
 	./main

@@ -22,7 +22,6 @@ export function updateComponentStyle(
   element,
 ) {
   let className = specified_className;
-  // console.log(element);
   if (className.length === 0) return;
   const style_slice = className.split(" ");
   while (true) {
@@ -32,12 +31,42 @@ export function updateComponentStyle(
     }
     if (className.length === 0) continue;
     if (!styleRuleCache.has(`.${className}`)) {
-      const ptr = wasmInstance.getVisualStyle(nodePtr, 3);
-      const len = wasmInstance.getVisualLen();
-      const css = readWasmString(ptr, len);
-      const newIndex = styleSheet.cssRules.length;
-      styleSheet.insertRule(`.${className} { ${css} }`, newIndex);
-      styleRuleCache.set(`.${className}`, newIndex);
+      if (className.substring(0, 3) === "vis") {
+        const ptr = wasmInstance.getVisualStyle(nodePtr, 3);
+        const len = wasmInstance.getVisualLen();
+        const css = readWasmString(ptr, len);
+        const newIndex = styleSheet.cssRules.length;
+        styleSheet.insertRule(`.${className} { ${css} }`, newIndex);
+        styleRuleCache.set(`.${className}`, newIndex);
+      } else if (className.substring(0, 3) === "pos") {
+        const ptr = wasmInstance.getPositionStyle(nodePtr, 3);
+        const len = wasmInstance.getPositionLen();
+        const css = readWasmString(ptr, len);
+        const newIndex = styleSheet.cssRules.length;
+        styleSheet.insertRule(`.${className} { ${css} }`, newIndex);
+        styleRuleCache.set(`.${className}`, newIndex);
+      } else if (className.substring(0, 3) === "lay") {
+        const ptr = wasmInstance.getLayoutStyle(nodePtr, 3);
+        const len = wasmInstance.getLayoutLen();
+        const css = readWasmString(ptr, len);
+        const newIndex = styleSheet.cssRules.length;
+        styleSheet.insertRule(`.${className} { ${css} }`, newIndex);
+        styleRuleCache.set(`.${className}`, newIndex);
+      } else if (className.substring(0, 4) === "intr") {
+        const ptr = wasmInstance.getVisualStyle(nodePtr, 0);
+        const len = wasmInstance.getVisualLen();
+        const css = readWasmString(ptr, len);
+        const newIndex = styleSheet.cssRules.length;
+        styleSheet.insertRule(`.${className}:hover { ${css} }`, newIndex);
+        styleRuleCache.set(`.${className}`, newIndex);
+      } else if (className.substring(0, 4) === "mapa") {
+        const ptr = wasmInstance.getMapaStyle(nodePtr, 0);
+        const len = wasmInstance.getMapaLen();
+        const css = readWasmString(ptr, len);
+        const newIndex = styleSheet.cssRules.length;
+        styleSheet.insertRule(`.${className} { ${css} }`, newIndex);
+        styleRuleCache.set(`.${className}`, newIndex);
+      }
     }
     //   const ruleIndex = styleRuleCache.get(`.${className}`);
     //   styleSheet.deleteRule(ruleIndex);

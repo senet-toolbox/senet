@@ -1,22 +1,24 @@
 const std = @import("std");
-const Fabric = @import("fabric");
+const Vapor = @import("vapor");
 const NavBar = @import("../../components/Navbar.zig");
 const Custom = @import("../../components/Custom.zig");
-const Signal = Fabric.Signal;
-const Style = Fabric.Style;
-const Static = Fabric.Static;
+const Signal = Vapor.Signal;
+const Style = Vapor.Style;
+const Static = Vapor.Static;
 const Center = Static.Center;
 const Box = Static.Box;
 const Image = Static.Image;
 const Text = Static.Text;
-const Page = Fabric.Page;
-const Pure = Fabric.Pure;
+const Page = Vapor.Page;
+const Pure = Vapor.Pure;
 const HtmlText = Custom.Chain.HtmlText;
 const Graphic = Static.Graphic;
+const List = Static.List;
+const ListItem = Static.ListItem;
 
 // Initialization
 pub fn init() void {
-    Page(@src(), render, null, &.{});
+    Page(.{ .src = @src() }, render, null);
 }
 
 pub fn Txt(text: []const u8) void {
@@ -27,23 +29,25 @@ pub fn Txt(text: []const u8) void {
 
 const heading = &Style{
     .visual = .{
-        .font_size = 48,
-        .font_weight = 700,
+        .font_size = 32,
+        .font_weight = 500,
         .text_color = .palette(.text_color),
     },
+    .font_family = "IBM Plex Sans",
 };
 
 const subheading = &Style{
     .visual = .{
-        .font_size = 32,
-        .font_weight = 700,
+        .font_size = 24,
+        .font_weight = 500,
         .text_color = .palette(.text_color),
     },
+    .font_family = "IBM Plex Sans",
 };
 
 const body_text = &Style{
     .visual = .{
-        .font_size = 24,
+        .font_size = 16,
         .font_weight = 700,
         .text_color = .palette(.text_color),
     },
@@ -51,7 +55,7 @@ const body_text = &Style{
 
 const muted_text = &Style{
     .visual = .{
-        .font_size = 18,
+        .font_size = 16,
         .text_color = .palette(.text_color),
     },
 };
@@ -64,31 +68,28 @@ pub fn render() void {
         Box.style(&.{
             .child_gap = 24,
             .direction = .column,
-            .size = .w(.mobile_desktop_percent(100, 70)),
+            .size = .w(.mobile_desktop_percent(100, 60)),
             .padding = .horizontal(12),
         })({
             Text("What is Tether?").style(heading);
-            Text("To put simply, Tether is an exposed set of frameworks, that gives developers the ability to Build full-stack applications with zero dependencies, zero configuration, and complete control. ").style(&.{ .visual = .font(24, null, .palette(.text_color)) });
-
-            Center.style(&.{})({
-                Graphic(.{ .src = "src/assets/tether.svg" }).style(&.{
-                    .size = .hw(.percent(100), .percent(50)),
-                    .visual = .{ .text_color = .palette(.text_color) },
-                });
-            });
+            Text(
+                \\To put simply, Tether is an exposed set of frameworks, that gives developers the ability 
+                \\to Build full-stack applications with zero dependencies, zero configuration, and complete control. 
+            ).style(&.{ .visual = .font(18, null, .palette(.text_color)) });
 
             Text("How the Internet works").style(heading);
             HtmlText(
                 \\At their core every website is just a text document. We store this document on the server and send it to the client, when they ask for it.
-                \\Your browser takes this document which is in a langauge known as <a href="https://developer.mozilla.org/en-US/docs/Web/HTML">HTML</a> 
-                \\and then draws the boxes, rectangles, and text onto your screen. This is how it worked in the beginning.
+                \\Your browser takes request this document which is in a langauge known as 
+                \\<a href="https://developer.mozilla.org/en-US/docs/Web/HTML">HTML</a> 
+                \\and then draws the buttons, rectangles, and text onto your screen. This is how it worked in the beginning.
             ).style(muted_text);
             // Image(.{ .src = "/assets/theinternet.webp" }).style(&.{
             //     .size = .w(.percent(100)),
             // });
             Graphic(.{ .src = "src/assets/theinternet.svg" }).style(&.{
                 .size = .hw(.percent(100), .percent(100)),
-                .visual = .{ .text_color = .palette(.text_color) },
+                .visual = .{ .fill = .palette(.text_color), .stroke = .palette(.text_color) },
             });
 
             Text("And then theres today...").style(&.{
@@ -98,8 +99,8 @@ pub fn render() void {
             Text("This is in essence, the current state of Web development, it doesn't make sense, and it's just getting worse. ").style(muted_text);
             Center.style(&.{ .size = .hw_percent(100, 100) })({
                 Graphic(.{ .src = "src/assets/webdev.svg" }).style(&.{
-                    .size = .hw(.percent(100), .percent(100)),
-                    .visual = .{ .text_color = .palette(.text_color) },
+                    .size = .hw(.percent(100), .percent(60)),
+                    .visual = .{ .fill = .palette(.text_color), .stroke = .palette(.text_color) },
                 });
             });
 
@@ -107,80 +108,84 @@ pub fn render() void {
                 .margin = .{ .top = 24 },
                 .visual = subheading.visual,
             });
+            Text("Tether is a toolkit first, framework second")
+                .font(18, null, .palette(.tint))
+                .close();
+
             HtmlText(
-                \\Tether is a toolkit first, framework second. It's a modular, flexible system that exposes all its APIs to developers. 
+                \\It's a modular, flexible system that exposes all its APIs to developers. 
                 \\Unlike common frameworks like <strong>React</strong> or <strong>Vue</strong>, Tether eliminates the need to deal with evolving opinions that change over time.
                 \\Many frameworks have altered their core APIs and designs, leading to complexity, legacy system support burdens, 
                 \\and the never-ending cycle of learning and relearning changes.
             ).style(muted_text);
 
             HtmlText(
-                \\<strong style="color: #6439FF">Tether</strong> takes the approach of <strong>exposure</strong> and <strong>explicitness</strong>. 
+                \\<strong style="color: rgb(var(--tint))">Tether</strong> takes the approach of <strong>exposure</strong> and <strong>explicitness</strong>. 
                 \\Every single component in Tether 
-                \\is available to the developer. There's no transpilation engine magic, no strange state 
+                \\is available to the developer. There's no transpilation engine <i>magic</i>, no strange state 
                 \\machinery—just simple APIs you can touch and understand. 
-                \\The aim is to provide developers with a toolbox of functionality they can deep dive into and customize when needed.
+                \\The aim is to provide developers with a <strong>toolbox</strong> of functionality they can deep dive into and customize when needed.
             ).style(muted_text);
 
             HtmlText(
-                \\<strong>For example:</strong> Fabric's state management is a single <code style="color: #6439FF">global_rerender</code> variable of type <code style="color: #6439FF">bool</code>. 
-                \\That's it. You can use the built-in <strong>Signal Struct</strong> that Fabric exposes, build your own, or simply 
-                \\toggle the <code style="color: #6439FF">global_rerender</code> to update your UI. Until then, you 
-                \\can utilize Tether's in-house solutions with no setup, configuration files, or complexity. Just
-                \\install and start building.
+                \\<strong>For example:</strong> 
             ).style(muted_text);
-            Text("But How?").style(subheading);
             HtmlText(
-                \\Tether was built along side this Documentation website, as well as <a href="/nightwatch">NightWatch</a>. 
-                \\The purpose of this was to challenge Tether, and figure out all the small annoyances that build up in our lives over time. 
-                \\Tailwind, was created due to the nuisances of constant CSS churn, "display: flex; border-color: lightgrey; ...". Over, and Over again. 
-                \\Within Fabric you will find and excessive number of defaults, and also the ability to create defaults or overide styles yourself. 
-                \\No need for another package! 
+                \\Vapor's state management is a single <code style="color: rgb(var(--tint))">global_rerender</code> variable of type <code style="color: rgb(var(--tint))">bool</code>. 
+                \\That's it. You can use the built-in <code style="color: rgb(var(--tint))">Signal(T)</code> type that Vapor exposes, 
+                \\build your own, or simply 
+                \\call the <code style="color: rgb(var(--tint))">cycle()</code> to update your UI. Until then, you 
+                \\can utilize Tether's in-house solutions with no setup, configuration files, or complexity. Just
+                \\install and start building. All you need is <code style="color: rgb(var(--tint))">ZIG</code>.
             ).style(muted_text);
+
             Text("Modular by Design").style(subheading);
 
             HtmlText(
-                \\Tether's modularity means you can install Fabric, Tether, or Treehouse as independent entities. 
+                \\Tether's modularity means you can install Vapor, Tether, or Treehouse as independent entities. 
                 \\There's no requirement to use all three or just one. The libraries themselves are modular—choose 
-                \\to install OAuth, UI component libraries, or any specific functionality you need. Tether serves 
+                \\to install OAuth, Markdown parser, UI component libraries, or any specific functionality you need. Tether serves 
                 \\as both package management system and toolkit.
             ).style(muted_text);
 
             Text("What Tether Eliminates").style(subheading);
 
-            HtmlText(
-                \\Tether ships with <strong>zero dependencies</strong> and eliminates the need for:
-            ).style(muted_text);
-
-            HtmlText(
-                \\<strong>Languages & Runtimes:</strong> No JavaScript, HTML, CSS, React, TSX, Python, Swift, Node.js
-            ).style(muted_text);
-
-            HtmlText(
-                \\<strong>Frameworks & Platforms:</strong> No Vercel, Next.js, Nuxt.js, multi-language systems
-            ).style(muted_text);
-
-            HtmlText(
-                \\<strong>External Services:</strong> No Clerk, NextAuth, Supabase, Stripe
-            ).style(muted_text);
-
-            HtmlText(
-                \\<strong>Infrastructure:</strong> No Docker, Redis, Dragonfly
-            ).style(muted_text);
-
-            HtmlText(
-                \\<strong>Package Management:</strong> No npm, pip, dependency hell
-            ).style(muted_text);
-
-            HtmlText(
-                \\<strong>Build Tools:</strong> No transpilation, platform-specific code, configuration magic
-            ).style(muted_text);
-
+            List.layout(.left_center).direction(.column).childGap(8).body()({
+                ListItem.style(&.{})({
+                    HtmlText(
+                        \\Tether ships with <strong>zero dependencies</strong> and eliminates the need for:
+                    ).style(muted_text);
+                });
+                ListItem.style(&.{})({
+                    HtmlText(
+                        \\<strong>Languages & Runtimes:</strong> No JavaScript, HTML, CSS, React, TSX, Python, Swift, Node.js
+                    ).style(muted_text);
+                });
+                ListItem.style(&.{})({
+                    HtmlText(
+                        \\<strong>Frameworks & Platforms:</strong> No Vercel, Next.js, Nuxt.js, multi-language systems
+                    ).style(muted_text);
+                });
+                ListItem.style(&.{})({
+                    HtmlText(
+                        \\<strong>Infrastructure:</strong> No Docker, Redis, Dragonfly
+                    ).style(muted_text);
+                });
+                ListItem.style(&.{})({
+                    HtmlText(
+                        \\<strong>Package Management:</strong> No npm, pip, dependency hell
+                    ).style(muted_text);
+                });
+                ListItem.style(&.{})({
+                    HtmlText(
+                        \\<strong>Build Tools:</strong> No transpilation, platform-specific code, configuration magic
+                    ).style(muted_text);
+                });
+            });
             Text("But that doesn't mean you can't...").style(subheading);
-
             HtmlText(
                 \\<strong>Install Libs:</strong> Use your favorite JS Library if you want, This is even done in NightWatch with chart.js 
-                \\<a href="/docs/fabric/concepts/jslibs">NightWatch Example</a>
+                \\<a href="/docs/vapor/concepts/jslibs">NightWatch Example</a>
             ).style(muted_text);
 
             HtmlText(
@@ -191,26 +196,17 @@ pub fn render() void {
                 \\<strong>Adapt and Build:</strong> Scrap it all and use the core codebase to build your own Renderer, and Web Server 
             ).style(muted_text);
 
-            Text("The Core Promise ").style(&.{ .visual = .font(32, 700, .palette(.text_color)), .margin = .{ .top = 64 } });
+            Text("The Core Promise ").style(&.{
+                .visual = .font(24, 500, .palette(.text_color)),
+                .margin = .{ .top = 32 },
+                .font_family = "IBM Plex Sans",
+            });
 
             HtmlText(
                 \\Tether provides the productivity benefits of modern frameworks while maintaining the control 
                 \\and transparency of lower-level tools. It's built for developers who want to focus on solving 
                 \\problems rather than wrestling with tooling, dependencies, and ever-changing framework opinions.
             ).style(muted_text);
-
-            Center.style(&.{ .size = .w(.percent(100)), .direction = .column, .child_gap = 32, .margin = .{ .top = 32 } })({
-                HtmlText(
-                    \\No tricks. No magic. Just tools you can understand and control.
-                ).style(body_text);
-
-                HtmlText(
-                    \\Tether is toolkit first, framework second. 
-                ).style(body_text);
-                // HtmlText(
-                //     \\Designed for the long game, not the next big thing!
-                // , .{ .font_size = 28, .font_weight = 700 });
-            });
         });
     });
 }

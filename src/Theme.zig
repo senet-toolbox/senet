@@ -1,8 +1,8 @@
 // Theme.zig
 const std = @import("std");
-const Fabric = @import("fabric");
-const Color = Fabric.Types.Color;
-pub const Mode = enum {
+const Vapor = @import("vapor");
+const Color = Vapor.Types.Color;
+pub const Mode = enum(u8) {
     light,
     dark,
 };
@@ -40,6 +40,7 @@ pub const Colors = struct {
     code_function_color: Color,
     code_keyword_color: Color,
     disabled: Color,
+    light_text: Color,
 };
 
 pub const Blue = Colors{
@@ -77,8 +78,6 @@ pub const Blue = Colors{
     .disabled = .hex("#A2A2A2"),
 };
 
-
-
 pub const Light = Colors{
     .border_color = .hex("#262626"),
     .text_color = .rgba(0, 0, 0, 255),
@@ -112,6 +111,7 @@ pub const Light = Colors{
     .code_function_color = .hex("#0074c2"),
     .code_keyword_color = .hex("#d97706"),
     .disabled = .hex("#A2A2A2"),
+    .light_text = .hex("#B7B7B7"),
 };
 
 pub const Dark = Colors{
@@ -121,9 +121,9 @@ pub const Dark = Colors{
     .primary = .rgba(0, 0, 0, 255),
     .secondary = .rgba(255, 255, 255, 1),
     .font_family = "Montserrat",
-    .btn_color = .hex("#FBFB28"),
-    .tint = .hex("#FBFB28"),
-    .text_tint_color = .hex("#FBFB28"),
+    .btn_color = .hex("#FFFF15"),
+    .tint = .hex("#FFFF15"),
+    .text_tint_color = .hex("#FFFF15"),
     .alternate_tint = .hex("#6338FF"),
     .btn_tint = .hex("#FF3838"),
     .dark_text = .hex("#0B0B0B"),
@@ -131,7 +131,7 @@ pub const Dark = Colors{
     .danger = .rgba(255, 78, 51, 1),
     .alternate_background = .hex("#000000"),
     .alternate_border_color = .white,
-    .alternate_text_color = .hex("#FBFB28"),
+    .alternate_text_color = .hex("#FFFF15"),
     .logo = .hex("#0F0F0F"),
     .gradient_start_0stop_color = .hex("#EEFF00"),
     .gradient_start_100stop_color = .hex("#ccff00"),
@@ -147,6 +147,7 @@ pub const Dark = Colors{
     .code_function_color = .hex("#0074c2"),
     .code_keyword_color = .hex("#d43008"),
     .disabled = .hex("#A2A2A2"),
+    .light_text = .hex("#B7B7B7"),
 };
 
 const ColorTheme = @This();
@@ -183,16 +184,12 @@ pub fn getThemeColors(self: ColorTheme) Colors {
     };
 }
 
-pub fn setTheme() void {
-    mode = switch (mode) {
-        .dark => .light,
-        .light => .dark,
-    };
-    Fabric.lib.toggleTheme();
+pub export fn setTheme(new_mode: Mode) void {
+    mode = new_mode;
 }
 
 pub fn getTheme() void {
-    const string_mode = Fabric.lib.getPersistBytes("theme") orelse return;
+    const string_mode = Vapor.lib.getPersistBytes("theme") orelse return;
     mode = std.meta.stringToEnum(Mode, string_mode).?;
 }
 
@@ -206,7 +203,7 @@ pub fn toggleTheme() void {
         .dark => .light,
         .light => .dark,
     };
-    Fabric.lib.setLocalStorageString("theme", @tagName(mode));
+    Vapor.lib.setLocalStorageString("theme", @tagName(mode));
 
     // border_color = theme.border_color;
     // text_color = theme.text_color;
@@ -223,12 +220,12 @@ pub fn toggleTheme() void {
     // dark_text = theme.dark_text;
     // form_input_border_color = theme.form_input_border_color;
     // danger = theme.danger;
-    // Fabric.lib.forceEverything();
-    Fabric.lib.toggleTheme();
+    // Vapor.lib.forceEverything();
+    Vapor.lib.toggleTheme();
 }
 
 pub fn switchTheme(target_theme: Mode) void {
-    Fabric.println("switchTheme {any}", .{mode});
+    Vapor.println("switchTheme {any}", .{mode});
     const theme = switch (target_theme) {
         .light => Light,
         .dark => Dark,
@@ -247,7 +244,7 @@ pub fn switchTheme(target_theme: Mode) void {
     dark_text = theme.dark_text;
     form_input_border_color = theme.form_input_border_color;
     danger = theme.danger;
-    Fabric.lib.forceEverything();
+    Vapor.lib.forceEverything();
 }
 
 // pub fn getAttribute(self: ColorTheme, comptime attribute: []const u8) Color {

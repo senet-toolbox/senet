@@ -226,13 +226,27 @@ const mimeTypes = .{
 };
 
 pub fn mimeForPath(path: []const u8) []const u8 {
-    const extension = std.fs.path.extension(path);
-    inline for (mimeTypes) |kv| {
-        if (std.mem.eql(u8, extension, kv[0])) {
-            return kv[1];
-        }
+    if (std.mem.indexOf(u8, path, ".wasm") != null) {
+        return "application/wasm";
+    } else if (std.mem.indexOf(u8, path, ".ico") != null) {
+        return "image/png";
+    } else if (std.mem.indexOf(u8, path, ".svg") != null) {
+        return "image/svg+xml";
+    } else if (std.mem.indexOf(u8, path, ".png") != null) {
+        return "image/png";
+    } else if (std.mem.indexOf(u8, path, ".webp") != null) {
+        return "image/webp";
+    } else if (std.mem.indexOf(u8, path, ".js") != null) {
+        return "application/javascript";
+    } else if (std.mem.indexOf(u8, path, ".txt") != null) {
+        return "text/html; charset=utf8";
+    } else if (std.mem.indexOf(u8, path, ".woff") != null) {
+        return "font/woff";
+    } else if (std.mem.indexOf(u8, path, ".woff2") != null) {
+        return "font/woff2";
+    } else {
+        return "text/html; charset=utf8";
     }
-    return "text/html; charset=utf8";
 }
 
 var buffer: [2097152]u8 = undefined;
@@ -266,11 +280,20 @@ pub fn openLocalFile(conn: std.net.Server.Connection, mime: []const u8, mimetype
     var encoding: []const u8 = "";
     if (content_encoding.len > 1 and std.mem.eql(u8, mimetype, "application/wasm")) {
         if (std.mem.indexOf(u8, content_encoding, "br") != null) {
-            path = "/zig-out/bin/fabric-optimized.wasm.br";
+            path = "/zig-out/bin/vapor-optimized.wasm.br";
             encoding = "br";
         } else if (std.mem.indexOf(u8, content_encoding, "gzip") != null) {
             encoding = "gzip";
-            path = "/zig-out/bin/fabric-optimized.wasm.gzip";
+            path = "/zig-out/bin/vapor-optimized.wasm.gzip";
+        }
+    }
+    if (content_encoding.len > 1 and std.mem.eql(u8, mimetype, "application/javascript")) {
+        if (std.mem.indexOf(u8, content_encoding, "br") != null) {
+            path = "/web/bundle.min.js.br";
+            encoding = "br";
+        } else if (std.mem.indexOf(u8, content_encoding, "gzip") != null) {
+            encoding = "gzip";
+            path = "/web/bundle.min.js.gzip";
         }
     }
 

@@ -3,23 +3,15 @@ import {
   readRenderCommand,
   activeNodeIds,
   readWasmString,
-  encodeString,
   rerenderRoute,
-  root,
   allocString,
-  render,
-  removeInactiveNodes,
-  layoutInfo,
-  hotSwapWasmWithState,
   text_data,
   currentPath,
-  styleSheet,
 } from "./wasi_obj.js";
 import {
   applyHoverClass,
   applyFocusClass,
   updateComponentStyle,
-  checkMarkStyling,
   applyFocusWithinClass,
   setRuleStyle,
   applyTooltipClass,
@@ -28,20 +20,20 @@ import {
   domNodeRegistry,
   eventHandlers,
   eventStorage,
+  hooksMounted,
   loadedSections,
   observeredSections,
   pureNodeRegistry,
 } from "./maps.js";
 import { state } from "./state.js";
 
-const parser = new DOMParser();
 // Component type constants
 export const COMPONENT_TYPES = {
   RECTANGLE: 0,
   TEXT: 1,
   IMAGE: 2,
   FLEXBOX: 3,
-  TEXTFIELD: 4,
+  TEXT_FIELD: 4,
   BUTTON: 5,
   BLOCK: 6,
   BOX: 7,
@@ -90,12 +82,9 @@ export const COMPONENT_TYPES = {
   VIRTUALIZE: 50,
   BUTTON_CYCLE: 51,
   GRAPHIC: 52,
-  HEADING1: 53,
-  HEADING2: 54,
-  HEADING3: 55,
-  HEADING4: 56,
-  HEADING5: 57,
-  HEADING6: 58,
+  HEADING: 53,
+  VIDEO: 54,
+  NOOP: 55,
 };
 
 const STATE_TYPES = {
@@ -129,26 +118,27 @@ export function clearIntervalsForRoute(path) {
 function processInputElement(element, renderCmd) {
   const idPtr = allocString(renderCmd.id);
   const elementPtr = wasmInstance.getElementPtr(idPtr);
+  if (elementPtr === 0) return;
   // const elementView = new DataView(
   //   wasmInstance.memory.buffer,
   //   elementPtr,
   //   elementSize,
   // );
 
-  const onBlur = wasmInstance.getOnBlurCallback(elementPtr) >>> 0;
-  if (onBlur > 0) {
-    requestAnimationFrame(() => {
-      eventHandlers.set(`fb-evt-hd-${onBlur}-${renderCmd.id}`, (event) => {
-        eventStorage[onBlur] = event;
-        wasmInstance.eventCallback(onBlur);
-      });
-      element.addEventListener("focusout", (event) => {
-        eventHandlers.get(`fb-evt-hd-${onBlur}-${renderCmd.id}`)(event);
-      });
-    });
-  }
+  // const onBlur = wasmInstance.getOnBlurCallback(elementPtr) >>> 0;
+  // if (onBlur > 0) {
+  //   requestAnimationFrame(() => {
+  //     eventHandlers.set(`fb-evt-hd-${onBlur}-${renderCmd.id}`, (event) => {
+  //       eventStorage[onBlur] = event;
+  //       wasmInstance.eventCallback(onBlur);
+  //     });
+  //     element.addEventListener("focusout", (event) => {
+  //       eventHandlers.get(`fb-evt-hd-${onBlur}-${renderCmd.id}`)(event);
+  //     });
+  //   });
+  // }
 
-  const onChange = wasmInstance.getOnChangeCallback(elementPtr);
+  let onChange = wasmInstance.getOnChangeCallback(elementPtr) >>> 0;
   if (onChange > 0) {
     // element.addEventListener("input", async (event) => {
     //   event.preventDefault();
@@ -168,24 +158,23 @@ function processInputElement(element, renderCmd) {
   } else {
     element.addEventListener("input", async (event) => {
       event.preventDefault();
-      event.stopPropagation();
       const idPtr = allocString(renderCmd.id);
       wasmInstance.inputCallback(idPtr);
     });
   }
 
-  const onFocus = wasmInstance.getOnChangeCallback(elementPtr);
-  if (onFocus > 0) {
-    requestAnimationFrame(() => {
-      eventHandlers.set(`fb-evt-hd-${onFocus}-${renderCmd.id}`, (event) => {
-        eventStorage[onFocus] = event;
-        wasmInstance.eventCallback(onFocus);
-      });
-      element.addEventListener("focus", (event) => {
-        eventHandlers.get(`fb-evt-hd-${onFocus}-${renderCmd.id}`)(event);
-      });
-    });
-  }
+  // const onFocus = wasmInstance.getOnChangeCallback(elementPtr) >>> 0;
+  // if (onFocus > 0) {
+  //   requestAnimationFrame(() => {
+  //     eventHandlers.set(`fb-evt-hd-${onFocus}-${renderCmd.id}`, (event) => {
+  //       eventStorage[onFocus] = event;
+  //       wasmInstance.eventCallback(onFocus);
+  //     });
+  //     element.addEventListener("focus", (event) => {
+  //       eventHandlers.get(`fb-evt-hd-${onFocus}-${renderCmd.id}`)(event);
+  //     });
+  //   });
+  // }
 
   // element.addEventListener("input", async (event) => {
   //   // if (renderCmd.id === "swap-wasm") {
@@ -371,14 +360,6 @@ function processInputElement(element, renderCmd) {
   // });
   // }
 }
-/* ───────── helpers ───────── */
-export const isLayout = (el) => {
-  if (el && typeof el.id === "string" && el.id.includes("layout")) {
-    return true;
-  }
-  return false;
-};
-
 /**
  * Delete a subtree while preserving any descendant whose id contains "layout".
  * 1. DFS through children.
@@ -388,58 +369,27 @@ export const isLayout = (el) => {
 export function recurseDestroy(el) {
   if (!el) return;
 
+  // Recurse through children first
   for (const child of Array.from(el.children)) {
-    recurseDestroy(child); // recurse into non-layout child
+    recurseDestroy(child);
   }
 
-  // Now `el` has no layout descendants => safe to delete everything remaining
+  // Clean up registries
   domNodeRegistry.delete(el.id);
   pureNodeRegistry.delete(el.id);
   loadedSections.delete(el.id);
-  if (el.localName === "p" || el.localName === "svg") {
-    el.remove();
-  } else {
-    el.replaceWith(...Array.from(el.childNodes));
+
+  const eventData = eventHandlers.get(el.id);
+  if (eventData !== undefined) {
+    for (const [eventType, handler] of Object.entries(eventData)) {
+      el.removeEventListener(eventType, handler);
+      eventHandlers.delete(el.id);
+    }
   }
+  // Remove the element entirely (no special cases)
+  el.remove();
 }
 
-/**
- * Delete a subtree while preserving any descendant whose id contains "layout".
- * 1. DFS through children.
- * 2. If a child is (or contains) a layout root, move it out before deleting.
- * 3. Finally delete the now-layout-free wrapper node itself.
- */
-export function stripNonLayout(el) {
-  if (!el) return;
-
-  // Visit children first so we can hoist them before we nuke their parent
-  for (const child of Array.from(el.children)) {
-    stripNonLayout(child); // recurse into non-layout child
-  }
-
-  // Now `el` has no layout descendants => safe to delete everything remaining
-  const node = domNodeRegistry.get(el.id);
-  domNodeRegistry.delete(el.id);
-  pureNodeRegistry.delete(el.id);
-  loadedSections.delete(el.id);
-  if (el.localName === "p" || el.localName === "svg") {
-    el.remove();
-  } else {
-    // if (node !== undefined) {
-    //   const hasExitAnimation = wasmInstance.hasExitAnimation(node.node_ptr);
-    //   if (hasExitAnimation) {
-    //     const onEnd = (e) => {
-    //       el.removeEventListener("animationend", onEnd);
-    //       el.replaceWith(...Array.from(el.childNodes));
-    //     };
-    //     el.addEventListener("animationend", onEnd);
-    //     el.classList.add("exit-animation");
-    //   }
-    // } else {
-    el.replaceWith(...Array.from(el.childNodes));
-    // }
-  }
-}
 /**
  * Create a link element with route handling
  * @param {Object} renderCmd - The render command
@@ -450,9 +400,12 @@ export function stripNonLayout(el) {
 function createLinkElement(renderCmd, route) {
   const element = document.createElement("a");
 
-  const href = getTextData(route, renderCmd.id);
+  let href =
+    renderCmd.props.hrefLen > 0
+      ? readWasmString(renderCmd.props.hrefPtr, renderCmd.props.hrefLen)
+      : "";
   if (href === null) {
-    element.href = renderCmd.href;
+    element.href = href;
   } else {
     element.href = href;
   }
@@ -470,18 +423,19 @@ function createLinkElement(renderCmd, route) {
 
     const urlObj = new URL(clickedHref);
     const path = urlObj.pathname;
+    const currentPath = window.location.pathname;
     // we push the state and renderCycle the new path
-    window.history.pushState({}, "", clickedHref);
     // wasmInstance.markAllNonLayoutNodesDirty();
     requestAnimationFrame(() => {
-      if (window.location.pathname !== path) {
-        rerenderRoute(path === "/" ? "/root" : `/root${path}`);
+      if (currentPath !== path) {
+        rerenderRoute(path);
+        // wasmInstance.callAllMountedCallbacks();
       }
       // wasmInstance.setRerenderTrue();
       requestAnimationFrame(() => {
-        const hash = window.location.hash;
+        const hash = urlObj.hash;
         if (hash) {
-          const id = window.location.hash.substring(1, hash.length);
+          const id = hash.substring(1, hash.length);
           const element = document.getElementById(id);
           if (element) {
             // Scroll the element into view with options
@@ -489,7 +443,13 @@ function createLinkElement(renderCmd, route) {
               block: "center", // Vertically align to the center of the screen
             });
           }
+          window.history.pushState({}, "", path + hash);
+        } else {
+          // window.scrollTo({
+          //   top: 0,
+          // });
         }
+        // wasmInstance.callAllMountedCallbacks();
       });
     });
   });
@@ -727,30 +687,25 @@ function getTextData(route, id) {
 /**
  * Create an element based on its type
  * @param {Object} renderCmd - The render command
- * @param {HTMLElement} tree_node - The current tree node
- * @param {Object} layout - The layout information
  * @returns {HTMLElement} - The created element
  */
-function createElementByType(renderCmd, tree_node, layout, parent) {
+export function createElementByType(renderCmd) {
   let element;
   let text;
-  let href;
   let route = currentPath === "/" ? "/root" : `/root${currentPath}`;
 
   switch (renderCmd.elemType) {
     case COMPONENT_TYPES.TEXT:
       element = document.createElement("p");
-      text = getTextData(route, renderCmd.id);
-      if (text === null) {
-        element.textContent = renderCmd.props.text;
-      } else {
-        element.textContent = text;
-      }
+      text =
+        getTextData(route, renderCmd.id) ??
+        readWasmString(renderCmd.props.textPtr, renderCmd.props.textLen);
+      element.textContent = text;
       break;
 
     case COMPONENT_TYPES.TEXT_GRADIENT:
       element = document.createElement("p");
-      element.style["background"] =
+      element.style.background =
         "-webkit-linear-gradient(45deg, #E04F67, #C72C4A, #4800FF)";
       element.style["-webkit-background-clip"] = "text";
       element.style["-webkit-text-fill-color"] = "transparent";
@@ -759,54 +714,65 @@ function createElementByType(renderCmd, tree_node, layout, parent) {
 
     case COMPONENT_TYPES.TEXT_AREA:
       element = document.createElement("textarea");
-      element.textContent = renderCmd.props.text;
+      text = readWasmString(renderCmd.props.textPtr, renderCmd.props.textLen);
+      element.textContent = text;
       break;
 
     case COMPONENT_TYPES.HTML_TEXT:
       element = document.createElement("p");
-      text = getTextData(route, renderCmd.id);
-      if (text === null) {
-        element.innerHTML = renderCmd.props.text;
-      } else {
-        element.innerHTML = text;
-      }
+      text =
+        getTextData(route, renderCmd.id) ??
+        readWasmString(renderCmd.props.textPtr, renderCmd.props.textLen);
+      element.innerHTML = text;
       break;
 
     case COMPONENT_TYPES.CODE:
       element = document.createElement("code");
-      element.textContent = renderCmd.props.text;
+      text = readWasmString(renderCmd.props.textPtr, renderCmd.props.textLen);
+      element.textContent = text;
       break;
 
     case COMPONENT_TYPES.SPAN:
       element = document.createElement("span");
-      element.innerText = renderCmd.props.text;
+      text = readWasmString(renderCmd.props.textPtr, renderCmd.props.textLen);
+      element.innerText = text;
       break;
 
     case COMPONENT_TYPES.JSON_EDITOR:
       element = document.createElement("textarea");
-      element.textContent = renderCmd.props.text;
+      text = readWasmString(renderCmd.props.textPtr, renderCmd.props.textLen);
+      element.textContent = text;
       break;
 
     case COMPONENT_TYPES.ALLOC_TEXT:
       element = document.createElement("p");
-      element.textContent = renderCmd.props.text;
+      text = readWasmString(renderCmd.props.textPtr, renderCmd.props.textLen);
+      element.textContent = text;
       break;
 
     case COMPONENT_TYPES.IMAGE:
       element = document.createElement("img");
-      element.src = renderCmd.href;
-      // element.type = "image/svg+xml";
+      element.src = readWasmString(
+        renderCmd.props.hrefPtr,
+        renderCmd.props.hrefLen,
+      );
       break;
 
     case COMPONENT_TYPES.LAZY_IMAGE:
       element = document.createElement("img");
-      element.setAttribute("src", renderCmd.href);
-      element.setAttribute("loading", "lazy");
+      element.src = readWasmString(
+        renderCmd.props.hrefPtr,
+        renderCmd.props.hrefLen,
+      );
+      element.loading = "lazy";
       break;
 
     case COMPONENT_TYPES.PRE_IMAGE:
       element = document.createElement("img");
-      element.setAttribute("src", renderCmd.href);
+      element.src = readWasmString(
+        renderCmd.props.hrefPtr,
+        renderCmd.props.hrefLen,
+      );
       element.setAttribute("fetchpriority", "high");
       break;
 
@@ -816,10 +782,28 @@ function createElementByType(renderCmd, tree_node, layout, parent) {
 
     case COMPONENT_TYPES.FLEXBOX:
     case COMPONENT_TYPES.BOX:
-    case COMPONENT_TYPES.HOOKS:
-    case COMPONENT_TYPES.BIND:
-    case COMPONENT_TYPES.RECTANGLE:
+    case COMPONENT_TYPES.BLOCK:
+    case COMPONENT_TYPES.DRAGGABLE:
+    case COMPONENT_TYPES.GRADIENT:
+    case COMPONENT_TYPES.GRAPHIC:
       element = document.createElement("div");
+      if (renderCmd.elemType === COMPONENT_TYPES.GRADIENT) {
+        element.style.background =
+          "-webkit-linear-gradient(45deg, #8886f2, #e04597, #ee6994)";
+      } else if (renderCmd.elemType === COMPONENT_TYPES.GRAPHIC) {
+        const href = readWasmString(
+          renderCmd.props.hrefPtr,
+          renderCmd.props.hrefLen,
+        );
+        fetch(href)
+          .then((res) => res.text())
+          .then((text) => {
+            element.innerHTML = text.replace(/^\s+|\s+$/g, "");
+          })
+          .catch((err) => {
+            // console.error("Fetch failed:", err);
+          });
+      }
       break;
 
     case COMPONENT_TYPES.DIALOG:
@@ -827,47 +811,17 @@ function createElementByType(renderCmd, tree_node, layout, parent) {
       break;
 
     case COMPONENT_TYPES.DIALOG_SHOW:
-      if (renderCmd.props.dialogId.length === 0) {
-        console.error(
-          "DialogId not valid please add an id to the dialog show component",
-        );
-        return null;
-      }
-      element = document.createElement("button");
-      element.type = "button";
-      element.addEventListener("click", (event) => {
-        const dialog = document.getElementById(renderCmd.props.dialogId);
-        wasmInstance.buttonCallback(renderCmd.props.btnId);
-        dialog.showModal();
-      });
+      element = _createDialogButton(renderCmd, true);
       break;
 
     case COMPONENT_TYPES.DIALOG_CLOSE:
-      if (renderCmd.props.dialogId.length === 0) {
-        console.error(
-          "DialogId not valid please add an id to the dialog close component",
-        );
-        return null;
-      }
-      element = document.createElement("button");
-      element.type = "button";
-      element.addEventListener("click", (event) => {
-        const dialog = document.getElementById(renderCmd.props.dialogId);
-        event.preventDefault();
-        event.stopPropagation();
-        wasmInstance.buttonCallback(renderCmd.props.btnId);
-        dialog.close();
-      });
+      element = _createDialogButton(renderCmd, false);
       break;
 
-    case COMPONENT_TYPES.DRAGGABLE:
-      element = document.createElement("div");
-      break;
-
-    case COMPONENT_TYPES.TEXTFIELD:
+    case COMPONENT_TYPES.TEXT_FIELD:
       element = document.createElement("input");
-      element.value = renderCmd.props.text;
-      processInputElement(element, renderCmd);
+      text = readWasmString(renderCmd.props.textPtr, renderCmd.props.textLen);
+      element.value = text;
       break;
 
     case COMPONENT_TYPES.BUTTON:
@@ -880,9 +834,6 @@ function createElementByType(renderCmd, tree_node, layout, parent) {
         element.ariaLabel = readWasmString(label, length);
       }
       element.addEventListener("click", async (event) => {
-        // if (renderCmd.id === "swap-wasm") {
-        //   await hotSwapWasmWithState("/zig-out/bin/fabric.wasm");
-        // } else {
         state.currentDepthNode = renderCmd.id;
         event.preventDefault();
         event.stopPropagation();
@@ -892,7 +843,6 @@ function createElementByType(renderCmd, tree_node, layout, parent) {
         } else {
           wasmInstance.buttonCallback(idPtr);
         }
-        // }
       });
       break;
 
@@ -912,56 +862,46 @@ function createElementByType(renderCmd, tree_node, layout, parent) {
       element.type = "submit";
       break;
 
-    case COMPONENT_TYPES.BLOCK:
-      element = document.createElement("div");
-      element.textContent = renderCmd.props.text;
-      break;
-
     case COMPONENT_TYPES.HEADER:
-      element = document.createElement("h1");
-      element.textContent = renderCmd.props.text;
+      element = document.createElement("h1"); // Will be replaced by HEADING
+      text = readWasmString(renderCmd.props.textPtr, renderCmd.props.textLen);
+      element.textContent = text;
       break;
 
     case COMPONENT_TYPES.SVG:
-      const svg_text = getTextData(route, renderCmd.id);
-      let svgString = svg_text;
-      if (svg_text === null) {
-        svgString = renderCmd.props.text;
-      }
+      const svgString =
+        getTextData(route, renderCmd.id) ??
+        readWasmString(renderCmd.props.textPtr, renderCmd.props.textLen);
       const cleanSvg = svgString.replace(/^\s+|\s+$/g, "");
-
-      // Create SVG element with proper namespace
       const parser = new DOMParser();
       const doc = parser.parseFromString(cleanSvg, "image/svg+xml");
       element = doc.documentElement;
       break;
 
     case COMPONENT_TYPES.LINK:
-      element = createLinkElement(renderCmd, route);
+      element = createLinkElement(renderCmd);
       break;
 
     case COMPONENT_TYPES.REDIRECT_LINK:
-      href = getTextData(route, renderCmd.id);
       element = document.createElement("a");
-      if (href === null) {
-        element.href = renderCmd.href;
-      } else {
-        element.href = href;
-      }
+      element.href =
+        renderCmd.props.hrefLen > 0
+          ? readWasmString(renderCmd.props.hrefPtr, renderCmd.props.hrefLen)
+          : "";
       break;
 
     case COMPONENT_TYPES.EMBEDLINK:
-      element = document.createElement("link");
-      element.rel = "stylesheet";
-      element.crossorigin = "anonymous";
-      element.href = renderCmd.href;
-      break;
-
     case COMPONENT_TYPES.EMBEDICON:
       element = document.createElement("link");
-      element.rel = "icon";
+      element.rel =
+        renderCmd.elemType === COMPONENT_TYPES.EMBEDLINK
+          ? "stylesheet"
+          : "icon";
       element.crossorigin = "anonymous";
-      element.href = renderCmd.href;
+      element.href = readWasmString(
+        renderCmd.props.hrefPtr,
+        renderCmd.props.hrefLen,
+      );
       break;
 
     case COMPONENT_TYPES.ICON:
@@ -986,8 +926,12 @@ function createElementByType(renderCmd, tree_node, layout, parent) {
 
     case COMPONENT_TYPES.LABEL:
       element = document.createElement("label");
-      element.htmlFor = renderCmd.href;
-      element.textContent = renderCmd.props.text;
+      element.htmlFor = readWasmString(
+        renderCmd.props.hrefPtr,
+        renderCmd.props.hrefLen,
+      );
+      text = readWasmString(renderCmd.props.textPtr, renderCmd.props.textLen);
+      element.textContent = text;
       break;
 
     case COMPONENT_TYPES.FORM:
@@ -1019,77 +963,46 @@ function createElementByType(renderCmd, tree_node, layout, parent) {
       element = document.createElement("canvas");
       break;
 
-    case COMPONENT_TYPES.GRADIENT:
-      element = document.createElement("div");
-      element.style["background"] =
-        "-webkit-linear-gradient(45deg, #8886f2, #e04597, #ee6994)";
+    case COMPONENT_TYPES.HEADING:
+      const level = wasmInstance.getHeadingLevel(renderCmd.nodePtr); // Use template literal to create h1-h6, defaulting to h1
+      element = document.createElement(
+        `h${level > 0 && level < 7 ? level : 1}`,
+      );
+      text = readWasmString(renderCmd.props.textPtr, renderCmd.props.textLen);
+      element.textContent = text;
       break;
 
-    case COMPONENT_TYPES.GRAPHIC:
-      element = document.createElement("div");
-      fetch(renderCmd.href)
-        .then((res) => {
-          return res.text();
-        })
-        .then((text) => {
-          // Encode the response back into WASM memory
-          const svgString = text;
-          const cleanSvg = svgString.replace(/^\s+|\s+$/g, ""); // remove leading/trailing whitespace
-          element.innerHTML = cleanSvg;
-        })
-        .catch((err) => {
-          console.error("Fetch failed:", err);
-          // You could call callback with ptr=0,len=0 or export an error handler
-        });
-
+    case COMPONENT_TYPES.VIDEO:
+      element = document.createElement("video");
+      const offset = wasmInstance.getVideo(renderCmd.nodePtr);
+      if (offset === 0) break; // Use break, not return
+      const videoView = new DataView(wasmInstance.memory.buffer, offset);
+      const srcPtr = videoView.getUint32(0, true);
+      if (srcPtr) {
+        const srcLen = videoView.getUint32(4, true);
+        element.src = readWasmString(srcPtr, srcLen);
+      }
+      element.autoplay = videoView.getUint8(8) === 1;
       break;
 
-    case COMPONENT_TYPES.HEADING1:
-      element = document.createElement("h1");
-      element.textContent = renderCmd.props.text;
-      break;
-
-    case COMPONENT_TYPES.HEADING2:
-      element = document.createElement("h2");
-      element.textContent = renderCmd.props.text;
-      break;
-
-    case COMPONENT_TYPES.HEADING3:
-      element = document.createElement("h3");
-      element.textContent = renderCmd.props.text;
-      break;
-
-    case COMPONENT_TYPES.HEADING4:
-      element = document.createElement("h4");
-      element.textContent = renderCmd.props.text;
-      break;
-
-    case COMPONENT_TYPES.HEADING5:
-      element = document.createElement("h5");
-      element.textContent = renderCmd.props.text;
-      break;
-
-    case COMPONENT_TYPES.HEADING6:
-      element = document.createElement("h6");
-      element.textContent = renderCmd.props.text;
+    case COMPONENT_TYPES.NOOP:
       break;
 
     default:
       element = document.createElement("div");
       break;
   }
-  element.id = renderCmd.id;
 
+  if (element) {
+    element.id = renderCmd.id;
+  }
   return element;
-}
-
-/**
+} /**
  * Setup element with common properties and register it
  * @param {HTMLElement} element - The element to set up
  * @param {Object} renderCmd - The render command
  */
-function setupElement(element, renderCmd) {
-  // console.log("SET ELEMENT", element);
+export function setupElement(element, renderCmd) {
   element.id = renderCmd.id;
 
   if (renderCmd.elemType === COMPONENT_TYPES.ICON) {
@@ -1108,12 +1021,12 @@ function setupElement(element, renderCmd) {
     element.className = renderCmd.styleId;
 
     // Update styling
-    // updateComponentStyle(
-    //   renderCmd.nodePtr,
-    //   renderCmd.styleId,
-    //   renderCmd.props.css,
-    //   element,
-    // );
+    updateComponentStyle(
+      renderCmd.nodePtr,
+      renderCmd.styleId,
+      renderCmd.props.css,
+      element,
+    );
   }
 
   if (renderCmd.props.tooltipTitle.length > 0) {
@@ -1146,13 +1059,13 @@ function setupElement(element, renderCmd) {
     exitAnimationId: renderCmd.exitAnimationId,
     destroyId: renderCmd.hooks.destroyId > 0 ? renderCmd.hooks.destroyId : null,
   });
-  if (renderCmd.stateType === STATE_TYPES.PURE) {
-    pureNodeRegistry.set(renderCmd.id, {
-      id: renderCmd.id,
-      state: renderCmd.props,
-      index: renderCmd.index,
-    });
-  }
+  // if (renderCmd.stateType === STATE_TYPES.PURE) {
+  //   pureNodeRegistry.set(renderCmd.id, {
+  //     id: renderCmd.id,
+  //     state: renderCmd.props,
+  //     index: renderCmd.index,
+  //   });
+  // }
 }
 
 /**
@@ -1160,7 +1073,7 @@ function setupElement(element, renderCmd) {
  * @param {HTMLElement} element - The element to update
  * @param {Object} renderCmd - The render command
  */
-function updateElement(element, renderCmd) {
+export function updateElement(element, renderCmd) {
   // Update text content if needed
   if (
     renderCmd.elemType === COMPONENT_TYPES.TEXT ||
@@ -1168,13 +1081,29 @@ function updateElement(element, renderCmd) {
     renderCmd.elemType === COMPONENT_TYPES.ALLOC_TEXT ||
     renderCmd.elemType === COMPONENT_TYPES.TEXT_AREA
   ) {
-    element.textContent = renderCmd.props.text;
-  } else if (renderCmd.elemType === COMPONENT_TYPES.TEXTFIELD) {
-    element.value = renderCmd.props.text;
+    const text = readWasmString(
+      renderCmd.props.textPtr,
+      renderCmd.props.textLen,
+    );
+    element.textContent = text;
+  } else if (renderCmd.elemType === COMPONENT_TYPES.TEXT_FIELD) {
+    const text = readWasmString(
+      renderCmd.props.textPtr,
+      renderCmd.props.textLen,
+    );
+    element.value = text;
   } else if (renderCmd.elemType === COMPONENT_TYPES.ICON) {
-    element.className = renderCmd.href;
+    const href = readWasmString(
+      renderCmd.props.hrefPtr,
+      renderCmd.props.hrefLen,
+    );
+    element.className = href;
   } else if (renderCmd.elemType === COMPONENT_TYPES.HTML_TEXT) {
-    element.innerHTML = renderCmd.props.text;
+    const text = readWasmString(
+      renderCmd.props.textPtr,
+      renderCmd.props.textLen,
+    );
+    element.innerHTML = text;
   }
 
   // This means that the style hash has changed and we need to update
@@ -1240,7 +1169,7 @@ export function generateSections(virtual, virtual_ptr, layout) {
 
     activeNodeIds.add(renderCmd.id);
 
-    let element = createElementByType(renderCmd, virtual_ptr, layout, virtual);
+    let element = createElementByType(renderCmd);
 
     if (!element) continue; // Skip if element creation failed
 
@@ -1290,26 +1219,24 @@ export function traverse(parent, has_children, tree_node, layout) {
     activeNodeIds.add(renderCmd.id);
     let element = null;
     if (renderCmd.isDirty) {
-      // Mark as processed
       element = document.getElementById(renderCmd.id);
 
       // This is the first render, so this is where we virtualize
       if (!element || state.initial_render) {
         // Create new element
-        element = createElementByType(renderCmd, tree_node, layout, parent);
+        element = createElementByType(renderCmd);
 
         if (!element) continue; // Skip if element creation failed
 
         // Set up the element
         setupElement(element, renderCmd);
 
-        observeredSections.set(renderCmd.id, {
-          renderCmd,
-          treeNodePtr: child_ptr,
-        });
+        // observeredSections.set(renderCmd.id, {
+        //   renderCmd,
+        //   treeNodePtr: child_ptr,
+        // });
 
         // Append to parent
-        // const anchor = parent.children[parent.children.length - back_index];
         const next = renderCmds[i + 1];
         let anchor = null;
         if (next) {
@@ -1325,8 +1252,9 @@ export function traverse(parent, has_children, tree_node, layout) {
           }
         } else if (renderCmd.elemType === COMPONENT_TYPES.HOOKS) {
           if (renderCmd.hooks.mountedId > 0) {
-            const idPtr = allocString(renderCmd.id);
-            wasmInstance.hooksMountedCallback(idPtr);
+            hooksMounted.set(renderCmd.id, true);
+            //   const idPtr = allocString(renderCmd.id);
+            //   wasmInstance.hooksMountedCallback(idPtr);
           }
           if (renderCmd.hooks.createdId > 0) {
             wasmInstance.hooksCreatedCallback(renderCmd.hooks.createdId);
@@ -1444,6 +1372,7 @@ export function traverse(parent, has_children, tree_node, layout) {
 }
 
 export function traverseRemove(parent, tree_node, layout) {
+  console.log("traverseRemove", parent, tree_node, layout);
   if (!parent) return;
 
   const children_count = wasmInstance.getTreeNodeChildrenCount(tree_node);

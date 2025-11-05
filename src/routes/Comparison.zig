@@ -1,18 +1,18 @@
 const std = @import("std");
-const Fabric = @import("fabric");
-const Signal = Fabric.Signal;
-const Style = Fabric.Style;
-const Static = Fabric.Static;
-const Pure = Fabric.Pure;
+const Vapor = @import("vapor");
+const Signal = Vapor.Signal;
+const Style = Vapor.Style;
+const Static = Vapor.Static;
+const Pure = Vapor.Pure;
 const Custom = @import("../components/Custom.zig");
-const CodeEditor = @import("docs/fabric/concepts/:concept/CodeEditor.zig");
+const CodeEditor = @import("docs/vapor/concepts/:concept/CodeEditor.zig");
 
 // Initialization
 var nextjs: CodeEditor = undefined;
-var fabric_sample: CodeEditor = undefined;
+var vapor_sample: CodeEditor = undefined;
 pub fn init() void {
-    nextjs.init(&Fabric.lib.allocator_global, @embedFile("nextjs.js"));
-    fabric_sample.init(&Fabric.lib.allocator_global, @embedFile("fabric_sample.zig"));
+    nextjs.init(&Vapor.lib.allocator_global, @embedFile("nextjs.js"));
+    vapor_sample.init(&Vapor.lib.allocator_global, @embedFile("vapor_sample.zig"));
 }
 
 pub fn render() void {
@@ -24,6 +24,6 @@ pub fn render() void {
         // .child_alignment = .{ .x = .between, .y = .start },
     })({
         nextjs.render(0);
-        fabric_sample.render(0);
+        vapor_sample.render(0);
     });
 }

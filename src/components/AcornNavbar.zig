@@ -1,14 +1,14 @@
 const std = @import("std");
-const Fabric = @import("fabric");
-const Static = Fabric.Static;
-const Pure = Fabric.Pure;
-const Dynamic = Fabric.Dynamic;
-const Signal = Fabric.Signal;
-const println = Fabric.println;
+const Vapor = @import("vapor");
+const Static = Vapor.Static;
+const Pure = Vapor.Pure;
+const Dynamic = Vapor.Dynamic;
+const Signal = Vapor.Signal;
+const println = Vapor.println;
 const root = @import("../main.zig");
 const Search = @import("Search.zig");
-const Kit = Fabric.Kit;
-const Chain = Fabric.Chain;
+const Kit = Vapor.Kit;
+const Chain = Vapor.Chain;
 const Text = Chain.Text;
 const Box = Chain.Box;
 const Link = Chain.Link;
@@ -25,9 +25,9 @@ const ButtonCycle = Chain.ButtonCycle;
 const Button = Chain.Button;
 const Theme = @import("theme");
 
-var theme_background: Fabric.Types.Color = undefined;
-var text_color: Fabric.Types.Color = undefined;
-var tint: Fabric.Types.Color = undefined;
+var theme_background: Vapor.Types.Color = undefined;
+var text_color: Vapor.Types.Color = undefined;
+var tint: Vapor.Types.Color = undefined;
 
 var last_time: i64 = 0;
 pub fn throttle() bool {
@@ -43,7 +43,7 @@ var menu: bool = false;
 fn openMenu() void {
     // if (!throttle()) {
     menu = !menu;
-    //     Fabric.cycle();
+    //     Vapor.cycle();
     // }
 }
 const Url = struct {
@@ -52,8 +52,8 @@ const Url = struct {
 };
 const urls: [5]Url = .{
     .{
-        .url = "/docs/fabric",
-        .title = "Fabric",
+        .url = "/docs/vapor",
+        .title = "Vapor",
     },
     .{
         .url = "/docs/reverb",
@@ -118,10 +118,10 @@ fn showDropDown() void {
 fn switchTheme(opt: []const u8) void {
     println("Switch Theme! {s}", .{opt});
     // if (opt[0] == 'D') {
-    //     Fabric.Theme.switchTheme(.dark);
+    //     Vapor.Theme.switchTheme(.dark);
     //     return;
     // }
-    // Fabric.Theme.switchTheme(.light);
+    // Vapor.Theme.switchTheme(.light);
     return;
 }
 
@@ -130,19 +130,19 @@ pub fn init() void {
     Search.init();
 }
 // fn activeTheme(theme: Theme) [4]f32 {
-//     if (Fabric.Theme.theme == theme) {
+//     if (Vapor.Theme.theme == theme) {
 //         return tint;
 //     }
 //     return .{ 0, 0, 0, 0 };
 // }
 // fn dropdownTextColor(theme: Theme) [4]f32 {
-//     if (Fabric.Theme.theme == theme) {
+//     if (Vapor.Theme.theme == theme) {
 //         return .{ 0, 0, 0, 255 };
 //     }
 //     return text_color;
 // }
 
-pub fn closeAll(evt: *Fabric.Event) void {
+pub fn closeAll(evt: *Vapor.Event) void {
     evt.preventDefault();
     // show_dropdown.set(false);
 }
@@ -152,34 +152,33 @@ pub fn setDefault() void {
 }
 
 fn openDialog() void {
-    Fabric.println("openDialog", .{});
+    Vapor.println("openDialog", .{});
     Search.toggle();
 }
 
 fn navigate(url: []const u8) void {
     Kit.navigate(url);
     menu = !menu;
-    Fabric.cycle();
+    Vapor.cycle();
 }
 
 fn toggleTheme() void {
-    println("Toggle Theme", .{});
     Theme.toggleTheme();
-    Fabric.cycle();
+    Vapor.cycle();
 }
 
-// const default = Fabric.Style{
+// const default = Vapor.Style{
 //     .width = .percent(100),
 // };
 pub fn render() void {
-    // Fabric.Remember(.{
+    // Vapor.Remember(.{
     //     .file = "/routes/",
     //     .module = "",
     //     .column = 0,
     //     .fn_name = "",
     //     .line = 0,
     // })({
-    if (Fabric.isDesktop()) {
+    if (Vapor.isDesktop()) {
         Box.style(&.{
             .id = "nav",
             .position = .nav,
@@ -323,7 +322,7 @@ pub fn render() void {
 }
 
 const Styles = struct {
-    pub const item = Fabric.Style{
+    pub const item = Vapor.Style{
         .list_style = .none,
         .size = .{ .width = .elastic(50, 130), .height = .px(30) },
         .layout = .{ .y = .center, .x = .start },

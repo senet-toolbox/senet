@@ -1,10 +1,10 @@
 const std = @import("std");
-const Fabric = @import("fabric");
+const Vapor = @import("vapor");
 const Navbar = @import("../components/Navbar.zig");
-const Signal = Fabric.Signal;
-const Static = Fabric.Static;
-const Pure = Fabric.Pure;
-const Style = Fabric.Style;
+const Signal = Vapor.Signal;
+const Static = Vapor.Static;
+const Pure = Vapor.Pure;
+const Style = Vapor.Style;
 const Custom = @import("../components/Custom.zig");
 const root = @import("../main.zig");
 const Text = Static.Text;
@@ -21,12 +21,13 @@ const ButtonCycle = Static.ButtonCycle;
 const Graphic = Static.Graphic;
 const RedirectLink = Static.RedirectLink;
 const TextFmt = Pure.TextFmt;
+const TextField = Static.TextField;
 const List = Static.List;
 const ListItem = Static.ListItem;
 const VirtualList = Pure.VirtualList;
 const Theme = @import("theme");
 const CodeEditor = @import("../components/CodeEditor.zig");
-const Animation = Fabric.lib.Animation;
+const Animation = Vapor.lib.Animation;
 //
 // var random: std.Random.DefaultPrng = std.Random.DefaultPrng.init(14);
 // var rand_num: usize = undefined;
@@ -47,30 +48,55 @@ var code_view_loc: CodeEditor = undefined;
 //     .duration(500)
 //     .easing(.easeOut);
 
+// Style struct for the Box component
+const box_style = Style{
+    .layout = .left_center,
+    .child_gap = 8,
+    .size = .{ .width = .grow, .height = .fit },
+};
+
+// Render
+pub fn sample() void {
+    Box.style(&box_style)({
+        // Chaining styles
+        Button(.{ .on_press = increment })
+            .border(.simple(.palette(.border_color_light)))
+            .width(.fit)
+            .height(.fit)
+            .body()({
+            Text("Increment")
+                .font(18, null, .palette(.text_color))
+                .close();
+        });
+        TextFmt("{d}", .{counter})
+            .font(24, 700, .palette(.text_color))
+            .close();
+    });
+}
+
 pub fn init() void {
     // slide_in.build();
     // slide_out.build();
-    code_view_loc.init(&Fabric.lib.allocator_global, @embedFile("Component.zig"));
-    // counter = Fabric.lib.getPersist(u32, "counter") orelse 0;
-    // text = Fabric.lib.getPersist([]const u8, "text") orelse "Default";
+    code_view_loc.init(&Vapor.lib.allocator_global, @embedFile("Component.zig"));
+    // counter = Vapor.lib.getPersist(u32, "counter") orelse 0;
+    // text = Vapor.lib.getPersist([]const u8, "text") orelse "Default";
     // for (0..10) |i| {
     //     buffer[i] = i;
     // }
     // // Navbar.init();
     // rand_num = random.random().intRangeAtMost(usize, 1, 5);
     // random.random().shuffle(usize, &buffer);
-    Fabric.Page(@src(), render, null);
 }
 //
 // pub fn shuffle() void {
-//     // Fabric.println("Before", .{});
+//     // Vapor.println("Before", .{});
 //     // for (buffer[0..]) |i| {
-//     //     Fabric.println("elem: {d}", .{i});
+//     //     Vapor.println("elem: {d}", .{i});
 //     // }
 //     random.random().shuffle(usize, &buffer);
-//     // Fabric.println("After", .{});
+//     // Vapor.println("After", .{});
 //     // for (buffer[0..]) |i| {
-//     //     Fabric.println("elem: {d}", .{i});
+//     //     Vapor.println("elem: {d}", .{i});
 //     // }
 //
 //     rand_num = random.random().intRangeAtMost(usize, 1, 5);
@@ -78,8 +104,9 @@ pub fn init() void {
 //
 pub fn increment() void {
     counter += 1;
-    // Fabric.lib.persist("counter", counter);
-    Fabric.printlnSrc("count: {any}", .{counter}, @src());
+    // Vapor.lib.persist("counter", counter);
+    Vapor.printlnSrc("count: {any}", .{counter}, @src());
+    Vapor.cycle();
 }
 //
 const blocks: []const struct { title: []const u8, description: []const u8 } = &.{
@@ -92,8 +119,8 @@ const blocks: []const struct { title: []const u8, description: []const u8 } = &.
         .description = "Reverb is a simple, yet powerful, backend framework for Zig. Zero runtime allocations, High performance, Express like.",
     },
     .{
-        .title = "Treehouse",
-        .description = "Treehouse runs as a in memory cache at the front and a persistent database at the back. All the while boasting throughput on par with Redis.",
+        .title = "Canopy",
+        .description = "Canopy runs as a in memory cache at the front and a persistent database at the back. All the while boasting throughput on par with Redis.",
     },
 };
 
@@ -106,7 +133,7 @@ fn boxes() void {
     // =========================================================================
     // 2. Base Styles
     // =========================================================================
-    const visual_base = Fabric.Types.Visual{
+    const visual_base = Vapor.Types.Visual{
         .border = .simple(.palette(.border_color_light)),
         .font_size = 22,
         .text_color = .palette(.text_color),
@@ -128,7 +155,7 @@ fn boxes() void {
         },
     };
 
-    const mono_text_style: Fabric.Types.Style = .{ .font_family = "IBM Plex Mono,monospace" };
+    const mono_text_style: Vapor.Types.Style = .{ .font_family = "IBM Plex Mono,monospace" };
 
     // =========================================================================
     // 3. Component-Specific Data
@@ -165,34 +192,32 @@ fn boxes() void {
     });
 }
 
-pub fn render() void {
-    // Box.style(&.{
-    //     .size = .hw(.percent(100), .percent(100)),
-    //     .layout = .center,
-    // })({
-    //     Text("Hello World").style(&.{ .visual = .font(18, 500, .palette(.text_color)), .layout = .center });
-    // });
-    // Box.alignment(.center).size(.hw(.percent(100), .percent(100)))
-    //     .body()({
-    //     Text("Hello World").font(18, 500, .palette(.text_color)).alignment(.center).close();
-    // });
+var text: []const u8 = "";
 
-    // Icon(.cloud_download_fill).style(&link_style.text(.light));
-    // Text("Hello World").style(&.{
-    //     .visual = .font(18, 500, .palette(.text_color)),
-    //     .layout = .center,
-    // });
+var binded_textfield: Vapor.Binded = .{};
+
+fn log(evt: *Vapor.Event) void {
+    Vapor.println("From binded Text: {s}", .{evt.text()});
+    // text = binded_textfield.text;
+    // Vapor.cycle();
+}
+
+var video_element: Vapor.Binded = .{};
+fn mount_video() void {
+    video_element.startVideo();
+}
+
+pub fn render() void {
     Box.style(&.{
         .size = .hw(.percent(100), .percent(100)),
         .scroll = .none(),
         .layout = .center,
     })({
-        if (Fabric.isDesktop()) {
+        if (Vapor.isDesktop()) {
             Stack.style(&.{
-                .position = .{ .type = .relative },
+                .position = .{ .type = .relative, .z_index = 10 },
                 .size = .hw(.percent(60), .mobile_desktop_percent(100, 70)),
                 .child_gap = 12,
-                .z_index = 10,
                 .layout = .center,
                 .visual = .{
                     .background = .grid(14, 1, .palette(.grid_color)),
@@ -204,14 +229,12 @@ pub fn render() void {
 
                 Text(".layout = .center, .background = .grid(14, 1, .palette(.grid_color))").style(&.{
                     .position = .{ .type = .absolute, .right = .percent(0), .top = .percent(-4) },
-                    // .visual = .font(12, 500, .hex("#6f6f6f")),
                     .visual = .font(12, 500, .hex("#6f6f6f")),
                     .font_family = "IBM Plex Mono,monospace",
                 });
 
                 Text(".transform = .direction_scale(.down, .px(4), 1.05), .border = .simple(.palette(.tint)))").style(&.{
                     .position = .{ .type = .absolute, .left = .percent(32), .bottom = .percent(-4) },
-                    // .visual = .font(12, 500, .hex("#6f6f6f")),
                     .visual = .font(12, 500, .hex("#6f6f6f")),
                     .font_family = "IBM Plex Mono,monospace",
                 });
@@ -222,9 +245,8 @@ pub fn render() void {
                     .margin = .t(64),
                     .layout = .center,
                 })({
-                    HtmlText("<code>v1.0.0 render to web or macos</code>").style(&.{
+                    HtmlText("<code>v1.0.0 render to web or ios</code>").style(&.{
                         .layout = .center,
-                        // .visual = .font(16, 500, .hex("#6f6f6f")),
                         .visual = .font(12, 500, .hex("#6f6f6f")),
                     });
                     Box.style(&.{ .size = .w(.percent(100)), .margin = .all(0), .layout = .center })({
@@ -246,8 +268,8 @@ pub fn render() void {
                         .visual = .font(22, 500, .palette(.text_color)),
                     }));
                     HtmlText(
-                        \\<strong style="color: rgb(var(--tint))">Build</strong> fullstack applications with just
-                        \\<strong style="color: rgb(var(--text_color))"><i>Zig.</i></strong>
+                        \\<strong style="color: rgb(var(--tint))">Build Native</strong> fullstack applications with just
+                        \\<strong style="color: rgb(var(--text_color))"><i>One Codebase.</i></strong>
                     ).style(&Styles.body_text.merge(.{
                         .layout = .center,
                         .visual = .font(22, 500, .palette(.text_color)),
@@ -267,31 +289,31 @@ pub fn render() void {
                         Text("Install").style(&link_style.text(.dark));
                         Icon(.cloud_download_fill).style(&link_style.text(.dark));
                     });
-                    ButtonCycle(.{ .on_press = increment, .aria_label = "increment" }).style(&link_style.style(.light))({
-                        Icon(.plus).style(&link_style.text(.light));
-                        TextFmt("{d}", .{counter}).id("counter").style(&.{
-                            .visual = .font(18, 700, if (counter % 2 == 0) .red else .palette(.text_color)),
-                        });
-                    });
+                    // ButtonCycle(.{ .on_press = increment, .aria_label = "increment" }).style(&link_style.style(.light))({
+                    //     Icon(.plus).style(&link_style.text(.light));
+                    //     TextFmt("{d}", .{counter}).id("counter").style(&.{
+                    //         .visual = .font(18, 700, if (counter % 2 == 0) .red else .palette(.text_color)),
+                    //     });
+                    // });
                 });
+                // Text(binded_textfield.text)
+                //     .font(16, null, .palette(.text_color)).close();
+                // TextField(.string)
+                //     .bind(&binded_textfield)
+                //     .plain();
             });
         }
-        if (counter % 2 == 0) {
-            Box
-                .id("box")
-                // .animationEnter(&slide_in).animationExit(&slide_out)
-                .pos(.{ .type = .absolute, .left = .percent(0), .bottom = .percent(0) })
-                .size(.square_px(100))
-                .border(.simple(.palette(.tint)))
-                .body()({});
-        }
+        // if (counter % 2 == 0) {
+        //     Box
+        //         .id("box")
+        //         // .animationEnter(&slide_in).animationExit(&slide_out)
+        //         .pos(.{ .type = .absolute, .left = .percent(0), .bottom = .percent(0) })
+        //         .size(.square_px(100))
+        //         .border(.simple(.palette(.tint)))
+        //         .body()({});
+        // }
 
-        // Box.style(&.{
-        //     .size = .{ .width = .mobile_desktop_percent(100, 32), .height = .percent(100) },
-        //     .direction = .column,
-        //     .layout = .center,
-        // })({
-        if (Fabric.isMobile()) {
+        if (Vapor.isMobile()) {
             Stack.style(&.{
                 .layout = .center,
                 .margin = .t(60),
@@ -343,46 +365,9 @@ pub fn render() void {
                     });
                 });
             });
-        } else {
-            // Box.style(&.{
-            //     .position = .tr(.percent(44), .percent(-6), .absolute),
-            //     .size = .hw_percent(100, 100),
-            //     .visual = .{
-            //         // .opacity = 0.3,
-            //         // .transform = .rotateXYZ(30, 0, 12),
-            //         .transform = .rotateXYZ(0, 0, 90),
-            //     },
-            //     .z_index = 0,
-            // })({
-            //     // Graphic(.{ .src = "src/assets/weird.svg" }).style(&.{
-            //     //     .size = .square_percent(100),
-            //     //     .position = .{ .type = .absolute, .left = .percent(4), .top = .percent(0) },
-            //     //     .visual = .{ .text_color = .palette(.logo) },
-            //     // })({});
-            //     // Graphic(.{ .src = "src/assets/weirdcolumn.svg" }).style(&.{
-            //     //     .size = .hw(.percent(8), .percent(25)),
-            //     //     .position = .{ .type = .absolute, .left = .percent(0), .top = .percent(100) },
-            //     //     .visual = .{ .text_color = .palette(.logo) },
-            //     // })({});
-            //     // Graphic(.{ .src = "src/assets/weirdcolumn.svg" }).style(&.{
-            //     //     .size = .hw(.percent(8), .percent(25)),
-            //     //     .position = .{ .type = .absolute, .left = .percent(30), .top = .percent(-100) },
-            //     //     .visual = .{ .text_color = .palette(.logo) },
-            //     // })({});
-            //     // Graphic(.{ .src = "src/assets/weirdcolumnanimated.svg" }).style(&.{
-            //     //     .size = .hw(.percent(8), .percent(25)),
-            //     //     .position = .{ .type = .absolute, .left = .percent(0), .top = .percent(103) },
-            //     //     .visual = .{ .text_color = .palette(.text_color) },
-            //     // })({});
-            //     // Graphic(.{ .src = "src/assets/logo_normal_animate.svg" }).style(&.{
-            //     //     .size = .square_percent(100),
-            //     //     .position = .{ .type = .absolute, .left = .percent(4), .top = .percent(0) },
-            //     //     .visual = .{ .text_color = .palette(.text_color) },
-            //     // })({});
-            // });
         }
 
-        if (Fabric.isDesktop()) {
+        if (Vapor.isDesktop()) {
             Box.style(&.{
                 .position = .br(.percent(0), .percent(0), .absolute),
                 .size = .{ .height = .percent(10), .width = .percent(100) },
@@ -421,7 +406,7 @@ pub fn render() void {
         }
     });
 
-    if (Fabric.isDesktop()) {
+    if (Vapor.isDesktop()) {
         Box.style(&.{
             .size = .w(.percent(100)),
             .padding = .tb(64, 64),
@@ -432,7 +417,7 @@ pub fn render() void {
                 .visual = .{ .background = .palette(.image_bg) },
             })({
                 Text("From Here...").style(&Styles.subheading);
-                Graphic(.{ .src = "src/assets/webdev.svg" }).style(&.{
+                Graphic(.{ .src = "/assets/webdev.svg" }).style(&.{
                     .size = .hw(.percent(100), .percent(100)),
                     .visual = .{ .fill = .palette(.text_color), .stroke = .palette(.text_color) },
                 });
@@ -440,10 +425,16 @@ pub fn render() void {
             Stack.style(&.{
                 .size = .hw_percent(100, 40),
                 .visual = .{ .background = .palette(.image_bg) },
+                .position = .{ .type = .relative },
             })({
                 Text("To Here...").style(&Styles.subheading);
-                Graphic(.{ .src = "src/assets/tether.svg" }).style(&.{
+                Graphic(.{ .src = "/src/assets/tether.svg" }).style(&.{
                     .size = .hw(.percent(100), .percent(85)),
+                    .visual = .{ .fill = .palette(.text_color), .stroke = .palette(.text_color) },
+                });
+                Graphic(.{ .src = "/src/assets/logonormal.svg" }).style(&.{
+                    .position = .{ .type = .absolute, .right = .percent(46), .top = .percent(44) },
+                    .size = .hw(.percent(22), .percent(22)),
                     .visual = .{ .fill = .palette(.text_color), .stroke = .palette(.text_color) },
                 });
             });
@@ -453,7 +444,14 @@ pub fn render() void {
             .padding = .tb(64, 64),
             .layout = .x_even,
             .visual = .{ .border = .top(.hex("#E4E4E4")) },
+            .position = .relative,
         })({
+            Text(".width(.percent(100)).padding(.tb(64, 64)).layout(.x_even).border(.top(.hex(\"#E4E4E4\")))").style(&.{
+                .position = .{ .type = .absolute, .left = .percent(1), .top = .percent(1) },
+                .visual = .font(12, 500, .hex("#6f6f6f")),
+                .font_family = "IBM Plex Mono,monospace",
+            });
+
             for (blocks) |block| {
                 Stack.style(&.{
                     .size = .hw_percent(100, 16),
@@ -482,7 +480,11 @@ pub fn render() void {
             Box.style(&.{ .layout = .x_even_center, .size = .hw(.fit, .percent(100)) })({
                 Graphic(.{ .src = "src/assets/logonormal.svg" }).style(&.{
                     .size = .w(.px(60)),
-                    .visual = .{ .text_color = .palette(.text_color), .background = .transparent },
+                    .visual = .{
+                        .fill = .palette(.text_color),
+                        .stroke = .palette(.text_color),
+                        .cursor = .pointer,
+                    },
                     .transition = .{ .duration = 100 },
                     .interactive = .{ .hover = .{
                         .transform = .scale(),
@@ -491,7 +493,7 @@ pub fn render() void {
                         .stroke = .palette(.tint),
                     } },
                 });
-                Text("18.6KB").style(Styles.miniheading);
+                Text("17.7KB").style(Styles.miniheading);
             });
             Box.style(&.{ .layout = .x_even_center, .size = .hw(.fit, .percent(100)) })({
                 Graphic(.{ .src = "src/assets/react.svg" }).style(&.{
@@ -500,7 +502,7 @@ pub fn render() void {
                 Text("51KB").style(Styles.miniheading);
             });
             Box.style(&.{ .layout = .x_even_center, .size = .hw(.fit, .percent(100)) })({
-                Image(.{ .src = "https://dioxuslabs.com/assets/smalllogo-dxhd57fd7a7f3d2eb38.png" }).style(&.{
+                Image(.{ .src = "https://dioxuslabs.com/assets/smalllogo-dxhed9875cc575d36b.png" }).style(&.{
                     .size = .w(.px(60)),
                 });
                 Text("234KB").style(Styles.miniheading);
@@ -514,12 +516,14 @@ pub fn render() void {
         });
     });
 
+    // ---------------------------------------------------------------------------------------------
+    // Content
+    // ---------------------------------------------------------------------------------------------
     Box.style(&.{
-        // .size = .hw(.percent(85), .percent(100)),
         .size = .{ .width = .percent(100), .height = .fit },
         .margin = .tb(64, 64),
-        .layout = if (Fabric.isMobile()) .top_center else .x_even_center,
-        .direction = if (Fabric.isMobile()) .column else .row,
+        .layout = if (Vapor.isMobile()) .top_center else .x_even_center,
+        .direction = if (Vapor.isMobile()) .column else .row,
         .child_gap = 16,
     })({
         Box.style(&.{
@@ -529,47 +533,98 @@ pub fn render() void {
             code_view_loc.render(0);
         });
         Stack.style(&.{
-            // .size = .{ .width = .mobile_desktop_percent(100, 30), .height = .fit },
             .size = .hw(.mobile_desktop(.fit, .percent(60)), .percent(40)),
             .child_gap = 24,
             .layout = .left_center,
             .padding = .horizontal(12),
         })({
-            Text("Vapor Code Sample").style(&Styles.subheading);
+            Box.spacing(16).width(.percent(100)).layout(.center).body()({
+                Text("Vapor Code Sample").style(&Styles.subheading);
+                sample();
+            });
             HtmlText(
-                \\Vapor introduces <strong>no new syntax</strong> — everything you see is valid Zig.
-                \\In Vapor, functions expect children and styles as arguments. We pass them with normal Zig literals
+                // \\Vapor introduces <strong>no new syntax</strong> — everything you see is valid Zig.
+                // \\In Vapor, functions expect children and styles as arguments. We pass them with normal Zig literals or chained functions.
+                \\Vapor lets you build user interfaces using a simple, <strong>what you see is what you get</strong> approach. 
+                \\The code on the left shows two core concepts that make Vapor special: <i style="color: rgb(var(--tint))">automatic UI updates</i>
+                \\ and <i style="color: rgb(var(--tint))">flexible styling</i>.
             ).style(&Styles.body_text);
             List.style(&.{
                 .list_style = .circle,
             })({
                 ListItem.style(&.{})({
                     HtmlText(
-                        \\Empty struct literal <i style="color: rgb(var(--tint))"><code>{}</code></i> used for children.
+                        // \\Empty struct literal <i style="color: rgb(var(--tint))"><code>{}</code></i> used for children.
+                        \\Notice how the counter updates? 
+                        \\We use a plain variable <i style="color: rgb(var(--tint))"><code>counter</code></i> 
+                        \\for the state, <strong>no special hooks or functions.</strong> <i style="color: rgb(var(--tint))"><code>TextFmt</code></i>
+                        \\automatically updates when <i style="color: rgb(var(--tint))"><code>counter</code></i> changes.
                     ).style(&Styles.body_text);
                 });
                 ListItem.style(&.{})({
                     HtmlText(
-                        \\Pointer to struct literal <i style="color: rgb(var(--tint))"><code>&.{}</code></i> used for styles.
+                        // \\Pointer to struct literal <i style="color: rgb(var(--tint))"><code>&.{}</code></i> used for styles.
+                        \\Vapor gives you two ways to style your components, so you can pick the best one for the job.
                     ).style(&Styles.body_text);
                 });
+                // ListItem.style(&.{})({
+                //     HtmlText(
+                //         \\Chained function <i style="color: rgb(var(--tint))"><code>.layout(.center)</code></i> used for styles.
+                //     ).style(&Styles.body_text);
+                // });
             });
 
             HtmlText(
-                \\For my JS devs <i style="color: rgb(var(--tint))"><code>struct</code></i> is an enhanced object or class, we can attach functions and default values to it.
-                \\In comparison to raw CSS or Tailwind, which is just strings. Here <i style="color: rgb(var(--tint))"><code>&.{}</code></i> has defaults of
-                \\<i style="color: rgb(var(--tint))"><code>.layout = .top_left</code></i>, and <i style="color: rgb(var(--tint))"><code>.font_size = 16</code></i>.
+                \\The <i style="color: rgb(var(--tint))"><code>CSS Class</code></i> Method (Reusable Styles).
+                \\You can define a Style struct once, like a CSS class, and apply it to any component.
+                \\For my JS devs <i style="color: kgb(var(--tint))"><code>struct</code></i> is an enhanced object or class,
+                \\we can attach functions and default values to it.
             ).style(&Styles.body_text);
+
             HtmlText(
-                \\This creates a <strong>powerful pattern</strong>, since now our <i style="color: rgb(var(--tint))">Style</i> structs can be passed to functions, instantiated with default values, and modified.
-                \\We can also <i>extend</i> or <i>merge</i> two or more styles together, and they can be passed from <strong>UI</strong> to <strong>Function</strong>.
+                \\The <i style="color: rgb(var(--tint))"><code>Inline Style</code></i> Method (Chaining) For quick or unique styles, you can "chain" 
+                \\modifiers directly onto the component. This is fast, readable, and keeps the styles right next to the component they affect.
+                //     \\This creates a <strong>powerful pattern</strong>, since now our <i style="color: rgb(var(--tint))">Style</i>
+                //     \\structs can be passed to functions, instantiated with default values, and modified.
+                //     \\We can also <i>extend</i> or <i>merge</i> two or more styles together,
+                //     \\and they can be passed from <strong>UI</strong> to <strong>Function</strong>.
             ).style(&Styles.body_text);
         });
     });
+
+    // Static.Hooks(.{ .mounted = mount_video })({
+    //     Box.layout(.center).size(.hw(.percent(100), .percent(100))).direction(.column).spacing(20).body()({
+    //         // Box.layout(.top_left).direction(.column).pos(.relative)
+    //         //     .body()({
+    //         //     Text("side note")
+    //         //         .font(12, 500, .palette(.text_color))
+    //         //         .margin(.all(0))
+    //         //         .padding(.all(0))
+    //         //         .pos(.tl(.px(32), .px(10), .absolute))
+    //         //         .close();
+    //         //     Text("METALLICA IS THE BEST")
+    //         //         .font(16 * 8, 700, .palette(.text_color))
+    //         //         .margin(.all(0)).padding(.all(0)).close();
+    //         //     Text("Text(\"METALLICA IS THE BEST\").font(16 * 8, 700, .palette(.text_color)).close()").style(&.{
+    //         //         .position = .{ .type = .absolute, .right = .percent(0), .bottom = .percent(12) },
+    //         //         .visual = .font(12, 500, .hex("#6f6f6f")),
+    //         //         .font_family = "IBM Plex Mono,monospace",
+    //         //     });
+    //         // });
+    //         Static.Video(&.{
+    //             // .src = "https://www.youtube.com/embed/_W7wqQwa-TU?autoplay=1&mute=1",
+    //             .autoplay = true,
+    //         }).width(.percent(70)).height(.percent(70)).bind(&video_element).border(.none).close();
+    //     });
+    // });
+
+    // ---------------------------------------------------------------------------------------------
+    // Footer
+    // ---------------------------------------------------------------------------------------------
     Box.style(&.{
         .visual = .{ .border = .top(.hex("#E4E4E4")), .background = .palette(.dark_text) },
         .size = .hw(.mobile_desktop(.fit, .percent(50)), .percent(100)),
-        .layout = if (Fabric.isMobile()) .x_even else .x_even_center,
+        .layout = if (Vapor.isMobile()) .x_even else .x_even_center,
         .flex_wrap = .wrap,
         .padding = .all(12),
     })({
@@ -623,7 +678,7 @@ pub fn render() void {
                     .visual = .{ .text_color = .palette(.text_color), .text_decoration = .none },
                     .interactive = .hover_text(.palette(.tint)),
                 })({
-                    Text("Treehouse Docs").style(&Styles.muted_text);
+                    Text("Canopy Docs").style(&Styles.muted_text);
                 });
                 RedirectLink(.{ .url = "https://blog.tether.sh", .aria_label = "blog page of tether" }).style(&.{
                     .visual = .{ .text_color = .palette(.text_color), .text_decoration = .none },
@@ -683,7 +738,7 @@ const Styles = struct {
     pub const footer = &Style{
         .visual = .{ .border = .top(.hex("#E4E4E4")), .background = .palette(.dark_text) },
         .size = .hw(.percent(50), .percent(100)),
-        .layout = if (Fabric.isMobile()) .top_center else .x_even_center,
+        .layout = if (Vapor.isMobile()) .top_center else .x_even_center,
     };
 
     pub const full_size = Style{
@@ -734,7 +789,6 @@ const link_style = struct {
     pub fn text(_: Theme.Mode) Style {
         return Style{
             .layout = .center,
-            // .visual = .when(mode == .dark, .font(18, 300, .palette(.text_tint_color)), .font(18, 300, .palette(.text_color))),
         };
     }
 };

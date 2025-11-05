@@ -61,24 +61,32 @@ export const importObject = {
       return 0;
     },
     fd_write: (fd, iovs_ptr, iovs_len, nwritten_ptr) => {
-      if (fd === 1) {
-        const memory = new Uint8Array(wasmInstance.memory.buffer);
-        let written = 0;
-        for (let i = 0; i < iovs_len; i++) {
-          const iov = new Uint32Array(memory.buffer, iovs_ptr + i * 8, 2);
-          const ptr = iov[0];
-          const len = iov[1];
-          const str = new TextDecoder().decode(memory.subarray(ptr, ptr + len));
+      const memory = new Uint8Array(wasmInstance.memory.buffer);
+      let written = 0;
+
+      for (let i = 0; i < iovs_len; i++) {
+        const iov = new Uint32Array(memory.buffer, iovs_ptr + i * 8, 2);
+        const ptr = iov[0];
+        const len = iov[1];
+        const str = new TextDecoder().decode(memory.subarray(ptr, ptr + len));
+
+        if (fd === 1) {
+          // stdout
           console.log("[Zig stdout]", str);
-          written += len;
+        } else if (fd === 2) {
+          // stderr
+          console.error("[Zig stderr]", str);
+        } else {
+          console.warn(`[Zig fd ${fd}]`, str);
         }
-        // Write the total bytes written back to memory
-        new Uint32Array(memory.buffer)[nwritten_ptr / 4] = written;
-        return 0; // Success
+
+        written += len;
       }
-      return 8; // EBADF: Bad file descriptor
-    },
-    // ADD THIS: Missing fd_filestat_get function
+
+      // Write the total bytes written back to memory
+      new Uint32Array(memory.buffer)[nwritten_ptr / 4] = written;
+      return 0; // Success
+    }, // ADD THIS: Missing fd_filestat_get function
     fd_filestat_get: (fd, buf_ptr) => {
       return 0; // Success
     },

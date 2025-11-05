@@ -1,34 +1,40 @@
 // All normal Zig code
-const Fabric = @import("fabric");
-const Style = Fabric.Style;
-const Static = Fabric.Static;
-const Pure = Fabric.Pure;
+const Vapor = @import("vapor");
+const Style = Vapor.Style;
+const Static = Vapor.Static;
+const Pure = Vapor.Pure;
 
 // Components
 const Box = Static.Box;
 const Button = Static.Button;
-const Icon = Static.Icon;
 const TextFmt = Pure.TextFmt;
+const Text = Static.Text;
 
 // Style struct for the Box component
 const box_style = Style{
-    .layout = .center,
-    .size = .{ .width = .px(100), .height = .px(100) },
+    .layout = .left_center,
+    .child_gap = 8,
+    .size = .{ .width = .grow, .height = .fit },
 };
 
 var counter: usize = 0;
 fn increment() void {
     counter += 1;
-    Fabric.cycle(); // Call to updates the UI
 }
 
 // Render
 pub fn render() void {
-    // This is all normal Zig code!
-    // A component with children
     Box.style(&box_style)({
-        Button(.{ .on_press = increment }).size(.square_px(100)).body()({
-            TextFmt("{d}", .{counter}).plain(); // React: <Text>{counter}</Text>
+        // Chaining styles
+        Button(.{ .on_press = increment })
+            .border(.simple(.palette(.border_color_light)))
+            .body()({
+            Text("Increment")
+                .font(18, null, .palette(.text_color))
+                .close();
         });
+        TextFmt("{d}", .{counter})
+            .font(24, 700, .palette(.text_color))
+            .close();
     });
 }

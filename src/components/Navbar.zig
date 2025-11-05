@@ -1,13 +1,13 @@
 const std = @import("std");
-const Fabric = @import("fabric");
-const Static = Fabric.Static;
-const Pure = Fabric.Pure;
-const Dynamic = Fabric.Dynamic;
-const Signal = Fabric.Signal;
-const println = Fabric.println;
+const Vapor = @import("vapor");
+const Static = Vapor.Static;
+const Pure = Vapor.Pure;
+const Dynamic = Vapor.Dynamic;
+const Signal = Vapor.Signal;
+const println = Vapor.println;
 const root = @import("../main.zig");
 const Search = @import("Search.zig");
-const Kit = Fabric.Kit;
+const Kit = Vapor.Kit;
 const Text = Static.Text;
 const Box = Static.Box;
 const Link = Static.Link;
@@ -39,7 +39,7 @@ var menu: bool = false;
 fn openMenu() void {
     // if (!throttle()) {
     menu = !menu;
-    //     Fabric.cycle();
+    //     Vapor.cycle();
     // }
 }
 const Url = struct {
@@ -48,8 +48,8 @@ const Url = struct {
 };
 const urls: [5]Url = .{
     .{
-        .url = "/docs/fabric",
-        .title = "Fabric",
+        .url = "/docs/vapor",
+        .title = "Vapor",
     },
     .{
         .url = "/docs/reverb",
@@ -57,7 +57,7 @@ const urls: [5]Url = .{
     },
     .{
         .url = "/docs/treehouse",
-        .title = "Treehouse",
+        .title = "Canopy",
     },
     .{
         .url = "/docs/metal",
@@ -93,10 +93,10 @@ fn showDropDown() void {
 fn switchTheme(opt: []const u8) void {
     println("Switch Theme! {s}", .{opt});
     // if (opt[0] == 'D') {
-    //     Fabric.Theme.switchTheme(.dark);
+    //     Vapor.Theme.switchTheme(.dark);
     //     return;
     // }
-    // Fabric.Theme.switchTheme(.light);
+    // Vapor.Theme.switchTheme(.light);
     return;
 }
 
@@ -105,7 +105,7 @@ pub fn init() void {
     Search.init();
 }
 
-pub fn closeAll(evt: *Fabric.Event) void {
+pub fn closeAll(evt: *Vapor.Event) void {
     evt.preventDefault();
     // show_dropdown.set(false);
 }
@@ -115,23 +115,23 @@ pub fn setDefault() void {
 }
 
 fn openDialog() void {
-    Fabric.println("openDialog", .{});
+    Vapor.println("openDialog", .{});
     Search.toggle();
 }
 
 fn navigate(url: []const u8) void {
     Kit.navigate(url);
     menu = !menu;
-    Fabric.cycle();
+    Vapor.cycle();
 }
 
 fn toggleTheme() void {
     Theme.toggleTheme();
-    Fabric.cycle();
+    Vapor.cycle();
 }
 
 pub fn render() void {
-    if (Fabric.isDesktop()) {
+    if (Vapor.isDesktop()) {
         // Box.id("nav")
         //     .baseStyle(&.{
         //         .size = .hw(.px(60), .grow),
@@ -173,7 +173,6 @@ pub fn render() void {
             .size = .hw(.px(60), .grow),
             .layout = .x_between_center,
             .padding = .horizontal(50),
-            .z_index = 999,
             .visual = .{ .blur = 2 },
         })({
             Box.style(&.{
@@ -250,7 +249,7 @@ pub fn render() void {
                         .visual = .{ .font_size = 16, .text_color = .palette(.icon_color) },
                     });
                 });
-                RedirectLink(.{ .url = "https://github.com/vic-Rokx/fabric", .aria_label = "redirect link to tether github repo" }).style(&.{
+                RedirectLink(.{ .url = "https://github.com/vic-Rokx/vapor", .aria_label = "redirect link to tether github repo" }).style(&.{
                     .visual = .{ .text_decoration = .none },
                 })({
                     Icon(.github).style(&.{
@@ -258,7 +257,7 @@ pub fn render() void {
                         .interactive = .{ .hover = .{ .text_color = .palette(.tint) } },
                     });
                 });
-                RedirectLink(.{ .url = "https://github.com/vic-Rokx/fabric", .aria_label = "redirect link to discord" }).style(&.{
+                RedirectLink(.{ .url = "https://github.com/vic-Rokx/vapor", .aria_label = "redirect link to discord" }).style(&.{
                     .visual = .{ .text_decoration = .none },
                 })({
                     Icon(.discord).style(&.{
@@ -294,15 +293,17 @@ pub fn render() void {
                 });
             });
         });
+        Search.render();
     } else {
         Box.style(&.{
             .layout = .x_between_center,
             .child_gap = 8,
             .padding = .horizontal(16),
-            .position = .{ .type = .fixed, .top = .px(0), .left = .percent(0), .right = .percent(0) },
+            .position = .{ .type = .fixed, .top = .px(0), .left = .percent(0), .right = .percent(0), .z_index = 999 },
             .size = .hw(.px(80), .percent(100)),
-            .visual = .bg(.palette(.background)),
-            .z_index = 999,
+            .visual = .{
+                .background = .palette(.background),
+            },
         })({
             Box.style(&.{ .layout = .left_center })({
                 Link(.{ .url = "/", .aria_label = "home page of tether" }).style(&.{
@@ -355,9 +356,8 @@ pub fn render() void {
         });
         if (menu) {
             Box.style(&.{
-                .position = .{ .type = .fixed, .top = .px(80), .left = .px(0) },
+                .position = .{ .type = .fixed, .top = .px(80), .left = .px(0), .z_index = 999 },
                 .size = .w(.percent(100)),
-                .z_index = 999,
                 // .visual = .{ .background = Theme.background, .border = .tb(.hex("#E4E4E4")) },
             })({
                 List.style(&.{
@@ -389,12 +389,20 @@ pub fn render() void {
             });
         }
     }
-    // Search.render();
+    // List.body()({});
+    // Static.Hooks(.{ .mounted = mount }).body()({});
+    // Static.List.body()({});
     // });
 }
 
+fn mount() void {
+    // _ = background.addListener(.click, closeEvent);
+    // _ = search_box.addListener(.input, search);
+    // _ = search_box.focus();
+}
+
 const Styles = struct {
-    pub const item = Fabric.Style{
+    pub const item = Vapor.Style{
         .list_style = .none,
         .size = .{ .width = .elastic(50, 130), .height = .px(30) },
         .layout = .{ .y = .center, .x = .start },

@@ -1,10 +1,10 @@
 const std = @import("std");
-const Fabric = @import("fabric");
-const Signal = Fabric.Signal;
-const Style = Fabric.Style;
-const Static = Fabric.Static;
-const Pure = Fabric.Pure;
-const Page = Fabric.Page;
+const Vapor = @import("vapor");
+const Signal = Vapor.Signal;
+const Style = Vapor.Style;
+const Static = Vapor.Static;
+const Pure = Vapor.Pure;
+const Page = Vapor.Page;
 const Custom = @import("../../../components/Custom.zig");
 const HtmlText = Custom.Chain.HtmlText;
 const root = @import("../../../main.zig");
@@ -14,10 +14,12 @@ const Graphic = Static.Graphic;
 const Center = Static.Center;
 const Text = Static.Text;
 const Stack = Static.Stack;
+const List = Static.List;
+const ListItem = Static.ListItem;
 
 // Initialization
 pub fn init() void {
-    Page(@src(), render, null, &.{});
+    Page(.{ .src = @src() }, render, null);
 }
 
 // Deinitialization
@@ -25,8 +27,8 @@ pub fn deinit() void {}
 
 // Render
 const description =
-    \\Fabric is a universal tree renderer that takes styled component hierarchies and renders them natively across
-    \\platforms—from web browsers to iOS and macOS apps. Unlike black-box solutions, Fabric gives you direct access to the 
+    \\Vapor is a universal tree renderer that takes styled component hierarchies and renders them natively across
+    \\platforms—from web browsers to iOS and macOS apps. Unlike black-box solutions, Vapor gives you direct access to the 
     \\rendering pipeline, so you can customize and optimize the engine for your exact use case.
 ;
 
@@ -36,23 +38,23 @@ const Route = struct {
 };
 
 const routes = [_]Route{
-    .{ .title = "Introduction", .path = "/docs/fabric/concepts/introduction" },
-    .{ .title = "Fabric Basics", .path = "/docs/fabric/concepts/basics" },
-    .{ .title = "Static, Pure, Dynamic, Grain", .path = "/docs/fabric/concepts/reactivity" },
-    .{ .title = "Routing", .path = "/docs/fabric/concepts/routing" },
-    .{ .title = "Theme and Style", .path = "/docs/fabric/concepts/theme-and-style" },
-    .{ .title = "Reactivity & Signals", .path = "/docs/fabric/concepts/reactivity-signals" },
-    .{ .title = "Styling", .path = "/docs/fabric/concepts/styling" },
-    .{ .title = "Kit", .path = "/docs/fabric/concepts/kit" },
-    .{ .title = "Icons and Svgs", .path = "/docs/fabric/concepts/icons-and-svgs" },
-    .{ .title = "Authentication", .path = "/docs/fabric/concepts/authentication" },
-    .{ .title = "Using JS Libraries", .path = "/docs/fabric/concepts/using-js-libraries" },
-    .{ .title = "Wasm Bridge", .path = "/docs/fabric/concepts/wasm-bridge" },
-    .{ .title = "Custom Components", .path = "/docs/fabric/concepts/custom-components" },
-    .{ .title = "Renderers & UI-Tree", .path = "/docs/fabric/concepts/renderers-ui-tree" },
-    .{ .title = "Building a UI Layout Algorithmn", .path = "/docs/fabric/concepts/building-ui-layout-algorithm" },
-    .{ .title = "Building a Reconciler", .path = "/docs/fabric/concepts/building-reconciler" },
-    .{ .title = "Building a Renderer", .path = "/docs/fabric/concepts/building-renderer" },
+    .{ .title = "Introduction", .path = "/docs/vapor/concepts/introduction" },
+    .{ .title = "Vapor Basics", .path = "/docs/vapor/concepts/basics" },
+    .{ .title = "Static, Pure, Dynamic, Grain", .path = "/docs/vapor/concepts/reactivity" },
+    .{ .title = "Routing", .path = "/docs/vapor/concepts/routing" },
+    .{ .title = "Theme and Style", .path = "/docs/vapor/concepts/theme-and-style" },
+    .{ .title = "Reactivity & Signals", .path = "/docs/vapor/concepts/reactivity-signals" },
+    .{ .title = "Styling", .path = "/docs/vapor/concepts/styling" },
+    .{ .title = "Kit", .path = "/docs/vapor/concepts/kit" },
+    .{ .title = "Icons and Svgs", .path = "/docs/vapor/concepts/icons-and-svgs" },
+    .{ .title = "Authentication", .path = "/docs/vapor/concepts/authentication" },
+    .{ .title = "Using JS Libraries", .path = "/docs/vapor/concepts/using-js-libraries" },
+    .{ .title = "Wasm Bridge", .path = "/docs/vapor/concepts/wasm-bridge" },
+    .{ .title = "Custom Components", .path = "/docs/vapor/concepts/custom-components" },
+    .{ .title = "Renderers & UI-Tree", .path = "/docs/vapor/concepts/renderers-ui-tree" },
+    .{ .title = "Building a UI Layout Algorithmn", .path = "/docs/vapor/concepts/building-ui-layout-algorithm" },
+    .{ .title = "Building a Reconciler", .path = "/docs/vapor/concepts/building-reconciler" },
+    .{ .title = "Building a Renderer", .path = "/docs/vapor/concepts/building-renderer" },
 };
 
 var last_time: i64 = 0;
@@ -69,31 +71,32 @@ var menu: bool = false;
 fn openMenu() void {
     if (!throttle()) {
         menu = !menu;
-        Fabric.cycle();
+        Vapor.cycle();
     }
 }
 
 fn Txt(text: []const u8) void {
     Text(text).style(&.{
-        .visual = .font(18, null, null),
+        .visual = .font(16, null, null),
     });
 }
 
 pub fn render() void {
     Box.style(&.{
-        .layout = .{ .x = .start, .y = .start },
         .padding = .horizontal(12),
+        .direction = if (!Vapor.isMobile()) .row else .column,
         .size = .hw(.percent(100), .percent(100)),
     })({
-        Center.style(&.{
-            .size = .w(.percent(100)),
-            .padding = .{ .top = 60, .bottom = 120 },
-            .direction = .column,
+        Box.style(&.{
+            .size = .hw(.percent(100), .percent(100)),
+            .layout = .top_center,
         })({
             Box.style(&.{
-                .size = .w(.mobile_desktop_percent(100, 64)),
+                .size = .w(.mobile_desktop_percent(100, 48)),
+                .child_gap = 16,
                 .direction = .column,
-                .padding = .{ .bottom = 80 },
+                .layout = .{ .x = .start, .y = .start },
+                .padding = .tb(80, 80),
             })({
                 Box.style(&.{
                     .child_gap = 16,
@@ -103,67 +106,96 @@ pub fn render() void {
                 })({
                     Box.style(&.{
                         .layout = .x_between_center,
-                        .margin = .{ .top = 64, .bottom = 128 },
+                        .margin = .{ .top = 0, .bottom = 32 },
                         .child_gap = 32,
                     })({
-                        Center.style(&.{ .size = .w(.percent(50)), .margin = .{ .top = 32 } })({
-                            Graphic(.{ .src = "src/routes/docs/metal/metal.svg" }).style(&.{
-                                .layout = .center,
-                                .size = .w(.percent(70)),
-                            });
-                        });
+                        // Center.style(&.{ .size = .w(.percent(50)), .margin = .{ .top = 32 } })({
+                        //     Graphic(.{ .src = "/src/routes/docs/metal/metal.svg" }).style(&.{
+                        //         .layout = .center,
+                        //         .size = .w(.percent(90)),
+                        //     });
+                        // });
                         Stack.style(&.{
-                            .size = .w(.percent(50)),
-                            .child_gap = 16,
-                            .padding = .{ .top = 16 },
+                            .size = .w(.percent(100)),
                         })({
-                            Graphic(.{ .src = "src/routes/docs/metal/metal_text.svg" }).style(&.{
-                                .layout = .center,
-                                .size = .w(.percent(70)),
-                            });
+                            Text("Metal")
+                                .font(192, 700, .palette(.text_color))
+                                .margin(.l(-16))
+                                .layout(.in_line)
+                                .close();
+                            // Graphic(.{ .src = "/src/routes/docs/metal/metal_text.svg" }).style(&.{
+                            //     .layout = .center,
+                            //     .size = .w(.percent(70)),
+                            //     .visual = .{ .fill = .palette(.text_color) },
+                            // });
 
                             HtmlText(
-                                \\<strong>Fabric, Reverb, Treehouse</strong> all run on Metal, there 
+                                \\<strong>Vapor, Reverb, Canopy</strong> all run on Metal, there 
                                 \\is no need for Docker Containers or
                                 \\Runtimes.
                             ).style(&.{ .visual = .font(24, null, null) });
                         });
                     });
-                    Text("The Docker Problem").style(&.{
-                        .visual = .font(48, 700, .palette(.text_color)),
+                    Text("It runs on my Machine!").style(&.{
+                        .visual = .font(24, 500, .palette(.text_color)),
+                        .font_family = "IBM Plex Sans",
                     });
 
                     Txt(
-                        \\As much as I agree, that your blog post about how Dogs are better than cats, is incredible, and a complete fact. 
-                        \\Running a static blog shouldn’t require an entire runtime, build chain, and container stack.
-                        \\Yet that’s what we do today when we docker run an Nginx image just to serve HTML.
-                        \\Fabric flips that model. We ship one platform-native binary that does everything—file 
-                        \\serving, routing, compression—out of the box. Tether and Treehouse follow the same pattern. If it runs on your laptop, it will run in prod, 
-                        \\provided the underlying OS matches. No more “but it works on my machine.”
+                        \\As we all know, switching machines, or having to reinstall megabytes of dependencies is a pain,
+                        \\and eventually leads to the dreaded "It works on my machine" problem. 
+                        \\Running a static blog shouldn’t require an entire runtime environment, build chain, and container stack. Nor should a full-stack app.
+                    );
+
+                    Txt(
+                        \\The framework that is installed on one machine should run deterministically on another.
+                        \\Every current JS framework or other framework currently ships dependencies. And there is no way to avoid them.
                     );
 
                     Text("Binary").style(&.{
-                        .visual = .font(48, 700, .palette(.text_color)),
+                        .visual = .font(24, 500, .palette(.text_color)),
+                        .font_family = "IBM Plex Sans",
                     });
 
                     HtmlText(
-                        \\Metal is how Fabric, and Tether and Treehouse, along with NightWatch, compile and build the binaries. Depending on persmissions,
-                        \\Fabric will use wasm-opt and brotli, to compress the WASM binaries, this will reduce the total bundle size. For example, the raw
-                        \\WASM binary of this site it 2.4MB, after compressing using Metal, we result in 300kb total. While other frameworks may ship 100kb-200kb.
-                        \\Remeber Fabric, is running WASM, so the browser not only parses this <a href="https://webassembly.org/docs/faq/">10x-20x</a> 
+                        \\Metal is how Vapor, Reverb and Canopy, compile and build the binaries. Depending on persmissions,
+                        \\Vapor will use wasm-opt and brotli, to compress the WASM binaries, this will reduce the total bundle size. For example, the raw
+                        \\WASM binary of this site it 7MB, after compressing using Metal, we result in 180kb total. While other frameworks may ship 100kb-200kb by default.
+                        \\Remember Vapor, is running WASM, so the browser not only parses this <a href="https://webassembly.org/docs/faq/">10x-20x</a> 
                         \\faster, but also runs <a href="https://hacks.mozilla.org/2018/01/oxidizing-source-maps-with-rust-and-webassembly/">1.5x-2x</a> faster.
-                        \\And again, we only have one binary file running the Fabric server, and one fabric.wasm file which contains our UI, and client side functionality.
+                        \\And again, we only have one binary file running the Vapor server, and one vapor.wasm file which contains our UI, and client side functionality.
                     ).style(&.{
                         .visual = .font(18, null, null),
                     });
-                    Center.style(&.{
-                        .size = .hw(.px(100), .percent(100)),
-                    })({
-                        HtmlText(
-                            \\And of course best of all, no more "But it runs on my Machine?"
-                        ).style(&.{ .visual = .font(32, 700, .palette(.text_color)) });
+
+                    Stack.childGap(16).body()({
+                        Text("Total file count").style(&.{
+                            .visual = .font(24, 500, .palette(.text_color)),
+                            .font_family = "IBM Plex Sans",
+                        });
+                        List.direction(.column).body()({
+                            ListItem.style(&.{})({
+                                Text("Vapor: server.exe, vapor.wasm, bundle.min.js").style(&.{
+                                    .visual = .font(16, null, null),
+                                });
+                            });
+                            ListItem.style(&.{})({
+                                Text("Reverb: server.exe").style(&.{
+                                    .visual = .font(16, null, null),
+                                });
+                            });
+                            ListItem.style(&.{})({
+                                Text("Canopy: server.exe").style(&.{
+                                    .visual = .font(16, null, null),
+                                });
+                            });
+                        });
                     });
-                    Text("Caveat").style(&.{ .visual = .font(48, 700, .palette(.text_color)) });
+
+                    Text("Caveat").style(&.{
+                        .visual = .font(24, 500, .palette(.text_color)),
+                        .font_family = "IBM Plex Sans",
+                    });
 
                     Txt(
                         \\Alot of people are going to tell you that, Yes WASM is faster, but the overhead, between JS bridging to WASM, kills
@@ -172,7 +204,7 @@ pub fn render() void {
                         \\hundreds of nanoseconds up to a few milliseconds, because of size. You pay for the linear encoding, due UTF-8 and UTF-16 differences. 
                         \\However, WASM is contionously being improved and changed, in the next year or so, a new model will be release, where no copying will be needed.
                         \\And you will be able to interact with JS string and object without the need of crossing a 'bridge' ie negligible cost.
-                        \\One very simple way to not cross this boundary a ton, is just batch. 
+                        \\One very simple way to not cross this boundary a ton, is just batch. Vapor does this by default. 
                     );
                 });
             });

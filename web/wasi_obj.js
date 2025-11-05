@@ -1,21 +1,24 @@
 import { importObject } from "./wasi_env.js";
-import { setWasiInstance } from "./wasi.js";
+import { setWasiInstance, setWasiStructBridge } from "./wasi.js";
 import {
   domNodeRegistry,
   moduleCache,
   moduleRoutes,
-  hooksHandlers,
+  beforeHooksHandlers,
   observeredSections,
   loadedSections,
   pureNodeRegistry,
+  afterHooksHandlers,
+  hooksMounted,
+  eventHandlers,
 } from "./maps.js";
 import {
   traverse,
-  traverseRemove,
   COMPONENT_TYPES,
-  isLayout,
-  stripNonLayout,
   recurseDestroy,
+  updateElement,
+  createElementByType,
+  setupElement,
 } from "./traversal.js";
 import { state } from "./state.js";
 import { styleRuleCache } from "./wasi_styling.js";
@@ -137,27 +140,29 @@ window.addEventListener("popstate", async function(event) {
   event.preventDefault();
   const path = window.location.pathname;
 
-  rerenderRoute(path === "/" ? "/root" : `/root${path}`);
-  requestAnimationFrame(() => {
-    // wasmInstance.setRerenderTrue();
-  });
+  rerenderRoute(path);
 });
 
 window.addEventListener("load", async () => {
-  // const url = new URL(window.location.href);
-  // for (const [key, handler] of hooksHandlers.entries()) {
-  // }
-  const fontLink = document.createElement("link");
-  fontLink.href =
-    "https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap";
-  fontLink.rel = "stylesheet";
-  document.head.appendChild(fontLink);
-
-  const iconLink = document.createElement("link");
-  iconLink.href =
-    "https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css";
-  iconLink.rel = "stylesheet";
-  document.head.appendChild(iconLink);
+  const url = new URL(window.location.href);
+  for (const [key, handler] of beforeHooksHandlers.entries()) {
+    console.log("beforeHooksHandlers", key);
+    if (url.pathname === "/docs") {
+      console.log("fkjasldfkjas;lfkjasf;l");
+    }
+    // handler();
+  }
+  // const fontLink = document.createElement("link");
+  // fontLink.href =
+  //   "https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap";
+  // fontLink.rel = "stylesheet";
+  // document.head.appendChild(fontLink);
+  //
+  // const iconLink = document.createElement("link");
+  // iconLink.href =
+  //   "https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css";
+  // iconLink.rel = "stylesheet";
+  // document.head.appendChild(iconLink);
 });
 
 async function loadWasm(path, imports = {}) {
@@ -203,7 +208,7 @@ export async function hotSwapWasmWithState(newPath) {
 let pathname;
 export let text_data;
 async function loadWasiModule() {
-  pathname = "fabric";
+  pathname = "vapor";
   loadWasm(`/zig-out/bin/${pathname}.wasm`, importObject)
     .then((instance) => {
       const exports = instance.exports;
@@ -272,8 +277,32 @@ export const encodeString = (string) => {
   wasmInstance.setRouteRenderTree(pointer);
 };
 
-export const rerenderRoute = (route) => {
+export const rerenderRoute = (navigatedPath) => {
+  const route = navigatedPath === "/" ? "/root" : `/root${navigatedPath}`;
+
   currentPath = window.location.pathname;
+  window.history.pushState({}, "", navigatedPath);
+
+  // for (const [key, handler] of afterHooksHandlers.entries()) {
+  //   const pathEnd = key.indexOf("-");
+  //   const path = key.substring(0, pathEnd);
+  //
+  //   // Check if currentPath starts with the hook path
+  //   if (currentPath === path || currentPath.startsWith(path + "/")) {
+  //     handler();
+  //   }
+  // }
+  //
+  // for (const [key, handler] of beforeHooksHandlers.entries()) {
+  //   const pathEnd = key.indexOf("-");
+  //   const path = key.substring(0, pathEnd);
+  //
+  //   // Check if currentPath starts with the hook path
+  //   if (navigatedPath === path || navigatedPath.startsWith(path + "/")) {
+  //     handler();
+  //   }
+  // }
+
   const buffer = new TextEncoder().encode(route);
   const pointer = wasmInstance.allocUint8(buffer.length + 1); // ask Zig to allocate memory
   const slice = new Uint8Array(
@@ -301,6 +330,7 @@ export const rerenderRoute = (route) => {
       for (let element of elements) {
         const target_child = element.parentElement.children[node_index];
         if (target_child.id === id) {
+          domNodeRegistry.delete(id);
           element.remove();
           break check;
         }
@@ -309,7 +339,8 @@ export const rerenderRoute = (route) => {
       recurseDestroy(elements[0]); // delete everything *except* layouts
     }
   }
-  root.innerHTML = "";
+  // We need to fix this
+  // root.innerHTML = "";
   wasmInstance.clearRemovedNodesretainingCapacity();
   clearCSS();
   styleRuleCache.clear();
@@ -339,18 +370,45 @@ export const rerenderRoute = (route) => {
     }
     // this active set does not include the layouts
     activeNodeIds = new Set();
+    // state.initial_render = true;
     traverse(root, true, tree_node, layoutInfo);
-    state.initial_render = false;
-    wasmInstance.pendingClassesToAdd();
-    wasmInstance.pendingClassesToRemove();
-    callDestroyFncs();
+    // state.initial_render = false;
+    // wasmInstance.pendingClassesToAdd();
+    // wasmInstance.pendingClassesToRemove();
+    // callDestroyFncs();
     // we need to consider the possiblity of has dirty being false and therefore the node tree does not include the current nodes
     // we need to look into this since we dont want to remove the layouts even if they are not in the active set
     // removeInactiveNodes();
     wasmInstance.markCurrentTreeNotDirty();
     wasmInstance.resetRerender();
+    removeInactiveNodes();
     // handleIntersection();
     requestAnimationFrame(wasmInstance.cleanUp);
+    wasmInstance.onEndCallback();
+
+    const hash = window.location.hash;
+    if (hash) {
+      const id = window.location.hash.substring(1, hash.length);
+      const element = document.getElementById(id);
+      if (element) {
+        // Scroll the element into view with options
+        element.scrollIntoView({
+          block: "center", // Vertically align to the center of the screen
+        });
+      }
+    } else {
+      // window.scrollTo({
+      //   top: 0,
+      //   behavior: "smooth", // or 'auto' for instant scroll
+      // });
+    }
+
+    hooksMounted.forEach((value, key) => {
+      const idPtr = allocString(key);
+      wasmInstance.hooksMountedCallback(idPtr);
+      hooksMounted.delete(key);
+    });
+    // wasmInstance.callAllMountedCallbacks();
     // console.log(pureNodeRegistry);
   } else {
     wasmInstance.resetRerender();
@@ -512,6 +570,11 @@ function setupLayoutInfo() {
       layoutInfoPtr + 84,
       4,
     ).getUint32(0, true),
+    hashOffset: new DataView(
+      wasmInstance.memory.buffer,
+      layoutInfoPtr + 88,
+      4,
+    ).getUint32(0, true),
   };
 }
 
@@ -525,10 +588,12 @@ function loadTheme() {
   const savedTheme = localStorage.getItem("theme") || getSystemTheme();
   if (savedTheme === "dark") {
     document.documentElement.setAttribute("data-theme", "dark");
+    wasmInstance.setTheme(1);
   } else {
     const savedTheme = localStorage.getItem("theme");
     if (savedTheme === "dark") {
       document.documentElement.setAttribute("data-theme", "dark");
+      wasmInstance.setTheme(1);
     }
   }
 }
@@ -542,6 +607,21 @@ export let currentPath;
 function setupWasiInstance() {
   wasmInstance.init(window.innerWidth, window.innerHeight); // Example UI function
 
+  setWasiStructBridge();
+
+  currentPath = window.location.pathname;
+
+  for (const [key, handler] of beforeHooksHandlers.entries()) {
+    const pathEnd = key.indexOf("-");
+    const path = key.substring(0, pathEnd);
+
+    // Check if currentPath starts with the hook path
+    if (currentPath === path || currentPath.startsWith(path + "/")) {
+      handler();
+    }
+  }
+  // view = new DataView(wasmInstance.memory.buffer);
+
   // U8 = new Uint8Array(wasmInstance.memory.buffer);
   // U32 = new Uint32Array(wasmInstance.memory.buffer);
   const animations_ptr = wasmInstance.getAnimationsPtr();
@@ -552,17 +632,16 @@ function setupWasiInstance() {
   }
 
   loadTheme();
-  currentPath = window.location.pathname;
   if (currentPath === "/") {
     route_ptr = allocString("/root");
   } else {
     route_ptr = allocString(`/root${currentPath}`);
   }
+  const start = performance.now();
   wasmInstance.renderUI(route_ptr);
-  wasmInstance.markCurrentTreeDirty();
-  tree_node = wasmInstance.getRenderTreePtr();
 
-  activeNodeIds = new Set();
+  // wasmInstance.markCurrentTreeDirty();
+  // tree_node = wasmInstance.getRenderTreePtr();
 
   const global_style_ptr = wasmInstance.getGlobalVariablesPtr();
   const global_style_len = wasmInstance.getGlobalVariablesLen();
@@ -582,21 +661,15 @@ function setupWasiInstance() {
   //   index += 1;
   // }
 
-  const start = performance.now();
-  traverse(root, true, tree_node, layoutInfo);
-  // for (let i = 0; i < 10000; i++) {
-  //   // const fragment = document.createDocumentFragment(); // ✅ new
-  //   let element;
-  //   element = document.createElement("p");
-  //   element.textContent = i;
-  //   frag.appendChild(element);
-  // }
-  state.initial_render = false;
-  // wasmInstance.pendingClassesToAdd();
-  // wasmInstance.pendingClassesToRemove();
+  // const start = performance.now();
+  tree_node = wasmInstance.getRenderTreePtr();
 
-  document.body.appendChild(root);
-  // console.log("--Total render time MS--", performance.now() - start);
+  activeNodeIds = new Set();
+
+  traverse(root, true, tree_node, layoutInfo);
+  state.initial_render = false;
+  callDestroyFncs();
+  removeInactiveNodes();
   wasmInstance.markCurrentTreeNotDirty();
   wasmInstance.resetRerender();
 
@@ -610,7 +683,23 @@ function setupWasiInstance() {
         block: "center", // Vertically align to the center of the screen
       });
     }
+  } else {
+    // window.scrollTo({
+    //   top: 0,
+    //   behavior: "smooth", // or 'auto' for instant scroll
+    // });
   }
+
+  document.fonts.ready.then(() => {
+    hooksMounted.forEach((value, key) => {
+      const idPtr = allocString(key);
+      wasmInstance.hooksMountedCallback(idPtr);
+      hooksMounted.delete(key);
+    });
+    // wasmInstance.callAllMountedCallbacks();
+  });
+
+  wasmInstance.registerAllListenerCallbacks();
 
   // handleIntersection();
 
@@ -625,6 +714,121 @@ function setupWasiInstance() {
   //   "https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css&display=swap";
   // iconLink.rel = "stylesheet";
   // document.head.appendChild(iconLink);
+  // requestAnimationFrame(tick);
+}
+
+function tick() {
+  wasmInstance.immediateMode();
+  render();
+  requestAnimationFrame(tick);
+}
+
+function readAllRenderCommands(baseOffset, count) {
+  const view = new DataView(wasmInstance.memory.buffer);
+  // const mem = new Uint8Array(wasmInstance.memory.buffer);
+
+  const commands = new Array(count);
+
+  for (let i = 0; i < count; i++) {
+    const offset = baseOffset + i * layoutInfo.renderCommandSize;
+
+    let css = "";
+    let keyFrames = "";
+    let styleId = "";
+    let id = "";
+    let btnId = 0;
+    let hoverCss = "";
+    let focusCss = "";
+    let focusWithinCss = "";
+    let tooltipCss = "";
+    let tooltipTitle = "";
+    let exitAnimationId = null;
+
+    const elemType = view.getUint8(offset + layoutInfo.elemTypeOffset);
+
+    const nodePtr = view.getUint32(offset + layoutInfo.nodePtrOffset, true);
+    const isDirty = wasmInstance.getDirtyValue(nodePtr);
+
+    // For text, you need to handle the string slice differently
+    const textPtr = view.getUint32(offset + layoutInfo.textPtrOffset, true);
+    const textLen = view.getUint32(offset + layoutInfo.textPtrOffset + 4, true);
+
+    const hrefPtr = view.getUint32(offset + layoutInfo.hrefPtrOffset, true);
+    const hrefLen = view.getUint32(offset + layoutInfo.hrefPtrOffset + 4, true);
+    // const hasChildren = view.getUint8(
+    //   offset + layoutInfo.hasChildrenOffset,
+    //   true,
+    // );
+
+    const idPtr = view.getUint32(offset + layoutInfo.idPtrOffset, true);
+    const idLen = view.getUint32(offset + layoutInfo.idPtrOffset + 4, true);
+    id = idPtr ? readWasmString(idPtr, idLen) : "";
+    const hash = view.getUint32(offset + layoutInfo.hashOffset, true);
+    const index = view.getUint32(offset + layoutInfo.indexOffset, true);
+
+    let hooks = {};
+    if (isDirty) {
+      hooks = {
+        createdId: view.getUint32(offset + layoutInfo.hooksOffset, true),
+        mountedId: view.getUint32(offset + layoutInfo.hooksOffset + 4, true),
+        updatedId: view.getUint32(offset + layoutInfo.hooksOffset + 8, true),
+        destroyId: view.getUint32(offset + layoutInfo.hooksOffset + 12, true),
+      };
+      const classnamePtrOffset = layoutInfo.classnamePtrOffset;
+
+      // 2. Read the actual pointer value from the RenderCommand struct.
+      const classnamePtr = view.getUint32(offset + classnamePtrOffset, true);
+
+      // 3. If the pointer is not null, read the length and then the string.
+      if (classnamePtr) {
+        // The length is ALWAYS 4 bytes after the pointer for a slice.
+        const classnameLen = view.getUint32(
+          offset + classnamePtrOffset + 4,
+          true,
+        );
+
+        const classname = readWasmString(classnamePtr, classnameLen);
+        styleId = classname;
+      }
+    }
+
+    const stateType = view.getUint32(
+      offset + layoutInfo.renderTypeOffset,
+      true,
+    );
+
+    const props = {
+      css,
+      hoverCss,
+      focusCss,
+      focusWithinCss,
+      btnId,
+      keyFrames,
+      tooltipCss,
+      tooltipTitle,
+      textPtr,
+      textLen,
+      hrefPtr,
+      hrefLen,
+      // hasChildren,
+    };
+
+    commands[i] = {
+      elemType,
+      props,
+      id,
+      index,
+      hooks,
+      nodePtr,
+      exitAnimationId,
+      styleId,
+      hash,
+      isDirty,
+      stateType,
+    };
+  }
+
+  return commands;
 }
 
 // function injectCSS(cssString) {
@@ -730,12 +934,14 @@ export function render() {
   // }
 
   // Exit if no re-render is needed.
+  // console.log("Requesting Rerender");
   if (!globalRerender && !grainRerender) {
     return;
   }
 
   try {
     if (globalRerender) {
+      const start = performance.now();
       currentPath = window.location.pathname;
       const route_ptr = allocString(
         currentPath === "/" ? "/root" : `/root${currentPath}`,
@@ -761,41 +967,183 @@ export function render() {
           for (let element of elements) {
             const target_child = element.parentElement.children[node_index];
             if (target_child.id === id) {
+              domNodeRegistry.delete(id);
               element.remove();
               break check;
             }
           }
         } else {
-          stripNonLayout(elements[0]); // delete everything *except* layouts
+          recurseDestroy(elements[0]); // delete everything *except* layouts
         }
       }
       wasmInstance.clearRemovedNodesretainingCapacity();
 
       if (has_dirty) {
+        // const start = performance.now();
+        // const dirtyCount = wasmInstance.getDirtyNodeCount();
+        // activeNodeIds = new Set();
+        // const baseOffset = wasmInstance.getDirtyNode();
+        // const dirtyRenderCmds = readAllRenderCommands(baseOffset, dirtyCount); // 6ms
+        //
+        // for (let i = dirtyCount - 1; i >= 0; i--) {
+        //   let element;
+        //   const renderCmd = dirtyRenderCmds[i];
+        //
+        //   // --- Get the anchor (next sibling) using the REGISTRY ---
+        //   // This logic is the same for new and updated nodes, so do it once.
+        //   let anchor = null;
+        //   const siblingPtr = wasmInstance.getNextSiblingPtr(renderCmd.nodePtr);
+        //   if (siblingPtr > 0) {
+        //     const siblingLen = wasmInstance.getNextSiblingLen(
+        //       renderCmd.nodePtr,
+        //     );
+        //     const siblingId = readWasmString(siblingPtr, siblingLen);
+        //
+        //     // Use the FAST registry, not the SLOW DOM query
+        //     anchor = domNodeRegistry.get(siblingId)?.domNode ?? null;
+        //   }
+        //
+        //   const node = domNodeRegistry.get(renderCmd.id);
+        //   if (node === undefined) {
+        //     element = createElementByType(renderCmd);
+        //     const parentIdPtr = wasmInstance.getNodeParentId(renderCmd.nodePtr);
+        //     const parentIdLen = wasmInstance.getNodeParentIdLen(
+        //       renderCmd.nodePtr,
+        //     );
+        //     const parentId = readWasmString(parentIdPtr, parentIdLen);
+        //
+        //     // Here, getElementById is probably fine, as the parent MUST exist in the DOM.
+        //     // But for consistency, the registry is still better if parents are in it.
+        //     const parent =
+        //       domNodeRegistry.get(parentId)?.domNode ??
+        //       document.getElementById(parentId);
+        //
+        //     if (!parent) continue; // Safety check
+        //
+        //     // Set up the element
+        //     setupElement(element, renderCmd);
+        //
+        //     // Append to parent
+        //     parent.insertBefore(element, anchor);
+        //     if (renderCmd.elemType === COMPONENT_TYPES.HOOKS_CTX) {
+        //       if (renderCmd.hooks.mountedId > 0) {
+        //         wasmInstance.ctxHooksMountedCallback(renderCmd.hooks.mountedId);
+        //       }
+        //     } else if (renderCmd.elemType === COMPONENT_TYPES.HOOKS) {
+        //       if (renderCmd.hooks.mountedId > 0) {
+        //         const idPtr = allocString(renderCmd.id);
+        //         wasmInstance.hooksMountedCallback(idPtr);
+        //       }
+        //       if (renderCmd.hooks.createdId > 0) {
+        //         wasmInstance.hooksCreatedCallback(renderCmd.hooks.createdId);
+        //       }
+        //       if (renderCmd.hooks.updatedId > 0) {
+        //         wasmInstance.hooksUpdatedCallback(renderCmd.hooks.updatedId);
+        //       }
+        //     }
+        //   } else {
+        //     element = node.domNode;
+        //     updateElement(element, renderCmd);
+        //
+        //     // Check if move is needed
+        //     if (element.nextSibling !== anchor) {
+        //       // parent is simply element.parentElement, which is fast
+        //       element.parentElement.insertBefore(element, anchor);
+        //     }
+        //   }
+        // }
+        //
+        // // Added sections add the new elements, and styling
+        // const addedCount = wasmInstance.getAddedNodeCount();
+        // const addedOffset = wasmInstance.getAddedNode();
+        // const addedRenderCmds = readAllRenderCommands(addedOffset, addedCount);
+        // // const renderCmds = [];
+        // // for (let i = 0; i < addedCount; i++) {
+        // //   const ptr = wasmInstance.getAddedNode(i);
+        // //   const renderCmd = readRenderCommand(ptr, layoutInfo);
+        // //   renderCmds.push(renderCmd);
+        // //   activeNodeIds.add(renderCmd.id);
+        // // }
+        //
+        // if (addedCount > 0) {
+        //   for (let i = addedCount - 1; i >= 0; i--) {
+        //     const renderCmd = addedRenderCmds[i];
+        //
+        //     // --- Get the anchor (next sibling) using the REGISTRY ---
+        //     // This logic is the same for new and updated nodes, so do it once.
+        //     let anchor = null;
+        //     const siblingPtr = wasmInstance.getNextSiblingPtr(
+        //       renderCmd.nodePtr,
+        //     );
+        //     if (siblingPtr > 0) {
+        //       const siblingLen = wasmInstance.getNextSiblingLen(
+        //         renderCmd.nodePtr,
+        //       );
+        //       const siblingId = readWasmString(siblingPtr, siblingLen);
+        //
+        //       // Use the FAST registry, not the SLOW DOM query
+        //       anchor = domNodeRegistry.get(siblingId)?.domNode ?? null;
+        //     }
+        //
+        //     const parentIdPtr = wasmInstance.getNodeParentId(renderCmd.nodePtr);
+        //     const parentIdLen = wasmInstance.getNodeParentIdLen(
+        //       renderCmd.nodePtr,
+        //     );
+        //     const parentId = readWasmString(parentIdPtr, parentIdLen);
+        //     const parent = document.getElementById(parentId);
+        //
+        //     const element = createElementByType(renderCmd);
+        //
+        //     if (!element) continue; // Skip if element creation failed
+        //
+        //     // Set up the element
+        //     setupElement(element, renderCmd);
+        //
+        //     // Append to parent
+        //     parent.insertBefore(element, anchor);
+        //     if (renderCmd.elemType === COMPONENT_TYPES.HOOKS_CTX) {
+        //       if (renderCmd.hooks.mountedId > 0) {
+        //         wasmInstance.ctxHooksMountedCallback(renderCmd.hooks.mountedId);
+        //       }
+        //     } else if (renderCmd.elemType === COMPONENT_TYPES.HOOKS) {
+        //       if (renderCmd.hooks.mountedId > 0) {
+        //         const idPtr = allocString(renderCmd.id);
+        //         wasmInstance.hooksMountedCallback(idPtr);
+        //       }
+        //       if (renderCmd.hooks.createdId > 0) {
+        //         wasmInstance.hooksCreatedCallback(renderCmd.hooks.createdId);
+        //       }
+        //       if (renderCmd.hooks.updatedId > 0) {
+        //         wasmInstance.hooksUpdatedCallback(renderCmd.hooks.updatedId);
+        //       }
+        //     }
+        //   }
+        // }
+
+        // const start = performance.now();
         tree_node = wasmInstance.getRenderTreePtr();
-        if (tree_node === 0) {
-          state.initial_render = false;
-          wasmInstance.resetRerender();
-          requestAnimationFrame(wasmInstance.cleanUp);
-          return;
-        }
-        // this active set does not include the layouts
+
         activeNodeIds = new Set();
-        const start = performance.now();
+
         traverse(root, true, tree_node, layoutInfo);
-        console.log("--Total render time MS--", performance.now() - start);
         state.initial_render = false;
-        wasmInstance.pendingClassesToAdd();
-        wasmInstance.pendingClassesToRemove();
         callDestroyFncs();
-        // we need to consider the possiblity of has dirty being false and therefore the node tree does not include the current nodes
-        // we need to look into this since we dont want to remove the layouts even if they are not in the active set
-        // removeInactiveNodes();
+        removeInactiveNodes();
         wasmInstance.markCurrentTreeNotDirty();
         wasmInstance.resetRerender();
-        // handleIntersection();
-        requestAnimationFrame(wasmInstance.cleanUp);
-        // console.log(pureNodeRegistry);
+        wasmInstance.registerAllListenerCallbacks();
+
+        // document.fonts.ready.then(() => {
+        // hooksMounted.forEach((value, key) => {
+        //   const idPtr = allocString(key);
+        //   wasmInstance.hooksMountedCallback(idPtr);
+        //   hooksMounted.delete(key);
+        // });
+        // wasmInstance.callAllMountedCallbacks();
+        // });
+
+        // requestAnimationFrame(wasmInstance.cleanUp);
+        // wasmInstance.onEndCallback();
       } else {
         // const count = wasmInstance.getRemovedNodeCount();
         // /* ───────── main removal loop ───────── */
@@ -925,11 +1273,24 @@ export function removeInactiveNodes() {
   // Remove any nodes that aren't active in this render
   toRemove = [];
   domNodeRegistry.forEach((node, nodeId) => {
-    if (!activeNodeIds.has(nodeId)) {
-      console.log("Removing", nodeId);
-      toRemove.push({ node, nodeId });
-      domNodeRegistry.delete(nodeId);
-      pureNodeRegistry.delete(nodeId);
+    // Potentially removed
+    const doesExist = wasmInstance.checkPotentialNode(node.node_ptr);
+    if (doesExist) {
+      // console.log("Checking potential node", nodeId);
+      const contains = document.querySelector(`#${nodeId}`);
+      if (contains) {
+        toRemove.push({ node, nodeId });
+        domNodeRegistry.delete(nodeId);
+        pureNodeRegistry.delete(nodeId);
+        const eventData = eventHandlers.get(nodeId);
+        if (eventData !== undefined) {
+          for (const [eventType, handler] of Object.entries(eventData)) {
+            const el = node.domNode;
+            el.removeEventListener(eventType, handler);
+            eventHandlers.delete(nodeId);
+          }
+        }
+      }
     }
   });
 
@@ -961,50 +1322,50 @@ export function removeInactiveNodes() {
   });
 }
 
-export function removeRouteSpecificNodes() {
-  const path = window.location.pathname;
-  const segments = path.split("/").filter(Boolean); // Remove empty strings
-  const parentPath = "/" + segments.slice(0, -1).join("/");
-  const fullLayoutPath = `layout-${parentPath}`;
-  // Remove any nodes that aren't active in this render
-  toRemove = [];
-  domNodeRegistry.forEach((node, nodeId) => {
-    if (nodeId !== fullLayoutPath) {
-      toRemove.push({ node, nodeId });
-      domNodeRegistry.delete(nodeId);
-      pureNodeRegistry.delete(nodeId);
-    }
-  });
-
-  // 3) schedule each’s exit animation
-  toRemove.forEach(({ node, nodeId }) => {
-    const el = node.domNode;
-    const exitClass = node.exitAnimationId;
-    if (exitClass) {
-      removeAnimatedNodeTree(el);
-      console.log(toRemove.length);
-      // listen → add class → on end remove
-      const onEnd = (e) => {
-        if (e.animationName === exitClass) {
-          el.removeEventListener("animationend", onEnd);
-          el.remove();
-        }
-      };
-      el.addEventListener("animationend", onEnd);
-      el.classList.add(exitClass);
-    } else {
-      // no animation, just yank it
-      el.remove();
-      // domNodeRegistry.delete(nodeId);
-    }
-  });
-}
+// export function removeRouteSpecificNodes() {
+//   const path = window.location.pathname;
+//   const segments = path.split("/").filter(Boolean); // Remove empty strings
+//   const parentPath = "/" + segments.slice(0, -1).join("/");
+//   const fullLayoutPath = `layout-${parentPath}`;
+//   // Remove any nodes that aren't active in this render
+//   toRemove = [];
+//   domNodeRegistry.forEach((node, nodeId) => {
+//     if (nodeId !== fullLayoutPath) {
+//       toRemove.push({ node, nodeId });
+//       domNodeRegistry.delete(nodeId);
+//       pureNodeRegistry.delete(nodeId);
+//     }
+//   });
+//
+//   // 3) schedule each’s exit animation
+//   toRemove.forEach(({ node, nodeId }) => {
+//     const el = node.domNode;
+//     const exitClass = node.exitAnimationId;
+//     if (exitClass) {
+//       removeAnimatedNodeTree(el);
+//       console.log(toRemove.length);
+//       // listen → add class → on end remove
+//       const onEnd = (e) => {
+//         if (e.animationName === exitClass) {
+//           el.removeEventListener("animationend", onEnd);
+//           el.remove();
+//         }
+//       };
+//       el.addEventListener("animationend", onEnd);
+//       el.classList.add(exitClass);
+//     } else {
+//       // no animation, just yank it
+//       el.remove();
+//       // domNodeRegistry.delete(nodeId);
+//     }
+//   });
+// }
 
 // Function to read a RenderCommand from memory
 // Essentially we are just reading out a giant memory file and using alignment
 // and ptr to access the data then we convert the values to readable js values
+export let view;
 export function readRenderCommand(offset, layout) {
-  // const size = wasmInstance.getRenderCommandSize(offset);
   const view = new DataView(
     wasmInstance.memory.buffer,
     offset,
@@ -1023,17 +1384,6 @@ export function readRenderCommand(offset, layout) {
   let tooltipTitle = "";
   let exitAnimationId = null;
 
-  // Compute index base
-  // const base8 = offset; // byte index
-  // const base32 = base8 >>> 2; // uint32 index (divide by 4, fast bit shift)
-
-  // console.log(U8);
-  // const elemType = U8[base8 + layoutInfo.elemTypeOffset];
-  // const nodePtr = U32[(base8 + layoutInfo.nodePtrOffset) >>> 2];
-  // const idPtr = U32[(base8 + layoutInfo.idPtrOffset) >>> 2];
-  // const idLen = U32[((base8 + layoutInfo.idPtrOffset) >>> 2) + 1]; // because length is next u32
-  // const hasChildren = U8[base8 + layoutInfo.hasChildrenOffset];
-
   const elemType = view.getUint8(layoutInfo.elemTypeOffset);
 
   const nodePtr = view.getUint32(layoutInfo.nodePtrOffset, true);
@@ -1042,11 +1392,9 @@ export function readRenderCommand(offset, layout) {
   // For text, you need to handle the string slice differently
   const textPtr = view.getUint32(layoutInfo.textPtrOffset, true);
   const textLen = view.getUint32(layoutInfo.textPtrOffset + 4, true);
-  const text = textPtr ? readWasmString(textPtr, textLen) : "";
 
   const hrefPtr = view.getUint32(layoutInfo.hrefPtrOffset, true);
   const hrefLen = view.getUint32(layoutInfo.hrefPtrOffset + 4, true);
-  const href = hrefPtr ? readWasmString(hrefPtr, hrefLen) : "";
   const hasChildren = view.getUint8(layoutInfo.hasChildrenOffset, true);
 
   const idPtr = view.getUint32(layoutInfo.idPtrOffset, true);
@@ -1158,15 +1506,17 @@ export function readRenderCommand(offset, layout) {
     focusWithinCss,
     btnId,
     keyFrames,
-    text,
+    textPtr,
+    textLen,
     tooltipCss,
     tooltipTitle,
     hasChildren,
+    hrefPtr,
+    hrefLen,
   };
 
   return {
     elemType,
-    href,
     props,
     id,
     index,
