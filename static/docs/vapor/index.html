@@ -1,0 +1,955 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <title>Tether</title>
+  <meta charset="utf-8" />
+  <meta name="google-site-verification" content="12aR_338F0VaglKbfvPLczdZV_Ej6AVx9Ef7M4ULfLU" />
+  <meta name="description"
+    content="Tether website includes documentation on all three components Fabric, Tether, and Treehouse. As well as instructions on installation and use cases." />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" href="/assets/icon.svg" type="image/svg+xml" />
+  <!-- <link href="/zig-out/bin/vapor.wasm" as="fetch" type="application/wasm" crossorigin /> -->
+
+  <!-- Preconnect stays the same -->
+  <link href="https://fonts.googleapis.com" />
+  <link href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://cdn.jsdelivr.net" crossorigin />
+
+  <!-- Load fonts async with media trick -->
+  <link
+    href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,100..700;1,100..700&family=Montserrat:wght@400;700&display=swap"
+    rel="stylesheet" media="print" onload="this.media='all'" />
+  <noscript>
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,100..700;1,100..700&family=Montserrat:wght@400;700&display=swap"
+      rel="stylesheet" />
+  </noscript>
+
+  <link rel="preload" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" as="style"
+    onload="this.rel='stylesheet'" />
+  <noscript>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" />
+  </noscript>
+
+  <!-- <script type="module" src="/web/wasi_obj.js"></script> -->
+
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: Montserrat;
+      font-weight: 400;
+      height: 100vh;
+      width: 100%;
+      box-sizing: border-box;
+      flex-shrink: 0;
+      background-color: rgba(var(--background));
+      color: rgb(var(--text_color));
+      transition:
+        background-color 0.3s ease,
+        color 0.3s ease;
+      scrollbar-width: none;
+      /* Firefox */
+      -ms-overflow-style: none;
+      /* IE/Edge */
+    }
+
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+      -webkit-scrollbar: display: none;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+      /* Chrome, Safari, Opera */
+      margin: 0;
+    }
+
+
+    p,
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
+      line-height: 1.5;
+      font-size-adjust: 0.5;
+    }
+
+    textarea {
+      line-height: 1.5;
+      font-size-adjust: 0.5;
+    }
+
+    table {
+      border-collapse: separate;
+      border-spacing: 0;
+    }
+
+    /* Basic sidebar styling */
+    .onthispage a {
+      text-decoration: none;
+      transition: all 0.3s ease;
+    }
+
+    /* This is the class we will toggle */
+    .onthispage a.active {
+      color: dodgerblue;
+      font-weight: bold;
+      transform: scale(1.1);
+    }
+
+    .stats {
+      position: fixed;
+      bottom: 10px;
+      right: 10px;
+      padding: 10px;
+      border-radius: 4px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      font-family: monospace;
+      font-size: 12px;
+      z-index: 10000;
+      background-color: rgba(var(--background));
+    }
+  </style>
+    <link rel="stylesheet" href="/static/style_variables.css" />
+  <link rel="stylesheet" href="/static/docs/vapor/style.css" />
+</head></head>
+
+<body>
+  <div class="stats" id="stats">
+    FPS: <span id="fps">0</span><br />
+    Frame Time: <span id="frameTime">0</span>ms<br />
+    Render Time: <span id="renderTime">0</span>ms<br />
+  </div>
+  <div id="contents" style="display: contents"><div  id="Flex_1910533797-genk" class="lay_2877939849 pos_4226863089 mapa_868563432 ">
+
+<div  id="Flex_3597875999-genk" class="lay_462274557 pos_2686566505 mapa_2213458730 vis_4060112500 ">
+<div  id="Flex_1483566905-genk" class="lay_1399690073 ">
+<a  id="Link_3156340840-genk" class="vis_4026586765 " aria-label="home page of tether" href="/">
+<img  id="Imag_3973669968-genk" class="lay_4125082454 " src="/assets/circlelogo.webp">
+</img>
+</a>
+<p  id="Text_2011813760-genk" class="vis_3874154844 ">Tether</p>
+<div  id="Flex_3268910740-genk" class="lay_2888630313 vis_738904499 ">
+</div>
+<p  id="Text_3025717986-genk" class="vis_427668022 ">Docs</p>
+</div>
+<button  id="Butt_2789122062-genk" class="lay_2198888647 mapa_1029637290 vis_958342801 intr_2738320283 " aria-label="search-dialog">
+<div  id="Flex_1912473978-genk" class="lay_2352082878 ">
+<i  id="Icon_703933320-genk" class="bi bi-search vis_2456070613 " href="bi bi-search">
+</i>
+<p  id="Text_1005000533-genk" class="vis_1521912593 ">Search...</p>
+</div>
+<i  id="Icon_4022649772-genk" class="bi bi-command vis_2456070613 " href="bi bi-command">
+</i>
+</button>
+<div  id="Flex_2497471131-genk" class="lay_1983778634 mapa_4066845637 ">
+<button  id="Butt_1093389614-genk" class="vis_4269074653 " aria-label="toggle theme">
+<i  id="Icon_811890849-genk" class="bi bi-cloud-moon vis_3319038623 intr_3436696024 " href="bi bi-cloud-moon">
+</i>
+</button>
+</div>
+</div>
+<div  id="Flex_1957344464-genk" class="lay_2877939849 pos_2764679835 ">
+<ul  id="List_2220907845-genk" class="lay_3831026980 mapa_766915671 vis_75664072 ">
+<li  id="List_1904249994-genk" class="lay_3482410926 vis_1263352480 intr_2395130620 "">
+<button  id="CtxB_1196568359-genk" class="lay_226645792 mapa_843586635 vis_4269074653 ">
+<i  id="Icon_3897236413-genk" class="bi bi-house vis_2876239257 " href="bi bi-house">
+</i>
+<p  id="Text_4198303626-genk" class="vis_3075528920 ">Overview</p>
+</button>
+</li>
+<li  id="List_263718459-genk" class="lay_3482410926 vis_1091182311 intr_1664040927 "">
+<button  id="CtxB_2742267153-genk" class="lay_226645792 mapa_843586635 vis_4269074653 ">
+<i  id="Icon_1812463823-genk" class="bi bi-fire vis_366807592 " href="bi bi-fire">
+</i>
+<p  id="Text_2113531036-genk" class="vis_4143872434 ">Just let me build!!!!</p>
+</button>
+</li>
+<li  id="List_2918154220-genk" class="lay_3482410926 vis_1091182311 intr_1664040927 "">
+<button  id="CtxB_567246822-genk" class="lay_226645792 mapa_843586635 vis_4269074653 ">
+<i  id="Icon_4141294290-genk" class="bi bi-mortarboard vis_366807592 " href="bi bi-mortarboard">
+</i>
+<p  id="Text_737491743-genk" class="vis_4143872434 ">Basics</p>
+</button>
+</li>
+<li  id="List_1277622685-genk" class="lay_3482410926 vis_1091182311 intr_1664040927 "">
+<button  id="CtxB_1796090290-genk" class="lay_226645792 mapa_843586635 vis_4269074653 ">
+<i  id="Icon_3471191475-genk" class="bi bi-diagram-3 vis_366807592 " href="bi bi-diagram-3">
+</i>
+<p  id="Text_3772258688-genk" class="vis_4143872434 ">Project Structure</p>
+</button>
+</li>
+<li  id="List_3932058446-genk" class="lay_3482410926 vis_1091182311 intr_1664040927 "">
+<button  id="CtxB_2428155280-genk" class="lay_226645792 mapa_843586635 vis_4269074653 ">
+<i  id="Icon_3908301357-genk" class="bi bi-signpost vis_366807592 " href="bi bi-signpost">
+</i>
+<p  id="Text_4209368570-genk" class="vis_4143872434 ">Routing</p>
+</button>
+</li>
+<li  id="List_2291526911-genk" class="lay_3482410926 vis_1091182311 intr_1664040927 "">
+<button  id="CtxB_993561162-genk" class="lay_226645792 mapa_843586635 vis_4269074653 ">
+<i  id="Icon_877848626-genk" class="bi bi-arrow-repeat vis_366807592 " href="bi bi-arrow-repeat">
+</i>
+<p  id="Text_1769013375-genk" class="vis_4143872434 ">Reactivity</p>
+</button>
+</li>
+<li  id="List_650995376-genk" class="lay_3482410926 vis_1091182311 intr_1664040927 "">
+<button  id="CtxB_1618136294-genk" class="lay_226645792 mapa_843586635 vis_4269074653 ">
+<i  id="Icon_39330801-genk" class="bi bi-columns vis_366807592 " href="bi bi-columns">
+</i>
+<p  id="Text_340398014-genk" class="vis_4143872434 ">Layout</p>
+</button>
+</li>
+<li  id="List_3305431137-genk" class="lay_3482410926 vis_1091182311 intr_1664040927 "">
+<button  id="CtxB_3291424578-genk" class="lay_226645792 mapa_843586635 vis_4269074653 ">
+<i  id="Icon_2592184661-genk" class="bi bi-paint-bucket vis_366807592 " href="bi bi-paint-bucket">
+</i>
+<p  id="Text_2893251874-genk" class="vis_4143872434 ">Styling</p>
+</button>
+</li>
+<li  id="List_1664899602-genk" class="lay_3482410926 vis_1091182311 intr_1664040927 "">
+<button  id="CtxB_58471367-genk" class="lay_226645792 mapa_843586635 vis_4269074653 ">
+<i  id="Icon_650740305-genk" class="bi bi-tools vis_366807592 " href="bi bi-tools">
+</i>
+<p  id="Text_2080388894-genk" class="vis_4143872434 ">Kit</p>
+</button>
+</li>
+<li  id="List_1274605306-genk" class="lay_3482410926 vis_1091182311 intr_1664040927 "">
+<button  id="CtxB_3846079750-genk" class="lay_226645792 mapa_843586635 vis_4269074653 ">
+<i  id="Icon_3574300441-genk" class="bi bi-cursor vis_366807592 " href="bi bi-cursor">
+</i>
+<p  id="Text_3875367654-genk" class="vis_4143872434 ">Events & Handlers</p>
+</button>
+</li>
+<li  id="List_3929041067-genk" class="lay_3482410926 vis_1091182311 intr_1664040927 "">
+<button  id="CtxB_2350479453-genk" class="lay_226645792 mapa_843586635 vis_4269074653 ">
+<i  id="Icon_1104706338-genk" class="bi bi-hourglass-split vis_366807592 " href="bi bi-hourglass-split">
+</i>
+<p  id="Text_1405773551-genk" class="vis_4143872434 ">Lifecycle Hooks</p>
+</button>
+</li>
+<li  id="List_2288509532-genk" class="lay_3482410926 vis_1091182311 intr_1664040927 "">
+<button  id="CtxB_1118982512-genk" class="lay_226645792 mapa_843586635 vis_4269074653 ">
+<i  id="Icon_1504549630-genk" class="bi bi-ethernet vis_366807592 " href="bi bi-ethernet">
+</i>
+<p  id="Text_1805616843-genk" class="vis_4143872434 ">Performance</p>
+</button>
+</li>
+<li  id="List_647977997-genk" class="lay_3482410926 vis_1091182311 intr_1664040927 "">
+<button  id="CtxB_2921066821-genk" class="lay_226645792 mapa_843586635 vis_4269074653 ">
+<i  id="Icon_1036025581-genk" class="bi bi-award vis_366807592 " href="bi bi-award">
+</i>
+<p  id="Text_1337092794-genk" class="vis_4143872434 ">Tutorials</p>
+</button>
+</li>
+<li  id="List_3302413758-genk" class="lay_3482410926 vis_1091182311 intr_1664040927 "">
+<button  id="CtxB_3040541160-genk" class="lay_226645792 mapa_843586635 vis_4269074653 ">
+<i  id="Icon_1332389296-genk" class="bi bi-motherboard vis_366807592 " href="bi bi-motherboard">
+</i>
+<p  id="Text_1633456509-genk" class="vis_4143872434 ">Metal</p>
+</button>
+</li>
+</ul>
+</div>
+<div  id="Flex_316812929-genk" class="lay_1301285207 pos_2354560430 ">
+<div  id="Flex_1146162571-genk" class="lay_912259808 ">
+<i  id="Icon_2130489846-genk" class="bi bi-view-list vis_1389268181 " href="bi bi-view-list">
+</i>
+<p  id="Text_2431557059-genk" class="vis_721222220 ">On this page</p>
+</div>
+<ul  id="List_448016576-genk" class="lay_1877045488 mapa_1848794511 vis_75664072 ">
+<a  id="Link_1294260207-genk" class="lay_305317029 mapa_4144445557 vis_343800729 " aria-label="What is Vapor?" href="#what-is-vapor">
+<p  id="Text_790366241-genk" class="vis_3147238904 ">What is Vapor?</p>
+</a>
+<li  id="List_2922095213-genk" class="lay_3482410926 "">
+</li>
+<a  id="Link_2308164433-genk" class="lay_305317029 mapa_4144445557 vis_343800729 " aria-label="Vapor is simple" href="#vapor-is-simple">
+<p  id="Text_2621983666-genk" class="vis_3147238904 ">Vapor is simple</p>
+</a>
+<li  id="List_3935999439-genk" class="lay_3482410926 "">
+</li>
+<a  id="Link_3322068659-genk" class="lay_305317029 mapa_4144445557 vis_343800729 " aria-label="Making a button" href="#making-a-button">
+<p  id="Text_187924828-genk" class="vis_3147238904 ">Making a button</p>
+</a>
+<li  id="List_654936369-genk" class="lay_3482410926 "">
+</li>
+<a  id="Link_41005589-genk" class="lay_305317029 mapa_4144445557 vis_343800729 " aria-label="A glimpse under the hood" href="#a-glimpse-under-the-hood">
+<p  id="Text_1748981008-genk" class="vis_3147238904 ">A glimpse under the hood</p>
+</a>
+<li  id="List_1668840595-genk" class="lay_3482410926 "">
+</li>
+<a  id="Link_1054909815-genk" class="lay_305317029 mapa_4144445557 vis_343800729 " aria-label="UI Node" href="#ui-node">
+<p  id="Text_4000935962-genk" class="vis_3147238904 ">UI Node</p>
+</a>
+<li  id="List_3101692268-genk" class="lay_3482410926 "">
+</li>
+</ul>
+</div>
+
+
+
+</div>
+<div  id="Flex_270002262-genk" class="lay_3019312349 ">
+<div  id="Flex_1338996629-genk" class="lay_1562640694 mapa_4066845637 ">
+<div  id="Flex_3326794889-genk" class="lay_4033957821 mapa_2676271459 ">
+<div  id="Flex_692804397-genk" class="lay_2663509692 mapa_3327631880 ">
+<div  id="Flex_3712983539-genk" class="lay_1660124298 pos_1781655325 mapa_4066845637 vis_857139983 ">
+<div  id="Flex_1450298070-genk" class="lay_445282552 ">
+<div  id="Flex_2829167801-genk" class="lay_1425985369 ">
+<p  id="Text_4144242063-genk" class="lay_2331523217 vis_3753549206 ">Getting Started</p>
+<button  id="Butt_4052458439-genk" class="lay_4005803810 mapa_2475312953 vis_4269074653 intr_3436696024 ">
+<i  id="Icon_485466036-genk" class="bi bi-clipboard vis_3553003164 " href="bi bi-clipboard">
+</i>
+</button>
+</div>
+<div  id="Flex_1188636266-genk" class="lay_3767935242 ">
+<section  id="what-is-vapor" class="lay_3767935242 ">
+<div  id="Flex_3475507049-genk" class="lay_1958613868 mapa_2428851175 ">
+<h1  id="Head_2121207779-genk" class="vis_1429215715 ">What is Vapor?
+</h>
+</div>
+</section>
+<section  id="vapor-is-a-frontend" class="lay_3767935242 ">
+<div  id="Flex_3672819203-genk" class="lay_1958613868 mapa_2428851175 ">
+<h2  id="Head_1748506800-genk" class="vis_3756830127 ">Vapor is the frontend framework of Tether.
+</h>
+</div>
+<div  id="Flex_2032287668-genk" class="lay_1958613868 mapa_525701708 ">
+<p  id="Text_2780725864-genk" class="lay_1524187505 vis_615751812 ">We believe developers should control their tools, not the other way around.
+Every API is explicitly exposed, every internal is accessible, and every component can be customized.
+No black boxes, no hidden magic—just transparent, controllable architecture that puts you in the driver's seat.</p>
+</div>
+<div  id="Flex_391756133-genk" class="lay_1958613868 mapa_525701708 ">
+<p  id="Text_3372854002-genk" class="lay_1524187505 vis_615751812 ">Vapor should be treated and seen as a set of tools, which can be used to adapt the core framework,
+it's purpose is to be unopinionated, and modular. However, there are guidelines, and best practices that we follow.</p>
+</div>
+</section>
+<section  id="vapor-is-simple" class="lay_3767935242 ">
+<div  id="Flex_1098849375-genk" class="lay_1958613868 mapa_2428851175 ">
+<h3  id="Head_1127054925-genk" class="vis_2249300481 ">Vapor is simple by nature
+</h>
+</div>
+<ul  id="List_1176640916-genk" class="lay_3938473794 ">
+<li  id="List_703055000-genk" class=""">
+<p  id="Text_4181639438-genk" class="lay_1524187505 vis_615751812 ">Only write </p>
+<code  id="Code_1591122901-genk" class="lay_1524187505 vis_3152509604 ">Zig
+</code>
+<p  id="Text_900576368-genk" class="lay_1524187505 vis_615751812 ">.</p>
+</li>
+</ul>
+<ul  id="List_3831076677-genk" class="lay_3938473794 ">
+<li  id="List_1263872367-genk" class=""">
+<p  id="Text_1194531303-genk" class="lay_1524187505 vis_615751812 ">Automatic UI updates, or controlled via </p>
+<code  id="Code_2564233070-genk" class="lay_1524187505 vis_3152509604 ">.cycle()
+</code>
+<p  id="Text_2208435529-genk" class="lay_1524187505 vis_615751812 "> or </p>
+<code  id="Code_3578137296-genk" class="lay_1524187505 vis_3152509604 ">Signal(T)
+</code>
+</li>
+</ul>
+<ul  id="List_2190545142-genk" class="lay_3938473794 ">
+<li  id="List_963809552-genk" class=""">
+<p  id="Text_3670345945-genk" class="lay_1524187505 vis_615751812 ">Inject custom </p>
+<code  id="Code_1079829408-genk" class="lay_1524187505 vis_3152509604 ">HTML
+</code>
+<p  id="Text_389282875-genk" class="lay_1524187505 vis_615751812 ">, </p>
+<code  id="Code_2093733634-genk" class="lay_1524187505 vis_3152509604 ">JS
+</code>
+<p  id="Text_1403187101-genk" class="lay_1524187505 vis_615751812 ">, </p>
+<code  id="Code_3107637860-genk" class="lay_1524187505 vis_3152509604 ">CSS
+</code>
+</li>
+</ul>
+<ul  id="List_550013607-genk" class="lay_3938473794 ">
+<li  id="List_3533074938-genk" class=""">
+<p  id="Text_4245120359-genk" class="lay_1524187505 vis_615751812 ">Powerful Styling </p>
+<code  id="Code_1319854830-genk" class="lay_1524187505 vis_3152509604 ">.layout(.center)
+</code>
+</li>
+</ul>
+<ul  id="List_3204449368-genk" class="lay_3938473794 ">
+<li  id="List_2094227674-genk" class=""">
+<p  id="Text_3665263493-genk" class="lay_1524187505 vis_615751812 ">Simplified memory management</p>
+</li>
+</ul>
+<ul  id="List_1563917833-genk" class="lay_3938473794 ">
+<li  id="List_2539188205-genk" class=""">
+<p  id="Text_2967210469-genk" class="lay_1524187505 vis_615751812 ">Native performance</p>
+</li>
+</ul>
+</section>
+<section  id="memory-is-scary" class="lay_3767935242 ">
+<div  id="Flex_4212123608-genk" class="lay_1958613868 mapa_2428851175 ">
+<h3  id="Head_3324890916-genk" class="vis_2249300481 ">Memory is not Scary
+</h>
+</div>
+<div  id="Flex_2571592073-genk" class="lay_1958613868 mapa_525701708 ">
+<p  id="Text_1024471861-genk" class="lay_1524187505 vis_615751812 ">Most of you who may not be familiar with low level programming, will assume that you will need to manage memory, and that memory management is a pain.</p>
+</div>
+<div  id="Flex_931060538-genk" class="lay_1958613868 mapa_525701708 ">
+<p  id="Text_1196196991-genk" class="lay_1524187505 vis_1733681714 ">This is not the case.</p>
+</div>
+<div  id="Flex_3585496299-genk" class="lay_1958613868 mapa_525701708 ">
+<p  id="Text_2041161464-genk" class="lay_1524187505 vis_615751812 ">Vapor, handles all the memory management for you, and when need be, you can use a set of memory functions,
+which automatically frees the memory when it is no longer needed.</p>
+</div>
+<ul  id="List_3663287840-genk" class="lay_3938473794 ">
+<li  id="List_467166494-genk" class=""">
+<code  id="Code_794331567-genk" class="lay_1524187505 vis_3152509604 ">Vapor.frameList(T)
+</code>
+<p  id="Text_103785034-genk" class="lay_1524187505 vis_615751812 "> - A list allocated on the frame, and will be freed when the frame is updated.</p>
+</li>
+</ul>
+<div  id="Flex_304433229-genk" class="lay_377518153 mapa_3646923428 ">
+<div  id="Flex_629213517-genk" class="lay_672355136 mapa_3237006613 vis_466091211 ">
+<div  id="Flex_3672476196-genk" class="lay_1425985369 mapa_578588946 vis_2443298522 ">
+<div  id="Flex_3630755524-genk" class="lay_2804356321 ">
+<p  id="Text_4260363479-genk" class="vis_4278938151 ">Example</p>
+</div>
+<div  id="Flex_1990223989-genk" class="lay_1995275681 ">
+<button  id="CtxB_3629041385-genk" class="lay_619210704 pos_1781655325 vis_4047921463 intr_2808548978 ">
+<i  id="Icon_1647004351-genk" class=" vis_3553003164 " href="">
+</i>
+</button>
+<div  id="Grap_859362461-genk" class="lay_1939127079 vis_2876239257 ">
+</div>
+</div>
+</div>
+<div  id="Flex_2031944661-genk" class="lay_3210686075 mapa_3237006613 ">
+<code  id="Code_1230323928-genk">
+<div  id="Flex_1041405935-genk" class="lay_748818003 mapa_3848092541 vis_3178010591 ">
+<p  id="Text_184136512-genk" class="vis_335153065 ">var </p>
+<p  id="Text_2838572273-genk" class="vis_3997560536 ">dynamic_list </p>
+<p  id="Text_1198040738-genk" class="vis_3997560536 ">= </p>
+<p  id="Text_3852476499-genk" class="vis_3997560536 ">Vapor</p>
+<p  id="Text_2211944964-genk" class="vis_3997560536 ">.</p>
+<p  id="Text_571413429-genk" class="vis_2616587745 ">frameList</p>
+<p  id="Text_3225849190-genk" class="vis_3997560536 ">(u32); </p>
+</div>
+<div  id="Flex_3695841696-genk" class="lay_748818003 mapa_3848092541 vis_3178010591 ">
+<p  id="Text_3809019689-genk" class="vis_3997560536 ">dynamic_list</p>
+<p  id="Text_2168488154-genk" class="vis_3997560536 ">.</p>
+<p  id="Text_527956619-genk" class="vis_2616587745 ">append</p>
+<p  id="Text_3182392380-genk" class="vis_3997560536 ">(1); </p>
+</div>
+<div  id="Flex_2055310161-genk" class="lay_748818003 mapa_3848092541 vis_3178010591 ">
+<p  id="Text_2068871448-genk" class="vis_3997560536 ">dynamic_list</p>
+<p  id="Text_428339913-genk" class="vis_3997560536 ">.</p>
+<p  id="Text_3082775674-genk" class="vis_2616587745 ">append</p>
+<p  id="Text_1442244139-genk" class="vis_3997560536 ">(2); </p>
+</div>
+<div  id="Flex_414778626-genk" class="lay_748818003 mapa_3848092541 vis_3178010591 ">
+<p  id="Text_4036176429-genk" class="vis_3997560536 ">dynamic_list</p>
+<p  id="Text_2395644894-genk" class="vis_3997560536 ">.</p>
+<p  id="Text_755113359-genk" class="vis_2616587745 ">append</p>
+<p  id="Text_3409549120-genk" class="vis_3997560536 ">(3); </p>
+</div>
+<div  id="Flex_3069214387-genk" class="lay_748818003 mapa_3848092541 vis_3178010591 ">
+<p  id="Text_3085561051-genk" class="vis_3997560536 ">
+</p>
+</div>
+</code>
+</div>
+</div>
+</div>
+<ul  id="List_382224770-genk" class="lay_3938473794 ">
+<li  id="List_3913878242-genk" class=""">
+<code  id="Code_1373829055-genk" class="lay_1524187505 vis_3152509604 ">Vapor.routeList(T)
+</code>
+<p  id="Text_1018031514-genk" class="lay_1524187505 vis_615751812 "> - A list allocated on the route, and will be freed when the route is changed.</p>
+</li>
+</ul>
+<div  id="Flex_1318337455-genk" class="lay_377518153 mapa_3646923428 ">
+<div  id="Flex_3008852359-genk" class="lay_672355136 mapa_3237006613 vis_466091211 ">
+<div  id="Flex_842852299-genk" class="lay_1425985369 mapa_578588946 vis_2443298522 ">
+<div  id="Flex_3006466834-genk" class="lay_2804356321 ">
+<p  id="Text_3823227031-genk" class="vis_4278938151 ">Example</p>
+</div>
+<div  id="Flex_1365935299-genk" class="lay_1995275681 ">
+<button  id="CtxB_247654409-genk" class="lay_619210704 pos_1781655325 vis_4047921463 intr_2808548978 ">
+<i  id="Icon_3203940687-genk" class=" vis_3553003164 " href="">
+</i>
+</button>
+<div  id="Grap_1772942781-genk" class="lay_1939127079 vis_2876239257 ">
+</div>
+</div>
+</div>
+<div  id="Flex_3497288060-genk" class="lay_3210686075 mapa_3237006613 ">
+<code  id="Code_416127731-genk">
+<div  id="Flex_1284222126-genk" class="lay_748818003 mapa_3848092541 vis_3178010591 ">
+<p  id="Text_1475145246-genk" class="vis_335153065 ">var </p>
+<p  id="Text_4129581007-genk" class="vis_3997560536 ">dynamic_list </p>
+<p  id="Text_2489049472-genk" class="vis_3997560536 ">= </p>
+<p  id="Text_848517937-genk" class="vis_3997560536 ">Vapor</p>
+<p  id="Text_3502953698-genk" class="vis_3997560536 ">.</p>
+<p  id="Text_1862422163-genk" class="vis_2616587745 ">routeList</p>
+<p  id="Text_221890628-genk" class="vis_3997560536 ">(u32); </p>
+</div>
+<div  id="Flex_3938657887-genk" class="lay_748818003 mapa_3848092541 vis_3178010591 ">
+<p  id="Text_3529126368-genk" class="vis_3997560536 ">dynamic_list</p>
+<p  id="Text_1888594833-genk" class="vis_3997560536 ">.</p>
+<p  id="Text_248063298-genk" class="vis_2616587745 ">append</p>
+<p  id="Text_2902499059-genk" class="vis_3997560536 ">(1); </p>
+</div>
+<div  id="Flex_2298126352-genk" class="lay_748818003 mapa_3848092541 vis_3178010591 ">
+<p  id="Text_1675249608-genk" class="vis_3997560536 ">dynamic_list</p>
+<p  id="Text_34718073-genk" class="vis_3997560536 ">.</p>
+<p  id="Text_2689153834-genk" class="vis_2616587745 ">append</p>
+<p  id="Text_1048622299-genk" class="vis_3997560536 ">(2); </p>
+</div>
+<div  id="Flex_657594817-genk" class="lay_748818003 mapa_3848092541 vis_3178010591 ">
+<p  id="Text_1235315044-genk" class="vis_3997560536 ">dynamic_list</p>
+<p  id="Text_3889750805-genk" class="vis_3997560536 ">.</p>
+<p  id="Text_2249219270-genk" class="vis_2616587745 ">append</p>
+<p  id="Text_608687735-genk" class="vis_3997560536 ">(3); </p>
+</div>
+<div  id="Flex_3312030578-genk" class="lay_748818003 mapa_3848092541 vis_3178010591 ">
+<p  id="Text_662175552-genk" class="vis_3997560536 ">
+</p>
+</div>
+</code>
+</div>
+</div>
+</div>
+<ul  id="List_1396128996-genk" class="lay_3938473794 ">
+<li  id="List_2182762805-genk" class=""">
+<code  id="Code_955575161-genk" class="lay_1524187505 vis_3152509604 ">Vapor.persistentList(T)
+</code>
+<p  id="Text_599777620-genk" class="lay_1524187505 vis_615751812 "> - A list allocated, and never freed.</p>
+</li>
+</ul>
+<div  id="Flex_125023240-genk" class="lay_377518153 mapa_3646923428 ">
+<div  id="Flex_3891978610-genk" class="lay_672355136 mapa_3237006613 vis_466091211 ">
+<div  id="Flex_3410249412-genk" class="lay_1425985369 mapa_578588946 vis_2443298522 ">
+<div  id="Flex_3502304671-genk" class="lay_2804356321 ">
+<p  id="Text_4037862398-genk" class="vis_4278938151 ">Example</p>
+</div>
+<div  id="Flex_1861773136-genk" class="lay_1995275681 ">
+<button  id="CtxB_1414274256-genk" class="lay_619210704 pos_1781655325 vis_4047921463 intr_2808548978 ">
+<i  id="Icon_906353066-genk" class=" vis_3553003164 " href="">
+</i>
+</button>
+<div  id="Grap_2939562628-genk" class="lay_1939127079 vis_2876239257 ">
+</div>
+</div>
+</div>
+<div  id="Flex_1769717877-genk" class="lay_3210686075 mapa_3237006613 ">
+<code  id="Code_3260417776-genk">
+<div  id="Flex_1367804793-genk" class="lay_748818003 mapa_3848092541 vis_3178010591 ">
+<p  id="Text_741757936-genk" class="vis_335153065 ">var </p>
+<p  id="Text_3396193697-genk" class="vis_3997560536 ">dynamic_list </p>
+<p  id="Text_1755662162-genk" class="vis_3997560536 ">= </p>
+<p  id="Text_115130627-genk" class="vis_3997560536 ">Vapor</p>
+<p  id="Text_2769566388-genk" class="vis_3997560536 ">.</p>
+<p  id="Text_1129034853-genk" class="vis_2616587745 ">persistentList</p>
+<p  id="Text_3783470614-genk" class="vis_3997560536 ">(u32); </p>
+</div>
+<div  id="Flex_4022240554-genk" class="lay_748818003 mapa_3848092541 vis_3178010591 ">
+<p  id="Text_1470867708-genk" class="vis_3997560536 ">dynamic_list</p>
+<p  id="Text_4125303469-genk" class="vis_3997560536 ">.</p>
+<p  id="Text_2484771934-genk" class="vis_2616587745 ">append</p>
+<p  id="Text_844240399-genk" class="vis_3997560536 ">(1); </p>
+</div>
+<div  id="Flex_2381709019-genk" class="lay_748818003 mapa_3848092541 vis_3178010591 ">
+<p  id="Text_641588552-genk" class="vis_3997560536 ">dynamic_list</p>
+<p  id="Text_3296024313-genk" class="vis_3997560536 ">.</p>
+<p  id="Text_1655492778-genk" class="vis_2616587745 ">append</p>
+<p  id="Text_14961243-genk" class="vis_3997560536 ">(2); </p>
+</div>
+<div  id="Flex_741177484-genk" class="lay_748818003 mapa_3848092541 vis_3178010591 ">
+<p  id="Text_3303731275-genk" class="vis_3997560536 ">dynamic_list</p>
+<p  id="Text_1663199740-genk" class="vis_3997560536 ">.</p>
+<p  id="Text_22668205-genk" class="vis_2616587745 ">append</p>
+<p  id="Text_2677103966-genk" class="vis_3997560536 ">(3); </p>
+</div>
+<div  id="Flex_3395613245-genk" class="lay_748818003 mapa_3848092541 vis_3178010591 ">
+<p  id="Text_2729420665-genk" class="vis_3997560536 ">
+</p>
+</div>
+</code>
+</div>
+</div>
+</div>
+<div  id="Flex_2779459001-genk" class="lay_1958613868 mapa_525701708 ">
+<p  id="Text_1203731560-genk" class="lay_1524187505 vis_615751812 ">You also have access to the arena allocators themselves,
+via:</p>
+</div>
+<ul  id="List_2009014126-genk" class="lay_3938473794 ">
+<li  id="List_1726660136-genk" class=""">
+<code  id="Code_2504503622-genk" class="lay_1524187505 vis_3152509604 ">Vapor.getFrameAllocator()
+</code>
+</li>
+</ul>
+<ul  id="List_368482591-genk" class="lay_3938473794 ">
+<li  id="List_3931461245-genk" class=""">
+<code  id="Code_669086758-genk" class="lay_1524187505 vis_3152509604 ">Vapor.getRouteAllocator()
+</code>
+</li>
+</ul>
+<ul  id="List_3022918352-genk" class="lay_3938473794 ">
+<li  id="List_3744325810-genk" class=""">
+<code  id="Code_4040738965-genk" class="lay_1524187505 vis_3152509604 ">Vapor.getPersistentAllocator()
+</code>
+</li>
+</ul>
+</section>
+<section  id="making-a-button" class="lay_3767935242 ">
+<div  id="Flex_544459845-genk" class="lay_1958613868 mapa_2428851175 ">
+<h2  id="Head_3483287031-genk" class="vis_3756830127 ">Making a button!
+</h>
+</div>
+<div  id="Flex_3198895606-genk" class="lay_1958613868 mapa_525701708 ">
+<p  id="Text_1607455907-genk" class="lay_1524187505 vis_615751812 ">We will jump into depth with styling, in the next section. For now though, we will make a button.
+The </p>
+<code  id="Code_2977157674-genk" class="lay_1524187505 vis_3152509604 ">Button
+</code>
+<p  id="Text_2621360133-genk" class="lay_1524187505 vis_615751812 "> component is part of the Static and Pure Structs.</p>
+</div>
+<div  id="Flex_1558364071-genk" class="lay_1958613868 mapa_525701708 ">
+<p  id="Text_1586743012-genk" class="lay_1524187505 vis_1733681714 "> As you can see, we do not allocate or use any memory, just simple pure functions.</p>
+</div>
+<div  id="Flex_4212799832-genk" class="lay_377518153 mapa_3646923428 ">
+<div  id="Flex_3317496638-genk" class="lay_672355136 mapa_3237006613 vis_466091211 ">
+<div  id="Flex_2412394818-genk" class="lay_1425985369 mapa_578588946 vis_2443298522 ">
+<div  id="Flex_4047264395-genk" class="lay_2804356321 ">
+<p  id="Text_1628936251-genk" class="vis_4278938151 ">Example</p>
+</div>
+<div  id="Flex_2406732860-genk" class="lay_1995275681 ">
+<button  id="CtxB_671062203-genk" class="lay_619210704 pos_1781655325 vis_4047921463 intr_2808548978 ">
+<i  id="Icon_3621749569-genk" class=" vis_3553003164 " href="">
+</i>
+</button>
+<div  id="Grap_2196350575-genk" class="lay_1939127079 vis_2876239257 ">
+</div>
+</div>
+</div>
+<div  id="Flex_771863283-genk" class="lay_3210686075 mapa_3237006613 ">
+<code  id="Code_3734456225-genk">
+<div  id="Flex_604030263-genk" class="lay_748818003 mapa_3848092541 vis_3178010591 ">
+<p  id="Text_1119998184-genk" class="vis_3997560536 ">// </p>
+<p  id="Text_3774433945-genk" class="vis_3997560536 ">All </p>
+<p  id="Text_2133902410-genk" class="vis_3997560536 ">normal </p>
+<p  id="Text_493370875-genk" class="vis_3997560536 ">Zig </p>
+<p  id="Text_3147806636-genk" class="vis_3997560536 ">code </p>
+</div>
+<div  id="Flex_3258466024-genk" class="lay_748818003 mapa_3848092541 vis_3178010591 ">
+<p  id="Text_787453480-genk" class="vis_335153065 ">const </p>
+<p  id="Text_3441889241-genk" class="vis_3997560536 ">Vapor </p>
+<p  id="Text_1801357706-genk" class="vis_3997560536 ">= </p>
+<p  id="Text_160826171-genk" class="vis_3515653197 ">@import</p>
+<p  id="Text_2815261932-genk" class="vis_3997560536 ">("vapor"); </p>
+</div>
+<div  id="Flex_1617934489-genk" class="lay_748818003 mapa_3848092541 vis_3178010591 ">
+<p  id="Text_3340236948-genk" class="vis_335153065 ">const </p>
+<p  id="Text_1699705413-genk" class="vis_3997560536 ">Static </p>
+<p  id="Text_59173878-genk" class="vis_3997560536 ">= </p>
+<p  id="Text_2713609639-genk" class="vis_3997560536 ">Vapor.</p>
+<p  id="Text_1073078104-genk" class="vis_3997560536 ">Static; </p>
+</div>
+<div  id="Flex_4272370250-genk" class="lay_748818003 mapa_3848092541 vis_3178010591 ">
+<p  id="Text_3139032960-genk" class="vis_3997560536 ">
+</p>
+</div>
+<div  id="Flex_2631838715-genk" class="lay_748818003 mapa_3848092541 vis_3178010591 ">
+<p  id="Text_2626579500-genk" class="vis_3997560536 ">// </p>
+<p  id="Text_986047965-genk" class="vis_3997560536 ">Components </p>
+</div>
+<div  id="Flex_991307180-genk" class="lay_748818003 mapa_3848092541 vis_3178010591 ">
+<p  id="Text_2842402870-genk" class="vis_335153065 ">const </p>
+<p  id="Text_1201871335-genk" class="vis_3997560536 ">Button </p>
+<p  id="Text_3856307096-genk" class="vis_3997560536 ">= </p>
+<p  id="Text_2215775561-genk" class="vis_3997560536 ">Static.</p>
+<p  id="Text_575244026-genk" class="vis_3997560536 ">Button; </p>
+</div>
+<div  id="Flex_3645742941-genk" class="lay_748818003 mapa_3848092541 vis_3178010591 ">
+<p  id="Text_419444317-genk" class="vis_335153065 ">const </p>
+<p  id="Text_3073880078-genk" class="vis_3997560536 ">TextFmt </p>
+<p  id="Text_1433348543-genk" class="vis_3997560536 ">= </p>
+<p  id="Text_4087784304-genk" class="vis_3997560536 ">Static.</p>
+<p  id="Text_2447252769-genk" class="vis_3997560536 ">TextFmt; </p>
+</div>
+<div  id="Flex_2005211406-genk" class="lay_748818003 mapa_3848092541 vis_3178010591 ">
+<p  id="Text_3790848613-genk" class="vis_3997560536 ">
+</p>
+</div>
+<div  id="Flex_364679871-genk" class="lay_748818003 mapa_3848092541 vis_3178010591 ">
+<p  id="Text_1710381715-genk" class="vis_335153065 ">var </p>
+<p  id="Text_69850180-genk" class="vis_3997560536 ">counter: </p>
+<p  id="Text_2724285941-genk" class="vis_3997560536 ">usize </p>
+<p  id="Text_1083754406-genk" class="vis_3997560536 ">= </p>
+<p  id="Text_3738190167-genk" class="vis_3997560536 ">0; </p>
+</div>
+<div  id="Flex_1317027143-genk" class="lay_748818003 mapa_3848092541 vis_3178010591 ">
+<p  id="Text_3868357997-genk" class="vis_335153065 ">fn </p>
+<p  id="Text_2227826462-genk" class="vis_3515653197 ">increment</p>
+<p  id="Text_587294927-genk" class="vis_3997560536 ">() </p>
+<p  id="Text_3241730688-genk" class="vis_3997560536 ">void </p>
+<p  id="Text_1601199153-genk" class="vis_3997560536 ">{ </p>
+</div>
+<div  id="Flex_3971462904-genk" class="lay_748818003 mapa_3848092541 vis_3178010591 ">
+<p  id="Text_2487609245-genk" class="vis_3997560536 ">    counter </p>
+<p  id="Text_847077710-genk" class="vis_3997560536 ">+= </p>
+<p  id="Text_3501513471-genk" class="vis_3997560536 ">1; </p>
+</div>
+<div  id="Flex_2330931369-genk" class="lay_748818003 mapa_3848092541 vis_3178010591 ">
+<p  id="Text_402071-genk" class="vis_3997560536 ">} </p>
+</div>
+<div  id="Flex_690399834-genk" class="lay_748818003 mapa_3848092541 vis_3178010591 ">
+<p  id="Text_3778546643-genk" class="vis_3997560536 ">
+</p>
+</div>
+<div  id="Flex_3344835595-genk" class="lay_748818003 mapa_3848092541 vis_3178010591 ">
+<p  id="Text_200506433-genk" class="vis_3997560536 ">// </p>
+<p  id="Text_2854942194-genk" class="vis_3997560536 ">Render </p>
+</div>
+<div  id="Flex_1704304060-genk" class="lay_748818003 mapa_3848092541 vis_3178010591 ">
+<p  id="Text_3297251657-genk" class="vis_335153065 ">pub </p>
+<p  id="Text_1656720122-genk" class="vis_335153065 ">fn </p>
+<p  id="Text_16188587-genk" class="vis_3515653197 ">render</p>
+<p  id="Text_2670624348-genk" class="vis_3997560536 ">() </p>
+<p  id="Text_1030092813-genk" class="vis_3997560536 ">void </p>
+<p  id="Text_3684528574-genk" class="vis_3997560536 ">{ </p>
+</div>
+<div  id="Flex_63772525-genk" class="lay_748818003 mapa_3848092541 vis_3178010591 ">
+<p  id="Text_1821824917-genk" class="vis_2616587745 ">    Button</p>
+<p  id="Text_181293382-genk" class="vis_3997560536 ">(</p>
+<p  id="Text_2835729143-genk" class="vis_3997560536 ">.</p>
+<p  id="Text_1195197608-genk" class="vis_3997560536 ">{ </p>
+<p  id="Text_3849633369-genk" class="vis_3997560536 ">.on_press </p>
+<p  id="Text_2209101834-genk" class="vis_3997560536 ">= </p>
+<p  id="Text_568570299-genk" class="vis_3997560536 ">increment </p>
+<p  id="Text_3223006060-genk" class="vis_3997560536 ">}) </p>
+</div>
+<div  id="Flex_2718208286-genk" class="lay_748818003 mapa_3848092541 vis_3178010591 ">
+<p  id="Text_18973964-genk" class="vis_3997560536 ">    </p>
+<p  id="Text_2673409725-genk" class="vis_3997560536 ">.</p>
+<p  id="Text_1032878190-genk" class="vis_2616587745 ">border</p>
+<p  id="Text_3687313951-genk" class="vis_3997560536 ">(</p>
+<p  id="Text_2046782416-genk" class="vis_3997560536 ">.</p>
+<p  id="Text_406250881-genk" class="vis_2616587745 ">simple</p>
+<p  id="Text_3060686642-genk" class="vis_3997560536 ">(</p>
+<p  id="Text_1420155107-genk" class="vis_3997560536 ">.</p>
+<p  id="Text_4074590868-genk" class="vis_2616587745 ">palette</p>
+<p  id="Text_3485005756-genk" class="vis_3997560536 ">(</p>
+<p  id="Text_1844474221-genk" class="vis_3997560536 ">.</p>
+<p  id="Text_203942686-genk" class="vis_3997560536 ">border_color_light))) </p>
+</div>
+<div  id="Flex_1077676751-genk" class="lay_748818003 mapa_3848092541 vis_3178010591 ">
+<p  id="Text_2051501983-genk" class="vis_3997560536 ">    </p>
+<p  id="Text_410970448-genk" class="vis_3997560536 ">.</p>
+<p  id="Text_3065406209-genk" class="vis_2616587745 ">body</p>
+<p  id="Text_1424874674-genk" class="vis_3997560536 ">()</p>
+<p  id="Text_4079310435-genk" class="vis_3997560536 ">({ </p>
+</div>
+<div  id="Flex_3732112512-genk" class="lay_748818003 mapa_3848092541 vis_3178010591 ">
+<p  id="Text_1193044267-genk" class="vis_3515653197 ">        TextFmt</p>
+<p  id="Text_3847480028-genk" class="vis_3997560536 ">("Increment </p>
+<p  id="Text_2206948493-genk" class="vis_3997560536 ">{d}", </p>
+<p  id="Text_566416958-genk" class="vis_3997560536 ">.{counter}) </p>
+</div>
+<div  id="Flex_3014061336-genk" class="lay_748818003 mapa_3848092541 vis_3178010591 ">
+<p  id="Text_4028104491-genk" class="vis_3997560536 ">        </p>
+<p  id="Text_2387572956-genk" class="vis_3997560536 ">.</p>
+<p  id="Text_747041421-genk" class="vis_2616587745 ">font</p>
+<p  id="Text_3401477182-genk" class="vis_3997560536 ">(18, </p>
+<p  id="Text_1760945647-genk" class="vis_3997560536 ">null, </p>
+<p  id="Text_120414112-genk" class="vis_3997560536 ">.</p>
+<p  id="Text_2774849873-genk" class="vis_2616587745 ">palette</p>
+<p  id="Text_1134318338-genk" class="vis_3997560536 ">(</p>
+<p  id="Text_3788754099-genk" class="vis_3997560536 ">.</p>
+<p  id="Text_2642326971-genk" class="vis_3997560536 ">text_color)) </p>
+</div>
+<div  id="Flex_1373529801-genk" class="lay_748818003 mapa_3848092541 vis_3178010591 ">
+<p  id="Text_2585337271-genk" class="vis_3997560536 ">        </p>
+<p  id="Text_944805736-genk" class="vis_3997560536 ">.</p>
+<p  id="Text_3599241497-genk" class="vis_2616587745 ">close</p>
+<p  id="Text_1958709962-genk" class="vis_3997560536 ">(); </p>
+</div>
+<div  id="Flex_4027965562-genk" class="lay_748818003 mapa_3848092541 vis_3178010591 ">
+<p  id="Text_1487055502-genk" class="vis_3997560536 ">    }); </p>
+</div>
+<div  id="Flex_2387434027-genk" class="lay_748818003 mapa_3848092541 vis_3178010591 ">
+<p  id="Text_991690152-genk" class="vis_3997560536 ">} </p>
+</div>
+<div  id="Flex_746902492-genk" class="lay_748818003 mapa_3848092541 vis_3178010591 ">
+<p  id="Text_3078153163-genk" class="vis_3997560536 ">
+</p>
+</div>
+</code>
+</div>
+</div>
+</div>
+<div  id="Flex_2572268297-genk" class="lay_1958613868 mapa_525701708 ">
+<p  id="Text_2867179982-genk" class="lay_1524187505 vis_615751812 ">Every Component follows the builder pattern. We start by creating a </p>
+<code  id="Code_4236881749-genk" class="lay_1524187505 vis_3152509604 ">Button
+</code>
+<p  id="Text_3881084208-genk" class="lay_1524187505 vis_615751812 "> struct, and then we can
+call any set of </p>
+<p  id="Text_2240552673-genk" class="lay_1524187505 vis_1733681714 ">styling</p>
+<p  id="Text_600021138-genk" class="lay_1524187505 vis_615751812 "> functions such as </p>
+<code  id="Code_1969722905-genk" class="lay_1524187505 vis_3152509604 ">.border()
+</code>
+<p  id="Text_1613925364-genk" class="lay_1524187505 vis_615751812 ">.</p>
+</div>
+<div  id="Flex_931736762-genk" class="lay_1958613868 mapa_525701708 ">
+<p  id="Text_3776133816-genk" class="lay_1524187505 vis_615751812 ">We attach a </p>
+<code  id="Code_1185617279-genk" class="lay_1524187505 vis_3152509604 ">on_press
+</code>
+<p  id="Text_495070746-genk" class="lay_1524187505 vis_615751812 "> handler to the button, and pass the increment function to it.</p>
+</div>
+<div  id="Flex_3586172523-genk" class="lay_1958613868 mapa_525701708 ">
+<p  id="Text_3777502918-genk" class="lay_1524187505 vis_615751812 ">Within the </p>
+<code  id="Code_852237389-genk" class="lay_1524187505 vis_3152509604 ">increment
+</code>
+<p  id="Text_496439848-genk" class="lay_1524187505 vis_615751812 "> function, we increment the counter, this will automatically result in the text being updated.
+There is no need to use signals or state management in Vapor, it is all reactive. It is also fine grained,
+only the content that you define to be updated will be updated. No more useMemo, or state definitions, just pure functions.</p>
+</div>
+</section>
+<section  id="a-glimpse-under-the-hood" class="lay_3767935242 ">
+<div  id="Flex_1425607510-genk" class="lay_1958613868 mapa_2428851175 ">
+<h3  id="Head_1398661574-genk" class="vis_2249300481 ">A glimpse under the hood
+</h>
+</div>
+<div  id="Flex_4080043271-genk" class="lay_1958613868 mapa_525701708 ">
+<p  id="Text_1637234057-genk" class="lay_1524187505 vis_615751812 ">The following is a base explanation of how Vapor works at it's core. </p>
+<p  id="Text_4291669818-genk" class="lay_1524187505 vis_1733681714 ">It is not necessary for writing Vapor components.</p>
+<p  id="Text_2651138283-genk" class="lay_1524187505 vis_615751812 ">
+However, it is useful to understand the basics of how Vapor works. If you ever want to use it to it's full potential,
+or understand how frontend frameworks work, this is a great place to start.</p>
+</div>
+</section>
+<section  id="ui-node" class="lay_3767935242 ">
+<div  id="Flex_2028468472-genk" class="lay_1958613868 mapa_2428851175 ">
+<h3  id="Head_975769618-genk" class="vis_2249300481 ">A UI Node
+</h>
+</div>
+<div  id="Flex_387936937-genk" class="lay_1958613868 mapa_525701708 ">
+<p  id="Text_1033262227-genk" class="lay_1524187505 vis_615751812 ">A UI Node is a generalized element which represents all UI primitives. Think of it as the boxes or text on your screen.
+Each Box is generalized to a UI Node. In Web these are _divs, spans, p tags, links._</p>
+</div>
+<div  id="Flex_3042372698-genk" class="lay_1958613868 mapa_525701708 ">
+<p  id="Text_2589616392-genk" class="lay_1524187505 vis_615751812 ">In Vapor, eveything is a UI Node, during rendering, we build a tree of UI Nodes, each with a element type and style.
+This tree is then rendered to the DOM. Since Vapor is renderer agnostic, we can use the same UI tree and just swap the renderer.</p>
+</div>
+<div  id="Flex_1401841163-genk" class="lay_1958613868 mapa_525701708 ">
+<div  id="Flex_4077668748-genk" class="lay_1580544207 mapa_646169155 ">
+<div  id="Grap_2498768895-genk" class="lay_12357932 vis_1022521277 ">
+</div>
+</div>
+</div>
+<div  id="Flex_4056276924-genk" class="lay_377518153 mapa_3646923428 ">
+<div  id="Flex_2744672060-genk" class="lay_672355136 mapa_3237006613 vis_466091211 ">
+<div  id="Flex_2981307350-genk" class="lay_1425985369 mapa_578588946 vis_2443298522 ">
+<div  id="Flex_860535303-genk" class="lay_2804356321 ">
+<p  id="Text_2905116176-genk" class="vis_4278938151 ">Example</p>
+</div>
+<div  id="Flex_3514971064-genk" class="lay_1995275681 ">
+<button  id="CtxB_4234973821-genk" class="lay_619210704 pos_1781655325 vis_4047921463 intr_2808548978 ">
+<i  id="Icon_968205505-genk" class=" vis_3553003164 " href="">
+</i>
+</button>
+<div  id="Grap_1465294897-genk" class="lay_1939127079 vis_2876239257 ">
+</div>
+</div>
+</div>
+<div  id="Flex_1340775815-genk" class="lay_3210686075 mapa_3237006613 ">
+<code  id="Code_1406182605-genk">
+<div  id="Flex_594426927-genk" class="lay_748818003 mapa_3848092541 vis_3178010591 ">
+<p  id="Text_2437517280-genk" class="vis_335153065 ">pub </p>
+<p  id="Text_796985745-genk" class="vis_3997560536 ">inline </p>
+<p  id="Text_3451421506-genk" class="vis_335153065 ">fn </p>
+<p  id="Text_1810889971-genk" class="vis_3515653197 ">Node</p>
+<p  id="Text_170358436-genk" class="vis_3997560536 ">() </p>
+<p  id="Text_2824794197-genk" class="vis_3997560536 ">NodeBody </p>
+<p  id="Text_1184262662-genk" class="vis_3997560536 ">{ </p>
+</div>
+<div  id="Flex_3248862688-genk" class="lay_748818003 mapa_3848092541 vis_3178010591 ">
+<p  id="Text_988970727-genk" class="vis_335153065 ">    const </p>
+<p  id="Text_3643406488-genk" class="vis_3997560536 ">elem_decl </p>
+<p  id="Text_2002874953-genk" class="vis_3997560536 ">= </p>
+<p  id="Text_362343418-genk" class="vis_3997560536 ">ElementDefinition{ </p>
+</div>
+<div  id="Flex_1608331153-genk" class="lay_748818003 mapa_3848092541 vis_3178010591 ">
+<p  id="Text_4085715951-genk" class="vis_3997560536 ">        .</p>
+<p  id="Text_2445184416-genk" class="vis_3997560536 ">state_type </p>
+<p  id="Text_804652881-genk" class="vis_3997560536 ">= </p>
+<p  id="Text_3459088642-genk" class="vis_3997560536 ">.static, </p>
+</div>
+<div  id="Flex_4262766914-genk" class="lay_748818003 mapa_3848092541 vis_3178010591 ">
+<p  id="Text_275313279-genk" class="vis_3997560536 ">        .</p>
+<p  id="Text_2929749040-genk" class="vis_3997560536 ">element_type </p>
+<p  id="Text_1289217505-genk" class="vis_3997560536 ">= </p>
+<p  id="Text_3943653266-genk" class="vis_3997560536 ">.Box, </p>
+</div>
+<div  id="Flex_2622235379-genk" class="lay_748818003 mapa_3848092541 vis_3178010591 ">
+<p  id="Text_1071185625-genk" class="vis_3997560536 ">    }; </p>
+</div>
+<div  id="Flex_981703844-genk" class="lay_748818003 mapa_3848092541 vis_3178010591 ">
+<p  id="Text_1866410940-genk" class="vis_3997560536 ">
+</p>
+</div>
+<div  id="Flex_3636139605-genk" class="lay_748818003 mapa_3848092541 vis_3178010591 ">
+<p  id="Text_93780810-genk" class="vis_3997560536 ">    LifeCycle</p>
+<p  id="Text_2748216571-genk" class="vis_3997560536 ">.</p>
+<p  id="Text_1107685036-genk" class="vis_2616587745 ">open</p>
+<p  id="Text_3762120797-genk" class="vis_3997560536 ">(elem_decl); </p>
+</div>
+<div  id="Flex_1995608070-genk" class="lay_748818003 mapa_3848092541 vis_3178010591 ">
+<p  id="Text_1513153341-genk" class="vis_3997560536 ">    LifeCycle</p>
+<p  id="Text_4167589102-genk" class="vis_3997560536 ">.</p>
+<p  id="Text_2527057567-genk" class="vis_2616587745 ">configure</p>
+<p  id="Text_886526032-genk" class="vis_3997560536 ">(elem_decl); </p>
+</div>
+<div  id="Flex_355076535-genk" class="lay_748818003 mapa_3848092541 vis_3178010591 ">
+<p  id="Text_3272445959-genk" class="vis_3997560536 ">    return </p>
+<p  id="Text_1631914424-genk" class="vis_3997560536 ">LifeCycle.</p>
+<p  id="Text_4286350185-genk" class="vis_3997560536 ">body; </p>
+</div>
+<div  id="Flex_1000117055-genk" class="lay_748818003 mapa_3848092541 vis_3178010591 ">
+<p  id="Text_777681428-genk" class="vis_3997560536 ">} </p>
+</div>
+<div  id="Flex_3654552816-genk" class="lay_748818003 mapa_3848092541 vis_3178010591 ">
+<p  id="Text_3428152605-genk" class="vis_3997560536 ">
+</p>
+</div>
+</code>
+</div>
+</div>
+</div>
+<div  id="Flex_2415745389-genk" class="lay_1958613868 mapa_525701708 ">
+<code  id="Code_2677163874-genk" class="lay_1524187505 vis_3152509604 ">LifeCycle
+</code>
+<p  id="Text_2321366333-genk" class="lay_1524187505 vis_615751812 "> is a struct that handles configuring Nodes, and adding them to the UI tree.
+</p>
+<code  id="Code_3691068100-genk" class="lay_1524187505 vis_3152509604 ">.open
+</code>
+<p  id="Text_3335270559-genk" class="lay_1524187505 vis_615751812 "> adds the node to the tree and sets it as the current open node
+or parent node.
+We return </p>
+<code  id="Code_410005030-genk" class="lay_1524187505 vis_3152509604 ">body
+</code>
+<p  id="Text_54207489-genk" class="lay_1524187505 vis_615751812 "> which is a function that allows
+for child nodes to be added to the current node.</p>
+</div>
+<div  id="Flex_775213854-genk" class="lay_1958613868 mapa_525701708 ">
+<p  id="Text_3203309238-genk" class="lay_1524187505 vis_615751812 ">This is all abstracted away, it is up to the developer to decided whether they want to create their
+own custom UI Node types.
+</p>
+</div>
+</section>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</body>
+</html>

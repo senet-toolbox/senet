@@ -9,25 +9,42 @@ const CodeEditor = @import("../CodeEditor.zig");
 const Vaporize = @import("vaporize");
 const Box = Static.Box;
 const Content = @import("../../../../../../components/Content.zig");
+const Compiler = @import("../../../../../../main.zig");
 
 // Initialization
-var sample_fetch: CodeEditor = undefined;
-var kit_page: *Vaporize.Node = undefined;
-var content: Content.new(@embedFile("kit_page.md")) = undefined;
+var content: Content.new("") = undefined;
+var markdown: Compiler.vaporize.MarkDown(.{}) = .{};
+var page: []const u8 = "";
+var markdown_loaded: bool = false;
 pub fn init() void {
+    Vapor.Kit.fetch("/src/routes/docs/vapor/concepts/:concept/kit/kit_page.md", handlePage, .{ .method = .GET });
     content.init();
-    var parser = Vaporize.Parser.init(Vapor.lib.allocator_global, @embedFile("kit_page.md"));
-    kit_page = parser.parse() catch unreachable;
 }
 
-fn component() void {
-    Vaporize.traverse(kit_page, .{
-        .code_color = .palette(.tint),
-        .text_color = .palette(.text_color),
-        .heading_color = .palette(.text_color),
-    }, void, null) catch unreachable;
+fn handlePage(resp: Vapor.Kit.Response) void {
+    switch (resp) {
+        .ok => |data| {
+            content.content_text = data.body;
+            page = data.body;
+            markdown.compile(page) catch |err| {
+                Vapor.printErr("Failed to compile markdown: {any}", .{err});
+                return;
+            };
+            markdown_loaded = true;
+        },
+        .err => |err| {
+            Vapor.printErr("Failed to fetch: {s}", .{err.message});
+            return;
+        },
+    }
+    Vapor.cycle();
+}
+
+pub fn component() void {
+    markdown.render() catch unreachable;
 }
 
 pub fn render() void {
+    if (!markdown_loaded) return;
     content.content(component);
 }

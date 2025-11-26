@@ -7,6 +7,7 @@ import {
   allocString,
   text_data,
   currentPath,
+  render,
 } from "./wasi_obj.js";
 import {
   applyHoverClass,
@@ -20,12 +21,14 @@ import {
   domNodeRegistry,
   eventHandlers,
   eventStorage,
+  hooksCtxCreated,
   hooksMounted,
   loadedSections,
   observeredSections,
   pureNodeRegistry,
 } from "./maps.js";
 import { state } from "./state.js";
+import { DynamicStructReader } from "./wasi.js";
 
 // Component type constants
 export const COMPONENT_TYPES = {
@@ -68,7 +71,7 @@ export const COMPONENT_TYPES = {
   TABLE_BODY: 36,
   TEXT_AREA: 37,
   CANVAS: 38,
-  SUBMIT_BUTTON_CTX: 39,
+  SUBMIT_BUTTON: 39,
   HOOKS_CTX: 40,
   JSON_EDITOR: 41,
   HTML_TEXT: 42,
@@ -397,9 +400,7 @@ export function recurseDestroy(el) {
  * @param {Object} layout - The layout information
  * @returns {HTMLAnchorElement} - The created link element
  */
-function createLinkElement(renderCmd, route) {
-  const element = document.createElement("a");
-
+function createLinkElement(element, renderCmd) {
   let href =
     renderCmd.props.hrefLen > 0
       ? readWasmString(renderCmd.props.hrefPtr, renderCmd.props.hrefLen)
@@ -425,13 +426,10 @@ function createLinkElement(renderCmd, route) {
     const path = urlObj.pathname;
     const currentPath = window.location.pathname;
     // we push the state and renderCycle the new path
-    // wasmInstance.markAllNonLayoutNodesDirty();
     requestAnimationFrame(() => {
       if (currentPath !== path) {
         rerenderRoute(path);
-        // wasmInstance.callAllMountedCallbacks();
       }
-      // wasmInstance.setRerenderTrue();
       requestAnimationFrame(() => {
         const hash = urlObj.hash;
         if (hash) {
@@ -444,12 +442,7 @@ function createLinkElement(renderCmd, route) {
             });
           }
           window.history.pushState({}, "", path + hash);
-        } else {
-          // window.scrollTo({
-          //   top: 0,
-          // });
         }
-        // wasmInstance.callAllMountedCallbacks();
       });
     });
   });
@@ -689,9 +682,85 @@ function getTextData(route, id) {
  * @param {Object} renderCmd - The render command
  * @returns {HTMLElement} - The created element
  */
+export function attachElementListeners(element, renderCmd) {
+  switch (renderCmd.elemType) {
+    case COMPONENT_TYPES.GRAPHIC:
+      const href = readWasmString(
+        renderCmd.props.hrefPtr,
+        renderCmd.props.hrefLen,
+      );
+      fetch(href)
+        .then((res) => res.text())
+        .then((text) => {
+          element.innerHTML = text.replace(/^\s+|\s+$/g, "");
+        })
+        .catch((err) => {
+          // console.error("Fetch failed:", err);
+        });
+      break;
+
+    case COMPONENT_TYPES.BUTTON:
+    case COMPONENT_TYPES.BUTTON_CYCLE:
+      const label = wasmInstance.getAriaLabel(renderCmd.nodePtr);
+      if (label) {
+        const length = wasmInstance.getAriaLabelLen();
+        element.ariaLabel = readWasmString(label, length);
+      }
+      element.addEventListener("click", async (event) => {
+        state.currentDepthNode = renderCmd.id;
+        event.preventDefault();
+        event.stopPropagation();
+        const idPtr = allocString(renderCmd.id);
+        if (renderCmd.elemType === COMPONENT_TYPES.BUTTON_CYCLE) {
+          wasmInstance.buttonCycleCallback(idPtr);
+        } else {
+          wasmInstance.buttonCallback(idPtr);
+        }
+      });
+      break;
+
+    case COMPONENT_TYPES.BUTTON_CTX:
+      element.type = "button";
+      element.addEventListener("click", (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        const idPtr = allocString(renderCmd.id);
+        wasmInstance.ctxButtonCallback(idPtr);
+      });
+      break;
+
+    case COMPONENT_TYPES.LINK:
+      element = createLinkElement(element, renderCmd);
+      break;
+
+    case COMPONENT_TYPES.VIDEO:
+      console.log("Video");
+      const offset = wasmInstance.getVideo(renderCmd.nodePtr);
+      console.log("Offset", offset);
+      if (offset === 0) break; // Use break, not return
+      const videoView = new DataView(wasmInstance.memory.buffer, offset);
+      const srcPtr = videoView.getUint32(0, true);
+      if (srcPtr) {
+        const srcLen = videoView.getUint32(4, true);
+        element.src = readWasmString(srcPtr, srcLen);
+      }
+      element.autoplay = videoView.getUint8(8) === 1;
+      break;
+
+    default:
+      break;
+  }
+}
+
+/**
+ * Create an element based on its type
+ * @param {Object} renderCmd - The render command
+ * @returns {HTMLElement} - The created element
+ */
 export function createElementByType(renderCmd) {
   let element;
   let text;
+  let label;
   let route = currentPath === "/" ? "/root" : `/root${currentPath}`;
 
   switch (renderCmd.elemType) {
@@ -713,9 +782,28 @@ export function createElementByType(renderCmd) {
       break;
 
     case COMPONENT_TYPES.TEXT_AREA:
+      const textareaPtr =
+        wasmInstance.getTextFieldParams(renderCmd.nodePtr) >>> 0;
       element = document.createElement("textarea");
-      text = readWasmString(renderCmd.props.textPtr, renderCmd.props.textLen);
-      element.textContent = text;
+      if (textareaPtr) {
+        const fieldCount = wasmInstance.getTextFieldCount(renderCmd.nodePtr);
+        const reader = new DynamicStructReader(
+          wasmInstance,
+          wasmInstance.memory,
+        );
+        const fieldStruct = reader.readStruct(
+          renderCmd.nodePtr,
+          textareaPtr,
+          fieldCount,
+          "getTextFieldDescriptor",
+        );
+        element.value =
+          fieldStruct.value !== null ? String(fieldStruct.value) : "";
+        element.value =
+          fieldStruct.default !== null ? String(fieldStruct.default) : "";
+      }
+      // text = readWasmString(renderCmd.props.textPtr, renderCmd.props.textLen);
+      // element.textContent = text;
       break;
 
     case COMPONENT_TYPES.HTML_TEXT:
@@ -752,10 +840,17 @@ export function createElementByType(renderCmd) {
 
     case COMPONENT_TYPES.IMAGE:
       element = document.createElement("img");
-      element.src = readWasmString(
+      const alt = wasmInstance.getAlt(renderCmd.nodePtr);
+      if (alt >>> 0) {
+        const length = wasmInstance.getAltLen();
+        const altText = readWasmString(alt, length);
+        element.setAttribute("alt", altText);
+      }
+      const src = readWasmString(
         renderCmd.props.hrefPtr,
         renderCmd.props.hrefLen,
       );
+      element.setAttribute("src", src);
       break;
 
     case COMPONENT_TYPES.LAZY_IMAGE:
@@ -821,14 +916,64 @@ export function createElementByType(renderCmd) {
     case COMPONENT_TYPES.TEXT_FIELD:
       element = document.createElement("input");
       text = readWasmString(renderCmd.props.textPtr, renderCmd.props.textLen);
-      element.value = text;
+      const field_ptr = wasmInstance.getFieldName(renderCmd.nodePtr) >>> 0;
+      if (field_ptr) {
+        const field_len = wasmInstance.getFieldNameLen();
+        const field = readWasmString(field_ptr, field_len);
+        element.name = field;
+      }
+      const instansePtr = wasmInstance.getTextFieldParams(renderCmd.nodePtr);
+      if (instansePtr) {
+        const fieldCount = wasmInstance.getTextFieldCount(renderCmd.nodePtr);
+        const reader = new DynamicStructReader(
+          wasmInstance,
+          wasmInstance.memory,
+        );
+        const fieldStruct = reader.readStruct(
+          renderCmd.nodePtr,
+          instansePtr,
+          fieldCount,
+          "getTextFieldDescriptor",
+        );
+        element.value =
+          fieldStruct.default !== null ? String(fieldStruct.default) : "";
+        switch (fieldStruct.type) {
+          case 0:
+            element.type = "number";
+            break;
+          case 1:
+            element.type = "number";
+            break;
+          case 2:
+            element.type = "text";
+            break;
+          case 3:
+            element.type = "checkbox";
+            break;
+          case 4:
+            element.type = "radio";
+            break;
+          case 5:
+            element.type = "password";
+            break;
+          case 6:
+            element.type = "email";
+            break;
+          case 7:
+            element.type = "file";
+            break;
+          case 8:
+            element.type = "tel";
+            break;
+        }
+      }
       break;
 
     case COMPONENT_TYPES.BUTTON:
     case COMPONENT_TYPES.BUTTON_CYCLE:
       element = document.createElement("button");
       element.type = "button";
-      const label = wasmInstance.getAriaLabel(renderCmd.nodePtr);
+      label = wasmInstance.getAriaLabel(renderCmd.nodePtr);
       if (label) {
         const length = wasmInstance.getAriaLabelLen();
         element.ariaLabel = readWasmString(label, length);
@@ -849,6 +994,11 @@ export function createElementByType(renderCmd) {
     case COMPONENT_TYPES.BUTTON_CTX:
       element = document.createElement("button");
       element.type = "button";
+      label = wasmInstance.getAriaLabel(renderCmd.nodePtr);
+      if (label) {
+        const length = wasmInstance.getAriaLabelLen();
+        element.ariaLabel = readWasmString(label, length);
+      }
       element.addEventListener("click", (event) => {
         event.preventDefault();
         event.stopPropagation();
@@ -857,7 +1007,7 @@ export function createElementByType(renderCmd) {
       });
       break;
 
-    case COMPONENT_TYPES.SUBMIT_BUTTON_CTX:
+    case COMPONENT_TYPES.SUBMIT_BUTTON:
       element = document.createElement("button");
       element.type = "submit";
       break;
@@ -879,11 +1029,18 @@ export function createElementByType(renderCmd) {
       break;
 
     case COMPONENT_TYPES.LINK:
-      element = createLinkElement(renderCmd);
+      element = document.createElement("a");
+      element = createLinkElement(element, renderCmd);
       break;
 
     case COMPONENT_TYPES.REDIRECT_LINK:
       element = document.createElement("a");
+      const aria_label = wasmInstance.getAriaLabel(renderCmd.nodePtr);
+      if (aria_label) {
+        const length = wasmInstance.getAriaLabelLen();
+        element.ariaLabel = readWasmString(aria_label, length);
+      }
+
       element.href =
         renderCmd.props.hrefLen > 0
           ? readWasmString(renderCmd.props.hrefPtr, renderCmd.props.hrefLen)
@@ -926,10 +1083,10 @@ export function createElementByType(renderCmd) {
 
     case COMPONENT_TYPES.LABEL:
       element = document.createElement("label");
-      element.htmlFor = readWasmString(
-        renderCmd.props.hrefPtr,
-        renderCmd.props.hrefLen,
-      );
+      // element.htmlFor = readWasmString(
+      //   renderCmd.props.hrefPtr,
+      //   renderCmd.props.hrefLen,
+      // );
       text = readWasmString(renderCmd.props.textPtr, renderCmd.props.textLen);
       element.textContent = text;
       break;
@@ -973,8 +1130,10 @@ export function createElementByType(renderCmd) {
       break;
 
     case COMPONENT_TYPES.VIDEO:
+      console.log("Video");
       element = document.createElement("video");
       const offset = wasmInstance.getVideo(renderCmd.nodePtr);
+      console.log("Offset", offset);
       if (offset === 0) break; // Use break, not return
       const videoView = new DataView(wasmInstance.memory.buffer, offset);
       const srcPtr = videoView.getUint32(0, true);
@@ -982,6 +1141,7 @@ export function createElementByType(renderCmd) {
         const srcLen = videoView.getUint32(4, true);
         element.src = readWasmString(srcPtr, srcLen);
       }
+      console.log("Src", element.src);
       element.autoplay = videoView.getUint8(8) === 1;
       break;
 
@@ -1079,25 +1239,39 @@ export function updateElement(element, renderCmd) {
     renderCmd.elemType === COMPONENT_TYPES.TEXT ||
     renderCmd.elemType === COMPONENT_TYPES.HEADER ||
     renderCmd.elemType === COMPONENT_TYPES.ALLOC_TEXT ||
-    renderCmd.elemType === COMPONENT_TYPES.TEXT_AREA
+    renderCmd.elemType === COMPONENT_TYPES.HEADING
   ) {
     const text = readWasmString(
       renderCmd.props.textPtr,
       renderCmd.props.textLen,
     );
     element.textContent = text;
-  } else if (renderCmd.elemType === COMPONENT_TYPES.TEXT_FIELD) {
-    const text = readWasmString(
-      renderCmd.props.textPtr,
-      renderCmd.props.textLen,
-    );
-    element.value = text;
+  } else if (renderCmd.elemType === COMPONENT_TYPES.TEXT_FIELD || renderCmd.elemType === COMPONENT_TYPES.TEXT_AREA) {
+    const instansePtr =
+      wasmInstance.getTextFieldParams(renderCmd.nodePtr) >>> 0;
+    if (instansePtr) {
+      const fieldCount = wasmInstance.getTextFieldCount(renderCmd.nodePtr);
+      const reader = new DynamicStructReader(wasmInstance, wasmInstance.memory);
+      const fieldStruct = reader.readStruct(
+        renderCmd.nodePtr,
+        instansePtr,
+        fieldCount,
+        "getTextFieldDescriptor",
+      );
+      element.value =
+        fieldStruct.value !== null ? String(fieldStruct.value) : "";
+    }
+
+    // const text = readWasmString(
+    //   renderCmd.props.textPtr,
+    //   renderCmd.props.textLen,
+    // );
   } else if (renderCmd.elemType === COMPONENT_TYPES.ICON) {
-    const href = readWasmString(
-      renderCmd.props.hrefPtr,
-      renderCmd.props.hrefLen,
-    );
-    element.className = href;
+    // const href = readWasmString(
+    //   renderCmd.props.hrefPtr,
+    //   renderCmd.props.hrefLen,
+    // );
+    // element.className = href;
   } else if (renderCmd.elemType === COMPONENT_TYPES.HTML_TEXT) {
     const text = readWasmString(
       renderCmd.props.textPtr,
@@ -1107,18 +1281,22 @@ export function updateElement(element, renderCmd) {
   }
 
   // This means that the style hash has changed and we need to update
-  const cssStylePtr = wasmInstance.getStyle(renderCmd.nodePtr);
-  if (cssStylePtr !== 0) {
-    const cssStyleLen = wasmInstance.getStyleLen();
-    renderCmd.props.css = readWasmString(cssStylePtr, cssStyleLen);
+  if (renderCmd.changedStyle > 0) {
+    const cssStylePtr = wasmInstance.getStyle(renderCmd.nodePtr);
+    if (cssStylePtr !== 0) {
+      const cssStyleLen = wasmInstance.getStyleLen();
+      renderCmd.props.css = readWasmString(cssStylePtr, cssStyleLen);
+    }
+    // Update styling
+    updateComponentStyle(
+      renderCmd.nodePtr,
+      renderCmd.styleId,
+      renderCmd.props.css,
+      element,
+    );
+  } else {
+    element.className = renderCmd.styleId;
   }
-  // Update styling
-  updateComponentStyle(
-    renderCmd.nodePtr,
-    renderCmd.styleId,
-    renderCmd.props.css,
-    element,
-  );
 
   if (renderCmd.props.hoverCss.length > 0) {
     applyHoverClass(element, renderCmd.styleId, renderCmd.props.hoverCss);
@@ -1197,15 +1375,16 @@ export function traverse(parent, has_children, tree_node, layout) {
 
   const children_count = wasmInstance.getTreeNodeChildrenCount(tree_node);
 
-  const existingDOMElements = Array.from(parent.children); // Get all existing DOM nodes
-
-  // Create a map of existing DOM elements by their ID for fast lookups
-  const existingElementsMap = new Map();
-  for (const el of existingDOMElements) {
-    existingElementsMap.set(el.id, el);
-  }
+  // const existingDOMElements = Array.from(parent.children); // Get all existing DOM nodes
+  //
+  // // Create a map of existing DOM elements by their ID for fast lookups
+  // const existingElementsMap = new Map();
+  // for (const el of existingDOMElements) {
+  //   existingElementsMap.set(el.id, el);
+  // }
 
   const renderCmds = [];
+
   for (let i = 0; i < children_count; i++) {
     const child_ptr = wasmInstance.getTreeNodeChild(tree_node, i);
     const rndcmd_ptr = wasmInstance.getRenderCommandPtr(child_ptr);
@@ -1220,9 +1399,30 @@ export function traverse(parent, has_children, tree_node, layout) {
     let element = null;
     if (renderCmd.isDirty) {
       element = document.getElementById(renderCmd.id);
+      if (element && state.initial_render) {
+        attachElementListeners(element, renderCmd);
+        traverse(element, renderCmd.props.has_children, child_ptr, layout);
 
-      // This is the first render, so this is where we virtualize
-      if (!element || state.initial_render) {
+        // Handle hooks mounted calls
+        if (renderCmd.elemType === COMPONENT_TYPES.HOOKS_CTX) {
+          if (renderCmd.hooks.mountedId > 0) {
+            wasmInstance.ctxHooksMountedCallback(renderCmd.hooks.mountedId);
+          }
+        } else if (renderCmd.elemType === COMPONENT_TYPES.HOOKS) {
+          if (renderCmd.hooks.mountedId > 0) {
+            hooksMounted.set(renderCmd.id, true);
+            element.className = "";
+          }
+          if (renderCmd.hooks.createdId > 0) {
+            wasmInstance.hooksCreatedCallback(renderCmd.hooks.createdId);
+          }
+          if (renderCmd.hooks.updatedId > 0) {
+            wasmInstance.hooksUpdatedCallback(renderCmd.hooks.updatedId);
+          }
+        } else if (renderCmd.hooks.createdId > 0) {
+          hooksCtxCreated.set(renderCmd.id, true);
+        }
+      } else if (!element || state.initial_render) {
         // Create new element
         element = createElementByType(renderCmd);
 
@@ -1230,11 +1430,6 @@ export function traverse(parent, has_children, tree_node, layout) {
 
         // Set up the element
         setupElement(element, renderCmd);
-
-        // observeredSections.set(renderCmd.id, {
-        //   renderCmd,
-        //   treeNodePtr: child_ptr,
-        // });
 
         // Append to parent
         const next = renderCmds[i + 1];
@@ -1253,8 +1448,7 @@ export function traverse(parent, has_children, tree_node, layout) {
         } else if (renderCmd.elemType === COMPONENT_TYPES.HOOKS) {
           if (renderCmd.hooks.mountedId > 0) {
             hooksMounted.set(renderCmd.id, true);
-            //   const idPtr = allocString(renderCmd.id);
-            //   wasmInstance.hooksMountedCallback(idPtr);
+            element.className = "";
           }
           if (renderCmd.hooks.createdId > 0) {
             wasmInstance.hooksCreatedCallback(renderCmd.hooks.createdId);
@@ -1262,20 +1456,29 @@ export function traverse(parent, has_children, tree_node, layout) {
           if (renderCmd.hooks.updatedId > 0) {
             wasmInstance.hooksUpdatedCallback(renderCmd.hooks.updatedId);
           }
+        } else if (renderCmd.hooks.createdId > 0) {
+          hooksCtxCreated.set(renderCmd.id, true);
         }
       } else {
         // Here we may need to change the positions of the elements
         // Update existing element
         updateElement(element, renderCmd);
 
-        // Append to parent
+        // Calculate the intended anchor (next sibling)
         const next = renderCmds[i + 1];
         let anchor = null;
         if (next) {
-          const nextId = next[0]?.id; // id of the next sibling
+          const nextId = next[0]?.id;
           anchor = nextId ? document.getElementById(nextId) : null;
         }
-        parent.insertBefore(element, anchor);
+
+        // FIX: Check if the element is already in the correct position.
+        // We only move it if:
+        // 1. The element is not attached to this parent yet, OR
+        // 2. The element's current next sibling is different from the intended anchor.
+        if (element.parentNode !== parent || element.nextSibling !== anchor) {
+          parent.insertBefore(element, anchor);
+        }
 
         // Process children
         traverse(element, renderCmd.props.has_children, child_ptr, layout);

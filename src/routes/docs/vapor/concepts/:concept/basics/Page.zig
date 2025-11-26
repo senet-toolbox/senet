@@ -15,7 +15,6 @@ const Link = Static.Link;
 const Image = Static.Image;
 const Svg = Static.Svg;
 const Button = Static.Button;
-const Center = Static.Center;
 const List = Static.List;
 const ListItem = Static.ListItem;
 const Stack = Static.Stack;
@@ -23,24 +22,53 @@ const Heading = Static.Heading;
 const Icon = Pure.Icon;
 const Counter = @import("instance_sample.zig");
 const Content = @import("../../../../../../components/Content.zig");
-var basics_page: *Vaporize.Node = undefined;
+const Compiler = @import("../../../../../../main.zig");
+const Comptime = @import("Comptime.zig");
+const global = @import("global_sample.zig");
+var mark_up: *Vaporize.Node = undefined;
 var counter: Counter = undefined;
 var counter2: Counter = undefined;
+
+const i32_counter = Comptime.Counter(i32, -1);
+const u32_counter = Comptime.Counter(u32, 1);
+
 // Initialization
-var content: Content.new(@embedFile("basics_page.md")) = undefined;
+var content: Content.new("") = undefined;
+const components = .{
+    .{ .tag = "global_sample", .function = global.render },
+    .{ .tag = "instance_sample", .function = Counter.render, .args = &counter },
+    .{ .tag = "instance_sample2", .function = Counter.render, .args = &counter2 },
+    .{ .tag = "i32_sample", .function = i32_counter.render },
+    .{ .tag = "u32_sample", .function = u32_counter.render },
+};
+var markdown: Compiler.vaporize.MarkDown(components) = .{};
+var markdown_loaded: bool = false;
+var page: []const u8 = "";
 pub fn init() void {
+    Vapor.Kit.fetch("/src/routes/docs/vapor/concepts/:concept/basics/basics_page.md", handlePage, .{ .method = .GET });
     content.init();
-    var parser = Vaporize.Parser.init(Vapor.lib.allocator_global, @embedFile("basics_page.md"));
-    basics_page = parser.parse() catch unreachable;
     counter.init();
     counter2.init();
+    // markdown.compile(@embedFile("basics_page.md")) catch unreachable;
+}
 
-    // code_editor.init(&Vapor.lib.allocator_global, @embedFile("main_sample.zig"));
-    // code_editor_component.init(&Vapor.lib.allocator_global, @embedFile("Component.zig"));
-    // code_editor_lifecycle.init(&Vapor.lib.allocator_global, @embedFile("LifeCycle_sample.zig"));
-    // code_editor_global.init(&Vapor.lib.allocator_global, @embedFile("global_sample.zig"));
-    // code_editor_instance.init(&Vapor.lib.allocator_global, @embedFile("instance_sample.zig"));
-    // code_editor_comptime.init(&Vapor.lib.allocator_global, @embedFile("comptime_sample.zig"));
+fn handlePage(resp: Vapor.Kit.Response) void {
+    switch (resp) {
+        .ok => |data| {
+            content.content_text = data.body;
+            page = data.body;
+            markdown.compile(page) catch |err| {
+                Vapor.printErr("Failed to compile markdown: {any}", .{err});
+                return;
+            };
+            markdown_loaded = true;
+        },
+        .err => |err| {
+            Vapor.printErr("Failed to fetch: {s}", .{err.message});
+            return;
+        },
+    }
+    Vapor.cycle();
 }
 
 // Deinitialization
@@ -60,49 +88,71 @@ fn toggleIcon() void {
 }
 
 // Global state
-var count: i32 = 0;
+var count: i32 = -1;
 fn increment() void {
     count += 1;
-    Vapor.cycle();
 }
 
 fn decrement() void {
     count -= 1;
-    Vapor.cycle();
 }
 
-const global = @import("global_sample.zig");
+var count2: u32 = 1;
+fn increment2() void {
+    count2 += 1;
+}
+
+fn decrement2() void {
+    if (count2 == 0) {
+        Vapor.alert("You can't go negative! On a u32");
+        return;
+    }
+    count2 -= 1;
+}
 
 fn component() void {
-    Vaporize.traverse(basics_page, .{
-        .code_color = .palette(.tint),
-        .text_color = .palette(.text_color),
-        .heading_color = .palette(.text_color),
-    }, *anyopaque, &[_]Vaporize.TaggedFunction(*anyopaque){
-        Vaporize.TaggedFunction(*anyopaque){ .tag = "global_sample.zig", .function = global.render, .args = undefined },
-        Vaporize.TaggedFunction(*anyopaque){ .tag = "instance_sample.zig", .function = Counter.render, .args = @ptrCast(&counter) },
-        Vaporize.TaggedFunction(*anyopaque){ .tag = "instance_sample2.zig", .function = Counter.render, .args = @ptrCast(&counter2) },
-    }) catch unreachable;
+    if (!markdown_loaded) return;
+    markdown.render() catch unreachable;
 
-    Static.Box.layout(.center).spacing(16).padding(.all(20)).body()({
-        Static.Button(.{ .on_press = decrement })
-            .padding(.all(8))
-            .border(.simple(.palette(.border_color_light)))
-            .cursor(.pointer)
-            .body()({
-            Static.Text("-").font(18, null, .palette(.text_color)).close();
-        });
-
-        Static.TextFmt("Comptime Local State: {d}", .{count}).font(24, 700, .palette(.text_color)).close();
-
-        Static.Button(.{ .on_press = increment })
-            .padding(.all(8))
-            .border(.simple(.palette(.border_color_light)))
-            .cursor(.pointer)
-            .body()({
-            Static.Text("+").font(18, null, .palette(.text_color)).close();
-        });
-    });
+    // Static.Box().layout(.center).spacing(16).padding(.all(20)).children({
+    //     Static.Button(.{ .on_press = decrement })
+    //         .padding(.all(8))
+    //         .border(.simple(.palette(.border_color_light)))
+    //         .cursor(.pointer)
+    //         .children({
+    //         Static.Text("-").font(18, null, .palette(.text_color)).end();
+    //     });
+    //
+    //     Static.TextFmt("i32 Counter: {d}", .{count}).font(24, 700, .palette(.text_color)).end();
+    //
+    //     Static.Button(.{ .on_press = increment })
+    //         .padding(.all(8))
+    //         .border(.simple(.palette(.border_color_light)))
+    //         .cursor(.pointer)
+    //         .children({
+    //         Static.Text("+").font(18, null, .palette(.text_color)).end();
+    //     });
+    // });
+    //
+    // Static.Box().layout(.center).spacing(16).padding(.all(20)).children({
+    //     Static.Button(.{ .on_press = decrement2 })
+    //         .padding(.all(8))
+    //         .border(.simple(.palette(.border_color_light)))
+    //         .cursor(.pointer)
+    //         .children({
+    //         Static.Text("-").font(18, null, .palette(.text_color)).end();
+    //     });
+    //
+    //     Static.TextFmt("u32 Counter: {d}", .{count2}).font(24, 700, .palette(.text_color)).end();
+    //
+    //     Static.Button(.{ .on_press = increment2 })
+    //         .padding(.all(8))
+    //         .border(.simple(.palette(.border_color_light)))
+    //         .cursor(.pointer)
+    //         .children({
+    //         Static.Text("+").font(18, null, .palette(.text_color)).end();
+    //     });
+    // });
 }
 
 // Render

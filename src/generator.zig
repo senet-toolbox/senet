@@ -1,15 +1,14 @@
 // src/generator.zig
 const std = @import("std");
-const App = @import("app.zig");
+const App = @import("main.zig");
 
 // Import your shared framework/component modules
-const vapor = @import("vapor");
+const Vapor = @import("vapor");
 const theme = @import("theme");
 
 pub fn main() !void {
-    std.debug.print("Running documentation generator...\n", .{});
-    App.instantiate(1200, 1200, std.heap.page_allocator);
-    vapor.lib.generateTextData();
+    App.init();
+    Vapor.lib.generate();
     // 1. Create an instance of your root component or app
     //    (This code is hypothetical and depends on your framework's API)
     //    const site_vdom = my_framework.render(theme.DocumentationSite, allocator);
@@ -23,6 +22,5 @@ pub fn main() !void {
     // var json_writer = std.json.writeStream(file.writer(), .{}, .{ .whitespace = .indent_2 });
     // try json_writer.write(extracted_strings.items);
 
-    std.debug.print("Successfully generated dist/text_data.json\n", .{});
+    std.debug.print("\nSuccessfully generated Static Pages /static\n", .{});
 }
-

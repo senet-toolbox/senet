@@ -1,4 +1,4 @@
-import { wasmInstance } from "./wasi_obj.js";
+import { readWasmString, wasmInstance } from "./wasi_obj.js";
 import { env } from "./wasi.js";
 
 export const importObject = {
@@ -68,14 +68,14 @@ export const importObject = {
         const iov = new Uint32Array(memory.buffer, iovs_ptr + i * 8, 2);
         const ptr = iov[0];
         const len = iov[1];
-        const str = new TextDecoder().decode(memory.subarray(ptr, ptr + len));
+        const str = readWasmString(ptr, len);
 
         if (fd === 1) {
           // stdout
           console.log("[Zig stdout]", str);
         } else if (fd === 2) {
           // stderr
-          console.error("[Zig stderr]", str);
+          console.log(str);
         } else {
           console.warn(`[Zig fd ${fd}]`, str);
         }

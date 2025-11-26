@@ -20,7 +20,6 @@ const List = Static.List;
 const ListItem = Static.ListItem;
 const CtxButton = Static.CtxButton;
 const RedirectLink = Static.RedirectLink;
-const ButtonCycle = Static.ButtonCycle;
 const Button = Static.Button;
 const Theme = @import("theme");
 const Graphic = Static.Graphic;
@@ -49,15 +48,15 @@ const Url = struct {
 const urls: [5]Url = .{
     .{
         .url = "/docs/vapor",
-        .title = "Vapor",
+        .title = "[0] = Vapor",
     },
     .{
         .url = "/docs/reverb",
-        .title = "Reverb",
+        .title = "[1] = Reverb",
     },
     .{
         .url = "/docs/treehouse",
-        .title = "Canopy",
+        .title = "[2] = Canopy",
     },
     .{
         .url = "/docs/metal",
@@ -72,7 +71,7 @@ const urls: [5]Url = .{
 inline fn routes() void {
     // const current_path = Kit.getWindowPath();
     for (urls) |url| {
-        ListItem.style(&Styles.item)({
+        ListItem().style(&Styles.item)({
             Link(.{ .url = url.url, .aria_label = url.title }).style(&.{
                 .visual = .{ .text_decoration = .none },
             })({
@@ -115,24 +114,23 @@ pub fn setDefault() void {
 }
 
 fn openDialog() void {
-    Vapor.println("openDialog", .{});
     Search.toggle();
 }
 
 fn navigate(url: []const u8) void {
     Kit.navigate(url);
     menu = !menu;
-    Vapor.cycle();
+    // Vapor.cycle();
 }
 
 fn toggleTheme() void {
     Theme.toggleTheme();
-    Vapor.cycle();
+    // Vapor.cycle();
 }
 
 pub fn render() void {
     if (Vapor.isDesktop()) {
-        // Box.id("nav")
+        // Box().id("nav")
         //     .baseStyle(&.{
         //         .size = .hw(.px(60), .grow),
         //         .layout = .x_between_center,
@@ -145,7 +143,7 @@ pub fn render() void {
         //     Text("hello").plain();
         // });
         //
-        // Box.id("nav")
+        // Box().id("nav")
         //     .pos(.nav)
         //     .height(.px(60))
         //     .width(.grow)
@@ -157,7 +155,7 @@ pub fn render() void {
         //     Text("hello").plain();
         // });
         //
-        // Box.id("nav")
+        // Box().id("nav")
         //     .style(&.{
         //     .position = .nav,
         //     .size = .hw(.px(60), .grow),
@@ -168,14 +166,14 @@ pub fn render() void {
         // })({
         //     Text("hello").plain();
         // });
-        Box.id("nav").style(&.{
+        Box().id("nav").style(&.{
             .position = .nav,
             .size = .hw(.px(60), .grow),
             .layout = .x_between_center,
             .padding = .horizontal(50),
             .visual = .{ .blur = 2 },
         })({
-            Box.style(&.{
+            Box().style(&.{
                 .size = .{ .height = .px(50) },
                 .direction = .row,
                 .layout = .left_center,
@@ -184,7 +182,7 @@ pub fn render() void {
                 Link(.{ .url = "/", .aria_label = "home page of tether" }).style(&.{
                     .visual = .{ .text_decoration = .none },
                 })({
-                    Center.style(&.{
+                    Center().style(&.{
                         .size = .{ .width = .px(45) },
                         .margin = .{ .right = 30 },
                         .transition = .{ .duration = 100 },
@@ -214,7 +212,7 @@ pub fn render() void {
                         // });
                     });
                 });
-                List.style(&.{
+                List().style(&.{
                     .child_gap = 60,
                     .layout = .center,
                     .size = .hw(.percent(100), .percent(100)),
@@ -223,11 +221,11 @@ pub fn render() void {
                 });
             });
 
-            Center.style(&.{
+            Center().style(&.{
                 .child_gap = 24,
                 .size = .w(.percent(30)),
             })({
-                ButtonCycle(.{ .on_press = openDialog, .aria_label = "search-dialog" }).style(&.{
+                Button(.{ .on_press = openDialog, .aria_label = "search-dialog" }).style(&.{
                     .layout = .x_between_center,
                     .size = .hw(.px(38), .percent(70)),
                     .padding = .tblr(4, 4, 8, 8),
@@ -236,7 +234,7 @@ pub fn render() void {
                         .border = .simple(.palette(.tint)),
                     } },
                 })({
-                    Box.style(&.{ .layout = .left_center, .child_gap = 24 })({
+                    Box().style(&.{ .layout = .left_center, .child_gap = 24 })({
                         Icon(.search).style(&.{
                             .visual = .{ .font_size = 16, .text_color = .palette(.icon_color) },
                         });
@@ -278,7 +276,7 @@ pub fn render() void {
                     //     .interactive = .{ .hover = .{ .text_color = .palette(.tint) } },
                     // });
                 });
-                Button(.{ .on_press = toggleTheme }).style(&.{
+                Button(.{ .on_press = toggleTheme, .aria_label = "toggle theme" }).style(&.{
                     .visual = .{
                         .background = .transparent,
                         .cursor = .pointer,
@@ -295,7 +293,7 @@ pub fn render() void {
         });
         Search.render();
     } else {
-        Box.style(&.{
+        Box().style(&.{
             .layout = .x_between_center,
             .child_gap = 8,
             .padding = .horizontal(16),
@@ -305,7 +303,7 @@ pub fn render() void {
                 .background = .palette(.background),
             },
         })({
-            Box.style(&.{ .layout = .left_center })({
+            Box().style(&.{ .layout = .left_center })({
                 Link(.{ .url = "/", .aria_label = "home page of tether" }).style(&.{
                     .visual = .{ .text_decoration = .none },
                     .size = .h(.px(48)),
@@ -316,8 +314,8 @@ pub fn render() void {
                     });
                 });
             });
-            Box.style(&.{ .layout = .right_center })({
-                ButtonCycle(.{ .on_press = openMenu }).style(&.{
+            Box().style(&.{ .layout = .right_center })({
+                Button(.{ .on_press = openMenu }).style(&.{
                     .size = .hw(.px(36), .px(48)),
                     .visual = .bg(.palette(.background)),
                 })({
@@ -336,7 +334,7 @@ pub fn render() void {
                     });
                 });
 
-                ButtonCycle(.{ .on_press = openMenu }).style(&.{
+                Button(.{ .on_press = openMenu }).style(&.{
                     .size = .hw(.px(36), .px(48)),
                     .visual = .bg(.palette(.background)),
                 })({
@@ -355,12 +353,12 @@ pub fn render() void {
             });
         });
         if (menu) {
-            Box.style(&.{
+            Box().style(&.{
                 .position = .{ .type = .fixed, .top = .px(80), .left = .px(0), .z_index = 999 },
                 .size = .w(.percent(100)),
                 // .visual = .{ .background = Theme.background, .border = .tb(.hex("#E4E4E4")) },
             })({
-                List.style(&.{
+                List().style(&.{
                     .list_style = .none,
                     .direction = .column,
                     .padding = .tblr(16, 16, 8, 8),
@@ -368,7 +366,7 @@ pub fn render() void {
                     .size = .w(.percent(100)),
                 })({
                     for (urls) |item| {
-                        ListItem.style(&.{
+                        ListItem().style(&.{
                             .size = .w(.percent(70)),
                         })({
                             CtxButton(navigate, .{item.url}).style(&.{

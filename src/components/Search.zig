@@ -1,12 +1,14 @@
 const std = @import("std");
 const Vapor = @import("vapor");
 const Static = Vapor.Static;
-const Pure = Vapor.Pure;
 const Binded = Vapor.Binded;
 const Dynamic = Vapor.Dynamic;
 const HtmlElement = Vapor.Binded;
 const menu_items = @import("../components/DocNavbar.zig").menu_items;
 const MenuItem = @import("../components/DocNavbar.zig").MenuItem;
+const Theme = @import("theme");
+const TextFmt = Vapor.TextFmt;
+const TextField = Vapor.TextField;
 
 var search_box: HtmlElement = HtmlElement{};
 var background: Vapor.Binded = .{};
@@ -21,13 +23,17 @@ pub fn init() void {
 
 pub fn toggle() void {
     show = !show;
-    Vapor.cycle();
 }
 
 pub fn mount() void {
-    // _ = background.addListener(.click, closeEvent);
-    // _ = search_box.addListener(.input, search);
-    // _ = search_box.focus();
+    current_item = null;
+}
+
+fn clear() void {
+    dynamic_menu_items.clearRetainingCapacity();
+    dynamic_menu_items.appendSlice(menu_items) catch {
+        Vapor.println("Error appending menu items", .{});
+    };
 }
 
 /// Searches the item's title and all relevant fields within its tags.
@@ -41,7 +47,7 @@ fn search(evt: *Vapor.Event) void {
     // If the search box is empty, show all items
     if (text.len == 0) {
         dynamic_menu_items.appendSlice(menu_items) catch {};
-        Vapor.cycle();
+        // Vapor.cycle();
         return;
     }
 
@@ -85,8 +91,6 @@ fn search(evt: *Vapor.Event) void {
             dynamic_menu_items.append(item) catch {};
         }
     }
-
-    Vapor.cycle();
 }
 
 fn closeEvent(_: *Vapor.Event) void {
@@ -96,39 +100,27 @@ fn closeEvent(_: *Vapor.Event) void {
 
 fn close() void {
     show = false;
-    Vapor.cycle();
-}
-
-fn navigate(link: []const u8) void {
-    Vapor.Kit.navigate(link);
-    toggle();
-}
-
-var showBorder: bool = false;
-fn toggleBorder() void {
-    Vapor.println("Border toggled", .{});
-    showBorder = !showBorder;
-    Vapor.cycle();
+    clear();
 }
 
 var current_item: ?MenuItem = null;
-fn onHover(_: *Vapor.Event, item: MenuItem) void {
+fn onHover(item: MenuItem, _: *Vapor.Event) void {
     current_item = item;
-    // Vapor.print("onHover {s}", .{item.id});
-    Vapor.cycle();
-    // showBorder = true;
 }
 
 fn onLeave(_: *Vapor.Event) void {
-    // Vapor.print("onLeave", .{});
     current_item = null;
-    Vapor.cycle();
+}
+
+fn navigate(url: []const u8) void {
+    Vapor.Kit.navigate(url);
+    close();
 }
 
 pub fn render() void {
     if (show) {
         Static.Hooks(.{ .mounted = mount })({
-            Static.Center.style(&.{
+            Static.Center().style(&.{
                 .position = .{
                     .type = .fixed,
                     .top = .percent(0),
@@ -140,7 +132,7 @@ pub fn render() void {
                 .size = .square_percent(100),
                 .direction = .row,
             })({
-                // Static.Box.bind(&background).style(&.{
+                // Static.Box().bind(&background).style(&.{
                 Static.Button(.{ .on_press = close }).style(&.{
                     .position = .{
                         .type = .fixed,
@@ -150,9 +142,9 @@ pub fn render() void {
                         .bottom = .px(0),
                         .z_index = 1100,
                     },
-                    .visual = .{ .background = .transparentizeHex(.hex("#000000"), 0.1) },
+                    .visual = .{ .background = .transparentizeHex(.hex("#000000"), if (Theme.mode == .light) 0.1 else 0.7) },
                 })({});
-                Static.Box.style(&.{
+                Static.Box().style(&.{
                     .size = .{ .width = .mobile_desktop_percent(90, 40), .height = .percent(80) },
                     .visual = .{
                         .border = .simple(.palette(.text_color)),
@@ -166,9 +158,8 @@ pub fn render() void {
                     .child_gap = 8,
                     .position = .{ .type = .relative, .z_index = 1101 },
                 })({
-                    Static.Box.style(&.{
+                    Static.Box().style(&.{
                         .size = .{ .width = .percent(100) },
-                        // .position = .{ .type = .relative },
                         .layout = .x_between_center,
                         .padding = .horizontal(12),
                         .interactive = .{
@@ -177,37 +168,33 @@ pub fn render() void {
                             },
                         },
                         .visual = .{ .border = .simple(.hex("#E1E1E1")), .cursor = .pointer, .background = .palette(.background) },
-                        // .focus = .{
-                        //     .border_color = .hex("#5A27FF"),
-                        //     .border_thickness = .all(2),
-                        //     .shadow = .{
-                        //         .color = .rgba(139, 92, 246, 200),
-                        //         .blur = 3,
-                        //         .spread = 1,
-                        //     },
-                        // },
                     })({
                         Static.Icon(.search).style(&.{
                             .visual = .{ .font_size = 16 },
                         });
-                        Static.TextField(.string).onChange(search).style(&.{
+                        TextField(.string).onChange(search).style(&.{
                             .size = .hw(.px(38), .grow),
                             .padding = .tblr(4, 4, 8, 8),
-                            .visual = .{ .border = .none, .font_size = 18 },
+                            .visual = .{
+                                .border = .none,
+                                .font_size = 18,
+                                .background = .transparent,
+                                .text_color = .palette(.text_color),
+                                .outline = .none,
+                            },
                             .font_family = "IBM Plex Mono,monospace",
-                            .outline = .none,
                         });
                         Static.Icon(.command).style(&.{
                             .visual = .{ .font_size = 16 },
                         });
                     });
 
-                    Pure.TextFmt("Results {d}", .{3}).style(&.{
+                    TextFmt("Results {d}", .{3}).style(&.{
                         .visual = .{ .font_weight = 700, .font_size = 14 },
                         .size = .{ .width = .percent(100) },
                         .margin = .{ .top = 20 },
                     });
-                    Static.List.style(&.{
+                    Static.List().style(&.{
                         .direction = .column,
                         .size = .{ .width = .percent(100) },
                         .list_style = .none,
@@ -216,7 +203,7 @@ pub fn render() void {
                     })({
                         for (dynamic_menu_items.items, 0..) |item, j| {
                             const border: Vapor.Types.BorderGrouped = if (j != 0) .sharp(.tblr(1, 1, 1, 1), .palette(.text_color)) else .simple(.palette(.text_color));
-                            Static.ListItem.id(item.id)
+                            Static.ListItem()
                                 .onHoverCtx(onHover, item)
                                 .onLeave(onLeave)
                                 .style(&.{
@@ -235,33 +222,41 @@ pub fn render() void {
                                 },
                             })({
                                 const text_color: Vapor.Types.Color = if (current_item) |c_item| if (std.mem.eql(u8, c_item.id, item.id)) .palette(.tint) else .palette(.text_color) else .palette(.text_color);
-                                Static.Link(.{ .url = item.link, .aria_label = item.title })
-                                    .textDecoration(.none)
-                                    .body()({
-                                    // Static.CtxButton(navigate, .{item.link}).style(&.{
-                                    //     .size = .{ .width = .percent(100), .height = .px(60) },
-                                    //     .visual = .{
-                                    //         .border_radius = .top_bottom(4, 0),
-                                    //         .border_color = .transparent,
-                                    //         .border_thickness = .all(2),
-                                    //         .cursor = .pointer,
-                                    //         .text_decoration = .none,
-                                    //     },
-                                    //     .padding = .horizontal(8),
-                                    //     .direction = .column,
-                                    //     .interactive = .{
-                                    //         .hover = .{
-                                    //             .border_color = .hex("#5A27FF"),
-                                    //             .border_thickness = .all(2),
-                                    //         },
-                                    //     },
-                                    // })({
+                                // Static.Link(.{ .url = item.link, .aria_label = item.title })
+                                //     .textDecoration(.none)
+                                //     .body()({
+                                Static.CtxButton(navigate, .{item.link})
+                                    .width(.full)
+                                    .layout(.left_center)
+                                    .direction(.column)
+                                    .pointer()
+                                    .textDecoration(.none
+                                        // &.{
+                                        // .size = .{ .width = .percent(100), .height = .px(60) },
+                                        // .visual = .{
+                                        //     .border_radius = .top_bottom(4, 0),
+                                        //     .border_color = .transparent,
+                                        //     .border_thickness = .all(2),
+                                        //     .cursor = .pointer,
+                                        //     .text_decoration = .none,
+                                        // },
+                                        // .padding = .horizontal(8),
+                                        // .direction = .column,
+                                        // .interactive = .{
+                                        //     .hover = .{
+                                        //         .border_color = .hex("#5A27FF"),
+                                        //         .border_thickness = .all(2),
+                                        //     },
+                                        // },
+                                        // }
+                                    ).children({
                                     Static.Text(item.title).style(&.{
                                         .visual = .{ .font_size = 18, .text_color = text_color, .font_weight = 700 },
                                         .font_family = "IBM Plex Mono,monospace",
                                     });
                                     Static.Text(item.link).style(&.{
                                         .visual = .{ .font_size = 12, .text_color = text_color },
+                                        .font_family = "IBM Plex Mono,monospace",
                                     });
                                     // });
                                     for (item.tags) |tag| {
@@ -274,6 +269,7 @@ pub fn render() void {
                                                 .border = .bottom(.transparent),
                                             },
                                             .direction = .column,
+                                            .font_family = "Montserrat",
                                             // .padding = .horizontal(8),
                                             .interactive = .{
                                                 .hover = .{

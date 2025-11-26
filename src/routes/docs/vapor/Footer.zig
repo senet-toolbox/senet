@@ -1,16 +1,15 @@
 const std = @import("std");
-const Fabric = @import("vapor");
-const Static = Fabric.Static;
-const Pure = Fabric.Pure;
-const Types = Fabric.Types;
-const Dynamic = Fabric.Dynamic;
-const Element = Fabric.Element;
+const Vapor = @import("vapor");
+const Static = Vapor.Static;
+const Types = Vapor.Types;
+const Dynamic = Vapor.Dynamic;
+const Element = Vapor.Element;
 const Sheet = @import("Sheet.zig").Sheet;
-const Signal = Fabric.Signal;
-const Kit = Fabric.Kit;
-const println = Fabric.println;
+const Signal = Vapor.Signal;
+const Kit = Vapor.Kit;
+const println = Vapor.println;
 const logo = @embedFile("logo.svg");
-const Binded = Fabric.Binded;
+const Binded = Vapor.Binded;
 const Box = Static.Box;
 const Text = Static.Text;
 const Link = Static.Link;
@@ -18,7 +17,7 @@ const Image = Static.Image;
 const Svg = Static.Svg;
 const Button = Static.Button;
 const Center = Static.Center;
-const Icon = Pure.Icon;
+const Icon = Vapor.Icon;
 
 var current_route: usize = 0;
 const routes: []const []const u8 = &.{
@@ -83,9 +82,9 @@ fn setCurrentRoute(path: []const u8) void {
 }
 
 pub fn render() void {
-    const path = Fabric.Kit.getWindowPath();
+    const path = Vapor.Kit.getWindowPath() orelse "/";
     setCurrentRoute(path);
-    Box.style(&.{
+    Box().style(&.{
         .size = .w(.percent(100)),
         .layout = .{ .x = .end, .y = .center },
         .child_gap = 32,
@@ -113,7 +112,7 @@ pub fn render() void {
                 Text("Prev").style(&.{
                     .visual = .{ .font_size = 16 },
                 });
-                Center.style(&.{
+                Center().style(&.{
                     .child_gap = 12,
                 })({
                     Text(title).style(&.{
@@ -148,7 +147,7 @@ pub fn render() void {
                 Text("Next").style(&.{
                     .visual = .{ .font_size = 16 },
                 });
-                Center.style(&.{
+                Center().style(&.{
                     .child_gap = 12,
                 })({
                     Icon(.arrow_return_right).style(&.{

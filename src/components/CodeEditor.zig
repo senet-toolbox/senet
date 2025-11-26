@@ -1,13 +1,11 @@
 const std = @import("std");
 const Vapor = @import("vapor");
 const Static = Vapor.Static;
-const Pure = Vapor.Pure;
 const CtxButton = Static.CtxButton;
 const Box = Static.Box;
 const Graphic = Static.Graphic;
-const Icon = Pure.Icon;
+const Icon = Vapor.Icon;
 const Text = Static.Text;
-const theme = @import("theme");
 const Color = Vapor.Types.Color;
 // const code = @import("code/FormCode.zig").code;
 
@@ -32,6 +30,7 @@ processed_lines: std.array_list.Managed(NewLine),
 // show_cpy_btn: Signal(bool) = undefined,
 show_cpy_btn: bool = false,
 local_copy_code: []const u8 = undefined,
+use_cpy_btn: bool = true,
 
 fn toggleIcon(code_editor: *CodeEditor) void {
     code_editor.show_cpy_btn = false;
@@ -43,7 +42,7 @@ fn copy(code_editor: *CodeEditor) void {
     Vapor.Clipboard.copy(code_editor.local_copy_code);
     code_editor.show_cpy_btn = true;
     Vapor.cycle();
-    Vapor.registerCtxTimeout(1000, toggleIcon, .{code_editor});
+    Vapor.registerCtxTimeout("copy_btn_editor", 1000, toggleIcon, .{code_editor});
 }
 
 pub fn initWrapper(ptr: *anyopaque, allocator: *std.mem.Allocator, code: []const u8) void {
@@ -95,7 +94,7 @@ pub inline fn Code() fn (void) void {
     return Vapor.LifeCycle.close;
 }
 pub fn render(code_editor: *CodeEditor, _: f32) void {
-    Box.style(&.{
+    Box().style(&.{
         .size = .square_percent(100),
         .scroll = .scroll_y(),
         .show_scrollbar = false,
@@ -103,11 +102,12 @@ pub fn render(code_editor: *CodeEditor, _: f32) void {
         .layout = .{ .x = .start, .y = .start },
         .visual = .{
             .background = .palette(.code_background),
+            .border = .simple(.palette(.disabled)),
             // .border_radius = .all(8),
         },
         .padding = .tb(10, 10),
     })({
-        Box.style(&.{
+        Box().style(&.{
             .layout = .x_between_center,
             .size = .w(.percent(100)),
             .padding = .tblr(0, 8, 12, 12),
@@ -115,74 +115,76 @@ pub fn render(code_editor: *CodeEditor, _: f32) void {
                 .border = .bottom(.palette(.disabled)),
             },
         })({
-            Box.style(&.{
+            Box().style(&.{
                 .size = .h(.percent(100)),
                 .child_gap = 8,
             })({
-                // Box.style(&.{
+                // Box().style(&.{
                 //     .size = .square_px(14),
                 //     .visual = .{ .border_radius = .all(0), .background = .hex("#FF0000") },
                 // })({});
-                // Box.style(&.{
+                // Box().style(&.{
                 //     .size = .square_px(14),
                 //     .visual = .{ .border_radius = .all(0), .background = .hex("#FFFF00") },
                 // })({});
-                // Box.style(&.{
+                // Box().style(&.{
                 //     .size = .square_px(14),
                 //     .visual = .{ .border_radius = .all(0), .background = .hex("#09FF00") },
                 // })({});
-                Text("Example").font(14, 600, .palette(.text_color)).close();
+                Text("Example").font(14, 600, .palette(.text_color)).end();
             });
-            Box.style(&.{
+            Box().style(&.{
                 .size = .w(.percent(10)),
                 .layout = .x_even_center,
             })({
-                CtxButton(copy, .{code_editor})
-                    // .tooltip(&.{
-                    //     .text = "Copy",
-                    //     .position = .bottom,
-                    //     .layout = .center,
-                    //     .color = .palette(.text_color),
-                    //     .delay = 100,
-                    // })
-                    .style(&.{
-                    .position = .relative,
-                    .size = .square_px(22),
-                    .transition = .{ .duration = 100 },
-                    .visual = .{
-                        .border_radius = .all(4),
-                        .background = .transparent,
-                        .text_color = .palette(.disabled),
-                        .cursor = .pointer,
-                    },
-                    .interactive = .{
-                        .hover = .{ .text_color = .palette(.text_color) },
-                    },
-                    .layout = .center,
-                })({
-                    if (!code_editor.show_cpy_btn) {
-                        Icon(.clipboard).style(&.{
-                            .visual = .{ .font_size = 16 },
-                        });
-                    } else {
-                        Icon(.check).style(&.{
-                            .visual = .{ .font_size = 16 },
-                        });
-                    }
-                });
-                // Icon("bi bi-code").style(&.{
-                //     .visual = .{
-                //         .font_size = 16,
-                //         .text_color = .palette(.disabled),
-                //     },
-                // });
-                Graphic(.{ .src = "/src/assets/zig_simple.svg" }).style(&.{
-                    .size = .{ .height = .px(16), .width = .px(16) },
-                    .visual = .{ .text_color = .palette(.tint) },
-                });
+                if (code_editor.use_cpy_btn) {
+                    CtxButton(copy, .{code_editor})
+                        // .tooltip(&.{
+                        //     .text = "Copy",
+                        //     .position = .bottom,
+                        //     .layout = .center,
+                        //     .color = .palette(.text_color),
+                        //     .delay = 100,
+                        // })
+                        .style(&.{
+                        .position = .relative,
+                        .size = .square_px(22),
+                        .transition = .{ .duration = 100 },
+                        .visual = .{
+                            .border_radius = .all(4),
+                            .background = .transparent,
+                            .text_color = .palette(.disabled),
+                            .cursor = .pointer,
+                        },
+                        .interactive = .{
+                            .hover = .{ .text_color = .palette(.text_color) },
+                        },
+                        .layout = .center,
+                    })({
+                        if (code_editor.show_cpy_btn) {
+                            Icon(.check).style(&.{
+                                .visual = .{ .font_size = 16 },
+                            });
+                        } else {
+                            Icon(.clipboard).style(&.{
+                                .visual = .{ .font_size = 16 },
+                            });
+                        }
+                    });
+                    // Icon("bi bi-code").style(&.{
+                    //     .visual = .{
+                    //         .font_size = 16,
+                    //         .text_color = .palette(.disabled),
+                    //     },
+                    // });
+                    Graphic(.{ .src = "/src/assets/zig_simple.svg" }).style(&.{
+                        .size = .{ .height = .px(16), .width = .px(16) },
+                        .visual = .{ .text_color = .palette(.tint), .fill = .palette(.tint) },
+                    });
+                }
             });
         });
-        Box.style(&.{
+        Box().style(&.{
             .size = .square_percent(100),
             .scroll = .scroll_x(),
             .direction = .column,
@@ -198,19 +200,20 @@ pub fn render(code_editor: *CodeEditor, _: f32) void {
                     } else blk: {
                         break :blk Vapor.Types.Background.transparent;
                     };
-                    Box.style(&.{
-                        .size = .h(.px(20)),
+                    Box().style(&.{
+                        .size = .h(.px(18)),
                         .white_space = .pre,
                         .layout = .left_center,
                         .padding = .l(24),
                         .visual = .{ .background = color },
-                        .font_family = "JetBrains Mono,Fira Code,Consolas,monospace",
+                        .font_family = "DM Mono, monospace", // "IBM Plex Mono,monospace",
+                        // .font_family = "IBM Plex Mono,monospace",
                     })({
                         for (line.processed_text) |word| {
                             Text(word.text).style(&.{
                                 .visual = .{
-                                    .font_size = if (Vapor.isMobile()) 16 else 16,
-                                    .font_weight = 500,
+                                    .font_size = if (Vapor.isMobile()) 16 else 15,
+                                    .font_weight = 400,
                                     .text_color = word.color,
                                 },
                             });
@@ -229,13 +232,18 @@ const Declarations = enum {
     @"while",
     @"fn",
     @"switch",
+    @"return",
+    @"break",
+    @"struct",
+    @"enum",
+    @"union",
+    @"export",
+    @"extern",
     @"try",
     @"if",
     @"else",
     @"pub",
-    // Static,
-    // Pure,
-    // Box,
+    @"for",
 };
 
 pub fn includes(haystack: []const u8, needle: []const u8) bool {
@@ -435,8 +443,16 @@ pub fn tokenize(code_editor: *CodeEditor, text: []const u8) !void {
                         Declarations.@"if",
                         Declarations.@"else",
                         Declarations.@"pub",
+                        Declarations.@"return",
+                        Declarations.@"break",
+                        Declarations.@"struct",
+                        Declarations.@"enum",
+                        Declarations.@"union",
+                        Declarations.@"export",
+                        Declarations.@"extern",
+                        Declarations.@"for",
                         => {
-                            text_deets.color = .palette(.tint);
+                            text_deets.color = .palette(.code_tint_color);
                         },
                     }
                     text_deets.text = result;
@@ -479,3 +495,4 @@ pub fn tokenize(code_editor: *CodeEditor, text: []const u8) !void {
         // depth -= @intCast(std.mem.count(u8, line, "{}"));
     }
 }
+

@@ -2,25 +2,18 @@ const std = @import("std");
 const Vapor = @import("vapor");
 const Static = Vapor.Static;
 const Types = Vapor.Types;
-const Dynamic = Vapor.Dynamic;
-const Element = Vapor.Element;
-// const Sheet = @import("Sheet.zig").Sheet;
 const Signal = Vapor.Signal;
 const Kit = Vapor.Kit;
 const println = Vapor.println;
-const logo = @embedFile("logo.svg");
 const Binded = Vapor.Binded;
 const Search = @import("Search.zig");
-const Center = Static.Center;
 const Box = Static.Box;
 const Image = Static.Image;
 const Text = Static.Text;
 const Page = Vapor.Page;
-const Pure = Vapor.Pure;
 const Graphic = Static.Graphic;
 const Icon = Static.Icon;
 const Button = Static.Button;
-const ButtonCycle = Static.ButtonCycle;
 const Link = Static.Link;
 const List = Static.List;
 const CtxButton = Static.CtxButton;
@@ -58,10 +51,14 @@ pub const menu_items: []const MenuItem = &.{
         .link = "/docs/vapor",
         .sections = &.{
             &.{ .title = "What is Vapor?", .link = "what-is-vapor" },
+            &.{ .title = "Quickstart", .link = "quickstart" },
             &.{ .title = "Vapor is simple", .link = "vapor-is-simple" },
-            &.{ .title = "Making a button", .link = "making-a-button" },
-            &.{ .title = "A glimpse under the hood", .link = "a-glimpse-under-the-hood" },
-            &.{ .title = "UI Node", .link = "ui-node" },
+            &.{ .title = "How it works", .link = "how-it-works" },
+            &.{ .title = "Why Zig?", .link = "why-zig" },
+            &.{ .title = "Making a Button", .link = "making-a-button" },
+            &.{ .title = "Builder Pattern", .link = "builder" },
+            // &.{ .title = "Memory is not scary", .link = "memory-is-not-scary" },
+            // &.{ .title = "Engine", .link = "engine" },
         },
         .icon = .house, // Keep as is - perfect for home
         .tags = &.{
@@ -93,18 +90,15 @@ pub const menu_items: []const MenuItem = &.{
         .link = "/docs/vapor/concepts/basics",
         .sections = &.{
             &.{ .title = "Basics", .link = "basics" },
-            &.{ .title = "CSR VS SSR", .link = "csr-vs-ssr" }, // TODO
             &.{ .title = "Creating a Vapor App", .link = "creating-a-vapor-app" },
-            &.{ .title = "Core Functions", .link = "core-functions" },
             &.{ .title = "Instantiate", .link = "instantiate" },
-            &.{ .title = "RenderUI", .link = "renderUI" },
             &.{ .title = "export", .link = "export" },
-            &.{ .title = "Virtual Dom & Reconciliation", .link = "virtual-dom-and-reconciliation" },
+            &.{ .title = "Engine", .link = "engine" },
             &.{ .title = "Performance", .link = "performance" },
             &.{ .title = "Structuring your application", .link = "structuring-your-application" },
             &.{ .title = "Global Components", .link = "global-components" },
             &.{ .title = "Instance Components", .link = "instance-components" },
-            &.{ .title = "Its just Zig", .link = "its-just-zig" },
+            &.{ .title = "Function Components", .link = "function-components" },
         },
         .icon = .mortarboard, // Graduation cap for learning basics
         .tags = &.{
@@ -122,6 +116,26 @@ pub const menu_items: []const MenuItem = &.{
             },
         },
     },
+
+    MenuItem{ // New to Zig
+        .id = "new-to-zig",
+        .title = "New to Zig",
+        .link = "/docs/vapor/concepts/new-to-zig",
+        .icon = .filetype_js,
+        .tags = &.{
+            Tag{
+                .keywords = &.{ "new to zig", "zig", "installation", "getting started" },
+                .sub_title = "New to Zig",
+                .url = "/docs/vapor/concepts/new-to-zig/#new-to-zig",
+                .description = "New to Zig...",
+            },
+        },
+        .sections = &.{
+            &.{ .title = "New to Zig", .link = "new-to-zig" },
+            &.{ .title = "Memory", .link = "memory" },
+        },
+    },
+
     MenuItem{
         .id = "project-structure",
         .title = "Project Structure",
@@ -169,8 +183,8 @@ pub const menu_items: []const MenuItem = &.{
         .link = "/docs/vapor/concepts/reactivity",
         .sections = &.{
             &.{ .title = "Reactivity", .link = "reactivity" },
-            &.{ .title = "Signal Types", .link = "signal-types" },
             &.{ .title = "UI as reactivity", .link = "ui-as-reactivity" },
+            &.{ .title = "Atomic Mode", .link = "atomic-mode" },
             &.{ .title = "Immediate Mode", .link = "immediate-mode" },
             &.{ .title = "80% of content in an application is static", .link = "80-content-is-static" },
             &.{ .title = "Retained Mode", .link = "retained-mode" },
@@ -193,24 +207,6 @@ pub const menu_items: []const MenuItem = &.{
         },
     },
     MenuItem{
-        .id = "layout",
-        .title = "Layout",
-        .link = "/docs/vapor/concepts/layout",
-        .icon = .columns, // Circular arrows for reactive updates
-        .sections = &.{
-            &.{ .title = "Layouts", .link = "layouts" },
-            &.{ .title = "Register Layouts", .link = "register-layout" },
-        },
-        .tags = &.{
-            Tag{
-                .keywords = &.{ "layout", "defaults", "spacing", "overlay" },
-                .sub_title = "Introduction",
-                .url = "/docs/vapor/concepts/layout/#introduction",
-                .description = "How to use layouts...",
-            },
-        },
-    },
-    MenuItem{
         .id = "styling",
         .title = "Styling",
         .link = "/docs/vapor/concepts/styling",
@@ -229,6 +225,43 @@ pub const menu_items: []const MenuItem = &.{
             &.{ .title = "Code Block", .link = "code-block" },
         },
         .icon = .paint_bucket, // Circular arrows for reactive updates
+    },
+    MenuItem{ // Vaporize
+        .id = "Vaporize",
+        .title = "Vaporize",
+        .link = "/docs/vapor/concepts/vaporize",
+        .sections = &.{
+            &.{ .title = "Vaporize", .link = "vaporize" },
+        },
+        .icon = .device_hdd_fill,
+    },
+
+    MenuItem{ // Memory
+        .id = "memory",
+        .title = "Memory",
+        .link = "/docs/vapor/concepts/memory",
+        .sections = &.{
+            &.{ .title = "Memory", .link = "memory" },
+        },
+        .icon = .memory,
+    },
+    MenuItem{
+        .id = "layout",
+        .title = "Layout",
+        .link = "/docs/vapor/concepts/layout",
+        .icon = .columns, // Circular arrows for reactive updates
+        .sections = &.{
+            &.{ .title = "Layouts", .link = "layouts" },
+            &.{ .title = "Register Layouts", .link = "register-layout" },
+        },
+        .tags = &.{
+            Tag{
+                .keywords = &.{ "layout", "defaults", "spacing", "overlay" },
+                .sub_title = "Introduction",
+                .url = "/docs/vapor/concepts/layout/#introduction",
+                .description = "How to use layouts...",
+            },
+        },
     },
     MenuItem{
         .id = "kit",
@@ -279,18 +312,20 @@ pub const menu_items: []const MenuItem = &.{
         },
         .icon = .hourglass_split,
     },
-    // MenuItem{
-    //     .id = "js-libs",
-    //     .title = "JS Libs",
-    //     .link = "/docs/vapor/concepts/jslibs",
-    //     .icon = .filetype_js, // Tools icon for toolkit/kit
-    // },
-    // MenuItem{
-    //     .id = "wasm-bridge",
-    //     .title = "WASM Bridge",
-    //     .link = "/docs/vapor/concepts/bridge",
-    //     .icon = .ethernet,
-    // },
+    MenuItem{
+        .id = "Codex Engine",
+        .title = "Codex Engine",
+        .link = "/docs/vapor/concepts/codex-engine",
+        .sections = &.{
+            &.{ .title = "Codex Engine", .link = "codex-engine" },
+            &.{ .title = "How it works", .link = "how-it-works" },
+            &.{ .title = "An Example", .link = "example" },
+            &.{ .title = "Comparison to Typical Frameworks", .link = "comparison-to-typical-frameworks" },
+            &.{ .title = "Vapor Difference", .link = "vapor-difference" },
+            &.{ .title = "Instructions vs Information", .link = "instructions-vs-information" },
+        },
+        .icon = .motherboard,
+    },
     MenuItem{
         .id = "performance",
         .title = "Performance",
@@ -305,22 +340,6 @@ pub const menu_items: []const MenuItem = &.{
             },
         },
     },
-    // MenuItem{
-    //     .id = "csr-vs-ssr",
-    //     .title = "CSR vs SSR",
-    //     .link = "/docs/vapor/concepts/csr_vs_ssr",
-    //     .icon = .filetype_js, // Tools icon for toolkit/kit
-    //     .sections = &.{
-    //         &.{ .title = "CSR vs SSR", .link = "csr-vs-ssr" },
-    //         &.{ .title = "Architecture", .link = "architecture" },
-    //         &.{ .title = "Better Way", .link = "better-way" },
-    //         &.{ .title = "WASM Framework", .link = "wasm-framework" },
-    //         &.{ .title = "Example", .link = "example" },
-    //         &.{ .title = "SEO", .link = "seo" },
-    //         &.{ .title = "Real-Time Data", .link = "real-time-data" },
-    //         &.{ .title = "Synchronization Problem", .link = "synchronization-problem" },
-    //     },
-    // },
     MenuItem{
         .id = "tutorials",
         .title = "Tutorials",
@@ -332,7 +351,7 @@ pub const menu_items: []const MenuItem = &.{
         .id = "metal",
         .title = "Metal",
         .link = "/docs/metal",
-        .icon = .motherboard, // Graduation cap for learning basics
+        .icon = .screw_driver, // Graduation cap for learning basics
         .tags = &.{
             Tag{
                 .keywords = &.{ "metal", "docker" },
@@ -344,13 +363,14 @@ pub const menu_items: []const MenuItem = &.{
     },
 };
 
-var current_menu_item: ?MenuItem = null;
+var current_menu_item: ?MenuItem = menu_items[0];
 var current_section: []const u8 = "";
-var sections: std.StringArrayHashMap(void) = undefined;
+var sections: std.StringHashMap(bool) = undefined;
 pub var section_indices: std.AutoHashMap(usize, void) = undefined;
 pub fn init() void {
-    sections = std.StringArrayHashMap(void).init(Vapor.lib.frame_arena.persistentAllocator());
+    sections = std.StringHashMap(bool).init(Vapor.lib.frame_arena.persistentAllocator());
     section_indices = std.AutoHashMap(usize, void).init(Vapor.lib.frame_arena.persistentAllocator());
+    Content.initBoxes();
 }
 
 fn openDialog() void {
@@ -359,76 +379,96 @@ fn openDialog() void {
 
 fn toggleTheme() void {
     Theme.toggleTheme();
-    // Vapor.cycle();
 }
 
 fn goto(url: []const u8) void {
     sections.clearRetainingCapacity();
-    Vapor.onEnd(reinitObserver); // This will triger at the end of the current cycle
     for (menu_items) |item| {
         if (std.mem.eql(u8, url, item.link)) {
             current_menu_item = item;
+            for (item.sections) |section| {
+                sections.put(section.link, false) catch unreachable;
+            }
         }
     }
     Vapor.Kit.navigate(url);
     Kit.scrollTo(0, 0);
+    Vapor.onEnd(reinit); // This will triger at the end of the current cycle
 }
 
 fn handleSection(target: Observer.Target) void {
-    if (target.is_in_view) {
-        sections.put(target.url, {}) catch unreachable;
-        Content.boxes[target.index].active = true;
-    } else {
-        const yes = sections.swapRemove(target.url);
-        if (yes) {
+    if (Content.boxes.len == 0) return;
+    if (Content.boxes.len > target.index) {
+        if (target.is_in_view) {
+            sections.put(current_menu_item.?.sections[target.index].link, true) catch |err| {
+                Vapor.printErr("{any}", .{err});
+                return;
+            };
+            Content.boxes[target.index].active = true;
+        } else {
+            _ = sections.remove(current_menu_item.?.sections[target.index].link);
             Content.boxes[target.index].active = false;
         }
     }
+}
+
+pub fn reinit() void {
+    observer.disconnect();
+    Content.reinitBoxes(); // This creates the boxes after the page is mounted
+    Vapor.cycle();
+    Vapor.onEnd(reinitObserver); // This will triger at the end of the current cycle
+
+}
+var mounted: bool = false;
+
+var observer: Observer = undefined;
+fn createObserver() void {
+    Vapor.println("createObserver", .{});
+    observer = Observer.new("menu-bar", handleSection, .{
+        .threshold = 0.4,
+    });
+
+    if (current_menu_item) |item| {
+        for (item.sections, 0..) |section, i| {
+            observer.observe(.{ .uuid = section.link }, i);
+        }
+    }
+}
+
+fn reinitObserver() void {
+    if (current_menu_item) |item| {
+        for (item.sections, 0..) |section, i| {
+            observer.observe(.{ .uuid = section.link }, i);
+        }
+    }
+}
+
+fn createTimeout(_: void) void {
     Vapor.cycle();
 }
 
-pub fn reinitObserver() void {
-    Content.deinitBoxes();
-    _ = Observer.reinit("menu-bar");
-    Content.initBoxes(); // This creates the boxes after the page is mounted
-}
-var mounted: bool = false;
 fn mount() void {
-    const current_path = Vapor.Kit.getWindowPath();
-    _ = Observer.new("menu-bar", handleSection, .{
-        .threshold = 0.4,
-    });
-    if (!mounted) {
-        current_menu_item = null;
-        for (menu_items) |item| {
-            if (std.mem.eql(u8, current_path, item.link)) {
-                current_menu_item = item;
-                break;
+    // this runs after the vaporize is mounter
+    const current_path = Vapor.Kit.getWindowPath() orelse "/docs/vapor";
+    current_menu_item = null;
+    for (menu_items) |item| {
+        if (std.mem.eql(u8, current_path, item.link)) {
+            current_menu_item = item;
+            for (item.sections) |section| {
+                sections.put(section.link, false) catch unreachable;
             }
+            break;
         }
     }
 
-    // Vapor.registerCtxTimeout(300, createBoxes, .{{}});
-    Content.initBoxes(); // This creates the boxes after the page is mounted
-    mounted = true;
-    // Vapor.cycle();
+    Content.reinitBoxes();
+    Vapor.onEnd(createObserver);
 }
 
 fn list() void {
-    const current_path = Vapor.Kit.getWindowPath();
-
-    if (!mounted) {
-        current_menu_item = null;
-        for (menu_items) |item| {
-            if (std.mem.eql(u8, current_path, item.link)) {
-                current_menu_item = item;
-                break;
-            }
-        }
-    }
-
+    const current_path = Vapor.Kit.getWindowPath() orelse "/docs/vapor";
     Hooks(.{ .mounted = mount })({
-        Box.style(&.{
+        Box().style(&.{
             .layout = .x_between_center,
             .child_gap = 8,
             .padding = .{ .top = 8, .bottom = 8, .left = 12, .right = 12 },
@@ -438,7 +478,7 @@ fn list() void {
                 .blur = 3,
             },
         })({
-            Box.style(&.{
+            Box().style(&.{
                 .layout = .x_between_center,
                 .child_gap = 8,
                 .size = .h(.percent(100)),
@@ -454,10 +494,7 @@ fn list() void {
                 Text("Tether").style(&.{
                     .visual = .{ .font_weight = 500, .font_size = 18 },
                 });
-                // Svg(@embedFile("text.svg"), .{
-                //     .size = .{ .w(.px(80),
-                // });
-                Box.style(&.{
+                Box().style(&.{
                     .visual = .{ .border = .l(1, .rgb(0, 0, 0)) },
                     .size = .{ .height = .px(24) },
                 })({});
@@ -466,35 +503,7 @@ fn list() void {
                 });
             });
             if (!Vapor.isMobile()) {
-                // Button(.{ .on_press = openDialog, .aria_label = "search-dialog" }).style(&.{
-                //     .layout = .x_between_center,
-                //     .size = .hw(.px(38), .percent(20)),
-                //     .padding = .{ .top = 4, .bottom = 4, .left = 8, .right = 8 },
-                //     .visual = .{
-                //         .border = .solid(.all(1), .hex("#E1E1E1"), .all(8)),
-                //         .background = .transparentizeHex("#ffffff", 70),
-                //     },
-                //     .cursor = .pointer,
-                //     .interactive = .{ .hover = .{ .border_color = .hex("#802BFF") } },
-                // })({
-                //     Box.style(&.{
-                //         .layout = .left_center,
-                //         .child_gap = 24,
-                //     })({
-                //         Icon("bi bi-search").style(&.{
-                //             .visual = .{ .font_size = 16, .text_color = .hex("#A2A2A2") },
-                //         });
-                //         Text("Search...").style(&.{
-                //             .visual = .{ .font_size = 16, .text_color = .hex("#A2A2A2") },
-                //             .font_family = "Montserrat",
-                //         });
-                //     });
-                //     Icon("bi bi-command").style(&.{
-                //         .visual = .{ .font_size = 16, .text_color = .hex("#A2A2A2") },
-                //     });
-                // });
-
-                ButtonCycle(.{ .on_press = openDialog, .aria_label = "search-dialog" }).style(&.{
+                Button(.{ .on_press = openDialog, .aria_label = "search-dialog" }).baseStyle(&.{
                     .layout = .x_between_center,
                     .size = .hw(.px(38), .percent(50)),
                     .padding = .tblr(4, 4, 8, 8),
@@ -502,8 +511,8 @@ fn list() void {
                     .interactive = .{ .hover = .{
                         .border = .simple(.palette(.tint)),
                     } },
-                })({
-                    Box.style(&.{ .layout = .left_center, .child_gap = 24 })({
+                }).background(.palette(.background)).children({
+                    Box().style(&.{ .layout = .left_center, .child_gap = 24 })({
                         Icon(.search).style(&.{
                             .visual = .{ .font_size = 16, .text_color = .palette(.icon_color) },
                         });
@@ -516,8 +525,8 @@ fn list() void {
                         .visual = .{ .font_size = 16, .text_color = .palette(.icon_color) },
                     });
                 });
-                // Box.plain();
-                Box.style(&.{
+                // Box().plain();
+                Box().style(&.{
                     .size = .{ .width = .percent(20), .height = .percent(100) },
                     .layout = .right_center,
                     .padding = .horizontal(12),
@@ -534,11 +543,11 @@ fn list() void {
                 });
             }
         });
-        Box.style(&.{
+        Box().style(&.{
             .position = .{ .type = .fixed, .top = if (Vapor.isMobile()) .percent(8) else .percent(8), .left = .percent(8), .z_index = 999 },
             .size = .hw(.percent(100), .mobile_desktop_percent(100, 14)),
         })({
-            List.style(&.{
+            List().style(&.{
                 .list_style = .none,
                 .direction = .column,
                 .padding = .{ .top = 16, .bottom = 64, .right = 8, .left = 8 },
@@ -549,12 +558,12 @@ fn list() void {
                 .layout = .{},
             })({
                 for (menu_items) |item| {
-                    ListItem.style(&.{
+                    ListItem().style(&.{
                         .size = .hw(.fit, .percent(100)),
-                        // .border_radius = .all(4),
                         .visual = .{
                             .background = if (std.mem.eql(u8, current_path, item.link)) .transparentizeHex(.palette(.tint), 0.1) else .transparent,
                             .border = .r(1, if (std.mem.eql(u8, current_path, item.link)) .palette(.tint) else .transparent),
+                            .layer = if (std.mem.eql(u8, current_path, item.link)) .dot(0.5, 6, .transparentizeHex(.palette(.tint), 0.3)) else null,
                         },
                         .interactive = .{
                             .hover = .{
@@ -588,18 +597,18 @@ fn list() void {
                 }
             });
         });
-        Stack.style(&.{
+        Stack().style(&.{
             .position = .{ .type = .fixed, .top = if (Vapor.isMobile()) .percent(8) else .percent(8), .right = .percent(2), .z_index = 999 },
             .size = .hw(.percent(100), .mobile_desktop_percent(100, 14)),
         })({
-            Box.style(&.{
+            Box().style(&.{
                 .layout = .left_center,
                 .child_gap = 8,
             })({
-                Icon(.list_task).font(20, 500, .palette(.text_color)).close();
-                Text("On this page").font(16, 500, .palette(.text_color)).close();
+                Icon(.list_task).font(20, 500, .palette(.text_color)).end();
+                Text("On this page").font(16, 500, .palette(.text_color)).end();
             });
-            List.style(&.{
+            List().style(&.{
                 .list_style = .none,
                 .direction = .column,
                 .padding = .{ .top = 16, .bottom = 64, .right = 0, .left = 0 },
@@ -612,28 +621,23 @@ fn list() void {
                 if (current_menu_item) |current| {
                     for (current.sections) |section| {
                         const url = Vapor.fmtln("#{s}", .{section.link});
+                        const active_section = sections.get(section.link) orelse false;
                         const title = section.title;
-                        const color: Vapor.Types.Color = if (sections.get(section.link) != null) .palette(.tint) else .transparent;
-                        const text_color: Vapor.Types.Color = if (sections.get(section.link) != null) .palette(.tint) else .palette(.text_color);
-                        ListItem.style(&.{
-                            .size = .hw(.fit, .percent(100)),
-                        })({
-                            Link(.{ .url = url, .aria_label = title }).style(&.{
-                                .visual = .{
-                                    .text_decoration = .none,
-                                    .cursor = .pointer,
-                                    .border = .l(2, color),
-                                },
-                                .padding = .l(6),
-                                .size = .w(.percent(100)),
-                                .layout = .left_center,
-                            })({
-                                Text(title).style(&.{
-                                    .visual = .{
-                                        .text_color = text_color,
-                                        .font_size = 14,
-                                    },
-                                });
+                        const text_color: Vapor.Types.Color = if (active_section) .palette(.tint) else .palette(.text_color);
+                        ListItem().hw(.fit, .percent(100))
+                            .children({
+                            Link(.{ .url = url, .aria_label = title })
+                                .pointer()
+                                .noDecoration()
+                                .cursor(.pointer)
+                                .border(.l(2, if (active_section) .palette(.tint) else .transparent))
+                                .pl(6)
+                                .width(.full)
+                                .layout(.left_center)
+                                .children({
+                                Text(title)
+                                    .font(14, 300, text_color)
+                                    .end();
                             });
                         });
                     }
@@ -641,11 +645,11 @@ fn list() void {
             });
         });
     });
-    // Search.render();
+    Search.render();
 }
 
 pub fn render() void {
-    Box.style(&.{
+    Box().style(&.{
         .position = .nav,
         .size = .hw(.percent(100), .mobile_desktop_percent(100, 14)),
         .padding = .{ .bottom = 128 },

@@ -2,27 +2,11 @@
 
 # Styling
 
-{#quick-little-rant}
+Vapor treats styling, like Zig itself, there is no scoping, namespacing, CSS classes, ect. Just pure Zig code.
 
-### Quick little rant
+While in typical CSS, application we need to specify classes, and then scope them so that they are tagged with the correct element, and we can use multiple classes with the same naming.
 
-In typical web applications, the most common styling is CSS. Over the years CSS has been wrapped and abstracted, to the
-end of the Earth. There is **SCSS, Tailwind, Sass, Less, Stylus, and more**. However, all of these abstraction take a thin layer approach
-where the focus is less on the UI layout, and more on the reduction of syntax, ie Tailwind converts `margin-top to mt`.
-This may reduce verbosity, and number of keys to press, but does not reduce the complexity required to center a div.
-
-This is a website about how to **CENTER A DIV**.
-
-Normal CSS: `style="display: flex; justify-content: center; align-items: center"`
-
-Tailwind CSS: `class="flex justify-center items-center"`
-
-The question is then, why can't we just do `style="center"`? I have found that in the few years of working in web development,
-`Styling` has caused an enormity of abstraction layers, and more so pushed developers completely away from the frontend.
-
-{#end-of-little-rant}
-
-### End of little rant
+In Vapor, we reconcile the styles, and so not only is everything deduped, but also consolidated. A typical 50kb CSS file, is reduced to a single 10kb CSS file, when using Vapor.
 
 {#new-approach}
 
@@ -32,16 +16,17 @@ Vapor has taken a completely new approach. In the very early stages of Vapor's c
 was built from scratch. The aim of this was, to design an ergonmic, and usable simple styling system, for developers to work
 with. Today, Vapor does not use this UI algo, due to the benefits of the browser's DOM engine, but still uses the same styling api interface.
 
-To center any element in Vapor...
+To center any element in Vapor (including "text")
 
 `.layout = .center` or `.layout(.center)`
 
-Vapor, even exposes it own Center Component type, `Center` Component, which will Center any child elements within it.
-No more `justify-content`, or `align-items`, or `text-align`. Now instead `.x = .start`, or
-`.y = .center` or `.layout = .top_left`.
+Vapor, even exposes it own Center Element type, `Center()`, which will Center any child elements within it.
 
-These are also direction independent, adding `direction = .row`
-or `direction = .column`, will still layout elements in y and x axis, correctly, unlike justify-content, and align-items.
+No more justify-content, or align-items, or text-align. Now instead _.x = .start_,
+_.y = .center_ or _.layout = .top_left_.
+
+These are also direction independent, adding _direction = .row_
+or _direction = .column_, will still layout elements in y and x axis, correctly, unlike justify-content, and align-items.
 
 {#layout}
 
@@ -75,13 +60,13 @@ or `direction = .column`, will still layout elements in y and x axis, correctly,
 
 ## Two types of styling in Vapor
 
-- Style structs
+- **Builder Pattern**
 
-- Builder functions
+- **Style Structs**
 
 {#builder-functions}
 
-## Builder functions
+## Builder Pattern
 
 For those coming from IOS development, builder functions will be familiar to you.
 
@@ -90,7 +75,7 @@ const Vapor = @import("vapor");
 const Static = Vapor.Static;
 const Box = Static.Box;
 pub fn render() void {
-    Box.layout(.center).spacing(16).padding(.all(20)).body()({
+    Box.layout(.center).spacing(16).padding(.all(20)).children({
         Text("Hello there!")
             .font(24, 700, .blue)
             .close();
@@ -105,8 +90,8 @@ pub fn render() void {
 ```
 
 Builder functions are a powerful tool, for creating quick styles, that do not need to be shared across the application.
-Keep in mind, Vapor by default does not support duplicate styles, the above common styles while instantiated multiple times, during tree
-rendering, deduplication will occur. Instead a reference will be kept for the common styles.
+Keep in mind, Vapor by default does **not support duplicate styles**, the above common styles while instantiated multiple times, during tree
+rendering. Will be deduplicated. Instead a reference will be kept for the common styles.
 
 {#builder-patterns}
 
@@ -154,11 +139,21 @@ rendering, deduplication will occur. Instead a reference will be kept for the co
 
 - `.listStyle(ListStyle)`
 
-- `.body(fn (void) void)`
+- `.outline(Outline)`
 
-- `.close(void)`
+- `.onHover(EventHandler)`
 
-{#style-structs}
+- `.onLeave(EventHandler)`
+
+- `.onChange(EventHandler)`
+
+- `.onFocus(EventHandler)`
+
+- `.onBlur(EventHandler)`
+
+- `ect...`
+
+{#style-struct}
 
 ## const Style = struct { ... }
 
@@ -195,27 +190,28 @@ pub fn render() void {
 
 A typical CSS styled Button requires the following styling
 
-`style="display: flex; justify-content: center, align-items: center,
-border-radius: 8px; border: 1px solid rgb(var(--tint)); background: transparent;"`
+```css
+style="display: flex; justify-content: center, align-items: center, border-radius: 8px; border: 1px solid rgb(var(--tint)); background: transparent;"
+```
 
 While in Vapor we can do the following,
 
-`Style{ .layout = .center, .visual = .{ .border = .round(.palette(.tint)) } }`
+```zig
+Style{ .layout = .center, .visual = .{ .border = .round(.palette(.tint)) } }
+```
 
 Or...
 
-`Style{ .layout = .center, .visual = .border_round(palette(.tint)) }`
-
-Or...
-
-`.layout(.center).border(.round(.palette(.tint), .all(8)))`
+```zig
+.layout(.center).border(.round(.palette(.tint), .all(8)))
+```
 
 {#structs-are-insanely-powerful}
 
 ### Structs are insanely powerful!
 
 As you may have noticed, `Style` is a struct, and has fields, which means it also has methods.
-When we create a new fabric project, we get the following default methods:
+When we create a new Vapor project, we get the following default methods:
 
 - visual `.font(size: u32, weight: ?u32, color: ?Color)`
 
@@ -249,82 +245,97 @@ When we create a new fabric project, we get the following default methods:
 
 - border `.dashed(color: Color, thickness: i32)`
 
+- merge `.merge(style: Style)`
+
+- extend `.extend(style: Style)`
+
 - and much more...
 
 {#code-block}
 
 ### Code Block
 
-```zig
-const Vapor = @import("fabric");
-const Static = Vapor.Static;
-const Style = Vapor.Style;
+Below is a sample code block of various styling options.
 
-fn StyledFlexBox(style: Style) fn (void) void {
-    const elem_decl = Vapor.ElementDecl{
-        .style = Style.override(style),
-        .elem_type = .FlexBox,
-    };
-    Vapor.LifeCycle.open(elem_decl);
-    Vapor.LifeCycle.configure(elem_decl);
-    return Vapor.LifeCycle.close;
+```zig
+
+const Vapor = @import("vapor");
+const Box = Vapor.Box;
+
+pub fn init() void {
+    Page(.{ .src = @src() }, render, null);
 }
 
-fn sample() void {
-    // the Text UI node is centered
-    Static.Button(.{ .onPress = clicked }, .{
-        .display = .Center,
-        .width = .fit,
-        .height = .px(48),
-        .border = .{ .radius = .all(4) },
-        .padding = .all(8),
-    })({
-        // the text content is also centered
-        Static.Text("Click Me", .{
-            .font_size = 18,
-            .display = .Center,
-            .width = .px(200),
-        });
+const common_style = Style{
+    .layout = .top_right,
+    .size = .{
+        .height = .px(120),
+    },
+    .visual = .{
+        .border = .round(.vapor_blue, .all(4)),
+    },
+    .padding = .all(8),
+};
+
+pub const pill_button_base = Style{
+    .layout = .center,
+    .size = .hw(.px(45), .px(160)),
+    .visual = .pill(.hex("#000000")),
+    .transition = .{ .duration = 100 },
+    .interactive = .hover_scale(),
+    .child_gap = 8,
+};
+
+fn mergedStyle() Style {
+    var base = pill_button_base;
+    return base.merge(Style{
+        .visual = .{ .border = .simple(.hex("#E1E1E1")) },
+    });
+}
+
+fn clicked() void {
+    Vapor.alert("You clicked me!");
+}
+
+fn samples() void {
+    Box()
+        .layer(.dot(0.5, 20, .white))
+        .background(.vapor_blue)
+        .width(.percent(100))
+        .height(.auto)
+        .layout(.center)
+        .children({
+        Text("I like Dots!")
+            .font(48, 700, .white).fontFamily("Montserrat").end();
     });
 
-    // Here we create and set a default style we want to use
-    Vapor.Style.setDefault(.{
-        .display = .Center,
-        .width = .percent(100),
-        .height = .percent(100),
-        .border = .{ .radius = .all(4), .thickness = .all(2) },
-        .padding = .all(8),
+    Box().style(&common_style)({
+        Text("Top right Text").fontSize(14).end();
     });
 
-    // we then overide the default with width = .fit, and height = .px(48)
-    const overided_default_style = Style.override(.{ .width = .fit, .height = .px(48) });
-
-    // the Text UI node is centered, cause we are using a default
-    Static.Button(
-        .{ .onPress = clicked },
-        overided_default_style,
-    )({
-        // the text content is also centered, here we are not using the default and instead
-        // passing our own defined Style
-        Static.Text("Click Me", .{
-            .font_size = 18,
-            .display = .Center,
-            .width = .px(200),
-        });
+    // Here we use the baseStyle, now we can override the default style
+    Box().baseStyle(&common_style).layout(.top_left).children({
+        Text("Top left Text").fontSize(14).end();
     });
 
-    // Here we use the StyledFlexBox, instead of overidding within the UI node style argument
-    StyledFlexBox(.{
-        .width = .fit,
-        .height = .px(48),
-    })({
-        // the text content is also centered, here we are not using the default and instead
-        // passing our own defined Style
-        Static.Text("Click Me", .{
-            .font_size = 18,
-            .display = .Center,
-            .width = .px(200),
-        });
+    Button(.{ .on_press = clicked }).style(&pill_button_base)({
+        Text("Click Me").fontSize(18).end();
+    });
+
+    // Here we merge the pill style,
+    Button(.{ .on_press = clicked }).style(&mergedStyle())({
+        Text("Click Me").fontSize(18).end();
     });
 }
 ```
+
+@styling_samples
+
+#### extend
+
+The extend function allows you to extend a style with another style. It mutates the original style, and returns the mutated style.
+
+#### merge
+
+The merge function allows you to merge a style with another style. This creates an entirely new style, and returns the new style.
+

@@ -1,0 +1,285 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <title>Tether</title>
+  <meta charset="utf-8" />
+  <meta name="google-site-verification" content="12aR_338F0VaglKbfvPLczdZV_Ej6AVx9Ef7M4ULfLU" />
+  <meta name="description"
+    content="Tether website includes documentation on all three components Fabric, Tether, and Treehouse. As well as instructions on installation and use cases." />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" href="/assets/icon.svg" type="image/svg+xml" />
+  <!-- <link href="/zig-out/bin/vapor.wasm" as="fetch" type="application/wasm" crossorigin /> -->
+
+  <!-- Preconnect stays the same -->
+  <link href="https://fonts.googleapis.com" />
+  <link href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://cdn.jsdelivr.net" crossorigin />
+
+  <!-- Load fonts async with media trick -->
+  <link
+    href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,100..700;1,100..700&family=Montserrat:wght@400;700&display=swap"
+    rel="stylesheet" media="print" onload="this.media='all'" />
+  <noscript>
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,100..700;1,100..700&family=Montserrat:wght@400;700&display=swap"
+      rel="stylesheet" />
+  </noscript>
+
+  <link rel="preload" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" as="style"
+    onload="this.rel='stylesheet'" />
+  <noscript>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" />
+  </noscript>
+
+  <!-- <script type="module" src="/web/wasi_obj.js"></script> -->
+
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: Montserrat;
+      font-weight: 400;
+      height: 100vh;
+      width: 100%;
+      box-sizing: border-box;
+      flex-shrink: 0;
+      background-color: rgba(var(--background));
+      color: rgb(var(--text_color));
+      transition:
+        background-color 0.3s ease,
+        color 0.3s ease;
+      scrollbar-width: none;
+      /* Firefox */
+      -ms-overflow-style: none;
+      /* IE/Edge */
+    }
+
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+      -webkit-scrollbar: display: none;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+      /* Chrome, Safari, Opera */
+      margin: 0;
+    }
+
+
+    p,
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
+      line-height: 1.5;
+      font-size-adjust: 0.5;
+    }
+
+    textarea {
+      line-height: 1.5;
+      font-size-adjust: 0.5;
+    }
+
+    table {
+      border-collapse: separate;
+      border-spacing: 0;
+    }
+
+    /* Basic sidebar styling */
+    .onthispage a {
+      text-decoration: none;
+      transition: all 0.3s ease;
+    }
+
+    /* This is the class we will toggle */
+    .onthispage a.active {
+      color: dodgerblue;
+      font-weight: bold;
+      transform: scale(1.1);
+    }
+
+    .stats {
+      position: fixed;
+      bottom: 10px;
+      right: 10px;
+      padding: 10px;
+      border-radius: 4px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      font-family: monospace;
+      font-size: 12px;
+      z-index: 10000;
+      background-color: rgba(var(--background));
+    }
+  </style>
+    <link rel="stylesheet" href="/static/style_variables.css" />
+  <link rel="stylesheet" href="/static/huh/style.css" />
+</head></head>
+
+<body>
+  <div class="stats" id="stats">
+    FPS: <span id="fps">0</span><br />
+    Frame Time: <span id="frameTime">0</span>ms<br />
+    Render Time: <span id="renderTime">0</span>ms<br />
+  </div>
+  <div id="contents" style="display: contents"><div  id="nav" class="lay_2355004687 pos_4226863089 mapa_2487839144 vis_858635165 ">
+<div  id="Flex_2851033941-genk" class="lay_742044807 ">
+<a  id="Link_2148954699-genk" class="vis_2782233086 " aria-label="home page of tether" href="/">
+<div  id="Flex_915028410-genk" class="lay_3212761532 mapa_4117309395 vis_3610111763 anim_752735341 intr_2275201365 ">
+<div  id="Grap_1707722983-genk" class="lay_4075706570 vis_4265825448 intr_3191807552 ">
+</div>
+</div>
+</a>
+<ul  id="List_641040586-genk" class="lay_80028923 ">
+<li  id="List_1931446036-genk" class="lay_1071775855 vis_2381593747 intr_4101004655 "">
+<a  id="Link_4269899483-genk" class="vis_2782233086 " aria-label="Vapor" href="/docs/vapor">
+<p  id="Text_3814987054-genk" class="vis_3491491361 ">Vapor</p>
+</a>
+</li>
+<li  id="List_290914501-genk" class="lay_1071775855 vis_2381593747 intr_4101004655 "">
+<a  id="Link_782871717-genk" class="vis_2782233086 " aria-label="Reverb" href="/docs/reverb">
+<p  id="Text_4061285904-genk" class="vis_3491491361 ">Reverb</p>
+</a>
+</li>
+<li  id="List_2945350262-genk" class="lay_1071775855 vis_2381593747 intr_4101004655 "">
+<a  id="Link_1339705068-genk" class="vis_2782233086 " aria-label="Canopy" href="/docs/treehouse">
+<p  id="Text_3493225210-genk" class="vis_3491491361 ">Canopy</p>
+</a>
+</li>
+<li  id="List_1304818727-genk" class="lay_1071775855 vis_2381593747 intr_4101004655 "">
+<a  id="Link_2218807839-genk" class="vis_2782233086 " aria-label="Metal" href="/docs/metal">
+<p  id="Text_3389213952-genk" class="vis_3491491361 ">Metal</p>
+</a>
+</li>
+<li  id="List_3959254488-genk" class="lay_1071775855 vis_2381593747 intr_4101004655 "">
+<a  id="Link_459460175-genk" class="vis_2782233086 " aria-label="About Me" href="/about">
+<p  id="Text_1476673945-genk" class="vis_3491491361 ">About Me</p>
+</a>
+</li>
+</ul>
+</div>
+<div  id="Flex_1210502406-genk" class="lay_2427431289 ">
+<button  id="Butt_3692203482-genk" class="lay_1515371949 mapa_1029637290 vis_3863708168 intr_2738320283 " aria-label="search-dialog">
+<div  id="Flex_3491220137-genk" class="lay_2352082878 ">
+<i  id="Icon_461205268-genk" class="bi bi-search vis_2456070613 " href="bi bi-search">
+</i>
+<p  id="Text_762272481-genk" class="vis_1253340569 ">Search...</p>
+</div>
+<i  id="Icon_1306428635-genk" class="bi bi-command vis_2456070613 " href="bi bi-command">
+</i>
+</button>
+<a  id="Redi_1240995215-genk" class="vis_2782233086 " aria-label="redirect link to tether github repo" href="https://github.com/vic-Rokx/vapor">
+<i  id="Icon_511390286-genk" class="bi bi-github vis_3319038623 intr_3436696024 " href="bi bi-github">
+</i>
+</a>
+<a  id="Redi_3895430976-genk" class="vis_2782233086 " aria-label="redirect link to discord" href="https://github.com/vic-Rokx/vapor">
+<i  id="Icon_1817279550-genk" class="bi bi-discord vis_3319038623 intr_3436696024 " href="bi bi-discord">
+</i>
+</a>
+<a  id="Redi_2254899441-genk" class="vis_2782233086 " aria-label="redirect link to ziglang" href="https://ziglang.org/">
+<div  id="Grap_1858277661-genk" class="lay_395582524 vis_378852699 intr_457968657 ">
+</div>
+</a>
+<button  id="Butt_1425044638-genk" class="mapa_2382506810 vis_4269074653 ">
+<i  id="Icon_558382312-genk" class="bi bi-cloud-moon vis_3319038623 intr_3436696024 " href="bi bi-cloud-moon">
+</i>
+</button>
+</div>
+</div>
+
+
+<div  id="Flex_2924438023-genk" class="lay_3908757824 mapa_949741993 ">
+<div  id="Flex_2076201045-genk" class="lay_183663742 mapa_4066845637 ">
+<p  id="Text_3136811225-genk" class="vis_4209938342 ">What is Tether?</p>
+<p  id="Text_1496279690-genk" class="vis_3706815932 ">To put simply, Tether is an exposed set of frameworks, that gives developers the ability 
+to Build full-stack applications with zero dependencies, zero configuration, and complete control. </p>
+<p  id="Text_4150715451-genk" class="vis_4209938342 ">How the Internet works</p>
+<p  id="Html_622634321-genk" class="vis_723102696 ">At their core every website is just a text document. We store this document on the server and send it to the client, when they ask for it.
+Your browser takes request this document which is in a langauge known as 
+<a href="https://developer.mozilla.org/en-US/docs/Web/HTML">HTML</a> 
+and then draws the buttons, rectangles, and text onto your screen. This is how it worked in the beginning.</p>
+
+<div  id="Grap_3002038246-genk" class="lay_4075706570 vis_1022521277 ">
+</div>
+<p  id="Text_3524088142-genk" class="mapa_469117460 vis_2472390559 ">And then theres today...</p>
+<p  id="Text_1883556607-genk" class="vis_723102696 ">This is in essence, the current state of Web development, it doesn't make sense, and it's just getting worse. </p>
+<div  id="Flex_3140653587-genk" class="lay_1580544207 ">
+<div  id="Grap_993463282-genk" class="lay_1374202248 vis_1022521277 ">
+</div>
+</div>
+<p  id="Text_2897460833-genk" class="mapa_36800357 vis_3404333013 ">Hitting Reset</p>
+<p  id="Text_3294420265-genk" class="vis_1145253112 ">Tether is a toolkit first, framework second</p>
+<p  id="Html_3789261535-genk" class="vis_723102696 ">It's a modular, flexible system that exposes all its APIs to developers. 
+Unlike common frameworks like <strong>React</strong> or <strong>Vue</strong>, Tether eliminates the need to deal with evolving opinions that change over time.
+Many frameworks have altered their core APIs and designs, leading to complexity, legacy system support burdens, 
+and the never-ending cycle of learning and relearning changes.</p>
+
+<p  id="Html_2148730000-genk" class="vis_723102696 "><strong style="color: rgb(var(--tint))">Tether</strong> takes the approach of <strong>exposure</strong> and <strong>explicitness</strong>. 
+Every single component in Tether 
+is available to the developer. There's no transpilation engine <i>magic</i>, no strange state 
+machinery—just simple APIs you can touch and understand. 
+The aim is to provide developers with a <strong>toolbox</strong> of functionality they can deep dive into and customize when needed.</p>
+
+<p  id="Html_508198465-genk" class="vis_723102696 "><strong>For example:</strong> </p>
+
+<p  id="Html_3162634226-genk" class="vis_723102696 ">Vapor's state management is a single <code style="color: rgb(var(--tint))">global_rerender</code> variable of type <code style="color: rgb(var(--tint))">bool</code>. 
+That's it. You can use the built-in <code style="color: rgb(var(--tint))">Signal(T)</code> type that Vapor exposes, 
+build your own, or simply 
+call the <code style="color: rgb(var(--tint))">cycle()</code> to update your UI. Until then, you 
+can utilize Tether's in-house solutions with no setup, configuration files, or complexity. Just
+install and start building. All you need is <code style="color: rgb(var(--tint))">ZIG</code>.</p>
+
+<p  id="Text_3681697182-genk" class="vis_846913500 ">Modular by Design</p>
+<p  id="Html_4176538452-genk" class="vis_723102696 ">Tether's modularity means you can install Vapor, Tether, or Treehouse as independent entities. 
+There's no requirement to use all three or just one. The libraries themselves are modular—choose 
+to install OAuth, Markdown parser, UI component libraries, or any specific functionality you need. Tether serves 
+as both package management system and toolkit.</p>
+
+<p  id="Text_400634112-genk" class="vis_846913500 ">What Tether Eliminates</p>
+<ul  id="List_3948199672-genk" class="lay_1313756976 ">
+<li  id="List_2519654268-genk" class=""">
+<p  id="Html_322783522-genk" class="vis_723102696 ">Tether ships with <strong>zero dependencies</strong> and eliminates the need for:</p>
+
+</li>
+<li  id="List_879122733-genk" class=""">
+<p  id="Html_2970038988-genk" class="vis_723102696 "><strong>Languages & Runtimes:</strong> No JavaScript, HTML, CSS, React, TSX, Python, Swift, Node.js</p>
+
+</li>
+<li  id="List_3533558494-genk" class=""">
+<p  id="Html_336839635-genk" class="vis_723102696 "><strong>Frameworks & Platforms:</strong> No Vercel, Next.js, Nuxt.js, multi-language systems</p>
+
+</li>
+<li  id="List_1893026959-genk" class=""">
+<p  id="Html_2800842982-genk" class="vis_723102696 "><strong>Infrastructure:</strong> No Docker, Redis, Dragonfly</p>
+
+</li>
+<li  id="List_252495424-genk" class=""">
+<p  id="Html_594863767-genk" class="vis_723102696 "><strong>Package Management:</strong> No npm, pip, dependency hell</p>
+
+</li>
+<li  id="List_2906931185-genk" class=""">
+<p  id="Html_1086380414-genk" class="vis_723102696 "><strong>Build Tools:</strong> No transpilation, platform-specific code, configuration magic</p>
+
+</li>
+</ul>
+<p  id="Text_1414538338-genk" class="vis_846913500 ">But that doesn't mean you can't...</p>
+<p  id="Html_2831859967-genk" class="vis_723102696 "><strong>Install Libs:</strong> Use your favorite JS Library if you want, This is even done in NightWatch with chart.js 
+<a href="/docs/vapor/concepts/jslibs">NightWatch Example</a></p>
+
+<p  id="Html_1191328432-genk" class="vis_723102696 "><strong>Use C or Objc:</strong> Embed your favorite C or Objc Libs, or even Zig itself</p>
+
+<p  id="Html_3845764193-genk" class="vis_723102696 "><strong>Adapt and Build:</strong> Scrap it all and use the core codebase to build your own Renderer, and Web Server </p>
+
+<p  id="Text_69859853-genk" class="mapa_2641844029 vis_846913500 ">The Core Promise </p>
+<p  id="Html_564701123-genk" class="vis_723102696 ">Tether provides the productivity benefits of modern frameworks while maintaining the control 
+and transparency of lower-level tools. It's built for developers who want to focus on solving 
+problems rather than wrestling with tooling, dependencies, and ever-changing framework opinions.</p>
+
+</div>
+</div>
+</div>
+</body>
+</html>

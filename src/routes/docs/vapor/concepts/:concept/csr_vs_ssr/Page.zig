@@ -46,9 +46,9 @@ fn decrement() void {
 
 fn component() void {
     Vaporize.traverse(csr_vs_ssr_page, .{
-        .code_color = .palette(.tint),
-        .text_color = .palette(.text_color),
-        .heading_color = .palette(.text_color),
+        .code_style = .{ .visual = .{ .text_color = .palette(.tint) } },
+        .text_style = .{ .visual = .{ .text_color = .palette(.text_color) } },
+        .heading_style = .{ .visual = .{ .text_color = .palette(.text_color) } },
     }, void, null) catch unreachable;
 }
 

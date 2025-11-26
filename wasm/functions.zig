@@ -6,6 +6,9 @@ const Vapor = @import("vapor");
 
 /// Registers a global event listener for a given event type and callback.
 pub extern fn createEventListener(event_ptr: [*]const u8, event_type_len: usize, cb_id: u32) void;
+pub extern fn createEventListenerCtx(event_ptr: [*]const u8, event_type_len: usize, cb_id: u32) void;
+pub extern fn removeEventListener(event_ptr: [*]const u8, event_type_len: usize, cb_id: u32) void;
+pub extern fn formDataWasm(event_id: u32) u32;
 
 /// Registers an event listener on a specific element.
 pub extern fn createElementEventListener(element_ptr: [*]const u8, element_len: usize, event_ptr: [*]const u8, event_type_len: usize, cb_id: u32) void;
@@ -136,6 +139,8 @@ pub extern "env" fn timeout(ms: u32, callbackId: u32) void;
 /// Timeout with context preservation.
 pub extern "env" fn timeoutCtx(ms: u32, callbackId: u32) void;
 
+pub extern "env" fn cancelTimeoutWasm(id: u32) void;
+
 /// Registers a repeating interval.
 pub extern "env" fn createInterval(name_ptr: [*]const u8, name_len: usize, delay: u32) void;
 
@@ -183,10 +188,13 @@ pub extern fn consoleLogWasm(ptr: [*]const u8, len: usize) i32;
 
 /// Logs a styled/colored message to the console.
 pub extern fn consoleLogColoredWasm(ptr: [*]const u8, len: usize, style_ptr_1: [*]const u8, style_len_1: usize, style_ptr_2: [*]const u8, style_len_2: usize) i32;
+pub extern fn consoleLogColoredWarnWasm(ptr: [*]const u8, len: usize, style_ptr_1: [*]const u8, style_len_1: usize, style_ptr_2: [*]const u8, style_len_2: usize) i32;
 
-pub extern fn createObserverWasm(ptr: [*]const u8, len: usize, options_ptr: *const Vapor.Kit.ObserverOptions) void;
+pub extern fn createObserverWasm(id: u32, options_ptr: *const Vapor.Kit.ObserverOptions) void;
 
-pub extern fn reinitObserverWasm(ptr: [*]const u8, len: usize) void;
+pub extern fn observeWasm(id: u32, element_ptr: [*]const u8, element_len: usize, index: usize) void;
+
+pub extern fn reinitObserverWasm(id: u32) void;
 
 pub extern fn destroyObserverWasm(ptr: [*]const u8, len: usize) void;
 
@@ -200,4 +208,17 @@ pub extern fn muteVideoWasm(id_ptr: [*]const u8, id_len: usize, mute: bool) void
 pub extern fn getVideoDurationWasm(id_ptr: [*]const u8, id_len: usize) f32;
 pub extern fn getVideoCurrentTimeWasm(id_ptr: [*]const u8, id_len: usize) f32;
 
+pub extern fn windowWidth() f32;
+pub extern fn windowHeight() f32;
+
 pub extern fn scrollToWasm(x: f32, y: f32) void;
+pub extern fn tick(id: u32) bool;
+
+pub extern fn translate3dWasm(id_ptr: [*]const u8, id_len: usize, translation_ptr: [*]const u8, translation_len: usize) void;
+pub extern fn getElementUnderMouse(x: f32, y: f32) [*:0]u8;
+
+pub extern fn alertWasm(ptr: [*]const u8, len: usize) void;
+
+pub extern fn checkMemoryGrowthWasm() void;
+
+pub extern fn setCursorPositionWasm(id_ptr: [*]const u8, id_len: usize, pos: usize) void;

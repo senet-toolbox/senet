@@ -2,122 +2,201 @@
 
 # Reactivity
 
+#### Most frameworks make variables reactive. Vapor makes the UI reactive.
 
-**Most frameworks make variables reactive. Vapor makes 
-the UI reactive.**
-
-This simple inversion eliminates useState, useEffect, 
+This simple inversion eliminates useState, useEffect,
 and dependency arrays entirely.
 
 If you're new to application development, reactivity, is the concept of being able to update your application in real time, without having to refresh the page.
 
-Many frameworks, such as React, Svelte, and Vue, have there own reactivity system, with their own pros and cons.
-All of these reactivity systems, are known as Signal based systems. When a value is changed, only the component that
-depends on that value will be updated.
+Vapor is an even more simplified version of Svelte, just create variables, and mutate them, and the UI updates, THAT'S IT!
 
-{#signal-types}
+By default, every element is treated as a reactive. If it's state changes, the element will update in the UI **granularly**.
 
-## Signal Types
+The following example shows a simple counter, that increments, and changes color when hovered.
 
-- React uses `useState`, and `useEffect` to achieve this.
+Feel free to inspect the html elements, and see that only the text and color classes are updated.
 
-- Svelte uses `$state`, and `$effect` or `$derived` to achieve this.
+```zig
+const Vapor = @import("vapor");
+var counter: usize = 0;
+var text: []const u8 = "Current count: 0";
 
-- Vue uses `useRef`, `reactive`, and more to achieve this.
+pub fn increment() void {
+    counter += 1;
+    text = Vapor.fmtln("Current count: {d}", .{counter});
+}
 
-The issue with all of these, is the requirement for both the UI and the functions to use the same reactivity variable. 
+var color: Vapor.Types.Color = .palette(.text_color);
+var changed_color: bool = false;
+fn changeColor(_: *Vapor.Event) void {
+    changed_color = !changed_color;
+    if (changed_color) {
+        color = .palette(.tint);
+        return;
+    }
+    color = .palette(.text_color);
+}
 
-Updating a value in a JS function, like `let x = 1; x+=1;`
-Will not update the UI. This is because React, Svelte, Vue, and many other frameworks are transpiled.
+pub fn render() void {
+    Button(.{ .on_press = increment })
+        .onHover(changeColor)
+        .shadow(.card(color))
+        .children({
+            Text(text).font(22, 700, color).end();
+    });
+}
+```
 
-For new developers, the `useState`, `useEffect` symptom,
-has become an overwhelming and complex issue.
-
-Tracking down dependency chains, or having to use
-`useMemo`, `useEffect`, or `useRef`, to avoid cascading updates, has caused developers to become frustrated.
-
-Moreover, this means that the developer must now understand both the UI's functional nature, and the language's own nature. We must switch
-contexts, when working with these frameworks.
+@counter
 
 {#ui-as-reactivity}
 
 ## UI as reactivity
 
-Vapor, is a toolkit, this means that the developer can decide how they want there application's reactivity to work.
+Vapor, is a toolkit, this means that the developer can decide how they want their application's reactivity to work.
 
-- Immediate Mode
+- **Atomic Mode** ⚛️ (Default)
 
-- Retained Mode
+- **Static Mode**
 
-There are two types of state components in Vapor.
+- **Immediate Mode**
+
+- **Retained Mode**
+
 Vapor, has taken the concept of reactivity, and _Inversed It!_
 Instead of defining a reactive variable like `let counter = $state(0);`
 we define our UI as reactive.
 
-There are two types of state management systems in Vapor,
+There are two types of **State Elements** in Vapor,
 
-- Static components, will never update!
+- **Static Elements:** will never update!
 
-- Pure components, will only update if their styles or props change.
+- **Vapor Elements:** will only update if their styles or props change.
+
+Static Element are best used for either readability, or improving performance.
 
 ```zig
-const Vapor = @import("fabric");
-const Pure = Vapor.Pure;
+const Vapor = @import("vapor");
 const Static = Vapor.Static;
-const TextField = Static.TextField;
-
-var text_field: Vapor.Binded = .{
-    .text = "Inital Text",
-};
+const TextField = Vapor.TextField;
+var text: []const u8 = "Inital Text";
 
 pub fn render() void {
     TextField(.string)
-        .bind(&text_field)
-        .plain();
+        .bind(&text)
+        .end();
 
-    Static.Text(text_field.text).plain(); // This will never update
-    Pure.Text(text_field.text).plain(); // This will update
+    Static.Text(text).end(); // This will never update
+    Text(text).end(); // This will update
 }
 ```
+
+{#atomic-mode}
+
+### Atomic Mode (91% rule)
+
+Atomic mode is the default mode of Vapor. It is the simplest mode, if a **User interacts with the UI**, or an **Event is triggered**, like
+`timeout`, `onChange`, `onPress`, `onHover`, `fetch` ect.
+Vapor will check what is changed and only update the changed elements, ie their props or styles.
+
+**The overhead cost of doing this is minimal, since we are working in WASM.**
+
+This accomplishes **91%** of the work needed to update and render the UI without any explicit state management. The last 9% is handled through
+Explicit State Containers called `Signal(T)` or manually calling `cycle()`.
+
+**Just** because Vapor offers these features, doesn't mean they are needed, both this _Documentation_ site, and _Acorn_, are built using atomic mode, and use no 
+`Signal(T)` containers or `cycle()` calls.
+
+The **Solution** to state management, isn't to solve it all, but to solve **91%** of the problem.
+
+The last **9%** is when you want to use a state management system. Because now the user is not interacting and you are not receiving events with the UI.
+
+```zig
+const Vapor = @import("vapor");
+const TextField = Vapor.TextField;
+const Button = Vapor.Button;
+const Text = Vapor.Text;
+var text: []const u8 = "Inital Text";
+
+var counter: usize = 0;
+pub fn increment() void {
+    counter += 1;
+}
+
+pub fn render() void {
+    // The user interacts with the UI, via a text field
+    TextField(.string).bind(&text).end();
+    Text(text).end(); // This will update
+
+    // The user interacts with the UI, via a button press
+    Button(.{ .on_press = increment }).children({
+        Text("Increment").end();
+    });
+    Text(counter).end();
+
+}
+```
+
+![diagram](/assets/event_state_diagram.svg)
+
+Since the user interacts with the UI, an event is triggered, Vapor sees this, and then checks what is changed, added, or removed. And updates the UI accordingly.
+Since Vapor runs in WASM, this process is extremely fast, and uses very little memory.
+
+#### The last 9%
+
+
+As long as there is an input into Vapor, then the UI will update, only small edge cases are not handled, for example, if you write your own external functionality.
+
+Another scenario is, as you probably have noticed the numbered boxes on the right. These are generated after the Markdown file is compiled and the UI is rendered. After this
+we query to see how many Section Elements were created, and then create a bunch of Numbered Boxes. But since no event happened, the UI did not update. 
+Thus we must call `cycle()` to trigger the UI update.
 
 {#immediate-mode}
 
 ### Immediate Mode
 
-Immediate mode is the default mode of Vapor. It is the simplest mode, and is the very performant, this site runs in immediate mode.
+Immediate mode works like GUIs where the entire render tree is ran, every frame. But unlike GUIs, Vapor only updates the elements that are affected.
 
 Immediate mode is extremely fast.
-In a worst case sceanrio, with a list of 10,000 nodes, no stable
+In a worst case scenario, with a list of 10,000 nodes, no stable
 keys, in which the first node is order removed,
 the entire render
-cycle from removal to UI update takes 15ms on a 2021 M1 MacBook Pro.
+cycle from removal to UI update takes 12ms on a 2021 M1 MacBook Pro.
 
-Immediate mode requires no state management, if a variable changes the UI will change, only the elements that are affected will be updated.
-
-This means that if we define a `var counter: usize = 0;` and then we increment it
-`counter += 1;` then the Pure UI will update.
+Immediate mode requires no state management, if a variable changes the UI will change, only the elements that are affected will be updated. **100%** of the work is done by Vapor.
 
 ```zig
-const Vapor = @import("fabric");
-const Pure = Vapor.Pure;
-const Box = Pure.Box;
-const TextFmt = Pure.TextFmt;
-const Text = Pure.Text;
-const Button = Pure.Button;
+const Vapor = @import("vapor");
+const Button = Vapor.Button;
+const Text = Vapor.Text;
+const TextField = Vapor.TextField;
 
+// Initialize Vapor
+export fn init() void {
+    Vapor.init(.{ .mode = .immediate });
+    Vapor.Page(.{ .route = "/" }, Home, null);
+}
+
+
+var text: []const u8 = "Inital Text";
 var counter: usize = 0;
-var text: []const u8 = "Increment";
 
 pub fn increment() void {
     counter += 1;
-    text = "Increment again";
 }
 
-pub fn render() void {
-    Button(.{ .on_press = increment }).plain()({
-        Text(text).plain();
+pub fn Home() void {
+    // The user interacts with the UI, via a text field
+    TextField(.string).bind(&text).end();
+    Text(text).end(); // This will update
+
+    // The user interacts with the UI, via a button press
+    Button(.{ .on_press = increment }).children({
+        Text("Increment").end();
     });
-    TextFmt("{d}", .{counter}).plain();
+    Text(counter).end();
+
 }
 ```
 
@@ -125,17 +204,17 @@ pub fn render() void {
 
 ### 80% of content in an application is static
 
-Most UI elements never change after initial render. 
-Vapor optimizes for this reality by making `Static`
-components the default.
+Most UI elements never change after initial render.
+Vapor optimizes for this reality by exposing `Static`
+elements.
 
-In practice, you'll import Static components most of 
-the time and only use Pure when you need reactivity:
-
+In practice, the only difference between a `Static` `Text` and a `Text` is the import. 
+This site, never uses `Static` elements, while Acorn does, this is mainly for readability and maintainability.
+Since most of the documentation site, is made up of Mardown files.
 
 ```zig
-const Fabric = @import("fabric");
-const Static = Fabric.Static;
+const Vapor = @import("vapor");
+const Static = Vapor.Static;
 const Text = Static.Text;
 const Button = Static.Button;
 ```
@@ -144,21 +223,28 @@ const Button = Static.Button;
 
 ### Retained Mode
 
-There are two types of state management systems in Vapor,
+As stated before, Vapor is a toolkit, and so you can decide how you want your application to work.
+Retained mode is the most restrictive mode, you must define when a variable changes, or manually call `cycle()`, to ask Vapor to reconcile and update the UI.
 
-- Signal(T)
+There are two types of state functions in Vapor,
 
-- cycle()
+- **Signal(T)**
+
+- **cycle()**
 
 {#using-cycle}
 
 ### Using cycle()
 
+The `cycle()` function tells Vapor, to update the UI, this is agnostic to the variables. It will update all UI elements that have changed, not just
+the `counter` variable. For example the following will udpate both the
+`counter` and the `text` variables.
+
 ```zig
-const Fabric = @import("fabric");
-const Static = Fabric.Static;
-const Pure = Fabric.Pure;
-const TextFmt = Pure.TextFmt;
+const Vapor = @import("vapor");
+const TextFmt = Vapor.TextFmt;
+
+const Static = Vapor.Static;
 const Text = Static.Text;
 const Button = Static.Button;
 
@@ -166,27 +252,23 @@ var counter: usize = 0;
 
 pub fn increment() void {
     counter += 1;
-    Fabric.cycle();
+    Vapor.cycle(); // Here we call cycle, to ask Vapor to update the UI
 }
 
 pub fn render() void {
-    Button(.{ .on_press = increment }).plain()({
-        Text("Increment").plain();
+    Button(.{ .on_press = increment }).children({
+        Text("Increment").end();
     });
-    TextFmt("{d}", .{counter}).plain(); // Only this updates
+    TextFmt("I am a counter: {d}", .{counter}).end(); // Only this updates
 }
 ```
 
-The `cycle()` function tells Vapor, to update the UI, this is agnostic to the variables. It will update all the UI that has changed, not just
-the `counter` variable. For example the following will udpate both the
-`counter` and the `text`.
-
 ```zig
-const Fabric = @import("fabric");
-const Static = Fabric.Static;
-const Pure = Fabric.Pure;
-const TextFmt = Pure.TextFmt;
-const Text = Pure.Text; // We changed this to Pure
+const Vapor = @import("vapor");
+const TextFmt = Vapor.TextFmt;
+const Text = Vapor.Text; // We changed this to a Vapor element
+
+const Static = Vapor.Static;
 const Button = Static.Button;
 
 var counter: usize = 0;
@@ -195,23 +277,25 @@ var text: []const u8 = "Increment";
 pub fn increment() void {
     counter += 1;
     text = "Increment again";
-    Fabric.cycle();
+    Vapor.cycle();
 }
 
 pub fn render() void {
-    Button(.{ .on_press = increment }).plain()({
-        Text(text).plain(); // This now updates
+    Button(.{ .on_press = increment }).end()({
+        Text(text).end(); // This now updates
     });
-    TextFmt("{d}", .{counter}).plain(); // This still updates
+    TextFmt("{d}", .{counter}).end(); // This still updates
 }
 ```
+
+@cycle_example
 
 {#zig-is-meant-to-be-explicit}
 
 ### Zig is meant to be Explicit!
 
-Developers and Zig users alike, will most likely want to have explicit control over the UI, and not depend on the framework.
-Svelte came to this realization, and implemented runes, which are explicit UI variables.
+Developers and Zig users alike, will most likely want to have explicit control over the UI at times, and not depend on the framework.
+Svelte came to this realization, and implemented _Runes_, which are explicit UI state variables.
 
 Vapor, has the same concept. When need be developers, can define their own UI variables through the `Signal(T)` type.
 
@@ -219,14 +303,14 @@ Vapor, has the same concept. When need be developers, can define their own UI va
 
 ### Signal(T)
 
-`Signal(T)` is a type that is used to define UI variables.
-It is a wrapper around a `Vapor.cycle()`.
+`Signal(T)` is a type that is used to define UI state variables.
+It is a wrapper around a `cycle()`.
 
 ```zig
-const Fabric = @import("fabric");
-const Static = Fabric.Static;
-const Pure = Fabric.Pure;
-const Signal = Fabric.Signal;
+const Vapor = @import("vapor");
+const Signal = Vapor.Signal; // The Signal type
+const Static = Vapor.Static;
+const TextFmt = Vapor.TextFmt;
 
 var counter: Signal(u32) = undefined;
 
@@ -239,8 +323,8 @@ fn increment() void {
 }
 
 fn render() void {
-    Static.Button(.{ .on_press = increment }).plain()({
-        Pure.TextFmt("{d}", .{counter.get()}).plain();
+    Static.Button(.{ .on_press = increment }).end()({
+        TextFmt("I am a counter: {d}", .{counter.get()}).end(); // This updates
     });
 }
 ```
@@ -277,8 +361,8 @@ Instead, a functional approach should be used.
 ### With the concept of effects
 
 ```zig
-const Fabric = @import("fabric");
-const Signal = Fabric.Signal;
+const Vapor = @import("vapor");
+const Signal = Vapor.Signal;
 
 var counter: Signal(u32) = undefined;
 var text: Signal([]const u8) = undefined;
@@ -289,7 +373,7 @@ fn init() void {
 }
 
 fn updateText(count: u32) void {
-++    text.set(Fabric.fmtln("Is {d}", .{count}));
+++    text.set(Vapor.fmtln("Is {d}", .{count}));
 }
 
 fn increment() void {
@@ -302,8 +386,8 @@ fn increment() void {
 ### Without the concept of effects
 
 ```zig
-const Fabric = @import("fabric");
-const Signal = Fabric.Signal;
+const Vapor = @import("vapor");
+const Signal = Vapor.Signal;
 
 var counter: Signal(u32) = undefined;
 var text: Signal([]const u8) = undefined;
@@ -314,7 +398,7 @@ fn init() void {
 
 fn increment() void {
     counter.increment();
-++    text.set(Fabric.fmtln("Is {d}", .{counter.get()}));
+++    text.set(Vapor.fmtln("Is {d}", .{counter.get()}));
 }
 ```
 

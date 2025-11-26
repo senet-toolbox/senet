@@ -1,5 +1,9 @@
 import { importObject } from "./wasi_env.js";
-import { setWasiInstance, setWasiStructBridge } from "./wasi.js";
+import {
+  PerformanceMonitor,
+  setWasiInstance,
+  setWasiStructBridge,
+} from "./wasi.js";
 import {
   domNodeRegistry,
   moduleCache,
@@ -11,6 +15,7 @@ import {
   afterHooksHandlers,
   hooksMounted,
   eventHandlers,
+  hooksCtxCreated,
 } from "./maps.js";
 import {
   traverse,
@@ -209,32 +214,37 @@ let pathname;
 export let text_data;
 async function loadWasiModule() {
   pathname = "vapor";
-  loadWasm(`/zig-out/bin/${pathname}.wasm`, importObject)
-    .then((instance) => {
+  (async () => {
+    try {
+      console.log("Loading WASM...");
+      const instance = await loadWasm(
+        `/zig-out/bin/${pathname}.wasm`,
+        importObject,
+      );
       const exports = instance.exports;
 
-      // Initialize WASI (calls Zig's main)
       if (exports._start) {
         try {
-          exports._start(); // Triggers Zig's `main()`
+          exports._start();
         } catch (e) {
-          // console.log("WASI exited:", e);
+          console.log("WASI exit:", e);
         }
       }
 
       moduleCache.set(pathname, exports);
       moduleRoutes.add(pathname);
       wasmInstance = exports;
-
       setWasiInstance(wasmInstance);
-    })
-    .then(async () => {
-      // const text_json = await fetch("/dist/text_data.json");
+
       text_data = {};
-      init(); // Your app initialization
-    })
-    .catch("Error", console.error);
-  // WebAssembly.instantiateStreaming(
+      init();
+
+      console.log("✓ Everything loaded successfully");
+    } catch (err) {
+      console.error("Fatal error loading WASM:", err);
+      // Don't reload, just stop
+    }
+  })(); // WebAssembly.instantiateStreaming(
   //   fetch(`/zig-out/bin/${pathname}.wasm`),
   //   importObject,
   // )
@@ -372,19 +382,12 @@ export const rerenderRoute = (navigatedPath) => {
     activeNodeIds = new Set();
     // state.initial_render = true;
     traverse(root, true, tree_node, layoutInfo);
-    // state.initial_render = false;
-    // wasmInstance.pendingClassesToAdd();
-    // wasmInstance.pendingClassesToRemove();
-    // callDestroyFncs();
-    // we need to consider the possiblity of has dirty being false and therefore the node tree does not include the current nodes
-    // we need to look into this since we dont want to remove the layouts even if they are not in the active set
-    // removeInactiveNodes();
     wasmInstance.markCurrentTreeNotDirty();
     wasmInstance.resetRerender();
     removeInactiveNodes();
     // handleIntersection();
-    requestAnimationFrame(wasmInstance.cleanUp);
-    wasmInstance.onEndCallback();
+    // requestAnimationFrame(wasmInstance.cleanUp);
+    // wasmInstance.onEndCtxCallback();
 
     const hash = window.location.hash;
     if (hash) {
@@ -408,11 +411,18 @@ export const rerenderRoute = (navigatedPath) => {
       wasmInstance.hooksMountedCallback(idPtr);
       hooksMounted.delete(key);
     });
+    hooksCtxCreated.forEach((value, key) => {
+      const idPtr = allocString(key);
+      wasmInstance.callOnCreateNode(idPtr);
+      hooksCtxCreated.delete(key);
+    });
+    // requestAnimationFrame(wasmInstance.onEndCallback);
     // wasmInstance.callAllMountedCallbacks();
     // console.log(pureNodeRegistry);
   } else {
     wasmInstance.resetRerender();
   }
+  wasmInstance.onEndCallback();
 };
 
 export const navToRoute = (string) => {
@@ -426,6 +436,19 @@ export const navToRoute = (string) => {
   slice.set(buffer);
   slice[buffer.length] = 0; // null byte to null-terminate the string
   wasmInstance.setRouteRenderTree(pointer);
+};
+
+export const allocStringFrame = (string) => {
+  const buffer = new TextEncoder().encode(string);
+  const pointer = wasmInstance.allocUint8Frame(buffer.length + 1); // ask Zig to allocate memory
+  const slice = new Uint8Array(
+    wasmInstance.memory.buffer, // memory exported from Zig
+    pointer,
+    buffer.length + 1,
+  );
+  slice.set(buffer);
+  slice[buffer.length] = 0; // null byte to null-terminate the string
+  return pointer;
 };
 
 export const allocString = (string) => {
@@ -575,6 +598,11 @@ function setupLayoutInfo() {
       layoutInfoPtr + 88,
       4,
     ).getUint32(0, true),
+    styleChangedOffset: new DataView(
+      wasmInstance.memory.buffer,
+      layoutInfoPtr + 92,
+      4,
+    ).getUint32(0, true),
   };
 }
 
@@ -588,7 +616,11 @@ function loadTheme() {
   const savedTheme = localStorage.getItem("theme") || getSystemTheme();
   if (savedTheme === "dark") {
     document.documentElement.setAttribute("data-theme", "dark");
-    wasmInstance.setTheme(1);
+    try {
+      wasmInstance.setTheme(1);
+    } catch (e) {
+      console.log("Error setting theme", e);
+    }
   } else {
     const savedTheme = localStorage.getItem("theme");
     if (savedTheme === "dark") {
@@ -605,9 +637,14 @@ export const styleSheet = new CSSStyleSheet();
 
 export let currentPath;
 function setupWasiInstance() {
-  wasmInstance.init(window.innerWidth, window.innerHeight); // Example UI function
+  checkMemoryGrowth();
+  wasmInstance.init(); // Example UI function
+  new PerformanceMonitor();
+  //
 
-  setWasiStructBridge();
+  // vaporMainLoop();
+
+  // setWasiStructBridge();
 
   currentPath = window.location.pathname;
 
@@ -624,12 +661,12 @@ function setupWasiInstance() {
 
   // U8 = new Uint8Array(wasmInstance.memory.buffer);
   // U32 = new Uint32Array(wasmInstance.memory.buffer);
-  const animations_ptr = wasmInstance.getAnimationsPtr();
-  if (animations_ptr > 0) {
-    const animations_len = wasmInstance.getAnimationsLen();
-    const animations_css = readWasmString(animations_ptr, animations_len);
-    injectCSS(animations_css);
-  }
+  // const animations_ptr = wasmInstance.getAnimationsPtr();
+  // if (animations_ptr > 0) {
+  //   const animations_len = wasmInstance.getAnimationsLen();
+  //   const animations_css = readWasmString(animations_ptr, animations_len);
+  //   injectCSS(animations_css);
+  // }
 
   loadTheme();
   if (currentPath === "/") {
@@ -638,6 +675,7 @@ function setupWasiInstance() {
     route_ptr = allocString(`/root${currentPath}`);
   }
   const start = performance.now();
+  console.log("Rendering UI...");
   wasmInstance.renderUI(route_ptr);
 
   // wasmInstance.markCurrentTreeDirty();
@@ -696,10 +734,16 @@ function setupWasiInstance() {
       wasmInstance.hooksMountedCallback(idPtr);
       hooksMounted.delete(key);
     });
-    // wasmInstance.callAllMountedCallbacks();
+    hooksCtxCreated.forEach((value, key) => {
+      const idPtr = allocString(key);
+      wasmInstance.callOnCreateNode(idPtr);
+      hooksCtxCreated.delete(key);
+    });
+    wasmInstance.onEndCallback();
   });
 
   wasmInstance.registerAllListenerCallbacks();
+  // wasmInstance.onEndCtxCallback();
 
   // handleIntersection();
 
@@ -755,6 +799,10 @@ function readAllRenderCommands(baseOffset, count) {
 
     const hrefPtr = view.getUint32(offset + layoutInfo.hrefPtrOffset, true);
     const hrefLen = view.getUint32(offset + layoutInfo.hrefPtrOffset + 4, true);
+    const changedStyle = view.getUint8(
+      offset + layoutInfo.styleChangedOffset,
+      true,
+    );
     // const hasChildren = view.getUint8(
     //   offset + layoutInfo.hasChildrenOffset,
     //   true,
@@ -774,6 +822,7 @@ function readAllRenderCommands(baseOffset, count) {
         updatedId: view.getUint32(offset + layoutInfo.hooksOffset + 8, true),
         destroyId: view.getUint32(offset + layoutInfo.hooksOffset + 12, true),
       };
+
       const classnamePtrOffset = layoutInfo.classnamePtrOffset;
 
       // 2. Read the actual pointer value from the RenderCommand struct.
@@ -825,6 +874,7 @@ function readAllRenderCommands(baseOffset, count) {
       hash,
       isDirty,
       stateType,
+      changedStyle,
     };
   }
 
@@ -864,10 +914,6 @@ export let U8;
 export let U32;
 async function init() {
   root = document.getElementById("contents");
-
-  // CRITICAL: Minimal setup for first paint
-  root.style.width = "100%";
-  root.style.height = "100vh";
 
   // Show a loading state or basic structure immediately
   // root.innerHTML = '<div class="loading">Loading...</div>';
@@ -914,11 +960,21 @@ export function handleIntersection() {
 
 let route_ptr = null;
 
+let renderTimeout = null;
+const DEBOUNCE_DELAY = 8; // Can be 0 for next tick, or 16-50ms for smoother batching
+//
 export function requestRerender() {
-  if (!state.isRenderScheduled) {
-    state.isRenderScheduled = true;
-    requestAnimationFrame(render);
+  if (renderTimeout) {
+    clearTimeout(renderTimeout);
   }
+
+  renderTimeout = setTimeout(() => {
+    renderTimeout = null;
+    if (!state.isRenderScheduled) {
+      state.isRenderScheduled = true;
+      requestAnimationFrame(render);
+    }
+  }, DEBOUNCE_DELAY);
 }
 
 export function render() {
@@ -926,7 +982,6 @@ export function render() {
   state.isRenderScheduled = false;
 
   const globalRerender = wasmInstance.shouldRerender();
-  const grainRerender = wasmInstance.grainRerender();
   // const rerenderEverything = wasmInstance.rerenderEverything();
   //
   // if (rerenderEverything) {
@@ -935,19 +990,23 @@ export function render() {
 
   // Exit if no re-render is needed.
   // console.log("Requesting Rerender");
-  if (!globalRerender && !grainRerender) {
+  if (!globalRerender) {
+    wasmInstance.onEndCallback();
     return;
   }
 
   try {
     if (globalRerender) {
-      const start = performance.now();
       currentPath = window.location.pathname;
       const route_ptr = allocString(
         currentPath === "/" ? "/root" : `/root${currentPath}`,
       );
 
+      const start = performance.now();
       wasmInstance.renderUI(route_ptr);
+      const renderTime = performance.now() - start;
+      document.getElementById("renderTime").textContent =
+        Math.round(renderTime * 100) / 100;
       const has_dirty = wasmInstance.hasDirty();
 
       const count = wasmInstance.getRemovedNodeCount();
@@ -984,6 +1043,8 @@ export function render() {
         // activeNodeIds = new Set();
         // const baseOffset = wasmInstance.getDirtyNode();
         // const dirtyRenderCmds = readAllRenderCommands(baseOffset, dirtyCount); // 6ms
+        // document.getElementById("traversalTime").textContent =
+        // performance.now() - start;
         //
         // for (let i = dirtyCount - 1; i >= 0; i--) {
         //   let element;
@@ -1125,6 +1186,8 @@ export function render() {
 
         activeNodeIds = new Set();
 
+        // const fragment = document.createDocumentFragment();
+        root = document.getElementById("contents");
         traverse(root, true, tree_node, layoutInfo);
         state.initial_render = false;
         callDestroyFncs();
@@ -1133,14 +1196,25 @@ export function render() {
         wasmInstance.resetRerender();
         wasmInstance.registerAllListenerCallbacks();
 
-        // document.fonts.ready.then(() => {
         // hooksMounted.forEach((value, key) => {
         //   const idPtr = allocString(key);
         //   wasmInstance.hooksMountedCallback(idPtr);
         //   hooksMounted.delete(key);
         // });
-        // wasmInstance.callAllMountedCallbacks();
-        // });
+        hooksCtxCreated.forEach((value, key) => {
+          const idPtr = allocString(key);
+          wasmInstance.callOnCreateNode(idPtr);
+          hooksCtxCreated.delete(key);
+        });
+
+        // wasmInstance.onEndCtxCallback();
+
+        hooksMounted.forEach((value, key) => {
+          const idPtr = allocString(key);
+          wasmInstance.hooksMountedCallback(idPtr);
+          hooksMounted.delete(key);
+        });
+        // requestAnimationFrame(wasmInstance.onEndCallback);
 
         // requestAnimationFrame(wasmInstance.cleanUp);
         // wasmInstance.onEndCallback();
@@ -1172,6 +1246,7 @@ export function render() {
   } catch (error) {
     console.error("An error occurred during the render cycle:", error);
   }
+  wasmInstance.onEndCallback();
 }
 
 // function renderLoop() {
@@ -1272,27 +1347,27 @@ let toRemove = [];
 export function removeInactiveNodes() {
   // Remove any nodes that aren't active in this render
   toRemove = [];
-  domNodeRegistry.forEach((node, nodeId) => {
-    // Potentially removed
-    const doesExist = wasmInstance.checkPotentialNode(node.node_ptr);
-    if (doesExist) {
-      // console.log("Checking potential node", nodeId);
-      const contains = document.querySelector(`#${nodeId}`);
-      if (contains) {
-        toRemove.push({ node, nodeId });
-        domNodeRegistry.delete(nodeId);
-        pureNodeRegistry.delete(nodeId);
-        const eventData = eventHandlers.get(nodeId);
-        if (eventData !== undefined) {
-          for (const [eventType, handler] of Object.entries(eventData)) {
-            const el = node.domNode;
-            el.removeEventListener(eventType, handler);
-            eventHandlers.delete(nodeId);
-          }
-        }
-      }
-    }
-  });
+  // domNodeRegistry.forEach((node, nodeId) => {
+  //   // Potentially removed
+  //   // const doesExist = wasmInstance.checkPotentialNode(node.node_ptr);
+  //   // if (doesExist) {
+  //   //   // console.log("Checking potential node", nodeId);
+  //   //   const contains = document.querySelector(`#${nodeId}`);
+  //   //   if (contains) {
+  //   //     toRemove.push({ node, nodeId });
+  //   //     domNodeRegistry.delete(nodeId);
+  //   //     pureNodeRegistry.delete(nodeId);
+  //   //     const eventData = eventHandlers.get(nodeId);
+  //   //     if (eventData !== undefined) {
+  //   //       for (const [eventType, handler] of Object.entries(eventData)) {
+  //   //         const el = node.domNode;
+  //   //         el.removeEventListener(eventType, handler);
+  //   //         eventHandlers.delete(nodeId);
+  //   //       }
+  //   //     }
+  //   //   }
+  //   // }
+  // });
 
   // 3) schedule each’s exit animation
   toRemove.forEach(({ node, nodeId }) => {
@@ -1402,8 +1477,10 @@ export function readRenderCommand(offset, layout) {
   id = idPtr ? readWasmString(idPtr, idLen) : "";
   const index = view.getUint32(layoutInfo.indexOffset, true);
   let hooks = {};
+  let changedStyle = 0;
 
   if (isDirty) {
+    changedStyle = view.getUint8(layoutInfo.styleChangedOffset, true);
     hooks = {
       createdId: view.getUint32(layoutInfo.hooksOffset, true),
       mountedId: view.getUint32(layoutInfo.hooksOffset + 4, true),
@@ -1526,30 +1603,54 @@ export function readRenderCommand(offset, layout) {
     styleId,
     isDirty,
     stateType,
+    changedStyle,
     // ... other fields
   };
 }
+// ✅ Faster: Reuse decoder (2-3x faster)
+const textDecoder = new TextDecoder();
 
 export function readWasmString(ptr, len) {
   const bytes = new Uint8Array(wasmInstance.memory.buffer, ptr, len);
-  return new TextDecoder().decode(bytes);
+  return textDecoder.decode(bytes);
 }
+// export function readWasmString(ptr, len) {
+//   const bytes = new Uint8Array(wasmInstance.memory.buffer, ptr, len);
+//   return new TextDecoder().decode(bytes);
+// }
 
 // Check if memory is growing over time
+// Get total WASM memory size
+
 function getWasmMemoryUsage() {
   const memory = wasmInstance.memory;
   return memory.buffer.byteLength;
 }
+
+// Monitor memory growth
 let lastMemorySize = 0;
-function checkMemoryGrowth() {
+export function checkMemoryGrowth() {
   const currentSize = getWasmMemoryUsage();
-  console.log(`Memory size: ${currentSize / 1024 / 1024} MB`);
+  const pages = currentSize / (64 * 1024); // WASM pages are 64KB
+
+  console.log(`Total memory: ${currentSize / 1024 / 1024} MB (${pages} pages)`);
+
   if (currentSize > lastMemorySize) {
-    console.log(
-      `Memory increased by ${(currentSize - lastMemorySize) / 1024} KB`,
-    );
+    console.log(`Memory grew by ${(currentSize - lastMemorySize) / 1024} KB`);
   }
   lastMemorySize = currentSize;
 }
 
+// Get more detailed info if your WASM exports these functions
+function getDetailedMemoryInfo() {
+  if (wasmInstance.get_stack_pointer) {
+    const stackPtr = wasmInstance.get_stack_pointer();
+    console.log(`Stack pointer: 0x${stackPtr.toString(16)}`);
+  }
+
+  if (wasmInstance.get_heap_size) {
+    const heapSize = wasmInstance.get_heap_size();
+    console.log(`Heap usage: ${heapSize / 1024} KB`);
+  }
+}
 initWasi();

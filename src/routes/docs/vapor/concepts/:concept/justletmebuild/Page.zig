@@ -1,8 +1,8 @@
 const std = @import("std");
-const Fabric = @import("vapor");
-const Signal = Fabric.Signal;
-const Style = Fabric.Style;
-const Static = Fabric.Static;
+const Vapor = @import("vapor");
+const Signal = Vapor.Signal;
+const Style = Vapor.Style;
+const Static = Vapor.Static;
 const Box = Static.Box;
 const Text = Static.Text;
 const Link = Static.Link;
@@ -15,42 +15,42 @@ const CtxButton = Static.CtxButton;
 const List = Static.List;
 const ListItem = Static.ListItem;
 const Graphic = Static.Graphic;
-const Icon = Pure.Icon;
-const Page = Fabric.Page;
-const Pure = Fabric.Pure;
+const Icon = Vapor.Icon;
+const Page = Vapor.Page;
 const CodeEditor = @import("../../../../../../components/CodeEditor.zig");
-const Grain = Fabric.Grain;
+const code_snippet = @import("../../../../../../components/Custom.zig").code_snippet_single;
+const Grain = Vapor.Grain;
 
 // Initialization
 var wasi_js_code_editor: CodeEditor = undefined;
 var chart_code_editor: CodeEditor = undefined;
 var chart_use_code_editor: CodeEditor = undefined;
 pub fn init() void {
-    // wasi_js_code_editor.init(&Fabric.lib.allocator_global, @embedFile("chart.js"));
-    // chart_code_editor.init(&Fabric.lib.allocator_global, @embedFile("chart_sample.zig"));
-    // chart_use_code_editor.init(&Fabric.lib.allocator_global, @embedFile("chart_use_case_sample.zig"));
-    // sample_inst_events.init(&Fabric.lib.allocator_global, @embedFile("inst_even_sample.zig"));
+    // wasi_js_code_editor.init(&Vapor.lib.allocator_global, @embedFile("chart.js"));
+    // chart_code_editor.init(&Vapor.lib.allocator_global, @embedFile("chart_sample.zig"));
+    // chart_use_code_editor.init(&Vapor.lib.allocator_global, @embedFile("chart_use_case_sample.zig"));
+    // sample_inst_events.init(&Vapor.lib.allocator_global, @embedFile("inst_even_sample.zig"));
 }
 
 var copied: bool = false;
 var copied_text: []const u8 = "";
 fn copy(text: []const u8) void {
-    Fabric.Clipboard.copy(text);
+    Vapor.Clipboard.copy(text);
     copied = true;
     copied_text = text;
-    Fabric.println("Hello", .{});
-    Fabric.cycle();
-    Fabric.registerCtxTimeout(500, toggleIcon, .{});
+    Vapor.println("Hello", .{});
+    Vapor.cycle();
+    Vapor.registerCtxTimeout(500, toggleIcon, .{});
 }
 
 fn toggleIcon() void {
     copied = false;
     copied_text = "";
-    Fabric.cycle();
+    Vapor.cycle();
 }
 
 fn code_snippet_single(text: []const u8) void {
-    // Box.style(&.{
+    // Box().style(&.{
     CtxButton(copy, .{text})
         // .tooltip(&.{
         //     .text = "Copy",
@@ -75,7 +75,7 @@ fn code_snippet_single(text: []const u8) void {
         },
         .position = .relative,
     })({
-        Box.style(&.{
+        Box().style(&.{
             .position = .{ .type = .absolute, .right = .px(8), .top = .px(8) },
             .size = .square_px(22),
             .transition = .{ .duration = 100 },
@@ -110,7 +110,7 @@ pub fn Txt(text: []const u8) void {
 }
 
 pub fn render() void {
-    Box.style(&.{
+    Box().style(&.{
         .child_gap = 24,
         .direction = .column,
         .size = .w(.percent(100)),
@@ -119,8 +119,23 @@ pub fn render() void {
             .visual = .font(32, 700, .palette(.text_color)),
             .font_family = "IBM Plex Mono,monospace",
         });
-        code_snippet_single("curl -sSL https://raw.githubusercontent.com/tether-labs/metal/main/install.sh | bash");
-        code_snippet_single("metal create myapp");
-        code_snippet_single("metal vapor run");
+        Text("Linux, BSD, MacOS, *nix").font(18, 700, .palette(.text_color)).end();
+        Link(.{ .url = "https://www.zvm.app/guides/install-zvm/", .aria_label = "zvm github page" })
+            .textDecoration(.none)
+            .children({
+            Text("https://www.zvm.app/guides/install-zvm/").font(16, 500, .palette(.tint)).end();
+        });
+        code_snippet("curl https://raw.githubusercontent.com/tristanisham/zvm/master/install.sh | bash");
+
+        Text("Install Zig & ZLS via ZVM").font(18, 700, .palette(.text_color)).end();
+
+        code_snippet("zvm i --zls master");
+
+        Text("Or install Zig, ZLS, ZVM, with Metal").font(18, 700, .palette(.text_color)).end();
+
+        Text("Metal Install").font(18, 700, .palette(.text_color)).end();
+        code_snippet("curl -sSL https://raw.githubusercontent.com/tether-labs/metal/main/install.sh | bash");
+        code_snippet("metal create myapp");
+        code_snippet("my-app && metal run web");
     });
 }

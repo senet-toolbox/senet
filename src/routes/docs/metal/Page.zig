@@ -7,7 +7,9 @@ const Pure = Vapor.Pure;
 const Page = Vapor.Page;
 const Custom = @import("../../../components/Custom.zig");
 const HtmlText = Custom.Chain.HtmlText;
+const Snippet = @import("../../../components/Snippet.zig");
 const root = @import("../../../main.zig");
+const code_snippet = Custom.code_snippet_single;
 const Box = Static.Box;
 const Svg = Static.Svg;
 const Graphic = Static.Graphic;
@@ -16,8 +18,10 @@ const Text = Static.Text;
 const Stack = Static.Stack;
 const List = Static.List;
 const ListItem = Static.ListItem;
+const Heading = Static.Heading;
 
 // Initialization
+var snippet: Snippet = .{};
 pub fn init() void {
     Page(.{ .src = @src() }, render, null);
 }
@@ -76,35 +80,35 @@ fn openMenu() void {
 }
 
 fn Txt(text: []const u8) void {
-    Text(text).style(&.{
+    HtmlText(text).style(&.{
         .visual = .font(16, null, null),
     });
 }
 
 pub fn render() void {
-    Box.style(&.{
+    Box().style(&.{
         .padding = .horizontal(12),
         .direction = if (!Vapor.isMobile()) .row else .column,
         .size = .hw(.percent(100), .percent(100)),
     })({
-        Box.style(&.{
+        Box().style(&.{
             .size = .hw(.percent(100), .percent(100)),
             .layout = .top_center,
         })({
-            Box.style(&.{
+            Box().style(&.{
                 .size = .w(.mobile_desktop_percent(100, 48)),
                 .child_gap = 16,
                 .direction = .column,
                 .layout = .{ .x = .start, .y = .start },
                 .padding = .tb(80, 80),
             })({
-                Box.style(&.{
+                Box().style(&.{
                     .child_gap = 16,
                     .direction = .column,
                     .margin = .{ .bottom = 32 },
                     .size = .w(.percent(100)),
                 })({
-                    Box.style(&.{
+                    Box().style(&.{
                         .layout = .x_between_center,
                         .margin = .{ .top = 0, .bottom = 32 },
                         .child_gap = 32,
@@ -115,14 +119,14 @@ pub fn render() void {
                         //         .size = .w(.percent(90)),
                         //     });
                         // });
-                        Stack.style(&.{
+                        Stack().style(&.{
                             .size = .w(.percent(100)),
                         })({
                             Text("Metal")
-                                .font(192, 700, .palette(.text_color))
-                                .margin(.l(-16))
+                                .font(224, 700, .palette(.text_color))
+                                .ml(-16)
                                 .layout(.in_line)
-                                .close();
+                                .end();
                             // Graphic(.{ .src = "/src/routes/docs/metal/metal_text.svg" }).style(&.{
                             //     .layout = .center,
                             //     .size = .w(.percent(70)),
@@ -136,6 +140,19 @@ pub fn render() void {
                             ).style(&.{ .visual = .font(24, null, null) });
                         });
                     });
+
+                    Box().style(&.{
+                        .child_gap = 8,
+                        .direction = .column,
+                        .margin = .{ .bottom = 32 },
+                        .size = .w(.mobile_desktop_percent(100, 100)),
+                        .padding = .horizontal(12),
+                    })({
+                        code_snippet("curl -sSL https://raw.githubusercontent.com/tether-labs/metal/main/install.sh | bash");
+                        code_snippet("metal create myapp");
+                        code_snippet("my-app && metal run web");
+                    });
+
                     Text("It runs on my Machine!").style(&.{
                         .visual = .font(24, 500, .palette(.text_color)),
                         .font_family = "IBM Plex Sans",
@@ -165,26 +182,26 @@ pub fn render() void {
                         \\faster, but also runs <a href="https://hacks.mozilla.org/2018/01/oxidizing-source-maps-with-rust-and-webassembly/">1.5x-2x</a> faster.
                         \\And again, we only have one binary file running the Vapor server, and one vapor.wasm file which contains our UI, and client side functionality.
                     ).style(&.{
-                        .visual = .font(18, null, null),
+                        .visual = .font(16, null, null),
                     });
 
-                    Stack.childGap(16).body()({
+                    Stack().childGap(16).children({
                         Text("Total file count").style(&.{
                             .visual = .font(24, 500, .palette(.text_color)),
                             .font_family = "IBM Plex Sans",
                         });
-                        List.direction(.column).body()({
-                            ListItem.style(&.{})({
+                        List().direction(.column).children({
+                            ListItem().style(&.{})({
                                 Text("Vapor: server.exe, vapor.wasm, bundle.min.js").style(&.{
                                     .visual = .font(16, null, null),
                                 });
                             });
-                            ListItem.style(&.{})({
+                            ListItem().style(&.{})({
                                 Text("Reverb: server.exe").style(&.{
                                     .visual = .font(16, null, null),
                                 });
                             });
-                            ListItem.style(&.{})({
+                            ListItem().style(&.{})({
                                 Text("Canopy: server.exe").style(&.{
                                     .visual = .font(16, null, null),
                                 });
@@ -206,6 +223,62 @@ pub fn render() void {
                         \\And you will be able to interact with JS string and object without the need of crossing a 'bridge' ie negligible cost.
                         \\One very simple way to not cross this boundary a ton, is just batch. Vapor does this by default. 
                     );
+                });
+                Stack().spacing(16).children({
+                    Heading(1, "Commands").font(24, 700, .palette(.text_color)).end();
+                    Txt(
+                        \\Metal is a CLI tool, and it has a lot of commands. 
+                        \\You can run <code>metal --help</code> to see all the commands.
+                    );
+                    Txt(
+                        \\Every command is run within the current directory. You can specify a output path with the <code>-o</code> flag.
+                    );
+                    code_snippet("metal -v gen Grid -o /components/MyGrid.zig");
+                    code_snippet("metal -r gen Crud -o /routes/about/MyCrud.zig");
+                    Txt(
+                        \\Metal differentiates between Vapor, Reverb, and Canopy, with -v, -r, and -c flags.
+                        \\After this, you can run various generation commands, like <code>metal -v create my-app</code> or <code>metal -v gen DataTable</code>.
+                    );
+
+                    Heading(2, "Vapor Gen Command").font(20, 700, .palette(.text_color)).end();
+                    Txt(
+                        \\When passing the <cod>gen</code> command, we can generate various component types, like <code>DataTable</code>.
+                        \\We can also generate Form components, based on a struct argument. For example, Vaporize can be used to generate the base Form UI, and then
+                        \\one can mutate the styles, or add custom logic. This is useful for rapid prototyping.
+                    );
+                    code_snippet("metal -v gen Select");
+                    code_snippet("metal -v gen DragandDrop");
+                    code_snippet("metal -v gen ui [path-to-zon-file]");
+
+                    Heading(2, "Reverb Gen Command").font(20, 700, .palette(.text_color)).end();
+                    Txt(
+                        \\We follow the same pattern as Vapor, with Reverb, we can generate cruds, routes, auth, and more.
+                    );
+                    code_snippet("metal -r gen Crud");
+                    code_snippet("metal -r gen Auth -o /routes/auth/MyAuth.zig");
+
+                    Heading(2, "Release & Deployment Commands").font(20, 700, .palette(.text_color)).end();
+                    Txt(
+                        \\We can release with Metal, via:
+                    );
+                    code_snippet("metal -v release-mode={debug|fast|small}");
+                    code_snippet("metal -r release-mode={debug|fast|small}");
+                    code_snippet("metal -c release-mode={debug|fast|small}");
+
+                    Txt(
+                        \\This will generate various types of files, based on the mode. For Vapor specifically, release-mode small and fast, will run the wasm-opt and brotli commands.
+                        \\This will further compress the WASM binary, reaching an average 40x reduction in size.
+                    );
+
+                    Txt(
+                        \\Vapor's server runs on Reverb, and so we get all the performance benefits of Reverb, by default.
+                    );
+
+                    Txt(
+                        \\Vapor also takes the <code>pre-gen</code> command, which at build time, will generate a static HTML files, and serve them on initial request, 
+                        \\then following up with the WASM binary, this improves the first paint time, and reduces the time to first byte.
+                    );
+                    code_snippet("metal -v release-mode=small pre-gen");
                 });
             });
         });

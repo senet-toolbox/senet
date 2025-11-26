@@ -8,9 +8,7 @@ metal. Then render to IOS.
 
 ![Diagram](/assets/project_structure.svg)
 
-By default, Vapor generates a vapor.wasm file, and otherwise, a vapor.exe file, which is the entry point for the IOS application call.
-
-The web directory holds the wasm bridge files, for connecting JS to vapor.wasm.
-The src directory hold `main` and `routes`, and anything else you want to use or create.
-The ios directory holds the ios bridge files, for connecting zig to native IOS objc code.
+- The **/web** directory holds the wasm bridge files, for connecting JS to vapor.wasm.
+- The **/src** directory hold `main` and `routes`, and anything else you want to use or create.
+- The **/ios** directory holds the IOS bridge files, for connecting zig to native IOS objc code.
 

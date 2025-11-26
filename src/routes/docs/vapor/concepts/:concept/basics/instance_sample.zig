@@ -29,25 +29,24 @@ pub fn deinit(counter: *Counter) void {
     counter.count.deinit();
 }
 
-pub fn render(counter_opaque: *anyopaque) void {
-    const counter = Vapor.cast(*Counter, counter_opaque);
-    Static.Box.layout(.center).spacing(16).padding(.all(20)).body()({
+pub fn render(counter: *Counter) void {
+    Static.Box().layout(.center).spacing(16).padding(.all(20)).children({
         Static.CtxButton(decrement, .{counter})
             .padding(.all(8))
             .border(.simple(.palette(.border_color_light)))
             .cursor(.pointer)
-            .body()({
-            Static.Text("-").font(18, null, .palette(.text_color)).close();
+            .children({
+            Static.Text("-").font(18, null, .palette(.text_color)).end();
         });
 
-        Static.TextFmt("Instance State: {d}", .{counter.count.get()}).font(24, 700, .palette(.text_color)).close();
+        Static.TextFmt("Instance State: {d}", .{counter.count.get()}).font(24, 700, .palette(.text_color)).end();
 
         Static.CtxButton(increment, .{counter})
             .padding(.all(8))
             .border(.simple(.palette(.border_color_light)))
             .cursor(.pointer)
-            .body()({
-            Static.Text("+").font(18, null, .palette(.text_color)).close();
+            .children({
+            Static.Text("+").font(18, null, .palette(.text_color)).end();
         });
     });
 }

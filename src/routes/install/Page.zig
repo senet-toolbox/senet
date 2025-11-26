@@ -2,6 +2,7 @@ const std = @import("std");
 const Vapor = @import("vapor");
 const NavBar = @import("../../components/Navbar.zig");
 const Custom = @import("../../components/Custom.zig");
+const code_snippet = Custom.code_snippet_single;
 const Signal = Vapor.Signal;
 const Style = Vapor.Style;
 const Static = Vapor.Static;
@@ -55,86 +56,22 @@ const muted_text = &Style{
 };
 
 var copied: bool = false;
-var copied_text: []const u8 = "";
 fn copy(text: []const u8) void {
     Vapor.Clipboard.copy(text);
     copied = true;
-    copied_text = text;
-    Vapor.println("Hello", .{});
-    Vapor.cycle();
     Vapor.registerCtxTimeout(500, toggleIcon, .{});
 }
 
 fn toggleIcon() void {
-    copied = false;
-    copied_text = "";
-    Vapor.cycle();
-}
-
-fn code_snippet_single(text: []const u8) void {
-    // Box.style(&.{
-    CtxButton(copy, .{text})
-        // .tooltip(&.{
-        //     .text = "Copy",
-        //     .position = .right,
-        //     .layout = .center,
-        //     .color = .palette(.background),
-        //     .background = .palette(.text_color),
-        //     .border = .solid(.all(0), .palette(.text_color), .all(4)),
-        // })
-        .style(&.{
-        .visual = .{
-            .border = .simple(.palette(.border_color_light)),
-            .text_color = .palette(.text_color),
-            .cursor = .pointer,
-            .background = .transparent,
-        },
-        .padding = .all(8),
-        .size = .square_percent(100),
-        .direction = .column,
-        .layout = .flex,
-        .interactive = .{
-            .hover = .{ .text_color = .palette(.tint), .border = .{ .color = .palette(.tint) } },
-        },
-        .position = .relative,
-    })({
-        Box.style(&.{
-            .position = .{ .type = .absolute, .right = .px(8), .top = .px(8) },
-            .size = .square_px(22),
-            .transition = .{ .duration = 100 },
-            .visual = .{
-                .border_radius = .all(4),
-                .background = .transparent,
-                .cursor = .pointer,
-            },
-            .layout = .center,
-        })({
-            if (copied and std.mem.eql(u8, text, copied_text)) {
-                Icon(.check).style(&.{
-                    .visual = .{ .font_size = 18 },
-                });
-            } else {
-                Icon(.clipboard).style(&.{
-                    .visual = .{ .font_size = 18 }, // we need to fix this to make sure it does not repalce the class of the text below
-                    // setting it to 16 results in the Text below being overwritten
-                });
-            }
-        });
-        Text(text).style(&.{
-            .visual = .{ .font_size = 16 },
-            .font_family = "Azeret Mono, monospace",
-            .layout = .center,
-            .size = .w(.grow),
-        });
-    });
+    copied = !copied;
 }
 
 pub fn render() void {
     // NavBar.render();
-    Center.style(&.{
+    Center().style(&.{
         .size = .hw(.percent(100), .percent(100)),
     })({
-        Box.style(&.{
+        Box().style(&.{
             .child_gap = 24,
             .direction = .column,
             .margin = .{ .bottom = 32 },
@@ -150,7 +87,9 @@ pub fn render() void {
                 .position = .{ .type = .absolute, .bottom = .percent(5), .left = .percent(20) },
                 .size = .hw(.percent(30), .mobile_desktop_percent(40, 30)),
             });
-            code_snippet_single("curl -sSL https://raw.githubusercontent.com/tether-labs/metal/main/install.sh | bash");
+            code_snippet("curl -sSL https://raw.githubusercontent.com/tether-labs/metal/main/install.sh | bash");
+            code_snippet("metal create myapp");
+            code_snippet("my-app && metal run web");
         });
     });
 }

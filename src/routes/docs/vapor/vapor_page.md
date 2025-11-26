@@ -2,162 +2,357 @@
 
 # What is Vapor?
 
-{#vapor-is-a-frontend}
+#### Vapor is a Zig-powered WebAssembly UI framework/toolkit.
 
-## Vapor is the frontend framework of Tether.
+#### ⚡ Zero tooling. Zero JS build chain. Just Zig → WASM → UI.
 
-We believe developers should control their tools, not the other way around.
-Every API is explicitly exposed, every internal is accessible, and every component can be customized.
-No black boxes, no hidden magic—just transparent, controllable architecture that puts you in the driver's seat.
+**Vapor is a compiled instruction engine for the web.**
 
-Vapor should be treated and seen as a set of tools, which can be used to adapt the core framework,
-it's purpose is to be unopinionated, and modular. However, there are guidelines, and best practices that we follow.
+Traditional frameworks parse templates and manage heavy Javascript runtimes.
+**Vapor** compiles native Zig functions into a compact binary of render commands.
+Despite compiling to binary instructions, Vapor is fully inspectable.
+
+This is because the engine maps instructions directly to native browser APIs
+like `createElement` or `setAttribute` for Web, and UIKit for iOS.
+
+Vapor treats the browser like a graphics driver, you create the UI with simple functions, and then
+Vapor & Zig work together to compile your UI into a compact, optimized set of instructions.
+These instructions are sent to the DOM only when necessary.
+No strings, no parsing, just direct-to-metal UI performance.
+
+**All in a simple, code based, declarative syntax.**
+
+```zig
+const Vapor = @import("vapor");
+const Center = Vapor.Center;
+const Button = Vapor.Button;
+const Text = Vapor.Text;
+
+// Initialize Vapor
+export fn init() void {
+    Vapor.init(.{});
+    Vapor.Page(.{ .route = "/" }, Home, null);
+}
+```
+
+```zig
+fn welcome() void {
+    Vapor.alert("Welcome to Vapor!");
+}
+
+fn Home() void {
+    Center().children({
+        Button(.{ .on_press = welcome }).children({
+            Text("Click Me").fontSize(18).end();
+        });
+    });
+}
+```
+
+@alert
+
+### How it works
+
+We create our route via the `Page()` function. `Page()`, takes a render function, which will be called when we navigate to the route.
+In the scenario above, we pass in `Home()`.
+Then when we navigate to the "/", Vapor internally calls `Home()`, then reconciles the UI, and updates the DOM.
+
+### The Render Loop: A Key Concept
+
+It is common convention to use the `render()` and `init()` naming convention when creating Components, and use the
+name of route like "Home" or "About" for the page render function, as this explicitly reads as "render the UI", and "initialize the Data".
+
+The function passed to `Page(...)` is called every time Vapor needs to update the UI. Just like any function, variables **inside** `render()` are reset each call:
+
+```zig
+fn render() void {
+    var counter: usize = 0; // ⚠️ Reset to 0 every render!
+    // ... rest of your UI
+}
+
+fn renderCycle() void {
+    while (true) {
+        render();
+    }
+}
+```
+
+⚠️ Note: This is a conceptual model. In practice, Vapor only calls render()
+when state changes are detected, not in an infinite loop. Think of it as
+"render() gets called fresh each time we need to update the UI."
+
+### The React Solution: useState
+
+React solves this with `useState` to "rescue" variables from being reset:
+
+```jsx
+function Counter() {
+  // ✅ useState preserves this between renders
+  const [count, setCount] = useState(0);
+
+  return <button onClick={() => setCount(count + 1)}>{count};
+}
+```
+
+### The Vapor Solution: Move State Outside
+
+```zig
+// This is static, it is created once.
+var counter: usize = 0;
+
+fn increment() void {
+    counter += 1;
+}
+
+fn render() void {
+    // ⚠️ This function body runs EVERY render
+
+    Vapor.print("This runs on EVERY render!"); // Logs on every click
+    Button(increment).children({
+        Text(counter).end();
+    });
+}
+```
+
+In Vapor we seperate data, from UI. Everything inside the render function is UI, and gets called every time we want to update the UI. This is why, in all the examples
+you will see, we have a `init()` function for initialization of data, and a `render()` function for rendering the UI.
+
+Vapor treats, data and UI as two seperate things, This drastically improves readability, and debugging, since the lifecycle of the entire application is predictable, and deterministic.
+
+- Everything inside `render()` is called every time we want to update the UI.
+- Everything declared outside `render()` persists between renders. Functions outside `render()` can be called multiple times (like event handlers), but variables outside `render()` maintain their values.
+
+In both frameworks, the UI declaration runs repeatedly. The difference is **where state lives**:
+
+This is why you'll see two functions in Vapor apps:
+
+- `init()` - Initialize state (runs once)
+- `render()` - Declare UI (runs on every update)
+
+```zig
+// 📁 main.zig
+const Home = @import("routes/home/Page.zig");
+export fn init() void {
+    Vapor.init(.{});
+    Home.init();
+}
+```
+
+```zig
+// 📁 routes/home/Page.zig
+const Vapor = @import("vapor");
+const Box = Vapor.Box;
+const Text = Vapor.Text;
+
+var text: []const u8 = "";
+pub fn init() void {
+    text = "Welcome to Vapor!";
+    Page(.{ .route = "/home" }, render, null);
+}
+
+fn render() void {
+    Box().children({
+        Text(text).end();
+    });
+}
+```
+
+## Mental Model Comparison
+
+#### React
+
+![diagram](/assets/mental_model_react.svg)
+
+#### Vapor
+
+![diagram](/assets/mental_model_vapor.svg)
+
+#### Key Takeaway
+
+**React:** Your component is a function that runs repeatedly, so state needs special handling (`useState`)
+
+**Vapor:** Your render function also runs repeatedly, but state lives **outside** the function, so it naturally persists
+
+{#quickstart}
+
+### Quickstart
+
+%curl -sSL https://raw.githubusercontent.com/tether-labs/metal/main/install.sh | bash
+
+%metal create vapor my-app
+
+%cd my-app && metal run web
+
+**Visit** [localhost:5173](http://localhost:5173/)
 
 {#vapor-is-simple}
 
-### Vapor is simple by nature
+## Vapor is simple by nature
 
-- Only write `Zig`.
+- **Granular** - Automatic UI updates
+- **Small bundle sizes** - _Hello World_ in only **28kb**, including router, hooks, reactivity, and more
+- **No** - special framework syntax (macros, templating language), just normal programming
+- **Only write** - `Zig`, even in the UI
+- **Powerful Styling** - `.layout(.center)`, `.grid(16, 1, .palette(.grid_color))`
+- **Simplified** - memory management
 
-- Automatic UI updates, or controlled via `.cycle()` or `Signal(T)`
+{#how-it-works}
 
-- Inject custom `HTML`, `JS`, `CSS`
+## How it works
 
-- Powerful Styling `.layout(.center)`
+**Server-Side Pre-rendering**
+Vapor compiles your Zig components into static HTML at build time. This is sent to the browser for an instant, SEO-friendly first paint.
 
-- Simplified memory management
+**Client-Side Hydration**
+The browser also receives your compact _`vapor.wasm`_ binary, and a thin JS glue bridge. This WASM binary runs and **hydrates** the static HTML,
+seamlessly taking control of the page.
 
-- Native performance
+**Native Performance Runtime**
+From that point on, all UI updates, routing, and logic are handled directly by high-performance WebAssembly, not JavaScript, giving you a smooth, native-like feel in the browser.
 
-{#memory-is-scary}
+**You write Zig, it compiles to WASM, it runs in the browser. That's it.**
 
-### Memory is not Scary
+{#why-zig}
 
-Most of you who may not be familiar with low level programming, will assume that you will need to manage memory, and that memory management is a pain.
+## Why Zig?
 
-**This is not the case.**
+Zig compiles to tiny, fast WebAssembly binaries.
+No garbage collector means predictable performance. And unlike Rust,
+Zig's syntax is straightforward.
 
-Vapor, handles all the memory management for you, and when need be, you can use a set of memory functions,
-which automatically frees the memory when it is no longer needed.
+Just like some of you, I came from the Javascript world, 2 years ago I started writing Zig, and 1 years ago I started building Tether.
 
-- `Vapor.frameList(T)` - A list allocated on the frame, and will be freed when the frame is updated.
-
-```zig
-var dynamic_list = Vapor.frameList(u32);
-dynamic_list.append(1);
-dynamic_list.append(2);
-dynamic_list.append(3);
-```
-
-- `Vapor.routeList(T)` - A list allocated on the route, and will be freed when the route is changed.
-
-```zig
-var dynamic_list = Vapor.routeList(u32);
-dynamic_list.append(1);
-dynamic_list.append(2);
-dynamic_list.append(3);
-```
-
-- `Vapor.persistentList(T)` - A list allocated, and never freed.
-
-```zig
-var dynamic_list = Vapor.persistentList(u32);
-dynamic_list.append(1);
-dynamic_list.append(2);
-dynamic_list.append(3);
-```
-
-You also have access to the arena allocators themselves,
-via:
-
-- `Vapor.getFrameAllocator()`
-
-- `Vapor.getRouteAllocator()`
-
-- `Vapor.getPersistentAllocator()`
+Don't be afraid of the syntax, or the dreaded **Memory Management**, all will be explained, and you'll come to find that
+Vapor makes it easy to write performant, native-like UIs,
+with _minimal to no memory management._
 
 {#making-a-button}
 
 ## Making a button!
 
-We will jump into depth with styling, in the next section. For now though, we will make a button.
-The `Button` component is part of the Static and Pure Structs.
+We will jump into depth on how Vapor works soon, but first we will make a **Button**.
 
-** As you can see, we do not allocate or use any memory, just simple pure functions.**
+** As you can see, we do not allocate or use any memory, just simple functions.**
 
 ```zig
 // All normal Zig code
 const Vapor = @import("vapor");
-const Static = Vapor.Static;
 
 // Components
-const Button = Static.Button;
-const TextFmt = Static.TextFmt;
+const Button = Vapor.Button;
+const Text = Vapor.Text;
 
-var counter: usize = 0;
+var counter: i32 = 0;
 fn increment() void {
     counter += 1;
 }
 
 // Render
 pub fn render() void {
-    Button(.{ .on_press = increment })
-        .border(.simple(.palette(.border_color_light)))
-        .body()({
-        TextFmt("Increment {d}", .{counter})
-            .font(18, null, .palette(.text_color))
-            .close();
+
+    // ✨ No setState(), no hooks, no signals
+    // Just mutate the variable. Vapor handles the rest.
+
+    Text(counter).fontSize(18).end();
+
+    Button(.{ .on_press = increment }).border(.simple(.black)).children({
+        Text("Increment").fontSize(18).end();
     });
 }
 ```
 
-Every Component follows the builder pattern. We start by creating a `Button` struct, and then we can
+@counter
+
+#### When state changes, Vapor performs two phases:
+
+1. **Render Pass** - Your entire render() function executes in WebAssembly, generating a fresh virtual tree
+
+2. **Reconciliation** - Vapor diffs the new tree against the previous one, identifying exactly which DOM elements need updates
+
+Only the reconciliation results are applied to the actual DOM. This is what makes updates fine-grained. We determine all the changes that are needed
+on the WASM side, and then bridge to the DOM side to apply all the updates.
+
+Modern web frameworks, use signal based state management, due to performance issues of Javascript. Since we are using WASM, we do not have to worry about
+performance issues, and can focus on the UI.
+
+{#builder}
+
+## Builder Pattern
+
+Every Component follows the builder pattern. We start by creating a `Button` component, and then we can
 call any set of **styling** functions such as `.border()`.
 
-We attach a `on_press` handler to the button, and pass the increment function to it.
-
-Within the `increment` function, we increment the counter, this will automatically result in the text being updated.
-There is no need to use signals or state management in Vapor, it is all reactive. It is also fine grained,
-only the content that you define to be updated will be updated. No more useMemo, or state definitions, just pure functions.
-
-{#a-glimpse-under-the-hood}
-
-### A glimpse under the hood
-
-The following is a base explanation of how Vapor works at it's core. **It is not necessary for writing Vapor components.**
-However, it is useful to understand the basics of how Vapor works. If you ever want to use it to it's full potential,
-or understand how frontend frameworks work, this is a great place to start.
-
-{#ui-node}
-
-### A UI Node
-
-A UI Node is a generalized element which represents all UI primitives. Think of it as the boxes or text on your screen.
-Each Box is generalized to a UI Node. In Web these are _divs, spans, p tags, links._
-
-In Vapor, eveything is a UI Node, during rendering, we build a tree of UI Nodes, each with a element type and style.
-This tree is then rendered to the DOM. Since Vapor is renderer agnostic, we can use the same UI tree and just swap the renderer.
-
-![Diagram](/src/assets/tree.svg)
+Each method returns itself, letting you chain calls fluently—just like SwiftUI or Tailwind's approach.
 
 ```zig
-pub inline fn Node() NodeBody {
-    const elem_decl = ElementDefinition{
-        .state_type = .static,
-        .element_type = .Box,
-    };
+Center().height(.px(100)).layer(.dot(0.5, 20, .white)).background(.vapor_blue).children({
+    Text("I like Dots!").font(48, 700, .white).fontFamily("Montserrat").end();
+});
+```
 
-    LifeCycle.open(elem_decl);
-    LifeCycle.configure(elem_decl);
-    return LifeCycle.body;
+@builder
+
+#### Or using the Style struct:
+
+```zig
+const box_style = Vapor.Style{
+    .layout = .center,
+    .spacing = 8,
+    .size = .{ .height = .px(100) },
+    .visual = .{
+        .background = .vapor_blue,
+        .layer = .dot(0.5, 20, .white),
+    },
+};
+
+const text_style = Vapor.Style{
+    .font_family = "Montserrat",
+    .visual = .{
+        .font_size = 48,
+        .font_weight = 700,
+        .text_color = .white
+    },
+};
+```
+
+#### This is the equivalent in CSS:
+
+```css
+.vapor-box {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  height: 100px;
+
+  background-color: rgb(33, 8, 255);
+  background-image: radial-gradient(
+    circle,
+    rgb(255, 255, 255) 0.5px,
+    transparent 0px
+  );
+  background-size: 20px 20px;
+  background-position: center center;
+  text-decoration: none;
+}
+
+.vapor-box-text {
+  font-size: 48px;
+  font-weight: 700;
+  color: rgb(255, 255, 255);
+  font-family: Montserrat;
 }
 ```
 
-`LifeCycle` is a struct that handles configuring Nodes, and adding them to the UI tree.
-`.open` adds the node to the tree and sets it as the current open node
-or parent node.
-We return `body` which is a function that allows
-for child nodes to be added to the current node.
+#### This is the Tailwind equivalent:
 
-This is all abstracted away, it is up to the developer to decided whether they want to create their
-own custom UI Node types.
+```html
+<div
+  class="flex flex-row justify-center items-center h-[100px] bg-[rgb(33,8,255)] text-center"
+  style="background-image: radial-gradient(circle, rgb(255, 255, 255) 0.5px, transparent 0px); background-size: 20px 20px; background-position: center center;"
+>
+  <span class="text-5xl font-bold text-white font-['Montserrat']">
+    I like Dots!
+  </span>
+</div>
+```

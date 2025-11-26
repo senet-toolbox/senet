@@ -10,49 +10,41 @@ const Button = Static.Button;
 const Text = Static.Text;
 const Icon = Pure.Icon;
 const Content = @import("../../../../../../components/Content.zig");
+const Compiler = @import("../../../../../../main.zig");
 
 // Initialization
-var layout_page: *Vaporize.Node = undefined;
-var content: Content.new(@embedFile("layout_page.md")) = undefined;
+var content: Content.new("") = undefined;
+var page: []const u8 = "";
+var markdown_loaded: bool = false;
+var markdown: Compiler.vaporize.MarkDown(.{}) = .{};
 pub fn init() void {
-    content.init();
-    var parser = Vaporize.Parser.init(Vapor.lib.allocator_global, @embedFile("layout_page.md"));
-    layout_page = parser.parse() catch unreachable;
-}
-var copied: bool = false;
-fn copy() void {
-    Vapor.Clipboard.copy(@embedFile("layout_page.md"));
-    copied = true;
-    Vapor.cycle();
-    Vapor.registerCtxTimeout(500, toggleIcon, .{});
+    Vapor.Kit.fetch("/src/routes/docs/vapor/concepts/:concept/layouts/layout_page.md", handlePage, .{ .method = .GET });
 }
 
-fn toggleIcon() void {
-    copied = false;
+fn handlePage(resp: Vapor.Kit.Response) void {
+    switch (resp) {
+        .ok => |data| {
+            content.content_text = data.body;
+            page = data.body;
+            markdown.compile(page) catch |err| {
+                Vapor.printErr("Failed to compile markdown: {any}", .{err});
+                return;
+            };
+            markdown_loaded = true;
+        },
+        .err => |err| {
+            Vapor.printErr("Failed to fetch: {s}", .{err.message});
+            return;
+        },
+    }
     Vapor.cycle();
 }
-
-// Global state
-var count: i32 = 0;
-fn increment() void {
-    count += 1;
-    Vapor.cycle();
-}
-
-fn decrement() void {
-    count -= 1;
-    Vapor.cycle();
-}
-
 fn component() void {
-    Vaporize.traverse(layout_page, .{
-        .code_color = .palette(.tint),
-        .text_color = .palette(.text_color),
-        .heading_color = .palette(.text_color),
-    }, void, null) catch unreachable;
+    markdown.render() catch unreachable;
 }
 
 // Render
 pub fn render() void {
+    if (!markdown_loaded) return;
     content.content(component);
 }

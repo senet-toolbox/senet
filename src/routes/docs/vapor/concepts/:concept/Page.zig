@@ -19,8 +19,12 @@ const Just = @import("justletmebuild/Page.zig");
 const Styling = @import("styling/Page.zig");
 const Layout = @import("layouts/Page.zig");
 const Hooks = @import("hooks/Page.zig");
+const Vaporize = @import("vaporize/Page.zig");
 const CsrVsSsr = @import("csr_vs_ssr/Page.zig");
+const CodexEngine = @import("codex-engine/Page.zig");
 const Performance = @import("performance/Page.zig");
+const Memory = @import("memory/Page.zig");
+const NewToZig = @import("new-to-zig/Page.zig");
 const Menu = @import("../../Menu.zig");
 const Footer = @import("../../Footer.zig");
 const root = @import("../../../../../main.zig");
@@ -32,44 +36,52 @@ var sheet: Sheet(void, Menu.render) = undefined;
 
 const Routes = enum {
     basics,
+    @"new-to-zig",
+    vaporize,
     routing,
     reactivity,
-    performance,
-    // authentication,
-    // introduction,
+    // // performance,
+    // // // authentication,
+    // // // introduction,
     kit,
     project,
     events,
-    // jslibs,
-    // bridge,
+    // // // jslibs,
+    // // // bridge,
     justletmebuild,
     styling,
     hooks,
-    // keystone,
-    tutorials,
+    memory,
+    // // // keystone,
+    // // tutorials,
     layout,
-    csr_vs_ssr,
+    // // csr_vs_ssr,
+    // // @"ui-inversion",
+    @"codex-engine",
 };
 
 // Initialization
 pub fn init() void {
     Basics.init();
-    // Introduction.init();
+    Vaporize.init();
     Routing.init();
     Reactivity.init();
     Kit.init();
-    // Gotchas.init();
-    // JSLibs.init();
+    NewToZig.init();
+    // // Gotchas.init();
+    // // JSLibs.init();
     Events.init();
-    // Bridge.init();
+    // // Bridge.init();
     Project.init();
     Just.init();
     Styling.init();
     Hooks.init();
-    Performance.init();
-    Tutorials.init();
+    // Performance.init();
+    // Tutorials.init();
     Layout.init();
-    CsrVsSsr.init();
+    // CsrVsSsr.init();
+    CodexEngine.init();
+    Memory.init();
     // sheet.init(&Vapor.lib.allocator_global);
     Page(.{ .route = "/docs/vapor/concepts/:concept/" }, render, null);
 }
@@ -83,6 +95,9 @@ fn getRender(path: []const u8) ?*const fn () void {
                 .basics => {
                     return Basics.render;
                 },
+                .vaporize => {
+                    return Vaporize.render;
+                },
                 .routing => {
                     return Routing.render;
                 },
@@ -92,9 +107,12 @@ fn getRender(path: []const u8) ?*const fn () void {
                 .layout => {
                     return Layout.render;
                 },
-                // .introduction => {
-                //     return Introduction.render;
-                // },
+                .@"new-to-zig" => {
+                    return NewToZig.render;
+                },
+                // // .introduction => {
+                // //     return Introduction.render;
+                // // },
                 .project => {
                     return Project.render;
                 },
@@ -104,29 +122,35 @@ fn getRender(path: []const u8) ?*const fn () void {
                 .styling => {
                     return Styling.render;
                 },
+                .memory => {
+                    return Memory.render;
+                },
                 .events => {
                     return Events.render;
                 },
-                // .jslibs => {
-                //     return JSLibs.render;
-                // },
-                // .bridge => {
-                //     return Bridge.render;
-                // },
+                // // .jslibs => {
+                // //     return JSLibs.render;
+                // // },
+                // // .bridge => {
+                // //     return Bridge.render;
+                // // },
                 .justletmebuild => {
                     return Just.render;
                 },
                 .hooks => {
                     return Hooks.render;
                 },
-                .performance => {
-                    return Performance.render;
-                },
-                .tutorials => {
-                    return Tutorials.render;
-                },
-                .csr_vs_ssr => {
-                    return CsrVsSsr.render;
+                // .performance => {
+                //     return Performance.render;
+                // },
+                // .tutorials => {
+                //     return Tutorials.render;
+                // },
+                // .csr_vs_ssr => {
+                //     return CsrVsSsr.render;
+                // },
+                .@"codex-engine" => {
+                    return CodexEngine.render;
                 },
                 // else => return null,
             }
@@ -137,24 +161,24 @@ fn getRender(path: []const u8) ?*const fn () void {
 
 // Render
 pub fn render() void {
-    const path = Vapor.Kit.getWindowPath();
+    const path = Vapor.Kit.getWindowPath() orelse "/";
     const render_page = getRender(path) orelse return;
-    Box.style(&.{
+    Box().style(&.{
         .layout = .x_between,
         .direction = .column,
         .size = .square_percent(100),
     })({
-        Box.style(&.{
+        Box().style(&.{
             .padding = .horizontal(12),
             .direction = .row,
             .size = .w(.percent(100)),
         })({
-            Center.style(&.{
+            Center().style(&.{
                 .size = .w(.percent(100)),
                 .padding = .{ .top = 60, .bottom = 120 },
                 .direction = .column,
             })({
-                Box.style(&.{
+                Box().style(&.{
                     .size = .w(.mobile_desktop_percent(100, 50)),
                     // .width = .mobile_desktop_percent(100, 64),
                     // .size = .w(.percent(100)),

@@ -152,7 +152,6 @@ pub fn setDefault() void {
 }
 
 fn openDialog() void {
-    Vapor.println("openDialog", .{});
     Search.toggle();
 }
 

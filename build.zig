@@ -1,6 +1,6 @@
 const std = @import("std");
 const builtin = @import("builtin");
-fn build_generator(b: *std.Build, run: *std.Build.Step.Run) void {
+fn generateHtml(b: *std.Build, run: *std.Build.Step.Run) void {
     const target = b.graph.host;
 
     const optimize = std.builtin.OptimizeMode.Debug;
@@ -10,6 +10,8 @@ fn build_generator(b: *std.Build, run: *std.Build.Step.Run) void {
         .target = target,
         .optimize = optimize,
     });
+
+    // Define your build options
 
     const vapor = b.dependency("vapor", .{
         .target = target,
@@ -44,6 +46,14 @@ fn build_generator(b: *std.Build, run: *std.Build.Step.Run) void {
     });
 
     vapor_module.addImport("theme", theme_module);
+
+    const vaporize = b.dependency("vaporize", .{
+        .target = target,
+        .optimize = optimize,
+    });
+    const vaporize_module = vaporize.module("vaporize");
+    vaporize_module.addImport("vapor", vapor_module);
+
     const generator_mod = b.createModule(.{
         .root_source_file = b.path("src/generator.zig"),
         .target = target,
@@ -52,9 +62,9 @@ fn build_generator(b: *std.Build, run: *std.Build.Step.Run) void {
             .{ .name = "vapor", .module = vapor_module },
             .{ .name = "theme", .module = theme_module }, // ADD THIS
             .{ .name = "user_config", .module = user_config_module },
+            .{ .name = "vaporize", .module = vaporize_module },
         },
     });
-
     const generator_exe = b.addExecutable(.{
         .name = "generator",
         .root_module = generator_mod,
@@ -65,17 +75,20 @@ fn build_generator(b: *std.Build, run: *std.Build.Step.Run) void {
 
 // Basic minimal vapor build.zig setup
 pub fn build(b: *std.Build) void {
-    // var run_generator: std.Build.Step.Run = undefined;
-    // if (builtin.mode == .Debug) {
-    // build_generator(b, &run_generator);
-    // }
+    var generator: std.Build.Step.Run = undefined;
+    const generate = b.option(bool, "generate", "Generate HTML") orelse false;
+
+    if (generate) {
+        generateHtml(b, &generator);
+    }
 
     const wasm_target = b.standardTargetOptions(.{
+        // .default_target = .{ .cpu_arch = .x86_64, .os_tag = .macos }
         .default_target = .{ .cpu_arch = .wasm32, .os_tag = .freestanding },
     });
 
     const optimize = b.standardOptimizeOption(.{
-        .preferred_optimize_mode = .ReleaseSmall,
+        // .preferred_optimize_mode = .ReleaseSmall,
     });
 
     // Create a module for your config file
@@ -88,6 +101,8 @@ pub fn build(b: *std.Build) void {
     const vapor = b.dependency("vapor", .{
         .target = wasm_target,
         .optimize = optimize,
+        .static = false,
+        .atomic = false,
     });
 
     const vapor_module = vapor.module("vapor");
@@ -143,9 +158,11 @@ pub fn build(b: *std.Build) void {
         .root_module = exe_mod,
     });
 
-    // if (builtin.mode == .Debug) {
-    // exe.step.dependOn(&run_generator.step);
-    // }
+    exe.stack_size = 4 * 1024 * 1024;
+
+    if (generate) {
+        exe.step.dependOn(&generator.step);
+    }
 
     exe.rdynamic = true;
     // exe.use_llvm = true;

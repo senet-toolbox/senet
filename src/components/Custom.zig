@@ -20,7 +20,7 @@ pub const Chain = struct {
     pub fn HtmlText(text: []const u8) Self {
         return Self{
             .elem_type = .HtmlText,
-            .text = if (Vapor.lib.isGenerated) "" else text,
+            .text = text,
             // .text = text,
         };
     }
@@ -110,8 +110,7 @@ fn copy(text: []const u8) void {
     copied = true;
     copied_text = text;
     Vapor.println("Hello", .{});
-    Vapor.cycle();
-    Vapor.registerCtxTimeout(500, toggleIcon, .{});
+    Vapor.registerCtxTimeout("code_snippet", 500, toggleIcon, .{});
 }
 
 fn toggleIcon() void {
@@ -122,32 +121,31 @@ fn toggleIcon() void {
 
 pub fn code_snippet_single(text: []const u8) void {
     CtxButton(copy, .{text})
-        // .tooltip(&.{
-        //     .text = "Copy",
-        //     .position = .right,
-        //     .layout = .center,
-        //     .color = .palette(.background),
-        //     .background = .palette(.text_color),
-        //     .border = .solid(.all(0), .palette(.text_color), .all(4)),
-        // })
         .style(&.{
         .visual = .{
             .border = .simple(.palette(.border_color_light)),
             .text_color = .palette(.text_color),
             .cursor = .pointer,
-            .background = .transparent,
+            .background = .palette(.background),
+            .shadow = .card(.palette(.tint)),
         },
         .padding = .all(8),
         .size = .square_percent(100),
-        .direction = .column,
+        .child_gap = 16,
         .layout = .flex,
         .interactive = .{
             .hover = .{ .text_color = .palette(.tint), .border = .{ .color = .palette(.tint) } },
         },
         .position = .relative,
     })({
-        Box.style(&.{
-            .position = .{ .type = .absolute, .right = .px(8), .top = .px(8) },
+        Text(text).font(16, null, null)
+            .ellipsis(.dot)
+            .fontFamily("Azeret Mono, monospace")
+            .layout(.center)
+            .size(.w(.grow))
+            .end();
+        Box().style(&.{
+            // .position = .{ .type = .absolute, .right = .px(8), .top = .px(8) },
             .size = .square_px(22),
             .transition = .{ .duration = 100 },
             .visual = .{
@@ -159,20 +157,15 @@ pub fn code_snippet_single(text: []const u8) void {
         })({
             if (copied and std.mem.eql(u8, text, copied_text)) {
                 Icon(.check).style(&.{
-                    .visual = .{ .font_size = 18 },
+                    .visual = .{ .font_size = 16 },
                 });
             } else {
                 Icon(.clipboard).style(&.{
-                    .visual = .{ .font_size = 18 }, // we need to fix this to make sure it does not repalce the class of the text below
+                    .visual = .{ .font_size = 16 }, // we need to fix this to make sure it does not repalce the class of the text below
                     // setting it to 16 results in the Text below being overwritten
                 });
             }
         });
-        Text(text).style(&.{
-            .visual = .font(16, null, null),
-            .font_family = "Azeret Mono, monospace",
-            .layout = .center,
-            .size = .w(.grow),
-        });
+ 
     });
 }

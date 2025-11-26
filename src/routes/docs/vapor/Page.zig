@@ -17,49 +17,60 @@ const Mark = Vapor.Mark;
 const Vaporize = @import("vaporize");
 const Icon = Static.Icon;
 const Content = @import("../../../components/Content.zig");
-
-const Pure = Vapor.Pure;
 const Page = Vapor.Page;
-// const Menu = @import("Menu.zig");
-const CodeEditor = @import("../../../components/CodeEditor.zig");
 const Custom = @import("../../../components/Custom.zig");
 const root = @import("../../../main.zig");
-// const Sheet = @import("Sheet.zig").Sheet;
-// var sheet: Sheet(void, Menu.render) = undefined;
 
 // Initialization
-var code_view_loc: CodeEditor = undefined;
-var html_code_editor: CodeEditor = undefined;
-var traversal_code_editor: CodeEditor = undefined;
-var enum_code_editor: CodeEditor = undefined;
-var void_code_editor: CodeEditor = undefined;
-var full_code_editor: CodeEditor = undefined;
-var sample_code: CodeEditor = undefined;
-// var builder_code_editor: CodeEditor = undefined;
-var node_code_editor: CodeEditor = undefined;
-// var color_text_code_editor: CodeEditor = undefined;
-var mark_up: *Vaporize.Node = undefined;
-const vapor_page = @embedFile("vapor_page.md");
-var content: Content.new(@embedFile("vapor_page.md")) = undefined;
+var content: Content.new("") = undefined;
+
+const Compiler = @import("../../../main.zig");
+
+const components = .{
+    .{ .tag = "alert", .function = alertComponent },
+    .{ .tag = "counter", .function = counter },
+    .{ .tag = "builder", .function = builder },
+};
+
+fn builder() void {
+    Box()
+        .height(.px(100)).layer(.dot(0.5, 20, .white)).background(.vapor_blue).layout(.center).children({
+        Text("I like Dots!").font(48, 700, .white).fontFamily("Montserrat").end();
+    });
+}
+
+// var vapor_page: []const u8 = @embedFile("vapor_page.md");
+var vapor_page: []const u8 = "";
+var markdown: Compiler.vaporize.MarkDown(components) = .{};
+var markdown_loaded: bool = false;
 pub fn init() void {
+    Vapor.Kit.fetch("/src/routes/docs/vapor/vapor_page.md", handlePage, .{ .method = .GET });
     content.init();
-    var parser = Vaporize.Parser.init(Vapor.lib.allocator_global, vapor_page);
-    mark_up = parser.parse() catch unreachable;
-
-    // sheet.init(&Vapor.lib.allocator_global);
-    // Vapor.lib.registerLayout("/docs/vapor", layout, .{ .reset = true });
-    // code_view_loc.init(&Vapor.lib.allocator_global, @embedFile("10loc.zig"));
-    node_code_editor.init(&Vapor.lib.allocator_global, @embedFile("10loc.zig"));
-    // sample_code.init(&Vapor.lib.allocator_global, @embedFile("sample.zig"));
-    // builder_code_editor.init(&Vapor.lib.allocator_global, @embedFile("builder.zig"));
-    // color_text_code_editor.init(&Vapor.lib.allocator_global, @embedFile("sample_color_text.zig"));
-    // html_code_editor.init(&Vapor.lib.allocator_global, @embedFile("html_text_sample.zig"));
-    // traversal_code_editor.init(&Vapor.lib.allocator_global, @embedFile("traversal_sample.js"));
-    // enum_code_editor.init(&Vapor.lib.allocator_global, @embedFile("enum.zig"));
-    // void_code_editor.init(&Vapor.lib.allocator_global, @embedFile("void_sample.zig"));
-    // full_code_editor.init(&Vapor.lib.allocator_global, @embedFile("full_sample.zig"));
-
+    // markdown.compile(vapor_page) catch |err| {
+    //     Vapor.printErr("Failed to compile markdown: {any}", .{err});
+    //     return;
+    // };
+    // markdown_loaded = true;
     Page(.{ .src = @src() }, render, null);
+}
+
+fn handlePage(resp: Vapor.Kit.Response) void {
+    switch (resp) {
+        .ok => |data| {
+            content.content_text = data.body;
+            vapor_page = data.body;
+            markdown.compile(vapor_page) catch |err| {
+                Vapor.printErr("Failed to compile markdown: {any}", .{err});
+                return;
+            };
+            markdown_loaded = true;
+        },
+        .err => |err| {
+            Vapor.printErr("Failed to fetch: {s}", .{err.message});
+            return;
+        },
+    }
+    Vapor.cycle();
 }
 
 // Deinitialization
@@ -136,7 +147,7 @@ fn openMenu() void {
 //         .width = .percent(100),
 //         .direction = .column,
 //     })({
-//         Box.style(&.{
+//         Box().style(&.{
 //             .layout = .end_center,
 //             .width = .percent(100),
 //             .padding = .horizontal(12),
@@ -165,32 +176,106 @@ fn openMenu() void {
 //     });
 // }
 
+var count: i32 = 0;
+fn increment() void {
+    count += 1;
+}
+fn counter() void {
+    Box().margin(.tb(12, 32)).spacing(48).width(.percent(100)).layout(.center).children({
+        Button(.{ .on_press = increment })
+            .shadow(.card(.palette(.text_color)))
+            .padding(.all(8))
+            .border(.simple(.palette(.text_color)))
+            .background(.palette(.background))
+            .duration(100)
+            .hoverScale()
+            .width(.percent(20))
+            .cursor(.pointer)
+            .children({
+            Static.Text("Click Me")
+                .fontFamily("IBM Plex Mono,monospace")
+                .font(22, 700, .palette(.text_color))
+                .end();
+        });
+        Text(count)
+            .fontFamily("IBM Plex Mono,monospace")
+            .width(.px(100)).font(48, 700, .palette(.text_color)).end();
+    });
+}
+
+fn alert() void {
+    Vapor.alert("Welcome to Vapor!");
+}
+
+const Counter = struct {
+    count: u32 = 0,
+    pub fn render(self: *Counter) void {
+        Box().margin(.tb(12, 32)).spacing(16).width(.percent(100)).layout(.center).children({
+            Vapor.CtxButton(counterIncrement, self)
+                .padding(.all(8))
+                .border(.simple(.palette(.text_color)))
+                .background(.palette(.background))
+                .duration(100)
+                .hoverScale()
+                .width(.percent(20))
+                .cursor(.pointer)
+                .children({
+                Static.Text("-").fontFamily("IBM Plex Mono,monospace").font(18, null, .palette(.text_color)).end();
+            });
+            Text(self.count).width(.px(100)).font(24, 700, .palette(.text_color)).end();
+        });
+    }
+    fn counterIncrement(self: *Counter) void {
+        if (self.count == 0) {
+            Vapor.alert("You can't go negative! On a u32");
+            return;
+        }
+        self.count -= 1;
+    }
+};
+
+fn alertComponent() void {
+    Box().margin(.tb(12, 32)).spacing(16).width(.percent(100)).layout(.center).children({
+        Button(.{ .on_press = alert })
+            .shadow(.card(.palette(.text_color)))
+            .padding(.all(8))
+            .border(.simple(.palette(.text_color)))
+            .background(.palette(.background))
+            .duration(100)
+            .hoverScale()
+            .width(.percent(20))
+            .cursor(.pointer)
+            .children({
+            Static.Text("Alert!")
+                .font(22, 700, .palette(.text_color))
+                .fontFamily("IBM Plex Mono,monospace")
+                .end();
+        });
+    });
+}
+
 fn component() void {
-    Vaporize.traverse(mark_up, .{
-        .code_color = .palette(.tint),
-        .text_color = .palette(.text_color),
-        .heading_color = .palette(.text_color),
-    }, void, null) catch unreachable;
+    markdown.render() catch unreachable;
 }
 
 pub fn render() void {
-    Box.style(&.{
+    Box().style(&.{
         .layout = .x_between,
         .direction = .column,
         .size = .square_percent(100),
     })({
-        Box.style(&.{
+        Box().style(&.{
             .padding = .horizontal(12),
             .direction = .row,
             .size = .w(.percent(100)),
         })({
-            Box.style(&.{
+            Box().style(&.{
                 .layout = .center,
                 .size = .w(.percent(100)),
                 .padding = .{ .top = 60, .bottom = 120 },
                 .direction = .column,
             })({
-                Box.style(&.{
+                Box().style(&.{
                     .size = .w(.mobile_desktop_percent(100, 50)),
                     // .width = .mobile_desktop_percent(100, 64),
                     // .size = .w(.percent(100)),
@@ -199,21 +284,25 @@ pub fn render() void {
                     .padding = .{ .bottom = 80 },
                     .margin = .tb(32, 32),
                 })({
-                    content.content(component);
+                    if (markdown_loaded) {
+                        content.content(component);
+                    } else {
+                        // Vapor.Null();
+                    }
                 });
             });
         });
     });
-    // Box.style(&.{
+    // Box().style(&.{
     //     .padding = .horizontal(12),
     //     .direction = if (!Vapor.isMobile()) .row else .column,
     //     .size = .hw(.percent(100), .percent(100)),
     // })({
-    //     Box.style(&.{
+    //     Box().style(&.{
     //         .size = .hw(.percent(100), .percent(100)),
     //         .layout = .top_center,
     //     })({
-    //         Box.style(&.{
+    //         Box().style(&.{
     //             .size = .w(.mobile_desktop_percent(100, 48)),
     //             .child_gap = 16,
     //             .direction = .column,
@@ -243,7 +332,7 @@ pub fn render() void {
     //                 .layout = .{},
     //                 .direction = .column,
     //             })({
-    //                 Box.style(&.{
+    //                 Box().style(&.{
     //                     .child_gap = 4,
     //                     .direction = .column,
     //                     .size = .hw(.percent(100), .percent(100)),

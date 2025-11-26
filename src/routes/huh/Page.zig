@@ -61,11 +61,11 @@ const muted_text = &Style{
 };
 
 pub fn render() void {
-    Center.style(&.{
+    Center().style(&.{
         .size = .w(.percent(100)),
         .padding = .{ .top = 120, .bottom = 80 },
     })({
-        Box.style(&.{
+        Box().style(&.{
             .child_gap = 24,
             .direction = .column,
             .size = .w(.mobile_desktop_percent(100, 60)),
@@ -97,7 +97,7 @@ pub fn render() void {
                 .margin = .{ .top = 100 },
             });
             Text("This is in essence, the current state of Web development, it doesn't make sense, and it's just getting worse. ").style(muted_text);
-            Center.style(&.{ .size = .hw_percent(100, 100) })({
+            Center().style(&.{ .size = .hw_percent(100, 100) })({
                 Graphic(.{ .src = "src/assets/webdev.svg" }).style(&.{
                     .size = .hw(.percent(100), .percent(60)),
                     .visual = .{ .fill = .palette(.text_color), .stroke = .palette(.text_color) },
@@ -110,7 +110,7 @@ pub fn render() void {
             });
             Text("Tether is a toolkit first, framework second")
                 .font(18, null, .palette(.tint))
-                .close();
+                .end();
 
             HtmlText(
                 \\It's a modular, flexible system that exposes all its APIs to developers. 
@@ -150,33 +150,33 @@ pub fn render() void {
 
             Text("What Tether Eliminates").style(subheading);
 
-            List.layout(.left_center).direction(.column).childGap(8).body()({
-                ListItem.style(&.{})({
+            List().layout(.left_center).direction(.column).childGap(8).children({
+                ListItem().style(&.{})({
                     HtmlText(
                         \\Tether ships with <strong>zero dependencies</strong> and eliminates the need for:
                     ).style(muted_text);
                 });
-                ListItem.style(&.{})({
+                ListItem().style(&.{})({
                     HtmlText(
                         \\<strong>Languages & Runtimes:</strong> No JavaScript, HTML, CSS, React, TSX, Python, Swift, Node.js
                     ).style(muted_text);
                 });
-                ListItem.style(&.{})({
+                ListItem().style(&.{})({
                     HtmlText(
                         \\<strong>Frameworks & Platforms:</strong> No Vercel, Next.js, Nuxt.js, multi-language systems
                     ).style(muted_text);
                 });
-                ListItem.style(&.{})({
+                ListItem().style(&.{})({
                     HtmlText(
                         \\<strong>Infrastructure:</strong> No Docker, Redis, Dragonfly
                     ).style(muted_text);
                 });
-                ListItem.style(&.{})({
+                ListItem().style(&.{})({
                     HtmlText(
                         \\<strong>Package Management:</strong> No npm, pip, dependency hell
                     ).style(muted_text);
                 });
-                ListItem.style(&.{})({
+                ListItem().style(&.{})({
                     HtmlText(
                         \\<strong>Build Tools:</strong> No transpilation, platform-specific code, configuration magic
                     ).style(muted_text);

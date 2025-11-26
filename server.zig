@@ -213,44 +213,31 @@ const mimeTypes = .{
     .{ ".html", "text/html; charset=utf8" },
     .{ ".js", "application/javascript" },
     .{ ".wasm", "application/wasm" },
-    .{ ".br", "application/wasm" },
     .{ ".css", "text/css" },
     .{ ".png", "image/png" },
-    .{ ".webp", "image/webp" },
     .{ ".jpg", "image/jpeg" },
+    .{ ".webp", "image/webp" },
     .{ ".gif", "image/gif" },
     .{ ".svg", "image/svg+xml" },
     .{ ".txt", "text/html; charset=utf8" },
     .{ ".woff", "font/woff" },
     .{ ".woff2", "font/woff2" },
+    .{ ".css", "text/css,*/*;q=0.1" },
+    .{ ".md", "text/html; charset=utf8" },
 };
 
 pub fn mimeForPath(path: []const u8) []const u8 {
-    if (std.mem.indexOf(u8, path, ".wasm") != null) {
-        return "application/wasm";
-    } else if (std.mem.indexOf(u8, path, ".ico") != null) {
-        return "image/png";
-    } else if (std.mem.indexOf(u8, path, ".svg") != null) {
-        return "image/svg+xml";
-    } else if (std.mem.indexOf(u8, path, ".png") != null) {
-        return "image/png";
-    } else if (std.mem.indexOf(u8, path, ".webp") != null) {
-        return "image/webp";
-    } else if (std.mem.indexOf(u8, path, ".js") != null) {
-        return "application/javascript";
-    } else if (std.mem.indexOf(u8, path, ".txt") != null) {
-        return "text/html; charset=utf8";
-    } else if (std.mem.indexOf(u8, path, ".woff") != null) {
-        return "font/woff";
-    } else if (std.mem.indexOf(u8, path, ".woff2") != null) {
-        return "font/woff2";
-    } else {
-        return "text/html; charset=utf8";
+    const extension = std.fs.path.extension(path);
+    inline for (mimeTypes) |kv| {
+        if (std.mem.eql(u8, extension, kv[0])) {
+            return kv[1];
+        }
     }
+    return "text/html; charset=utf8";
 }
 
 var buffer: [2097152]u8 = undefined;
-pub fn openLocalFile(conn: std.net.Server.Connection, mime: []const u8, mimetype: []const u8, content_encoding: []const u8) !void {
+pub fn openLocalFile(conn: std.net.Server.Connection, mime: []const u8, mimetype: []const u8, content_encoding: []const u8) !void { // TODO: Fix this
     var allocator = std.heap.page_allocator;
     var path: []const u8 = "/index.html";
     if (mime.len > 1) {
@@ -272,12 +259,21 @@ pub fn openLocalFile(conn: std.net.Server.Connection, mime: []const u8, mimetype
             path = mime;
         } else if (std.mem.indexOf(u8, mime, ".woff2") != null) {
             path = mime;
+        } else if (std.mem.indexOf(u8, mime, ".css") != null) {
+            path = mime;
+        } else if (std.mem.indexOf(u8, mime, ".md") != null) {
+            path = mime;
         } else {
-            path = "/index.html";
+            // path = try std.fmt.allocPrint(allocator, "/static{s}/index.html", .{mime});
+            path = try std.fmt.allocPrint(allocator, "/template.html", .{});
         }
+    } else {
+        // This is the '/' root path
+        // path = try std.fmt.allocPrint(allocator, "/static/index.html", .{});
+        path = try std.fmt.allocPrint(allocator, "/template.html", .{});
     }
-
     var encoding: []const u8 = "";
+
     if (content_encoding.len > 1 and std.mem.eql(u8, mimetype, "application/wasm")) {
         if (std.mem.indexOf(u8, content_encoding, "br") != null) {
             path = "/zig-out/bin/vapor-optimized.wasm.br";

@@ -2,88 +2,54 @@
 
 # Basics
 
-The main.zig file is the root entry point for your Vapor application
-
-Vapor is compiled into wasm, and reverb handles the request, response connection with the client.
-Once vapor.wasm is loaded on to the client browser, then we generate the dom. This is known as Client Side Rendering (CSR).
+#### The main.zig file is the root entry point for your Vapor application
 
 ![Diagram](/assets/client-server.webp)
 
-{#csr-vs-ssr}
-
-## CSR VS SSR
-
-CSR is the default mode of Vapor. It is the simplest mode, and is the very performant, this site runs in CSR mode.
-
-SSR will not be supported in the future, Tether takes a very strict approach to application architecture, and will never support SSR.
-You can read more about why here: [ssr-vs-csr](/docs/vapor/concepts/csr_vs_ssr)
-
 {#creating-a-vapor-app}
 
-### app.zig
+### main.zig
 
-The app.zig file is the root entry point for your Vapor application. Here we intialize Vapor, set up our routes, and layouts, as well as our global style variables.
+In main.zig we intialize Vapor, set up our routes, and whatever else we need.
+It's simple to set up a Vapor app, all we have to do is import Vapor with `const Vapor = @import("vapor");` and then
+call `Vapor.init(.{});` to initialize Vapor within the `init()` function.
 
 ```zig
 const std = @import("std");
 const Vapor = @import("vapor");
-const RootPage = @import("routes/Page.zig");
-pub fn instantiate(window_width: f32, window_height: f32, allocator: std.mem.Allocator) void {
-    // InitializeVapor
-    Vapor.init(.{
-        .screen_width = window_width,
-        .screen_height = window_height,
-        .allocator = allocator,
-        .page_node_count = 10 * 1024,
-    });
+const Button = Vapor.Button;
+const Text = Vapor.Text;
 
-    // Global style variables
-    Vapor.setGlobalStyleVariables(.{ // Adds 11kb
-        .themes = &[_]Vapor.ThemeDefinition{
-            Vapor.ThemeDefinition{ .name = "light", .theme = Theme.Light, .default = true },
-            Vapor.ThemeDefinition{ .name = "dark", .theme = Theme.Dark },
-        },
-    });
-
-    RootPage.init();
+// Initialize Vapor
+export fn init() void {
+    Vapor.init(.{});
+    Vapor.Page(.{ .route = "/" }, Home, null);
 }
 
-export fn renderUI(route: [*:0]u8) void {
-    Vapor.renderCycle(route);
+var counter: u32 = 0;
+fn increment() void {
+    counter += 1;
+}
+
+fn Home() void {
+    Button(.{ .on_press = increment }).children({
+        Text("Increment").end();
+    });
+    Text(counter).end();
 }
 ```
-
-{#core-functions}
-
-## Core Functions
 
 {#instantiate}
 
-### Instantiate
+### Init
 
-The `instantiate` function is called once when the wasm file is loaded. It initializes the Vapor framework and sets up the application environment.
-
-```zig
-export fn instantiate(window_width: f32, window_height: f32, allocator: std.mem.Allocator) void {
-    // Init vapor.
-    Vapor.init(.{
-        .screen_width = window_width,
-        .screen_height = window_height,
-        .allocator = allocator,
-    });
-}
-```
-
-{#renderUI}
-
-### RenderUI
-
-The `renderUI` function is calls the entire render function tree. It is called once per render cycle.
-By default, Vapor will call renderUI once per frame, as the default mode of Vapor is immediate mode.
+The `init` function is called once when the vapor.wasm file is loaded. It initializes the Vapor framework and sets up the application environment.
+We add our routes here, these routes are the pages that we can navigate to and from.
 
 ```zig
-export fn renderUI(route: [*:0]u8) void {
-    Vapor.renderCycle(route);
+export fn init() void {
+    Vapor.init(.{});
+    Vapor.Page(.{ .route = "/" }, Home, null);
 }
 ```
 
@@ -94,45 +60,73 @@ export fn renderUI(route: [*:0]u8) void {
 The `export` keyword gives the wasm bridge access to the zig functions.
 
 ```zig
-export fn renderUI(route: [*:0]u8) void {
-    Vapor.renderCycle(route);
+export fn init() void {
+    // ... init code
 }
 ```
 
-{#virtual-dom-and-reconciliation}
+You can create other export functions to interact with JS, from Zig, or vice versa with `extern` functions.
+This is useful when you want to integrate various JS libraries into your Vapor app.
 
-## Virtual Dom & Reconciliation
+⚠️ NOTE: Vapor comes with a plethora of UI components, and libraries.
+You can add these via the metal CLI tool. Acorn, is built with **0** dependencies.
+
+{#engine}
+
+## Engine
+
+Vapor is akin to modern game engines, where the entire rendering is handled by the engine.
 
 The rendering system uses a virtual DOM approach with the following features:
 
-- `Tree Construction`: Builds a UI tree representation in memory
+1. **Tree Construction**: Builds a UI tree representation in memory
 
-- `Diffing Algorithm`: Compares current and new tree states
+2. **Diffing Algorithm**: Compares current and new tree states
 
-- `Dirty Tracking`: Marks nodes that require updates
+3. **Dirty Tracking**: Marks nodes that require updates
 
-- `Additions`: Marks nodes that need to be added
+4. **Additions**: Marks nodes that need to be added
 
-- `Removals`: Marks nodes that need to be removed
+5. **Removals**: Marks nodes that need to be removed
 
-- `Selective Updates`: Only updates nodes that have changed
+6. **Selective Updates**: Only updates nodes that have changed
 
-Vapor exports a a virtual tree, an array of nodes that are dirty, an array of nodes that need to be added, and an array of nodes that need to be removed.
+![Diagram](/src/assets/tree.svg)
+
+Vapor runs the entire render cycle, on every state change. Vapor generates a Virtual Tree (DOM),
+and then reconciles the differences between the old and new tree.
+
+This is done in a single pass, and is extremely fast, even with large trees. Vapor can rerender a total of **10,000 nodes** in just **12ms** on a 2021 M1 MacBook Pro.
+**At 80FPS.** This includes the time to update the DOM, and the time to render the UI.
+
+##### After reconciliation, Vapor spits out an array of nodes:
+
+1. An array of nodes that need to be **removed**
+
+2. An array of nodes that need to be **added**
+
+3. An array of nodes that need to be **updated**
+
+These are then applied to the DOM **granularly** for minimal overhead.
 
 We can access these via the following commands:
 
 ```zig
 const dirty_nodes = Vapor.dirty_nodes;
-const added_nodes = Vapor.removed_nodes;
-const removed_nodes = Vapor.added_nodes;
+const added_nodes = Vapor.added_nodes;
+const removed_nodes = Vapor.removed_nodes;
 
 for (dirty_nodes.items) |node| {
     // Do something with the dirty node
 }
-
 ```
 
-`Note these are globals and are cleared on every frame`
+#### How it's different
+
+This is different from React, where changing a parent's state triggers
+re-renders of all children—even if their props didn't change. Vapor's
+reconciliation is component-agnostic: it doesn't matter where the state lives,
+only which elements display it.
 
 {#performance}
 
@@ -142,49 +136,35 @@ Instead of traversing the entire tree in the JS or native code side, we loop thr
 
 This gives us both the power and control of reconcilation, and virtualization, but also the speed of native code, and simple looping mechanics.
 
-Vapor is extremely fast, and can render thousands of nodes in a single frame, in a worst case sceanrio, with a list of 10,000 nodes, no stable
-keys, in which the first node is order removed, the entire render cycle from removal to UI update takes 15ms on a 2021 M1 MacBook Pro.
-
 {#structuring-your-application}
 
 ## Structuring your application
 
-Every component type `(Box, Text, Link, Image, Svg, Button, ButtonCycle, ButtonCtx, etc...)` Is nothing more than a function call to add
+Every element type `(Box, Text, Link, Image, Svg, Button, TextField, ListItem, etc...)`. Is nothing more than a function call to add
 a node to the UI tree.
 
+1. **Elements** - Like `Box()`, can take arguments, and various builder functions.
+2. **Style Builder** - These are functions operate on the component itself, and mutate the style of the component, like `layout(.center)`.
+3. **Event Callbacks** - These functions are called based on events, for example, `on_press`, or `onHover`, or `onChange`.
+
 ![Diagram](/src/assets/tree.svg)
-
-```zig
-pub inline fn Node() NodeBody {
-    const elem_decl = ElementDefinition{
-        .state_type = .static,
-        .element_type = .Box,
-    };
-
-    LifeCycle.open(elem_decl);
-    LifeCycle.configure(elem_decl);
-    return LifeCycle.body;
-}
-```
-
-`LifeCycle` is a struct that handles configuring Nodes, and adding them to the UI tree.
-`.open` adds the node to the tree and sets it as the current open node
-or parent node.
-We return `body` which is a function that allows
-for child nodes to be added to the current node.
 
 {#global-components}
 
 ### Global Components
 
-Standard Global components, which take no reference to themselves, and instead just operate on global variables contained in their file.
-If this Component is rendered in different areas of the codebase they will all use the same global set of variables.
+These are the most common component type you will use in your applications. They declare there variables globally, but are only available within the file they are declared in.
+
+Global Components take no reference to themselves, and instead just operate on their local variables.
+
+⚠️ All instances of a Global Component share the same variables. If you need independent state, use Instance or Function components instead.
 
 ```zig
 const std = @import("std");
-const Vapor = @import("fabric");
-const Static = Vapor.Static;
-const Pure = Vapor.Pure;
+const Vapor = @import("vapor");
+const Box = Vapor.Box;
+const Text = Vapor.Text;
+const Button = Vapor.Button;
 
 // Global state
 var count: i32 = 0;
@@ -198,113 +178,167 @@ fn decrement() void {
 }
 
 pub fn render() void {
-    Static.Box.layout(.center).spacing(16).padding(.all(20)).body()({
-        Pure.Button(.{ .on_press = decrement })
-            .padding(.all(8))
-            .borderRadius(.all(4))
-            .body()({
-            Static.Text("-").font(18, null, .palette(.text_color)).close();
+    Box().layout(.center).spacing(16).padding(.all(20)).children({
+        Button(.{ .on_press = decrement }).children({
+            Text("-").fontSize(18).end();
         });
 
-        Pure.TextFmt("{d}", .{count}).font(24, 700, .palette(.text_color)).close();
+        Text(count).font(24, 700, .palette(.text_color)).end();
 
-        Pure.Button(.{ .on_press = increment })
-            .padding(.all(8))
-            .borderRadius(.all(4))
-            .body()({
-            Static.Text("+").font(18, null, .palette(.text_color)).close();
+        Button(.{ .on_press = increment }).children({
+            Text("+").fontSize(18).end();
         });
     });
 }
 ```
 
-@global_sample.zig
+```zig
+// Render in /routes/about/Page.zig
+const Vapor = @import("vapor");
+const Counter = @import("components/Counter.zig");
 
-@global_sample.zig
+pub fn init() void {
+    Page(.{ .src = @src() }, render, null);
+}
+
+fn render() void {
+    Counter.render();
+}
+```
+
+```zig
+// Render in /routes/contact/Page.zig
+const Vapor = @import("vapor");
+const Counter = @import("components/Counter.zig");
+
+pub fn init() void {
+    Page(.{ .src = @src() }, render, null);
+}
+
+fn render() void {
+    Counter.render();
+}
+```
+
+Below we can see that both instances of `Counter` use the same local set of variables, and share the same `count` variable. Just like in a normal programming language, if you
+call the same function in two different files, they will share the same variables.
+
+@global_sample
+
+@global_sample
 
 {#instance-components}
 
 ### Instance Components
 
-Instance components, which do reference to themselves, and hence can be instantiated multiple times and use their own set of local variables
+Instance components, do reference themselves, they are akin to classes in other languages. They have their own set of local variables. That are bound to the struct.
+
+We use these when we want to create multiple instances of the same component, with different data. For example a counter component that has the same styling, but we want
+to have seperate `count` data.
 
 ```zig
 const std = @import("std");
-const Vapor = @import("fabric");
+const Vapor = @import("vapor");
 const Allocator = std.mem.Allocator;
-const Signal = Vapor.Signal;
-const Static = Vapor.Static;
-const Pure = Vapor.Pure;
+const Box = Vapor.Box;
+const Text = Vapor.Text;
+const ButtonCtx = Vapor.ButtonCtx;
 
 /// Counter component
 const Counter = @This();
-
-initial_value: i32 = 0,
-count: Signal(i32) = undefined,
+count: i32 = 0,
 
 fn increment(counter: *Counter) void {
-    counter.count.increment();
+    counter.count += 1;
 }
 
 fn decrement(counter: *Counter) void {
-    counter.count.decrement();
-}
-
-/// The init function instantiates the local allocator and component signals for the counter
-/// The counter.initial_value field is used as the starting value
-pub fn init(counter: *Counter) void {
-    counter.count.init(counter.initial_value);
-}
-
-pub fn deinit(counter: *Counter) void {
-    counter.count.deinit();
+    counter.count -= 1;
 }
 
 pub fn render(counter: *Counter) void {
-    Static.Box.layout(.center).spacing(16).padding(.all(20)).body()({
-        Static.CtxButton(decrement, .{counter})
-            .padding(.all(8))
-            .border(.simple(.palette(.border_color_light)))
-            .cursor(.pointer)
-            .body()({
-            Static.Text("-").font(18, null, .palette(.text_color)).close();
+    Box().layout(.center).spacing(16).padding(.all(20)).children({
+
+        // ButtonCtx lets us pass a context to the button, which is the Counter struct
+        ButtonCtx(decrement, .{counter}).children({
+            Text("-").fontSize(18).end();
         });
 
-        Static.TextFmt("Instance State: {d}", .{counter.count.get()}).font(24, 700, .palette(.text_color)).close();
+        Text(counter.count).font(24, 700, .palette(.text_color)).end();
 
-        Static.CtxButton(increment, .{counter})
-            .padding(.all(8))
-            .border(.simple(.palette(.border_color_light)))
-            .cursor(.pointer)
-            .body()({
-            Static.Text("+").font(18, null, .palette(.text_color)).close();
+        ButtonCtx(increment, .{counter}).children({
+            Text("+").fontSize(18).end();
         });
     });
 }
 ```
 
-@instance_sample.zig
+```zig
+// Render in /routes/about/Page.zig
+const Vapor = @import("vapor");
+const Counter = @import("components/Counter.zig");
 
-@instance_sample2.zig
+var i32_counter: Counter = .{};
+pub fn init() void {
+    Page(.{ .src = @src() }, render, null);
+}
 
-{#its-just-zig}
+fn render() void {
+    i32_counter.render();
+}
+```
 
-## Its just Zig
+```zig
+// Render in /routes/contact/Page.zig
+const Vapor = @import("vapor");
+const Counter = @import("components/Counter.zig");
 
-Vapor is just zig, so you can structure the application however you want, there is no magic transpilation,
-`comptime` is an incredibly powerful tool, that is part of the language, and can be used to generate various components of different types.
+var i32_counter: Counter = .{};
+pub fn init() void {
+    Page(.{ .src = @src() }, render, null);
+}
+
+fn render() void {
+    i32_counter.render();
+}
+```
+
+@instance_sample
+
+@instance_sample2
+
+##### Now they are different instances of the same component, with different data.
+
+Incrementing one, will not affect the other.
+
+{#function-components}
+
+### Function Components
+
+Vapor is just Zig, so you can structure the application however you want. There is no magic transpilation. What you see is what you get.
+
+Zig has a special keyword called `comptime`.
+
+`comptime `is an incredibly powerful tool, that is part of the language, and can be used to generate various components of different types.
+
+`comptime`: Code Generation at Compile Time
+The comptime keyword tells Zig: "Run this function during compilation, not at runtime."
 
 For example, we can use `comptime` to generate a `Counter` with various values types, the `comptime` system is used for the `DataTable` component
 in Vapor.
 
-```zig
-const Vapor = @import("fabric");
-const Signal = Vapor.Signal;
-const Static = Vapor.Static;
+##### This is like function components in React, Solid, or other such frameworks.
 
-pub fn Counter(comptime T: type) type {
+##### These can be created multiple times, and have their own local variables.
+
+```zig
+const Vapor = @import("vapor");
+const Box = Vapor.Box;
+const Button = Vapor.Button;
+
+pub fn Counter(comptime T: type, initial_value: T) type {
     return struct {
-        var count: T = 0;
+        var count: T = initial_value;
 
         fn increment() void {
             count += 1;
@@ -315,26 +349,92 @@ pub fn Counter(comptime T: type) type {
         }
 
         pub fn render() void {
-            Static.Box.layout(.center).spacing(16).padding(.all(20)).body()({
-                Static.Button(.{ .on_press = decrement })
-                    .padding(.all(8))
-                    .border(.simple(.palette(.border_color_light)))
-                    .cursor(.pointer)
-                    .body()({
-                    Static.Text("-").font(18, null, .palette(.text_color)).close();
+            Box().layout(.center).spacing(16).padding(.all(20)).children({
+                Button(.{ .on_press = decrement }).children({
+                    Text("-").fontSize(18).end();
                 });
 
-                Static.TextFmt("Global State: {d}", .{count}).font(24, 700, .palette(.text_color)).close();
+                Text(count).font(24, 700, .palette(.text_color)).end();
 
-                Static.Button(.{ .on_press = increment })
-                    .padding(.all(8))
-                    .border(.simple(.palette(.border_color_light)))
-                    .cursor(.pointer)
-                    .body()({
-                    Static.Text("+").font(18, null, .palette(.text_color)).close();
+                Button(.{ .on_press = increment }).children({
+                    Text("+").fontSize(18).end();
                 });
             });
         }
     };
 }
 ```
+
+```zig
+// Render in /routes/about/Page.zig
+const Vapor = @import("vapor");
+const Counter = @import("components/Counter.zig");
+
+const i32_counter = Counter(i32, -1);
+pub fn init() void {
+    Page(.{ .src = @src() }, render, null);
+}
+
+fn render() void {
+    i32_counter.render();
+}
+```
+
+```zig
+// Render in /routes/contact/Page.zig
+const Vapor = @import("vapor");
+const Counter = @import("components/Counter.zig");
+
+const u32_counter = Counter(u32, 1);
+pub fn init() void {
+    Page(.{ .src = @src() }, render, null);
+}
+
+fn render() void {
+    u32_counter.render();
+}
+```
+
+@i32_sample
+
+@u32_sample
+
+#### Typescript Comparison
+
+In typescript, you would need to use generics, and this would all occur at runtime. We also need to create a new class for each type, and therefore need to reference the class
+inside all our functions. In the Zig version, above we can just treat the varaible as a normal, akin to the global component, but with all the benefits of local bounded variables.
+
+```ts
+class Counter<T extends number> {
+  private count: T;
+
+  constructor(initialValue: T) {
+    this.count = initialValue;
+  }
+
+  increment = () => {
+    this.count += 1;
+  }
+
+  decrement = () => {
+    this.count -= 1;
+  }
+
+  render() {
+    return (
+      <Box layout="center" spacing={16} padding={20}>
+        <Button onPress={this.decrement}>
+          <Text fontSize={18}>-</Text>
+        </Button>
+        <Text fontSize={24} fontWeight={700}>
+          {this.count}
+        </Text>
+        <Button onPress={this.increment}>
+          <Text fontSize={18}>+</Text>
+        </Button>
+      </Box>
+    );
+  }
+}
+```
+

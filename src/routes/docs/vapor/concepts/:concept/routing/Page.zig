@@ -17,6 +17,7 @@ const Stack = Static.Stack;
 const Graphic = Static.Graphic;
 const Icon = Pure.Icon;
 const Vaporize = @import("vaporize");
+const Compiler = @import("../../../../../../main.zig");
 
 const Page = Vapor.Page;
 const CodeEditor = @import("../../../../../../components/CodeEditor.zig");
@@ -38,20 +39,9 @@ const items: []const []const u8 = &.{
     "Vapor only allocates at start up, no memory is allocated during runtime.",
     "Only Zig no html, js, ts, tsx, rsx, jsx",
 };
-var routing_page: *Vaporize.Node = undefined;
-// Initialization
+var markdown: Compiler.vaporize.MarkDown(.{}) = .{};
 pub fn init() void {
-    var parser = Vaporize.Parser.init(Vapor.lib.allocator_global, @embedFile("routing_page.md"));
-    routing_page = parser.parse() catch unreachable;
-    // code_editor.init(&Vapor.lib.allocator_global, @embedFile("main_sample.zig"));
-    // code_editor_component.init(&Vapor.lib.allocator_global, @embedFile("Component.zig"));
-    // code_editor_lifecycle.init(&Vapor.lib.allocator_global, @embedFile("LifeCycle_sample.zig"));
-    // code_editor_global.init(&Vapor.lib.allocator_global, @embedFile("global_sample.zig"));
-    // code_editor_instance.init(&Vapor.lib.allocator_global, @embedFile("instance_sample.zig"));
-    // code_editor_comptime.init(&Vapor.lib.allocator_global, @embedFile("comptime_sample.zig"));
-    // page_sample.init(&Vapor.lib.allocator_global, @embedFile("page_sample.zig"));
-    // app_example.init(&Vapor.lib.allocator_global, @embedFile("app_example.zig"));
-    // dyanmic_code_editor.init(&Vapor.lib.allocator_global, @embedFile("dynamic_sample.zig"));
+    markdown.compile(@embedFile("routing_page.md")) catch unreachable;
 }
 
 // Deinitialization
@@ -88,11 +78,7 @@ fn toggleIcon() void {
 }
 
 fn component() void {
-    Vaporize.traverse(routing_page, .{
-        .code_color = .palette(.tint),
-        .text_color = .palette(.text_color),
-        .heading_color = .palette(.text_color),
-    }, void, null) catch unreachable;
+    markdown.render() catch unreachable;
 }
 
 // Render

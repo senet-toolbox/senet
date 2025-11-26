@@ -12,5 +12,6 @@ export let observeredSections = new Map();
 export let loadedSections = new Set();
 export let pureNodeRegistry = new Map();
 export let hooksMounted = new Map();
+export let hooksCtxCreated = new Map();
 export let observers = new Map();
-
+export let timeouts = new Map();

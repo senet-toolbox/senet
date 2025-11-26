@@ -17,24 +17,30 @@ const Svg = Static.Svg;
 const Center = Static.Center;
 const Icon = Static.Icon;
 const Button = Static.Button;
-const ButtonCycle = Static.ButtonCycle;
 const Graphic = Static.Graphic;
 const RedirectLink = Static.RedirectLink;
-const TextFmt = Pure.TextFmt;
-const TextField = Static.TextField;
+const TextFmt = Static.TextFmt;
 const List = Static.List;
 const ListItem = Static.ListItem;
+const Hooks = Static.Hooks;
 const VirtualList = Pure.VirtualList;
 const Theme = @import("theme");
 const CodeEditor = @import("../components/CodeEditor.zig");
 const Animation = Vapor.lib.Animation;
-//
-// var random: std.Random.DefaultPrng = std.Random.DefaultPrng.init(14);
-// var rand_num: usize = undefined;
-// var buffer: [10]usize = undefined;
-var counter: u32 = 0;
-// var text: []const u8 = "Hello World";
+const Video = Vapor.Video;
+const CtxButton = Static.CtxButton;
+const Compiler = @import("../main.zig");
+const Vaporize = @import("vaporize");
+const SyntaxHighlighter = Vaporize.SyntaxHighlighter;
+
+var counter: i32 = 0;
 var code_view_loc: CodeEditor = undefined;
+var form_code: CodeEditor = undefined;
+var highlighter: SyntaxHighlighter = undefined;
+var form_highlighter: SyntaxHighlighter = undefined;
+var reverb_highlighter: SyntaxHighlighter = undefined;
+var reverb_middleware_highlighter: SyntaxHighlighter = undefined;
+var canopy_highlighter: SyntaxHighlighter = undefined;
 
 // const slide_in: Animation = Animation.init("fadeIn", .translateY)
 //     .from(100)
@@ -48,44 +54,78 @@ var code_view_loc: CodeEditor = undefined;
 //     .duration(500)
 //     .easing(.easeOut);
 
-// Style struct for the Box component
-const box_style = Style{
-    .layout = .left_center,
-    .child_gap = 8,
-    .size = .{ .width = .grow, .height = .fit },
-};
+fn decrement() void {
+    counter -= 1;
+}
 
 // Render
 pub fn sample() void {
-    Box.style(&box_style)({
-        // Chaining styles
-        Button(.{ .on_press = increment })
-            .border(.simple(.palette(.border_color_light)))
-            .width(.fit)
-            .height(.fit)
-            .body()({
-            Text("Increment")
-                .font(18, null, .palette(.text_color))
-                .close();
+    Stack()
+        .layout(.center)
+        .width(.percent(80)).height(.percent(100))
+        .spacing(16)
+        .children({
+        Box()
+            .layout(.x_even_center)
+            .width(.percent(100)).height(.percent(30)).children({
+            // Chaining styles
+            Button(.{ .on_press = increment })
+                .border(.simple(.palette(.text_color)))
+                .duration(100)
+                .hoverScale()
+                .padding(.all(8))
+                .width(.percent(30))
+                .layer(.dot(0.5, 8, .palette(.text_color)))
+                .height(.fit)
+                .shadow(.card(.palette(.text_color)))
+                .children({
+                Text("+").font(36, 300, .palette(.text_color)).end();
+            });
+            Text(counter)
+                .font(72, 700, .palette(.tint))
+                .center()
+                .width(.percent(40))
+                .fontFamily("IBM Plex Mono,monospace")
+                .end();
+            Button(.{ .on_press = decrement })
+                .border(.simple(.palette(.text_color)))
+                .duration(100)
+                .hoverScale()
+                .padding(.all(8))
+                .layer(.dot(0.5, 8, .palette(.text_color)))
+                .width(.percent(30))
+                .height(.fit)
+                .shadow(.card(.palette(.text_color)))
+                .children({
+                Text("-").font(36, 300, .palette(.text_color)).end();
+            });
         });
-        TextFmt("{d}", .{counter})
-            .font(24, 700, .palette(.text_color))
-            .close();
     });
 }
 
 pub fn init() void {
-    // slide_in.build();
-    // slide_out.build();
-    code_view_loc.init(&Vapor.lib.allocator_global, @embedFile("Component.zig"));
-    // counter = Vapor.lib.getPersist(u32, "counter") orelse 0;
-    // text = Vapor.lib.getPersist([]const u8, "text") orelse "Default";
-    // for (0..10) |i| {
-    //     buffer[i] = i;
-    // }
-    // // Navbar.init();
-    // rand_num = random.random().intRangeAtMost(usize, 1, 5);
-    // random.random().shuffle(usize, &buffer);
+    const allocator = Vapor.arena(.persist);
+    highlighter = SyntaxHighlighter.init(allocator);
+    highlighter.use_cpy_btn = false;
+    highlighter.parse(@embedFile("Component.zig")) catch unreachable;
+
+    form_highlighter = SyntaxHighlighter.init(allocator);
+    form_highlighter.use_cpy_btn = false;
+    form_highlighter.parse(@embedFile("Form.zig")) catch unreachable;
+
+    reverb_highlighter = SyntaxHighlighter.init(allocator);
+    reverb_highlighter.use_cpy_btn = false;
+    reverb_highlighter.parse(@embedFile("Reverb.zig")) catch unreachable;
+
+    reverb_middleware_highlighter = SyntaxHighlighter.init(allocator);
+    reverb_middleware_highlighter.use_cpy_btn = false;
+    reverb_middleware_highlighter.parse(@embedFile("ReverbMiddleware.zig")) catch unreachable;
+
+    // canopy_highlighter = SyntaxHighlighter.init(allocator);
+    // canopy_highlighter.use_cpy_btn = false;
+    // canopy_highlighter.parse(@embedFile("Canopy.zig")) catch unreachable;
+
+    new_form.compile() catch unreachable;
 }
 //
 // pub fn shuffle() void {
@@ -106,21 +146,21 @@ pub fn increment() void {
     counter += 1;
     // Vapor.lib.persist("counter", counter);
     Vapor.printlnSrc("count: {any}", .{counter}, @src());
-    Vapor.cycle();
+    // Vapor.cycle();
 }
 //
 const blocks: []const struct { title: []const u8, description: []const u8 } = &.{
     .{
         .title = "Vapor",
-        .description = "Vapor is a comptime UI framework, which compiles down to native. No Deps, No Bloat. Just one file.",
+        .description = "Is a Comptime UI Engine in Zig. Vapor generates native HTML, Objc, from one codebase. <div>ZIG → WASM → UI</div>",
     },
     .{
         .title = "Reverb",
-        .description = "Reverb is a simple, yet powerful, backend framework for Zig. Zero runtime allocations, High performance, Express like.",
+        .description = "Is a simple, yet powerful, backend framework for Zig. Zero runtime allocations, High performance, Express like.",
     },
     .{
         .title = "Canopy",
-        .description = "Canopy runs as a in memory cache at the front and a persistent database at the back. All the while boasting throughput on par with Redis.",
+        .description = "Runs as a in memory cache at the front and a persistent database at the back. All the while boasting throughput on par with Redis.",
     },
 };
 
@@ -161,13 +201,18 @@ fn boxes() void {
     // 3. Component-Specific Data
     // =========================================================================
 
-    // ## Box 01 Data
+    // ## Box() 01 Data
     const box_1_style = box_style_base.merge(.{
         .position = .tl(.px(-unit * 4), .px(-1), .absolute),
     });
-    // ## Box 02 Data
+    // ## Box() 02 Data
     var box_2_style = box_style_base.merge(.{
         .position = .tr(.px(unit * 28), .px(-unit * 4), .absolute),
+        // .visual = .{
+        //     .border = .simple(.palette(.tint)),
+        //     .text_color = .palette(.tint),
+        //     .font_size = 22,
+        // },
     });
     box_2_style.interactive.?.hover.?.transform = .direction_scale(.right, 4, 1.05);
     // ## Box 03 Data
@@ -179,15 +224,15 @@ fn boxes() void {
     // =========================================================================
     // 4. Render
     // =========================================================================
-    Box.style(&box_1_style)({
+    Box().style(&box_1_style)({
         Text("01").style(&mono_text_style);
     });
 
-    Box.style(&box_2_style)({
+    Box().style(&box_2_style)({
         Text("02").style(&mono_text_style);
     });
 
-    Box.style(&box_3_style)({
+    Box().style(&box_3_style)({
         Text("03").style(&mono_text_style);
     });
 }
@@ -202,32 +247,81 @@ fn log(evt: *Vapor.Event) void {
     // Vapor.cycle();
 }
 
-var video_element: Vapor.Binded = .{};
-fn mount_video() void {
-    video_element.startVideo();
+// var video_element: Vapor.Binded = .{};
+// fn mount_video() void {
+//     video_element.startVideo();
+// }
+
+var likes: usize = 0;
+fn like() void {
+    likes += 1;
 }
 
+// var milliseconds: u32 = 0;
+// fn mount() void {
+//     Vapor.lib.loopInterval("timer", increment_timer, .{{}}, 100);
+// }
+//
+// fn increment_timer(_: void) void {
+//     milliseconds += 1;
+// }
+
 pub fn render() void {
-    Box.style(&.{
+    Box().style(&.{
         .size = .hw(.percent(100), .percent(100)),
         .scroll = .none(),
         .layout = .center,
     })({
         if (Vapor.isDesktop()) {
-            Stack.style(&.{
+            // Stack()
+            //     .pos(.bl(.px(24), .px(24), .fixed))
+            //     .zIndex(999)
+            //     .width(.percent(20))
+            //     .height(.px(180))
+            //     .background(.palette(.tint))
+            //     .layer(.dot(0.5, 20, .palette(.background)))
+            //     .padding(.all(24))
+            //     .border(.simple(.palette(.text_color)))
+            //     .shadow(.card(.palette(.text_color)))
+            //     .spacing(32).children({
+            //     Text("This is not a Cookie Banner!").font(20, null, .palette(.background)).end();
+            //
+            //     Box().spacing(8).layout(.left_center).children({
+            //         Button(.{ .on_press = like })
+            //             .direction(.row)
+            //             .shadow(.card(.palette(.text_color)))
+            //             .padding(.all(8))
+            //             .width(.percent(40))
+            //             .layout(.center)
+            //             .background(.palette(.background))
+            //             .spacing(8).children({
+            //             Icon(.heart_balloon).font(28, null, .palette(.text_color)).end();
+            //
+            //             Text(likes).font(28, 700, .palette(.text_color))
+            //                 .fontFamily("Montserrat")
+            //                 .end();
+            //         });
+            //     });
+            // });
+            Stack().style(&.{
                 .position = .{ .type = .relative, .z_index = 10 },
                 .size = .hw(.percent(60), .mobile_desktop_percent(100, 70)),
                 .child_gap = 12,
                 .layout = .center,
                 .visual = .{
-                    .background = .grid(14, 1, .palette(.grid_color)),
+                    .layer = .grid(14, 1, .palette(.grid_color)),
+                    // .background = .gradient(.linear, .deg(45), &.{ .red, .blue }),
+                    // .layers = &.{
+                    //     .grid(14, 1, .palette(.grid_color)),
+                    //     .gradient(.linear, .to_bottom, &.{ .transparent, .transparentizeHex(.vapor_blue, 0.5) }),
+                    // },
                     .border = .simple(.palette(.border_color_light)),
                 },
                 .padding = .horizontal(12),
             })({
                 boxes();
 
-                Text(".layout = .center, .background = .grid(14, 1, .palette(.grid_color))").style(&.{
+                Text(".layout = .center, .layer = .grid(14, 1, .palette(.grid_color))").style(&.{
                     .position = .{ .type = .absolute, .right = .percent(0), .top = .percent(-4) },
                     .visual = .font(12, 500, .hex("#6f6f6f")),
                     .font_family = "IBM Plex Mono,monospace",
@@ -239,21 +333,23 @@ pub fn render() void {
                     .font_family = "IBM Plex Mono,monospace",
                 });
 
-                Stack.style(&.{
+                Stack().style(&.{
                     .size = Styles.full_width.size,
                     .child_gap = 0,
                     .margin = .t(64),
                     .layout = .center,
                 })({
-                    HtmlText("<code>v1.0.0 render to web or ios</code>").style(&.{
+                    // Hooks(.{ .mounted = mount })({
+                    // });
+                    HtmlText("<code>vapor rendered in 0.6ms</code>").style(&.{
                         .layout = .center,
                         .visual = .font(12, 500, .hex("#6f6f6f")),
                     });
-                    Box.style(&.{ .size = .w(.percent(100)), .margin = .all(0), .layout = .center })({
-                        Text("All-in-one Toolkit.").style(&Styles.big_heading);
+                    Box().style(&.{ .size = .w(.percent(100)), .margin = .all(0), .layout = .center })({
+                        HtmlText("A <i style=\"color: rgb(var(--tint))\">toolbox</i> for the Web").style(&Styles.big_heading);
                     });
                 });
-                Stack.style(&.{
+                Stack().style(&.{
                     .child_gap = 16,
                     .margin = .t(12),
                     .size = .w(.percent(80)),
@@ -261,21 +357,25 @@ pub fn render() void {
                 })({
                     HtmlText(
                         \\<strong style="color: rgb(var(--tint))">Tether</strong>
-                        \\includes a Frontend, Backend, and Database.
+                        \\includes a <a style="text-decoration: none; color: rgb(var(--text_color));" href="/docs/vapor"><i>Frontend [0]</i></a>, 
+                        \\<a style="text-decoration: none; color: rgb(var(--text_color)); "href="/docs/vapor"><i>Backend [1]</i></a>, and 
+                        \\<a style="text-decoration: none; color: rgb(var(--text_color)); "href="/docs/vapor"><i>Database [2]</i></a>.
                         \\Yet ships with <strong style="color: rgb(var(--text_color))"><i>zero</i></strong> dependencies.
                     ).style(&Styles.body_text.merge(.{
                         .layout = .center,
-                        .visual = .font(22, 500, .palette(.text_color)),
+                        .visual = .font(20, 500, .palette(.text_color)),
                     }));
                     HtmlText(
-                        \\<strong style="color: rgb(var(--tint))">Build Native</strong> fullstack applications with just
-                        \\<strong style="color: rgb(var(--text_color))"><i>One Codebase.</i></strong>
+                        \\<strong style="color: rgb(var(--tint))">Out the Box</strong> production defaults, and
+                        \\<strong style="color: rgb(var(--text_color))"><i>+100 UI Components</i></strong>.
+                        // \\<strong style="color: rgb(var(--tint))">Deploy Apps</strong> with a
+                        // \\<strong style="color: rgb(var(--text_color))"><i>Engine</i></strong>.
                     ).style(&Styles.body_text.merge(.{
                         .layout = .center,
-                        .visual = .font(22, 500, .palette(.text_color)),
+                        .visual = .font(20, 500, .palette(.text_color)),
                     }));
                 });
-                Box.style(&.{
+                Box().style(&.{
                     .size = .{ .height = .px(100), .width = .percent(100) },
                     .child_gap = 20,
                     .layout = .center,
@@ -296,15 +396,33 @@ pub fn render() void {
                     //     });
                     // });
                 });
+                HtmlText(
+                    \\<strong style="color: rgb(var(--text_color))">THIS</strong>
+                    \\entire website, is just a mere
+                    \\<strong style="color: rgb(var(--text_color))"><i>180kb</i></strong>
+                    \\.
+                ).style(&Styles.body_text.merge(.{
+                    .layout = .center,
+                    .visual = .font(14, 500, .hex("#6f6f6f")),
+                }));
+                // HtmlText(
+                //     \\<strong style="color: rgb(var(--text_color))">NASA</strong>
+                //     \\went to the moon with
+                //     \\<strong style="color: rgb(var(--text_color))"><i>72kb</i></strong>
+                //     \\, we need to do better.
+                // ).style(&Styles.body_text.merge(.{
+                //     .layout = .center,
+                //     .visual = .font(14, 500, .hex("#6f6f6f")),
+                // }));
                 // Text(binded_textfield.text)
-                //     .font(16, null, .palette(.text_color)).close();
+                //     .font(16, null, .palette(.text_color)).end();
                 // TextField(.string)
                 //     .bind(&binded_textfield)
                 //     .plain();
             });
         }
         // if (counter % 2 == 0) {
-        //     Box
+        //     Box()
         //         .id("box")
         //         // .animationEnter(&slide_in).animationExit(&slide_out)
         //         .pos(.{ .type = .absolute, .left = .percent(0), .bottom = .percent(0) })
@@ -314,13 +432,13 @@ pub fn render() void {
         // }
 
         if (Vapor.isMobile()) {
-            Stack.style(&.{
+            Stack().style(&.{
                 .layout = .center,
                 .margin = .t(60),
                 .child_gap = 24,
                 .size = .hw(.percent(100), .percent(100)),
             })({
-                Center.style(&.{
+                Center().style(&.{
                     .child_gap = 12,
                     .size = .{ .width = .percent(45), .height = .px(48) },
                     .visual = .{ .border = .solid(.all(1), .hex("#EBEBEB"), .all(99)) },
@@ -332,7 +450,7 @@ pub fn render() void {
                 });
                 Graphic(.{ .src = "src/routes/text.svg" }).style(&.{ .size = .{ .width = .px(220) } });
 
-                Center.style(&.{
+                Center().style(&.{
                     .direction = .column,
                     .padding = .horizontal(12),
                     .child_gap = 16,
@@ -351,7 +469,7 @@ pub fn render() void {
                     });
                 });
 
-                Box.style(&.{
+                Box().style(&.{
                     .child_gap = 20,
                     .layout = .center,
                     .size = .hw(.px(100), .percent(100)),
@@ -368,25 +486,25 @@ pub fn render() void {
         }
 
         if (Vapor.isDesktop()) {
-            Box.style(&.{
+            Box().style(&.{
                 .position = .br(.percent(0), .percent(0), .absolute),
                 .size = .{ .height = .percent(10), .width = .percent(100) },
                 .layout = .x_between_bottom,
                 .padding = .horizontal(24),
                 .visual = .{ .border = .bottom(.hex("#E4E4E4")) },
             })({
-                Stack.style(&.{ .layout = .bottom_left })({
+                Stack().style(&.{ .layout = .bottom_left })({
                     Text("Powered By").style(&Styles.muted_text);
-                    Box.style(&.{ .margin = .t(12), .layout = .x_even_center })({
+                    Box().style(&.{ .margin = .t(12), .layout = .x_even_center })({
                         Graphic(.{ .src = "src/assets/zig.svg" }).style(&.{
                             .size = .{ .height = .px(28), .width = .px(64) },
                             .visual = .{ .fill = .palette(.text_color), .stroke = .palette(.text_color) },
                         });
                     });
                 });
-                Stack.style(&.{ .layout = .bottom_right })({
+                Stack().style(&.{ .layout = .bottom_right })({
                     Text("Used By").style(&Styles.muted_text);
-                    Box.style(&.{ .child_gap = 12, .layout = .x_even_center })({
+                    Box().style(&.{ .child_gap = 12, .layout = .x_even_center })({
                         if (Theme.mode == .light) {
                             Image(.{ .src = "/assets/acorn.png" }).style(&.{
                                 .id = "acorn-image-light",
@@ -407,44 +525,57 @@ pub fn render() void {
     });
 
     if (Vapor.isDesktop()) {
-        Box.style(&.{
-            .size = .w(.percent(100)),
-            .padding = .tb(64, 64),
-            .layout = .x_even,
+        Box().style(&.{
+            .size = .hw(.percent(100), .percent(100)),
+            .layout = .center,
+            .visual = .{
+                .layer = .grid(14, 1, .palette(.grid_color)),
+            },
+            // .layout = .x_even,
         })({
-            Stack.style(&.{
-                .size = .hw_percent(100, 40),
-                .visual = .{ .background = .palette(.image_bg) },
+            // Stack().style(&.{
+            //     .size = .hw_percent(100, 40),
+            //     .visual = .{ .background = .palette(.image_bg) },
+            // })({
+            //     Text("From Here...").style(&Styles.subheading);
+            //     Graphic(.{ .src = "/assets/webdev.svg" }).style(&.{
+            //         .size = .hw(.percent(100), .percent(100)),
+            //         .visual = .{ .fill = .palette(.text_color), .stroke = .palette(.text_color) },
+            //     });
+            // });
+            Stack().style(&.{
+                .size = .hw_percent(60, 60),
+                // .margin = .t(-128),
+                // .visual = .{ .background = .palette(.image_bg) },
+                // .position = .{ .type = .relative },
             })({
-                Text("From Here...").style(&Styles.subheading);
-                Graphic(.{ .src = "/assets/webdev.svg" }).style(&.{
-                    .size = .hw(.percent(100), .percent(100)),
-                    .visual = .{ .fill = .palette(.text_color), .stroke = .palette(.text_color) },
-                });
-            });
-            Stack.style(&.{
-                .size = .hw_percent(100, 40),
-                .visual = .{ .background = .palette(.image_bg) },
-                .position = .{ .type = .relative },
-            })({
-                Text("To Here...").style(&Styles.subheading);
+                // Text("To Here...").style(&Styles.subheading);
+                // Graphic(.{ .src = "/assets/tether_has_it_all.svg" }).style(&.{
+                //     .size = .hw(.percent(100), .percent(100)),
+                //     .visual = .{ .fill = .palette(.text_color), .stroke = .palette(.text_color) },
+                // });
                 Graphic(.{ .src = "/src/assets/tether.svg" }).style(&.{
-                    .size = .hw(.percent(100), .percent(85)),
-                    .visual = .{ .fill = .palette(.text_color), .stroke = .palette(.text_color) },
+                    .size = .hw(.percent(100), .percent(100)),
+                    // .visual = .{ .fill = .palette(.text_color), .stroke = .palette(.text_color) },
                 });
-                Graphic(.{ .src = "/src/assets/logonormal.svg" }).style(&.{
-                    .position = .{ .type = .absolute, .right = .percent(46), .top = .percent(44) },
-                    .size = .hw(.percent(22), .percent(22)),
-                    .visual = .{ .fill = .palette(.text_color), .stroke = .palette(.text_color) },
-                });
+                // Graphic(.{ .src = "/assets/logonormal.svg" }).style(&.{
+                //     .position = .{ .type = .absolute, .right = .percent(46), .top = .percent(44) },
+                //     .size = .hw(.percent(22), .percent(22)),
+                //     .visual = .{ .fill = .palette(.text_color), .stroke = .palette(.text_color) },
+                // });
             });
         });
-        Box.style(&.{
-            .size = .w(.percent(100)),
+        Box().style(&.{
+            .size = .hw(.percent(70), .percent(100)),
             .padding = .tb(64, 64),
-            .layout = .x_even,
-            .visual = .{ .border = .top(.hex("#E4E4E4")) },
+            .layout = .x_even_center,
             .position = .relative,
+            .visual = .{
+                .border = .tb(.palette(.border_color_light)),
+                .layers = &.{
+                    .gradient(.linear, .deg(145), &.{ .hex("#0d0d0d"), .hex("#0d0d0d"), .hex("#1a1a1a"), .hex("#0a0a0a") }),
+                },
+            },
         })({
             Text(".width(.percent(100)).padding(.tb(64, 64)).layout(.x_even).border(.top(.hex(\"#E4E4E4\")))").style(&.{
                 .position = .{ .type = .absolute, .left = .percent(1), .top = .percent(1) },
@@ -453,94 +584,112 @@ pub fn render() void {
             });
 
             for (blocks) |block| {
-                Stack.style(&.{
-                    .size = .hw_percent(100, 16),
+                Stack().style(&.{
+                    .size = .hw(.percent(40), .percent(16)),
                     .child_gap = 12,
-                    .layout = .left_center,
+                    // .layout = .left_center,
                 })({
-                    Text(block.title).style(&Styles.subheading);
-                    Text(block.description).style(&Styles.body_text);
+                    Text(block.title).font(64, 700, .white).end();
+                    HtmlText(block.description).style(&.{
+                        .visual = .font(18, 500, .white),
+                    });
                 });
             }
+
+            // Box().pos(.{ .bottom = .percent(0), .type = .absolute }).layout(.center).width(.percent(100)).height(.percent(100)).children({
+            //     Graphic(.{ .src = "/assets/chip.svg" }).style(&.{
+            //         .position = .{ .type = .absolute, .bottom = .percent(0) },
+            //         .size = .{ .height = .percent(8), .width = .percent(70) },
+            //         .visual = .{
+            //             .fill = .palette(.background),
+            //         },
+            //         .layout = .center,
+            //     });
+            // });
         });
     }
 
-    Stack.style(&.{
-        .size = .hw(.percent(30), .percent(100)),
-        .layout = .center,
-        .child_gap = 24,
-        .visual = .{ .border = .bottom(.hex("#E4E4E4")) },
-    })({
-        Text("Compressed Sizes (Brotli))").style(&Styles.subheading);
-        Box.style(&.{
-            .size = .hw(.fit, .percent(50)),
-            .layout = .x_even_center,
-            .child_gap = 64,
-        })({
-            Box.style(&.{ .layout = .x_even_center, .size = .hw(.fit, .percent(100)) })({
-                Graphic(.{ .src = "src/assets/logonormal.svg" }).style(&.{
-                    .size = .w(.px(60)),
-                    .visual = .{
-                        .fill = .palette(.text_color),
-                        .stroke = .palette(.text_color),
-                        .cursor = .pointer,
-                    },
-                    .transition = .{ .duration = 100 },
-                    .interactive = .{ .hover = .{
-                        .transform = .scale(),
-                        .background = .transparent,
-                        .fill = .palette(.tint),
-                        .stroke = .palette(.tint),
-                    } },
-                });
-                Text("17.7KB").style(Styles.miniheading);
-            });
-            Box.style(&.{ .layout = .x_even_center, .size = .hw(.fit, .percent(100)) })({
-                Graphic(.{ .src = "src/assets/react.svg" }).style(&.{
-                    .size = .w(.px(56)),
-                });
-                Text("51KB").style(Styles.miniheading);
-            });
-            Box.style(&.{ .layout = .x_even_center, .size = .hw(.fit, .percent(100)) })({
-                Image(.{ .src = "https://dioxuslabs.com/assets/smalllogo-dxhed9875cc575d36b.png" }).style(&.{
-                    .size = .w(.px(60)),
-                });
-                Text("234KB").style(Styles.miniheading);
-            });
-            Box.style(&.{ .layout = .x_even_center, .size = .hw(.fit, .percent(100)) })({
-                Image(.{ .src = "src/assets/svelte.png" }).style(&.{
-                    .size = .w(.px(40)),
-                });
-                Text("15KB").style(Styles.miniheading);
-            });
-        });
-    });
+    // Stack().style(&.{
+    //     .size = .hw(.percent(30), .percent(100)),
+    //     .layout = .center,
+    //     .child_gap = 48,
+    //     .visual = .{
+    //         .border = .bottom(.hex("#E4E4E4")),
+    //         .layer = .dot(0.5, 20, .palette(.text_color)),
+    //     },
+    // })({
+    //     Box().style(&.{
+    //         .size = .hw(.fit, .percent(80)),
+    //         .layout = .x_even_center,
+    //         .child_gap = 64,
+    //     })({
+    //         Box().style(&.{
+    //             .layout = .x_even_center,
+    //             .size = .hw(.fit, .percent(100)),
+    //         })({
+    //             Graphic(.{ .src = "/assets/comparison_tether.svg" }).style(&.{
+    //                 .size = .w(.px(200)),
+    //             });
+    //             Text("18.4KB").style(Styles.logo_text);
+    //         });
+    //         Box().style(&.{
+    //             .layout = .x_even_center,
+    //             .size = .hw(.fit, .percent(100)),
+    //         })({
+    //             Graphic(.{ .src = "/assets/comparison_react.svg" }).style(&.{
+    //                 .size = .w(.px(160)),
+    //             });
+    //             Text("51KB").style(Styles.logo_text);
+    //         });
+    //         Box().style(&.{ .layout = .x_even_center, .size = .hw(.fit, .percent(100)) })({
+    //             Graphic(.{ .src = "/assets/comparison_dioxus.svg" }).style(&.{
+    //                 .size = .w(.px(90)),
+    //             });
+    //             // Image(.{ .src = "https://dioxuslabs.com/assets/smalllogo-dxhed9875cc575d36b.png", .alt = "Dioxus" }).style(&.{
+    //             //     .size = .w(.px(60)),
+    //             // });
+    //             Text("234KB").style(Styles.logo_text);
+    //         });
+    //         Box().style(&.{ .layout = .x_even_center, .size = .hw(.fit, .percent(100)) })({
+    //             Graphic(.{ .src = "/assets/comparison_svelte.svg" }).style(&.{
+    //                 .size = .w(.px(120)),
+    //             });
+    //             Text("15KB").style(Styles.logo_text);
+    //         });
+    //     });
+    // });
 
     // ---------------------------------------------------------------------------------------------
     // Content
     // ---------------------------------------------------------------------------------------------
-    Box.style(&.{
-        .size = .{ .width = .percent(100), .height = .fit },
+    Box().style(&.{
+        .size = .{ .width = .percent(100), .height = .percent(90) },
         .margin = .tb(64, 64),
         .layout = if (Vapor.isMobile()) .top_center else .x_even_center,
         .direction = if (Vapor.isMobile()) .column else .row,
         .child_gap = 16,
+        .position = .relative,
     })({
-        Box.style(&.{
-            .padding = .horizontal(12),
-            .size = .hw(.mobile_desktop(.fit, .percent(60)), .mobile_desktop_percent(100, 50)),
-        })({
-            code_view_loc.render(0);
+        Text(".dots(0.5, 8, .black).shadow(.card(.black))").style(&.{
+            .position = .br(.px(-60), .percent(1), .absolute),
+            .visual = .font(12, 500, .hex("#6f6f6f")),
+            .font_family = "IBM Plex Mono,monospace",
         });
-        Stack.style(&.{
+        Box().style(&.{
+            .padding = .horizontal(12),
+            .size = .hw(.mobile_desktop(.fit, .percent(60)), .mobile_desktop_percent(100, 40)),
+        })({
+            // code_view_loc.render(0);
+            highlighter.renderAST(highlighter.root) catch unreachable;
+        });
+        Stack().style(&.{
             .size = .hw(.mobile_desktop(.fit, .percent(60)), .percent(40)),
             .child_gap = 24,
             .layout = .left_center,
             .padding = .horizontal(12),
         })({
-            Box.spacing(16).width(.percent(100)).layout(.center).body()({
+            Box().spacing(16).width(.percent(100)).layout(.center).children({
                 Text("Vapor Code Sample").style(&Styles.subheading);
-                sample();
             });
             HtmlText(
                 // \\Vapor introduces <strong>no new syntax</strong> — everything you see is valid Zig.
@@ -549,24 +698,24 @@ pub fn render() void {
                 \\The code on the left shows two core concepts that make Vapor special: <i style="color: rgb(var(--tint))">automatic UI updates</i>
                 \\ and <i style="color: rgb(var(--tint))">flexible styling</i>.
             ).style(&Styles.body_text);
-            List.style(&.{
+            List().style(&.{
                 .list_style = .circle,
             })({
-                ListItem.style(&.{})({
+                ListItem().style(&.{})({
                     HtmlText(
                         // \\Empty struct literal <i style="color: rgb(var(--tint))"><code>{}</code></i> used for children.
                         \\Notice how the counter updates? 
                         \\We use a plain variable <i style="color: rgb(var(--tint))"><code>counter</code></i> 
-                        \\for the state, <strong>no special hooks or functions.</strong> <i style="color: rgb(var(--tint))"><code>TextFmt</code></i>
+                        \\for the state, <strong>no special hooks or functions.</strong> <i style="color: rgb(var(--tint))"><code>Text</code></i>
                         \\automatically updates when <i style="color: rgb(var(--tint))"><code>counter</code></i> changes.
                     ).style(&Styles.body_text);
                 });
-                ListItem.style(&.{})({
-                    HtmlText(
-                        // \\Pointer to struct literal <i style="color: rgb(var(--tint))"><code>&.{}</code></i> used for styles.
-                        \\Vapor gives you two ways to style your components, so you can pick the best one for the job.
-                    ).style(&Styles.body_text);
-                });
+                // ListItem().style(&.{})({
+                //     HtmlText(
+                //         // \\Pointer to struct literal <i style="color: rgb(var(--tint))"><code>&.{}</code></i> used for styles.
+                //         \\Vapor gives you two ways to style your components, so you can pick the best one for the job.
+                //     ).style(&Styles.body_text);
+                // });
                 // ListItem.style(&.{})({
                 //     HtmlText(
                 //         \\Chained function <i style="color: rgb(var(--tint))"><code>.layout(.center)</code></i> used for styles.
@@ -574,12 +723,12 @@ pub fn render() void {
                 // });
             });
 
-            HtmlText(
-                \\The <i style="color: rgb(var(--tint))"><code>CSS Class</code></i> Method (Reusable Styles).
-                \\You can define a Style struct once, like a CSS class, and apply it to any component.
-                \\For my JS devs <i style="color: kgb(var(--tint))"><code>struct</code></i> is an enhanced object or class,
-                \\we can attach functions and default values to it.
-            ).style(&Styles.body_text);
+            // HtmlText(
+            //     \\The <i style="color: rgb(var(--tint))"><code>CSS Class</code></i> Method (Reusable Styles).
+            //     \\You can define a Style struct once, like a CSS class, and apply it to any component.
+            //     \\For my JS devs <i style="color: kgb(var(--tint))"><code>struct</code></i> is an enhanced object or class,
+            //     \\we can attach functions and default values to it.
+            // ).style(&Styles.body_text);
 
             HtmlText(
                 \\The <i style="color: rgb(var(--tint))"><code>Inline Style</code></i> Method (Chaining) For quick or unique styles, you can "chain" 
@@ -589,147 +738,297 @@ pub fn render() void {
                 //     \\We can also <i>extend</i> or <i>merge</i> two or more styles together,
                 //     \\and they can be passed from <strong>UI</strong> to <strong>Function</strong>.
             ).style(&Styles.body_text);
+
+            Center().width(.percent(100)).height(.percent(30)).children({
+                sample();
+            });
         });
     });
 
-    // Static.Hooks(.{ .mounted = mount_video })({
-    //     Box.layout(.center).size(.hw(.percent(100), .percent(100))).direction(.column).spacing(20).body()({
-    //         // Box.layout(.top_left).direction(.column).pos(.relative)
-    //         //     .body()({
-    //         //     Text("side note")
-    //         //         .font(12, 500, .palette(.text_color))
-    //         //         .margin(.all(0))
-    //         //         .padding(.all(0))
-    //         //         .pos(.tl(.px(32), .px(10), .absolute))
-    //         //         .close();
-    //         //     Text("METALLICA IS THE BEST")
-    //         //         .font(16 * 8, 700, .palette(.text_color))
-    //         //         .margin(.all(0)).padding(.all(0)).close();
-    //         //     Text("Text(\"METALLICA IS THE BEST\").font(16 * 8, 700, .palette(.text_color)).close()").style(&.{
-    //         //         .position = .{ .type = .absolute, .right = .percent(0), .bottom = .percent(12) },
-    //         //         .visual = .font(12, 500, .hex("#6f6f6f")),
-    //         //         .font_family = "IBM Plex Mono,monospace",
-    //         //     });
-    //         // });
-    //         Static.Video(&.{
-    //             // .src = "https://www.youtube.com/embed/_W7wqQwa-TU?autoplay=1&mute=1",
-    //             .autoplay = true,
-    //         }).width(.percent(70)).height(.percent(70)).bind(&video_element).border(.none).close();
-    //     });
-    // });
+    // ---------------------------------------------------------------------------------------------
+    // Vaporization
+    // ---------------------------------------------------------------------------------------------
+    Stack().style(&.{
+        .size = .{ .width = .percent(100), .height = .percent(90) },
+        .visual = .{ .border = .top(.palette(.border_color_light)) },
+        .layout = .center,
+        .child_gap = 32,
+    })({
+        Stack().width(.percent(80)).spacing(16).layout(.center).children({
+            Text("Vaporization").font(64, 700, .palette(.text_color)).end();
+            HtmlText(
+                \\Vaporization is a tool that allows you to generate UI from a 
+                \\<i style="color: rgb(var(--tint))"><code>struct</code></i>
+                \\or other data types, like 
+                \\<i style="color: rgb(var(--tint))"><code>strings</code></i>,
+                \\<i style="color: rgb(var(--tint))"><code>numbers</code></i>, and
+                \\<i style="color: rgb(var(--tint))"><code>arrays</code></i>, or even
+                \\<i style="color: rgb(var(--tint))"><code>markdown</code></i>.
+            ).style(&Styles.body_text);
+        });
+
+        Box().style(&.{
+            .size = .{ .width = .percent(100), .height = .percent(60) },
+            .layout = if (Vapor.isMobile()) .top_center else .x_even_center,
+            .direction = if (Vapor.isMobile()) .column else .row,
+        })({
+            Center().width(.percent(40)).height(.fit).children({
+                form_highlighter.renderAST(form_highlighter.root) catch unreachable;
+            });
+            Center().width(.percent(40)).height(.fit).children({
+                form();
+            });
+        });
+    });
+    // ---------------------------------------------------------------------------------------------
+    // Reverb
+    // ---------------------------------------------------------------------------------------------
+    Stack().style(&.{
+        .size = .{ .width = .percent(100), .height = .percent(60) },
+        .visual = .{ .border = .top(.palette(.border_color_light)) },
+        .layout = .center,
+        .child_gap = 32,
+    })({
+        Box().style(&.{
+            .size = .{ .width = .percent(100), .height = .percent(80) },
+            .layout = if (Vapor.isMobile()) .top_center else .x_even_center,
+            .direction = if (Vapor.isMobile()) .column else .row,
+        })({
+            Center().width(.percent(40)).height(.percent(100)).children({
+                Stack().width(.percent(100)).spacing(16).layout(.center).children({
+                    Text("Reverb").font(64, 700, .palette(.text_color)).end();
+                    HtmlText(
+                        \\Reverb is a backend web framework that is built on top of
+                        \\<i style="color: rgb(var(--tint))"><code>Loom</code></i>.
+                    ).style(&Styles.body_text);
+                    HtmlText(
+                        \\<i style="color: rgb(var(--tint))"><code>Reverb</code></i>,
+                        \\has a focus on performance, built-in defaults, and a simple API.
+                    ).style(&Styles.body_text);
+                    Graphic(.{ .src = "/assets/website.svg" }).style(&.{
+                        .size = .{ .width = .percent(80), .height = .percent(100) },
+                        .visual = .{ .fill = .palette(.text_color) },
+                        .transition = .{ .duration = 100 },
+                        .interactive = .{ .hover = .{ .fill = .palette(.tint) } },
+                    });
+                });
+            });
+            Center().width(.percent(40)).height(.percent(100)).children({
+                reverb_highlighter.renderAST(reverb_highlighter.root) catch unreachable;
+            });
+        });
+    });
+    Stack().style(&.{
+        .size = .{ .width = .percent(100), .height = .percent(90) },
+        .visual = .{ .border = .top(.palette(.border_color_light)) },
+        .layout = .center,
+        .child_gap = 32,
+    })({
+        Box().style(&.{
+            .size = .{ .width = .percent(100), .height = .percent(80) },
+            .layout = if (Vapor.isMobile()) .top_center else .x_even_center,
+            .direction = if (Vapor.isMobile()) .column else .row,
+        })({
+            Center().width(.percent(40)).height(.percent(100)).children({
+                Stack().width(.percent(100)).spacing(16).layout(.center).children({
+                    Text("Simple Routing & Powerful Middleware").font(64, 700, .palette(.text_color)).end();
+                    HtmlText(
+                        \\Send data to client, and database with one liners. Automatic handling of errors, middleware, and more.
+                    ).style(&Styles.body_text);
+                });
+            });
+            Center().width(.percent(40)).height(.percent(100)).children({
+                reverb_middleware_highlighter.renderAST(reverb_middleware_highlighter.root) catch unreachable;
+            });
+        });
+    });
+    Stack().layout(.top_center)
+        .pt(128)
+        .width(.percent(100))
+        .border(.top(.transparentizeHex(.palette(.text_color), 0.1)))
+        .height(.percent(80))
+        .background(.transparentizeHex(.palette(.text_color), 0.01))
+        .spacing(16)
+        .pos(.relative)
+        .baseStyle(&.{
+            .visual = .{
+                .layers = &.{
+                    .gradient(.linear, .to_bottom, &.{ .transparent, .palette(.background) }),
+                    // .grid(14, 1, .transparentizeHex(.palette(.tint), 0.05)),
+                    .dot(0.5, 6, .transparentizeHex(.palette(.tint), 0.4)),
+                },
+            },
+        }).children({
+        Stack().layout(.center)
+            .height(.fit)
+            .width(.percent(10))
+            .children({
+            Graphic(.{ .src = "/assets/tether_block.svg" })
+                .size(.full)
+                .end();
+        });
+        Text("Forget the templates and the modules").fontFamily("IBM Plex Mono,monospace").font(16, 100, .hex("#6f6f6f")).end();
+        Text("Works out of the Box").fontFamily("IBM Plex Mono,monospace").font(24, 100, .palette(.dark_tint)).end();
+        Text("Ship Apps, with an Engine instead!").fontFamily("IBM Plex Mono,monospace").font(16, 100, .hex("#6f6f6f")).end();
+        Box().width(.percent(100)).height(.percent(100)).spacing(64).mt(16).layout(.top_center).children({
+            VideoStack(&active1)
+                .children({
+                Image(.{ .src = "/assets/vaporize.png", .alt = "Vaporize" })
+                    .height(.percent(90))
+                    .width(.percent(100))
+                    .background(.palette(.background))
+                    .border(.simple(.transparentizeHex(.palette(.tint), 0.1)))
+                    .end();
+                Text("Generate UI with Vaporize").width(.percent(100)).font(16, null, .palette(.dark_tint))
+                    .fontFamily("IBM Plex Mono,monospace")
+                    .end();
+            });
+            VideoStack(&active2)
+                .mt(0)
+                .children({
+                Image(.{ .src = "/assets/vaporize.png", .alt = "Vaporize" })
+                    .height(.percent(90))
+                    .width(.percent(100))
+                    .background(.palette(.background))
+                    .border(.simple(.transparentizeHex(.palette(.tint), 0.1)))
+                    .end();
+                Text("Generate CRUDs in seconds").width(.percent(100)).font(16, null, .palette(.dark_tint))
+                    .fontFamily("IBM Plex Mono,monospace")
+                    .end();
+            });
+            VideoStack(&active3)
+                .children({
+                Image(.{ .src = "/assets/vaporize.png", .alt = "Vaporize" })
+                    .height(.percent(90))
+                    .width(.percent(100))
+                    .background(.palette(.background))
+                    .border(.simple(.transparentizeHex(.palette(.tint), 0.1)))
+                    .end();
+                Text("Build your own Database").width(.percent(100)).font(16, null, .palette(.dark_tint))
+                    .fontFamily("IBM Plex Mono,monospace")
+                    .end();
+            });
+        });
+    });
 
     // ---------------------------------------------------------------------------------------------
     // Footer
     // ---------------------------------------------------------------------------------------------
-    Box.style(&.{
-        .visual = .{ .border = .top(.hex("#E4E4E4")), .background = .palette(.dark_text) },
+    Box().style(&.{
+        .visual = .{
+            .border = .top(.palette(.border_color_light)),
+            .layers = &.{
+                .grid(14, 1, .hex("262626")),
+                .gradient(.linear, .deg(145), &.{ .hex("#0d0d0d"), .hex("#0d0d0d"), .hex("#1a1a1a"), .hex("#0a0a0a") }),
+            },
+        },
         .size = .hw(.mobile_desktop(.fit, .percent(50)), .percent(100)),
         .layout = if (Vapor.isMobile()) .x_even else .x_even_center,
         .flex_wrap = .wrap,
         .padding = .all(12),
     })({
-        Stack.style(&.{
+        Stack().style(&.{
             .child_gap = 24,
             .size = .hw(.mobile_desktop(.fit, .percent(50)), .mobile_desktop(.percent(40), .fit)),
             .padding = .vertical(12),
         })({
-            Text("Community").style(Styles.miniheading);
-            Stack.style(&.{ .child_gap = 16, .size = .hw(.mobile_desktop_percent(100, 50), .percent(100)) })({
+            Text("Community").font(18, 100, .white).end();
+            Stack().style(&.{ .child_gap = 16, .size = .hw(.mobile_desktop_percent(100, 50), .percent(100)) })({
                 RedirectLink(.{ .url = "https://github.com/tether-labs", .aria_label = "github page of tether" }).style(&.{
-                    .visual = .{ .text_color = .palette(.text_color), .text_decoration = .none },
-                    .interactive = .hover_text(.palette(.tint)),
+                    .visual = .{ .text_color = .white, .text_decoration = .none },
+                    // .interactive = .hover_text(.palette(.tint)),
                 })({
                     Text("Github").style(&Styles.muted_text);
                 });
                 RedirectLink(.{ .url = "https://discord.gg/tether", .aria_label = "discord page of tether" }).style(&.{
-                    .visual = .{ .text_color = .palette(.text_color), .text_decoration = .none },
-                    .interactive = .hover_text(.palette(.tint)),
+                    .visual = .{ .text_color = .white, .text_decoration = .none },
+                    // .interactive = .hover_text(.palette(.tint)),
                 })({
                     Text("Discord").style(&Styles.muted_text);
                 });
                 RedirectLink(.{ .url = "https://youtube.com/tetherlabs", .aria_label = "youtube page of tether" }).style(&.{
-                    .visual = .{ .text_color = .palette(.text_color), .text_decoration = .none },
-                    .interactive = .hover_text(.palette(.tint)),
+                    .visual = .{ .text_color = .white, .text_decoration = .none },
+                    // .interactive = .hover_text(.palette(.tint)),
                 })({
                     Text("Youtube").style(&Styles.muted_text);
                 });
             });
         });
-        Stack.style(&.{
+        Stack().style(&.{
             .child_gap = 24,
             .size = .hw(.mobile_desktop(.fit, .percent(50)), .mobile_desktop(.percent(40), .fit)),
             .padding = .vertical(12),
         })({
-            Text("Resources").style(Styles.miniheading);
-            Stack.style(&.{ .child_gap = 16 })({
+            Text("Resources").font(18, 100, .white).end();
+            Stack().style(&.{ .child_gap = 16 })({
                 RedirectLink(.{ .url = "https://docs.tether.sh", .aria_label = "docs page of tether" }).style(&.{
-                    .visual = .{ .text_color = .palette(.text_color), .text_decoration = .none },
-                    .interactive = .hover_text(.palette(.tint)),
+                    .visual = .{ .text_color = .white, .text_decoration = .none },
+                    // .interactive = .hover_text(.palette(.tint)),
                 })({
                     Text("Vapor Docs").style(&Styles.muted_text);
                 });
                 RedirectLink(.{ .url = "https://docs.tether.sh", .aria_label = "docs page of tether" }).style(&.{
-                    .visual = .{ .text_color = .palette(.text_color), .text_decoration = .none },
-                    .interactive = .hover_text(.palette(.tint)),
+                    .visual = .{ .text_color = .white, .text_decoration = .none },
+                    // .interactive = .hover_text(.palette(.tint)),
                 })({
                     Text("Reverb Docs").style(&Styles.muted_text);
                 });
                 RedirectLink(.{ .url = "https://docs.tether.sh", .aria_label = "docs page of tether" }).style(&.{
-                    .visual = .{ .text_color = .palette(.text_color), .text_decoration = .none },
-                    .interactive = .hover_text(.palette(.tint)),
+                    .visual = .{ .text_color = .white, .text_decoration = .none },
+                    // .interactive = .hover_text(.palette(.tint)),
                 })({
                     Text("Canopy Docs").style(&Styles.muted_text);
                 });
                 RedirectLink(.{ .url = "https://blog.tether.sh", .aria_label = "blog page of tether" }).style(&.{
-                    .visual = .{ .text_color = .palette(.text_color), .text_decoration = .none },
-                    .interactive = .hover_text(.palette(.tint)),
+                    .visual = .{ .text_color = .white, .text_decoration = .none },
+                    // .interactive = .hover_text(.palette(.tint)),
                 })({
                     Text("Blog").style(&Styles.muted_text);
                 });
             });
         });
-        Stack.style(&.{
+        Stack().style(&.{
             .child_gap = 24,
             .size = .hw(.mobile_desktop(.fit, .percent(50)), .mobile_desktop(.percent(40), .fit)),
             .padding = .vertical(12),
         })({
-            Text("Projects").style(Styles.miniheading);
-            Stack.style(&.{ .child_gap = 16 })({
+            Text("Projects").font(18, 100, .white).end();
+            Stack().style(&.{ .child_gap = 16 })({
                 RedirectLink(.{ .url = "/acorn", .aria_label = "nightwatch page of tether" }).style(&.{
-                    .visual = .{ .text_color = .palette(.text_color), .text_decoration = .none },
-                    .interactive = .hover_text(.palette(.tint)),
+                    .visual = .{ .text_color = .white, .text_decoration = .none },
+                    // .interactive = .hover_text(.palette(.tint)),
                 })({
                     Text("Acorn").style(&Styles.muted_text);
                 });
                 RedirectLink(.{ .url = "https://heightsandminds.org", .aria_label = "heights and minds page of tether" }).style(&.{
-                    .visual = .{ .text_color = .palette(.text_color), .text_decoration = .none },
-                    .interactive = .hover_text(.palette(.tint)),
+                    .visual = .{ .text_color = .white, .text_decoration = .none },
+                    // .interactive = .hover_text(.palette(.tint)),
                 })({
                     Text("Heights & Minds").style(&Styles.muted_text);
                 });
                 RedirectLink(.{ .url = "https://metal.tether.sh", .aria_label = "metal page of tether" }).style(&.{
-                    .visual = .{ .text_color = .palette(.text_color), .text_decoration = .none },
-                    .interactive = .hover_text(.palette(.tint)),
+                    .visual = .{ .text_color = .white, .text_decoration = .none },
+                    // .interactive = .hover_text(.palette(.tint)),
                 })({
                     Text("Metal").style(&Styles.muted_text);
                 });
             });
         });
 
-        Stack.style(&.{
+        Stack().style(&.{
             .child_gap = 24,
             .size = .hw(.mobile_desktop(.fit, .percent(50)), .mobile_desktop(.percent(40), .fit)),
             .padding = .vertical(12),
         })({
-            Box.style(&.{ .child_gap = 8, .layout = .left_center })({
-                Text("TETHER").style(Styles.miniheading);
+            Box().style(&.{ .child_gap = 8, .layout = .left_center })({
+                Text("TETHER").font(18, 100, .white).end();
                 Graphic(.{ .src = "src/assets/logonormal.svg" }).style(&.{
                     .size = .{ .width = .px(38) },
-                    .visual = .{ .text_color = .palette(.text_color) },
+                    .visual = .{ .text_color = .white, .fill = .white },
                     .layout = .center,
                 });
             });
-            Text("Lace up 🤘").style(&.{ .visual = .{ .font_size = 14 } });
+            Text("Lace up 🤘").style(&.{ .visual = .{ .font_size = 14, .text_color = .white } });
         });
     });
 }
@@ -751,13 +1050,18 @@ const Styles = struct {
 
     pub const big_heading = Style{
         .style_id = "big-heading",
-        .visual = .{ .font_size = 80, .font_weight = 900 },
+        .visual = .{
+            .font_size = 80,
+            .font_weight = 900,
+        },
         .margin = .all(0),
     };
 
     pub const subheading = Style{ .visual = .{ .font_size = 32, .font_weight = 700 } };
 
     pub const miniheading = &Style{ .visual = .{ .font_size = 20, .font_weight = 500 } };
+
+    pub const logo_text = &Style{ .visual = .{ .font_size = 20, .font_weight = 100 } };
 
     pub const body_text = Style{ .visual = .{ .font_size = 18 } };
 
@@ -792,3 +1096,63 @@ const link_style = struct {
         };
     }
 };
+
+var active1: bool = false;
+var active2: bool = false;
+var active3: bool = false;
+
+fn toggle_expand(active: *bool) void {
+    active.* = !active.*;
+}
+
+pub fn VideoStack(active: *bool) Vapor.Builder(.static) {
+    return CtxButton(toggle_expand, .{active})
+        .direction(.column)
+        .height(.percent(70))
+        .width(.percent(24))
+        .shadow(.card(.transparentizeHex(.palette(.tint), 0.1)))
+        .border(.simple(.transparentizeHex(.palette(.tint), 0.1)))
+        .layer(.grid(4, 1, .transparentizeHex(.palette(.tint), 0.05)))
+        .background(.palette(.background))
+        .duration(100)
+        .hover(.{
+            .border = .simple(.transparentizeHex(.palette(.tint), 0.5)),
+            .shadow = .card(.transparentizeHex(.palette(.tint), 0.5)),
+            .transform = .scaleDecimal(1.02),
+        })
+        .padding(.all(8))
+        .spacing(4)
+        .layout(.center);
+}
+const Form = struct {
+    email: []const u8 = "",
+    password: []const u8 = "",
+
+    pub var __validations = .{
+        .email = Vaporize.Validation{ .field_type = .email },
+        .password = Vaporize.Validation{ .field_type = .password },
+    };
+};
+
+var new_form: Compiler.vaporize.Form(Form) = undefined;
+
+pub fn form() void {
+    Stack()
+        .width(.percent(100)).layout(.center).spacing(16)
+        .height(.fit)
+        .background(.palette(.background))
+        .border(.simple(.palette(.text_color)))
+        .children({
+        Text("SIGN UP").font(84, 900, .palette(.text_color))
+            .padding(.horizontal(12))
+            .border(.bottom(.palette(.text_color)))
+            .layout(.center)
+            .width(.percent(100))
+            .end();
+        Stack()
+            .width(.percent(100)).layout(.center).padding(.all(20))
+            .children({
+            new_form.render();
+        });
+    });
+}

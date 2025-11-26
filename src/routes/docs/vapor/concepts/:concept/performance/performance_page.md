@@ -35,8 +35,8 @@ benefit more from dead code elimination and deduplication.
 
 ### Speed, Runtime
 
-Out the gate, Vapor handles rendering **1,000 nodes** in (8-10ms), and updating in (11-14ms).
-With **10,000 nodes in** (60ms), for both rendering and updating.
+Out the gate, Vapor handles rendering **1,000 nodes** in (2-3ms), and updating in (2-3ms).
+With **10,000 nodes at** 80fps, (8-12ms), for both rendering and updating.
 
 Compare this to traditional frameworks:
 
@@ -76,9 +76,9 @@ var buffer: [10000]Item = undefined;
 var list: std.array_list.Managed(Item) = undefined;
 
 fn init() void {
-    list = std.array_list.Managed(Item).init(Vapor.getPeriodicAllocator());
+    list = Vapor.persistList(Item);
     for (0..buffer.len) |i| {
-        buffer[i] = .{ .value = i, .id = std.fmt.allocPrint(Vapor.getPeriodicAllocator(), "{d}", .{i}) catch unreachable };
+        buffer[i] = .{ .value = i, .id = std.fmt.allocPrint(Vapor.getPersistentAllocator(), "{d}", .{i}) catch unreachable };
     }
     list.appendSlice(&buffer) catch |err| Vapor.lib.printlnErr("Error appending {any}", .{err});
 }
@@ -91,7 +91,7 @@ fn remove() void {
 }
 
 pub fn render() void {
-    Box.style(&.{
+    Box().style(&.{
         .child_gap = 8,
         .direction = .column,
         .margin = .{ .bottom = 32 },
@@ -102,12 +102,12 @@ pub fn render() void {
             .background(.transparent)
             .cursor(.pointer)
             .border(.simple(.palette(.border_color_light)))
-            .body()({
+            .children({
             TextFmt("Remove first Item", .{}).font(18, 500, .palette(.text_color)).layout(.center).close();
         });
-        Box.layout(.flex)
+        Box().layout(.flex)
             .wrap(.wrap)
-            .body()({
+            .children({
             for (list.items) |i| {
                 TextFmt("{d},", .{i.value}).font(18, 500, .palette(.text_color)).layout(.center).close();
             }

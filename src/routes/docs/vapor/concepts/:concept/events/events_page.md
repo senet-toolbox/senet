@@ -17,7 +17,7 @@ Each takes a callback function and returns the callback id, which can then be us
 Here is a basic example of an global event listener. Which listens for the `keydown` event, and then checks if the key pressed is `k` and the meta key is pressed.
 
 ```zig
-const Vapor = @import("fabric");
+const Vapor = @import("vapor");
 
 fn onKeyPress(evt: *Vapor.Event) void {
     const key = evt.key();
@@ -50,7 +50,7 @@ and update the values. For example, there is no need to do the typical `getText`
 
 ```zig
 const std = @import("std");
-const Vapor = @import("fabric");
+const Vapor = @import("vapor");
 const Binded = Vapor.Binded;
 const Static = Vapor.Static;
 const TextField = Static.TextField;

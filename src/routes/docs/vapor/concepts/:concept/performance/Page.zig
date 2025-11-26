@@ -49,9 +49,9 @@ fn remove() void {
 
 fn component() void {
     Vaporize.traverse(performance_page, .{
-        .code_color = .palette(.tint),
-        .text_color = .palette(.text_color),
-        .heading_color = .palette(.text_color),
+        .code_style = .{ .visual = .{ .text_color = .palette(.tint) } },
+        .text_style = .{ .visual = .{ .text_color = .palette(.text_color) } },
+        .heading_style = .{ .visual = .{ .text_color = .palette(.text_color) } },
     }, void, null) catch unreachable;
     snippet("metal create fullstack myapp");
     Button(.{ .on_press = remove })
@@ -59,21 +59,21 @@ fn component() void {
         .background(.transparent)
         .cursor(.pointer)
         .border(.simple(.palette(.border_color_light)))
-        .body()({
-        TextFmt("Remove first Item", .{}).font(18, 500, .palette(.text_color)).layout(.center).close();
+        .children({
+        TextFmt("Remove first Item", .{}).font(18, 500, .palette(.text_color)).layout(.center).end();
     });
-    Box.layout(.flex)
+    Box().layout(.flex)
         .wrap(.wrap)
-        .body()({
+        .children({
         for (list.items) |i| {
-            TextFmt("{d},", .{i.value}).font(18, 500, .palette(.text_color)).layout(.center).close();
+            TextFmt("{d},", .{i.value}).font(18, 500, .palette(.text_color)).layout(.center).end();
         }
     });
 }
 
 pub fn render() void {
     content.content(component);
-    // Box.style(&.{
+    // Box().style(&.{
     //     .child_gap = 8,
     //     .direction = .column,
     //     .margin = .{ .bottom = 32 },
@@ -90,14 +90,14 @@ pub fn render() void {
     //         .background(.transparent)
     //         .cursor(.pointer)
     //         .border(.simple(.palette(.border_color_light)))
-    //         .body()({
-    //         TextFmt("Remove first Item", .{}).font(18, 500, .palette(.text_color)).layout(.center).close();
+    //         .children({
+    //         TextFmt("Remove first Item", .{}).font(18, 500, .palette(.text_color)).layout(.center).end();
     //     });
-    //     Box.layout(.flex)
+    //     Box().layout(.flex)
     //         .wrap(.wrap)
-    //         .body()({
+    //         .children({
     //         for (list.items) |i| {
-    //             TextFmt("{d},", .{i.value}).font(18, 500, .palette(.text_color)).layout(.center).close();
+    //             TextFmt("{d},", .{i.value}).font(18, 500, .palette(.text_color)).layout(.center).end();
     //         }
     //     });
     // });

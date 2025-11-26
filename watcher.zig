@@ -175,7 +175,7 @@ pub fn parseHeader(header: []const u8) !HTTPHeader {
         .host = undefined,
         .userAgent = undefined,
         .connection = undefined,
-        .wskey = undefined,
+        .wskey = "",
     };
     var headerIter = std.mem.tokenizeSequence(u8, header, "\r\n");
     headerStruct.requestLine = headerIter.next() orelse return error.HeaderMalformed;
@@ -221,6 +221,7 @@ const mimeTypes = .{
     .{ ".txt", "text/html; charset=utf8" },
     .{ ".woff", "font/woff" },
     .{ ".woff2", "font/woff2" },
+    .{ ".css", "text/css,*/*;q=0.1" },
 };
 
 pub fn mimeForPath(path: []const u8) []const u8 {
@@ -235,6 +236,7 @@ pub fn mimeForPath(path: []const u8) []const u8 {
 
 var buffer: [2097152]u8 = undefined;
 pub fn openLocalFile(conn: std.net.Server.Connection, mime: []const u8, mimetype: []const u8) !void {
+    std.debug.print("Opening local file {s}\n", .{mime});
     var allocator = std.heap.page_allocator;
     var path: []const u8 = "/index.html";
     if (mime.len > 1) {
@@ -256,10 +258,18 @@ pub fn openLocalFile(conn: std.net.Server.Connection, mime: []const u8, mimetype
             path = mime;
         } else if (std.mem.indexOf(u8, mime, ".woff2") != null) {
             path = mime;
+        } else if (std.mem.indexOf(u8, mime, ".css") != null) {
+            path = mime;
         } else {
-            path = "/index.html";
+            // path = try std.fmt.allocPrint(allocator, "/static{s}/index.html", .{mime});
+            path = try std.fmt.allocPrint(allocator, "/index.html", .{});
         }
+    } else {
+        // This is the '/' root path
+        // path = try std.fmt.allocPrint(allocator, "/static/index.html", .{});
+        path = try std.fmt.allocPrint(allocator, "/index.html", .{});
     }
+
     const file_cwd = try std.fmt.allocPrint(allocator, ".{s}", .{path});
     const cwd = std.fs.cwd();
     var file = cwd.openFile(file_cwd, .{}) catch {
@@ -291,7 +301,7 @@ pub fn openLocalFile(conn: std.net.Server.Connection, mime: []const u8, mimetype
     source.flush() catch {};
 }
 
-fn watchFiles(self: *WatchContext, chan: *Chan(u8)) !void {
+fn watchFiles(self: *WatchContext, _: *Chan(u8)) !void {
     // const watcher_title =
     //     \\  _      __     __      __
     //     \\ | | /| / /__ _/ /_____/ /  ___ ____
@@ -365,8 +375,9 @@ fn watchFiles(self: *WatchContext, chan: *Chan(u8)) !void {
                 bold,
                 reset,
             });
-            const val: u8 = 1;
-            try chan.send(val);
+            // const val: u8 = 1;
+            // try chan.send(val);
+            try self.buildAndRun();
         }
 
         std.Thread.sleep(1_000_000_000 / 2);
@@ -419,111 +430,84 @@ pub fn main() !void {
     //     }
     // };
 
-    const web_thread = struct {
-        fn webserver(c_: *T, self: *WatchContext) !void {
-            try self.buildAndRun();
-            const ws_thread_struct = struct {
-                fn func(c: *T, watch_ctx: *WatchContext, _: std.net.Server.Connection) !void {
-                    while (true) {
-                        const val = c.recv() catch {
-                            continue;
-                        };
-                        if (val == 1) {
-                            try watch_ctx.buildAndRun();
-                            std.Thread.sleep(1_000_000_000);
-                            // var writer = conn.stream.writer();
-                            // std.debug.print("Changed!\n", .{});
-                            // const payload = "refresh";
-                            // var ws_header: [2]u8 = undefined;
-                            // ws_header[0] = 0x1; // FIN bit set
-                            // ws_header[0] = ws_header[0] | 0x80;
-                            // if (payload.len <= 125) {
-                            //     ws_header[1] = @intCast(payload.len);
-                            // }
-                            //
-                            // try writer.writeAll(&ws_header);
-                            // try writer.writeAll(payload);
-                        }
-                    }
-                }
-            };
-
-            const self_addr = try std.net.Address.resolveIp("0.0.0.0", 5173);
-            var listener = try self_addr.listen(.{ .reuse_address = true });
-            std.debug.print("{s}{s}Listening on http://localhost:5173{s}\n", .{ bold, white, reset });
-            var ws: bool = false;
-
-            while (true) {
-                var conn = try listener.accept();
-                var recv_buf: [4096]u8 = undefined;
-                var recv_total: usize = 0;
-                while (conn.stream.read(recv_buf[recv_total..])) |recv_len| {
-                    if (recv_len == 0) break;
-                    recv_total += recv_len;
-                    if (std.mem.containsAtLeast(u8, recv_buf[0..recv_total], 1, "\r\n\r\n")) {
-                        break;
-                    }
-                } else |read_err| {
-                    return read_err;
-                }
-                const recv_data = recv_buf[0..recv_total];
-                // std.debug.print("Got connection! {s}\n", .{recv_data});
-                if (recv_data.len == 0) {
-                    // Browsers (or firefox?) attempt to optimize for speed
-                    // by opening a connection to the server once a user highlights
-                    // a link, but doesn't start sending the request until it's
-                    // clicked. The request eventually times out so we just
-                    // go agane.
-                    std.debug.print("Got connection but no header!\n", .{});
-                    continue;
-                }
-                const header = try parseHeader(recv_data);
-                // if (std.mem.indexOf(u8, header.connection, "Upgrade") != null and !ws) {
-                if (!ws) {
-                    // const arena = std.heap.page_allocator;
-                    // const accept_key = try generateAcceptKey(arena, header.wskey);
-                    // var writer = conn.stream.writer();
-                    // try writer.writeAll("HTTP/1.1 101 Switching Protocols\r\n");
-                    // try writer.writeAll("Upgrade: websocket\r\n");
-                    // try writer.writeAll("Connection: Upgrade\r\n");
-                    // try writer.print("Sec-WebSocket-Accept: {s}\r\n", .{accept_key});
-                    //
-                    // // Handle permessage-deflate extension if needed
-                    // try writer.writeAll("Sec-WebSocket-Extensions: permessage-deflate\r\n");
-                    //
-                    // // End headers
-                    // try writer.writeAll("\r\n");
-                    //
-                    // const payload = "refresh";
-                    // var ws_header: [2]u8 = undefined;
-                    // ws_header[0] = 0x1; // FIN bit set
-                    // ws_header[0] = ws_header[0] | 0x80;
-                    // if (payload.len <= 125) {
-                    //     ws_header[1] = @intCast(payload.len);
-                    // }
-                    //
-                    // try writer.writeAll(&ws_header);
-                    // try writer.writeAll(payload);
-
-                    // while (true) {
-
-                    // }
-                    // global_writer = &conn;
-                    const t = try std.Thread.spawn(.{}, ws_thread_struct.func, .{ c_, self, conn });
-                    t.detach();
-                    ws = true;
-                    // continue;
-                }
-                const path = try parsePath(header.requestLine);
-                const mimetype = mimeForPath(path);
-                try openLocalFile(conn, path, mimetype);
-                // const header = try parseHeader(recv_data);
-                // const path = try parsePath(header.requestLine);
-                // const mime = mimeForPath(path);
-                conn.stream.close();
-            }
-        }
-    };
+    // const web_thread = struct {
+    //     fn webserver(c_: *T, self: *WatchContext) !void {
+    //         try self.buildAndRun();
+    //         const ws_thread_struct = struct {
+    //             fn func(c: *T, watch_ctx: *WatchContext) !void {
+    //                 while (true) {
+    //                     const val = c.recv() catch {
+    //                         continue;
+    //                     };
+    //                     if (val == 1) {
+    //                         try watch_ctx.buildAndRun();
+    //                         std.Thread.sleep(1_000_000_000);
+    //                         // var writer = conn.stream.writer();
+    //                         // std.debug.print("Changed!\n", .{});
+    //                         // const payload = "refresh";
+    //                         // var ws_header: [2]u8 = undefined;
+    //                         // ws_header[0] = 0x1; // FIN bit set
+    //                         // ws_header[0] = ws_header[0] | 0x80;
+    //                         // if (payload.len <= 125) {
+    //                         //     ws_header[1] = @intCast(payload.len);
+    //                         // }
+    //                         //
+    //                         // try writer.writeAll(&ws_header);
+    //                         // try writer.writeAll(payload);
+    //                     }
+    //                 }
+    //             }
+    //         };
+    //
+    //         const self_addr = try std.net.Address.resolveIp("0.0.0.0", 5173);
+    //         var listener = try self_addr.listen(.{ .reuse_address = true });
+    //         std.debug.print("{s}{s}Listening on http://localhost:5173{s}\n", .{ bold, white, reset });
+    //         var ws: bool = false;
+    //
+    //         while (true) {
+    //             var conn = try listener.accept();
+    //             var recv_buf: [4096]u8 = undefined;
+    //             var recv_total: usize = 0;
+    //             while (conn.stream.read(recv_buf[recv_total..])) |recv_len| {
+    //                 if (recv_len == 0) break;
+    //                 recv_total += recv_len;
+    //                 if (std.mem.containsAtLeast(u8, recv_buf[0..recv_total], 1, "\r\n\r\n")) {
+    //                     break;
+    //                 }
+    //             } else |read_err| {
+    //                 return read_err;
+    //             }
+    //             const recv_data = recv_buf[0..recv_total];
+    //             // std.debug.print("Got connection! {s}\n", .{recv_data});
+    //             if (recv_data.len == 0) {
+    //                 // Browsers (or firefox?) attempt to optimize for speed
+    //                 // by opening a connection to the server once a user highlights
+    //                 // a link, but doesn't start sending the request until it's
+    //                 // clicked. The request eventually times out so we just
+    //                 // go agane.
+    //                 std.debug.print("Got connection but no header!\n", .{});
+    //                 continue;
+    //             }
+    //             const header = try parseHeader(recv_data);
+    //             // if (std.mem.indexOf(u8, header.connection, "Upgrade") != null and !ws) {
+    //             if (!ws) {
+    //                 ws = true;
+    //                 const t = try std.Thread.spawn(.{}, ws_thread_struct.func, .{ c_, self });
+    //                 t.detach();
+    //                 // continue;
+    //             }
+    //             std.debug.print("Path: {s}\n", .{header.requestLine});
+    //             const path = try parsePath(header.requestLine);
+    //             const mimetype = mimeForPath(path);
+    //             std.debug.print("Opening local file {s}\n", .{path});
+    //             try openLocalFile(conn, path, mimetype);
+    //             // const header = try parseHeader(recv_data);
+    //             // const path = try parsePath(header.requestLine);
+    //             // const mime = mimeForPath(path);
+    //             conn.stream.close();
+    //         }
+    //     }
+    // };
 
     // const ws_thread_struct = struct {
     //     fn func(c: *T, conn: *std.net.Server.Connection) !void {
@@ -555,11 +539,12 @@ pub fn main() !void {
     // var ws_thread = try std.Thread.spawn(.{}, ws_thread_struct.func, .{ &chan, global_writer });
     // defer ws_thread.join();
 
-    var webserver_thread = try std.Thread.spawn(.{}, web_thread.webserver, .{ &chan, ctx });
-    defer webserver_thread.join();
+    // var webserver_thread = try std.Thread.spawn(.{}, web_thread.webserver, .{ &chan, ctx });
+    // defer webserver_thread.join();
+    // //
+    // std.Thread.sleep(1_000_000_000);
 
-    std.Thread.sleep(1_000_000_000);
-
+    // try ctx.buildAndRun();
     var watcher_thread = try std.Thread.spawn(.{}, watchFiles, .{ ctx, &chan });
     defer watcher_thread.join();
 }

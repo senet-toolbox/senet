@@ -46,7 +46,7 @@ pub const ElementType = enum(u8) {
     TableBody,
     TextArea,
     Canvas,
-    SubmitCtxButton,
+    SubmitButton,
     HooksCtx,
     JsonEditor,
     HtmlText,
@@ -66,6 +66,7 @@ pub const ElementType = enum(u8) {
 };
 
 pub const ThemeTokens = enum(u8) {
+    none,
     border_color,
     text_color,
     background,
@@ -74,6 +75,7 @@ pub const ThemeTokens = enum(u8) {
     border_cache_color,
     btn_color,
     tint,
+    dark_tint,
     text_tint_color,
     alternate_tint,
     btn_tint,
@@ -99,6 +101,13 @@ pub const ThemeTokens = enum(u8) {
     code_keyword_color,
     disabled,
     light_text,
+    code_tint_color,
+    code_comment_color,
+    code_string_color,
+    code_type_color,
+    code_component_color,
+    code_operator_color,
+    code_identifier_color,
 };
 
 pub const IconTokens = struct {
@@ -143,4 +152,8 @@ pub const IconTokens = struct {
     pub const x_lg = &IconTokens{ .web = "bi bi-x-lg", .svg = "\u{f0e8}" };
     pub const arrow_return_left = &IconTokens{ .web = "bi bi-arrow-return-left", .svg = "\u{f0e8}" };
     pub const arrow_return_right = &IconTokens{ .web = "bi bi-arrow-return-right", .svg = "\u{f0e8}" };
+    pub const device_hdd_fill = &IconTokens{ .web = "bi bi-device-hdd-fill", .svg = "\u{f0e8}" };
+    pub const heart_balloon = &IconTokens{ .web = "bi bi-balloon-heart", .svg = "\u{f0e8}" };
+    pub const screw_driver = &IconTokens{ .web = "bi bi-screwdriver", .svg = "\u{f0e8}" };
+    pub const memory = &IconTokens{ .web = "bi bi-memory", .svg = "\u{f0e8}" };
 };
