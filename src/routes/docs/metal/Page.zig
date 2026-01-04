@@ -185,7 +185,7 @@ pub fn render() void {
                         .visual = .font(16, null, null),
                     });
 
-                    Stack().childGap(16).children({
+                    Stack().spacing(16).children({
                         Text("Total file count").style(&.{
                             .visual = .font(24, 500, .palette(.text_color)),
                             .font_family = "IBM Plex Sans",

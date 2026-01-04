@@ -15,3 +15,5 @@ export let hooksMounted = new Map();
 export let hooksCtxCreated = new Map();
 export let observers = new Map();
 export let timeouts = new Map();
+export let hooksMountedCtx = new Map();
+export let hooksDestroyCtx = new Map();

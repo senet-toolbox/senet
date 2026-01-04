@@ -18,67 +18,50 @@ const Svg = Static.Svg;
 const Button = Static.Button;
 const Center = Static.Center;
 const Icon = Vapor.Icon;
+const menu_items = @import("../../../components/DocNavbar.zig").menu_items;
+const MenuItem = @import("../../../components/DocNavbar.zig").MenuItem;
+const goto = @import("../../../components/DocNavbar.zig").goto;
 
 var current_route: usize = 0;
-const routes: []const []const u8 = &.{
-    "/docs/vapor/concepts/justletmebuild",
-    "/docs/vapor/concepts/basics",
-    "/docs/vapor/concepts/project",
-    "/docs/vapor/concepts/routing",
-    "/docs/vapor/concepts/reactivity",
-    "/docs/vapor/concepts/layout",
-    "/docs/vapor/concepts/styling",
-    "/docs/vapor/concepts/kit",
-    "/docs/vapor/concepts/events",
-    "/docs/vapor/concepts/hooks",
-    "/docs/vapor/concepts/performance",
-    "/docs/vapor/concepts/tutorials",
-    "/docs/vapor/concepts/metal",
-};
 
 fn gotoNextRoute() void {
     current_route += 1;
-    const route = routes[current_route];
-    Kit.navigate(route);
+    const route = menu_items[current_route].link;
+    goto(route);
 }
 
 fn gotoPrevRoute() void {
     if (current_route == 0) return;
     current_route -= 1;
-    const route = routes[current_route];
-    Kit.navigate(route);
+    const route = menu_items[current_route].link;
+    goto(route);
 }
 
-fn getPrevPathTitle() ?[]const u8 {
+fn getPrevPath() ?MenuItem {
     if (current_route < 1) return null;
-    const path = routes[current_route - 1];
-    var segments = std.mem.tokenizeScalar(u8, path, '/');
-    while (segments.next()) |current| {
-        if (segments.peek() == null) {
-            return current;
-        }
-    }
-    return null;
+    return menu_items[current_route - 1];
 }
 
-fn getNextPathTitle() ?[]const u8 {
-    if (current_route >= routes.len - 1) return null;
-    const path = routes[current_route + 1];
-    var segments = std.mem.tokenizeScalar(u8, path, '/');
-    while (segments.next()) |current| {
-        if (segments.peek() == null) {
-            return current;
-        }
-    }
-    return null;
+fn getNextPathItem() ?MenuItem {
+    if (current_route >= menu_items.len - 1) return null;
+    return menu_items[current_route + 1];
 }
 
 fn setCurrentRoute(path: []const u8) void {
-    for (routes, 0..) |route, i| {
-        if (std.mem.eql(u8, path, route)) {
+    for (menu_items, 0..) |route, i| {
+        if (std.mem.eql(u8, path, route.link)) {
             current_route = i;
         }
     }
+}
+
+var hovered_item: ?MenuItem = null;
+fn onHover(item: MenuItem, _: *Vapor.Event) void {
+    hovered_item = item;
+}
+
+fn onLeave(_: *Vapor.Event) void {
+    hovered_item = null;
 }
 
 pub fn render() void {
@@ -89,73 +72,90 @@ pub fn render() void {
         .layout = .{ .x = .end, .y = .center },
         .child_gap = 32,
     })({
-        if (getPrevPathTitle()) |title| {
-            Button(.{ .on_press = gotoPrevRoute }).style(&.{
-                .size = .hw(.px(72), .percent(50)),
-                .visual = .{
-                    .border = .simple(.palette(.border_color_light)),
-                    .background = .transparent,
-                    .cursor = .pointer,
-                    .text_color = .palette(.text_color),
-                },
-                .layout = .{ .x = .start, .y = .start },
-                .padding = .all(12),
-                .direction = .column,
-                .transition = .{ .duration = 100 },
-                .interactive = .{
-                    .hover = .{
-                        .border = .{ .color = .palette(.tint), .thickness = .all(1) },
-                        .text_color = .palette(.tint),
-                    },
-                },
-            })({
-                Text("Prev").style(&.{
-                    .visual = .{ .font_size = 16 },
-                });
+        if (getPrevPath()) |item| {
+            Button(.{ .on_press = gotoPrevRoute })
+                .class("prev-btn")
+                .size(.hw(.px(128), .percent(50)))
+                .border(.simple(.palette(.border_color_light)))
+                .background(.transparent)
+                .cursor(.pointer)
+                .padding(.all(12))
+                .direction(.column)
+                .layout(.{ .x = .start, .y = .even })
+                .duration(100)
+                .hover(.{
+                    .border = .{ .color = .palette(.tint), .thickness = .all(1) },
+                    .text_color = .palette(.tint),
+                })
+                .children({
+                Icon(item.icon)
+                    .class("btn-icon")
+                    .fontSize(18)
+                    .height(.px(32))
+                    .font(18, null, .palette(.text_color))
+                    .width(.px(32))
+                    .inheritHover(&.{ .border, .text_color })
+                    .layout(.center)
+                    .border(.{
+                        .color = .palette(.border_color_light),
+                        .thickness = .all(1),
+                    })
+                    .end();
                 Center().style(&.{
                     .child_gap = 12,
                 })({
-                    Text(title).style(&.{
-                        .visual = .{ .font_size = 18 },
-                    });
-                    Icon(.arrow_return_left).style(&.{
-                        .visual = .{ .font_size = 16 },
-                    });
+                    Text(item.title)
+                        .baseStyle(&.{
+                            .visual = .{
+                                .font_size = 18,
+                                .text_color = .palette(.text_color),
+                            },
+                        })
+                        .fontFamily("IBM Plex Sans,monospace")
+                        .end();
                 });
             });
         }
-        if (getNextPathTitle()) |title| {
-            Button(.{ .on_press = gotoNextRoute }).style(&.{
-                .size = .hw(.px(72), .percent(50)),
-                .visual = .{
-                    .border = .simple(.palette(.border_color_light)),
-                    .background = .transparent,
-                    .cursor = .pointer,
-                    .text_color = .palette(.text_color),
-                },
-                .padding = .all(12),
-                .direction = .column,
-                .transition = .{ .duration = 100 },
-                .interactive = .{
-                    .hover = .{
-                        .border = .{ .color = .palette(.tint), .thickness = .all(1) },
-                        .text_color = .palette(.tint),
-                    },
-                },
-                .layout = .{ .x = .end, .y = .start },
-            })({
-                Text("Next").style(&.{
-                    .visual = .{ .font_size = 16 },
-                });
+        if (getNextPathItem()) |item| {
+            Button(.{ .on_press = gotoNextRoute })
+                .class("next-btn")
+                .size(.hw(.px(128), .percent(50)))
+                .border(.simple(.palette(.border_color_light)))
+                .background(.transparent)
+                .cursor(.pointer)
+                .padding(.all(12))
+                .direction(.column)
+                .layout(.{ .x = .end, .y = .even })
+                .duration(100)
+                .hover(.{
+                    .border = .{ .color = .palette(.tint), .thickness = .all(1) },
+                    .text_color = .palette(.tint),
+                })
+                .children({
+                Icon(item.icon)
+                    .class("btn-icon")
+                    .font(18, null, .palette(.text_color))
+                    .height(.px(32))
+                    .width(.px(32))
+                    .inheritHover(&.{ .border, .text_color })
+                    .layout(.center)
+                    .border(.{
+                        .color = .palette(.border_color_light),
+                        .thickness = .all(1),
+                    })
+                    .end();
                 Center().style(&.{
                     .child_gap = 12,
                 })({
-                    Icon(.arrow_return_right).style(&.{
-                        .visual = .{ .font_size = 16 },
-                    });
-                    Text(title).style(&.{
-                        .visual = .{ .font_size = 18 },
-                    });
+                    Text(item.title)
+                        .baseStyle(&.{
+                            .visual = .{
+                                .font_size = 18,
+                                .text_color = .palette(.text_color),
+                            },
+                        })
+                        .fontFamily("IBM Plex Sans,monospace")
+                        .end();
                 });
             });
         }

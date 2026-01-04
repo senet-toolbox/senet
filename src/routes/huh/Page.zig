@@ -150,7 +150,7 @@ pub fn render() void {
 
             Text("What Tether Eliminates").style(subheading);
 
-            List().layout(.left_center).direction(.column).childGap(8).children({
+            List().layout(.left_center).direction(.column).spacing(8).children({
                 ListItem().style(&.{})({
                     HtmlText(
                         \\Tether ships with <strong>zero dependencies</strong> and eliminates the need for:

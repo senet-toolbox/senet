@@ -92,7 +92,7 @@ fn mergedStyle() Style {
 }
 
 fn clicked() void {
-    Vapor.alert("You clicked me!");
+    Vapor.alert("You clicked me!", .{});
 }
 
 fn samples() void {

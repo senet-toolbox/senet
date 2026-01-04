@@ -9,7 +9,7 @@
     content="Tether website includes documentation on all three components Fabric, Tether, and Treehouse. As well as instructions on installation and use cases." />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="icon" href="/assets/icon.svg" type="image/svg+xml" />
-  <!-- <link href="/zig-out/bin/vapor.wasm" as="fetch" type="application/wasm" crossorigin /> -->
+  <link rel="preload" href="/zig-out/bin/vapor.wasm" as="fetch" type="application/wasm" crossorigin />
 
   <!-- Preconnect stays the same -->
   <link href="https://fonts.googleapis.com" />
@@ -18,13 +18,11 @@
 
   <!-- Load fonts async with media trick -->
   <link
+    href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300;1,400;1,500&display=swap"
+    rel="stylesheet" media="print" onload="this.media='all'" />
+  <link
     href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,100..700;1,100..700&family=Montserrat:wght@400;700&display=swap"
     rel="stylesheet" media="print" onload="this.media='all'" />
-  <noscript>
-    <link
-      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,100..700;1,100..700&family=Montserrat:wght@400;700&display=swap"
-      rel="stylesheet" />
-  </noscript>
 
   <link rel="preload" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" as="style"
     onload="this.rel='stylesheet'" />
@@ -32,7 +30,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" />
   </noscript>
 
-  <!-- <script type="module" src="/web/wasi_obj.js"></script> -->
+  <script type="module" src="/web/wasi_obj.js"></script>
 
   <style>
     body {
@@ -107,15 +105,23 @@
       bottom: 10px;
       right: 10px;
       padding: 10px;
-      border-radius: 4px;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
       font-family: monospace;
-      font-size: 12px;
+      font-size: 14px;
       z-index: 10000;
-      background-color: rgba(var(--background));
+      /* background-color: rgba(var(--background)); */
+      background-color: rgb(var(--background));
+      background-image: radial-gradient(circle, rgb(var(--text_color)) 0.5px, transparent 0px);
+      background-size: 20px 20px;
+      background-position: center center;
+      border-width: 1px;
+      border-style: solid;
+      border-color: rgb(var(--text_color));
+      box-shadow: 4px 4px 0px 0px rgb(var(--text_color));
+      text-decoration: none;
+      color: rgb(var(--text_color));
     }
   </style>
-    <link rel="stylesheet" href="/static/style_variables.css" />
+  <link rel="stylesheet" href="/static/style_variables.css" />
   <link rel="stylesheet" href="/static/install/style.css" />
 </head></head>
 
@@ -125,85 +131,99 @@
     Frame Time: <span id="frameTime">0</span>ms<br />
     Render Time: <span id="renderTime">0</span>ms<br />
   </div>
-  <div id="contents" style="display: contents"><div  id="nav" class="lay_2355004687 pos_4226863089 mapa_2487839144 vis_858635165 ">
-<div  id="Flex_2851033941-genk" class="lay_742044807 ">
-<a  id="Link_2148954699-genk" class="vis_2782233086 " aria-label="home page of tether" href="/">
-<div  id="Flex_915028410-genk" class="lay_3212761532 mapa_4117309395 vis_3610111763 anim_752735341 intr_2275201365 ">
-<div  id="Grap_1707722983-genk" class="lay_4075706570 vis_4265825448 intr_3191807552 ">
+  <div id="contents" style="display: contents"><div  id="nav" class="lay_ZIMNZ2 pos_7BU3c4 mapa_obiMi2 vis_iMRGa1 ">
+<div  id="Flex_PAew63-genk" class="lay_dkXDo ">
+<a  id="Link_zKoG8-genk" class="vis_i01PD2 " aria-label="home page of tether" href="/">
+<div  id="Flex_6hNXh-genk" class="lay_O2QQV3 mapa_3GodU4 vis_DAOXU1 anim_yrWjP2 intr_HK65V ">
+<div  id="Grap_Jn5G6-genk" class="lay_kSFpR4 vis_Wvp9J1 intr_wtIFA1 ">
 </div>
 </div>
 </a>
-<ul  id="List_641040586-genk" class="lay_80028923 ">
-<li  id="List_1931446036-genk" class="lay_1071775855 vis_2381593747 intr_4101004655 "">
-<a  id="Link_4269899483-genk" class="vis_2782233086 " aria-label="Vapor" href="/docs/vapor">
-<p  id="Text_3814987054-genk" class="vis_3491491361 ">Vapor</p>
+<ul  id="List_00v9G2-genk" class="lay_5BnP5 ">
+<li  id="List_kcm1p3-genk" class="lay_Lr3XA1 vis_eHHGV intr_bQwWU1 "">
+<a  id="Link_FbkDZ1-genk" class="vis_i01PD2 " aria-label="[0] = Vapor" href="/docs/vapor">
+<p  id="Text_iD8252-genk" class="vis_sJTox1 ">[0] = Vapor</p>
 </a>
 </li>
-<li  id="List_290914501-genk" class="lay_1071775855 vis_2381593747 intr_4101004655 "">
-<a  id="Link_782871717-genk" class="vis_2782233086 " aria-label="Reverb" href="/docs/reverb">
-<p  id="Text_4061285904-genk" class="vis_3491491361 ">Reverb</p>
+<li  id="List_hQH022-genk" class="lay_Lr3XA1 vis_eHHGV intr_bQwWU1 "">
+<a  id="Link_J2tuW1-genk" class="vis_i01PD2 " aria-label="[1] = Reverb" href="/docs/reverb">
+<p  id="Text_fidoB1-genk" class="vis_sJTox1 ">[1] = Reverb</p>
 </a>
 </li>
-<li  id="List_2945350262-genk" class="lay_1071775855 vis_2381593747 intr_4101004655 "">
-<a  id="Link_1339705068-genk" class="vis_2782233086 " aria-label="Canopy" href="/docs/treehouse">
-<p  id="Text_3493225210-genk" class="vis_3491491361 ">Canopy</p>
+<li  id="List_eEmyE-genk" class="lay_Lr3XA1 vis_eHHGV intr_bQwWU1 "">
+<a  id="Link_zFTrE4-genk" class="vis_i01PD2 " aria-label="[2] = Canopy" href="/docs/treehouse">
+<p  id="Text_fxzhf-genk" class="vis_sJTox1 ">[2] = Canopy</p>
 </a>
 </li>
-<li  id="List_1304818727-genk" class="lay_1071775855 vis_2381593747 intr_4101004655 "">
-<a  id="Link_2218807839-genk" class="vis_2782233086 " aria-label="Metal" href="/docs/metal">
-<p  id="Text_3389213952-genk" class="vis_3491491361 ">Metal</p>
+<li  id="List_fEWc83-genk" class="lay_Lr3XA1 vis_eHHGV intr_bQwWU1 "">
+<a  id="Link_ezo2f3-genk" class="vis_i01PD2 " aria-label="Metal" href="/docs/metal">
+<p  id="Text_jIANQ1-genk" class="vis_sJTox1 ">Metal</p>
 </a>
 </li>
-<li  id="List_3959254488-genk" class="lay_1071775855 vis_2381593747 intr_4101004655 "">
-<a  id="Link_459460175-genk" class="vis_2782233086 " aria-label="About Me" href="/about">
-<p  id="Text_1476673945-genk" class="vis_3491491361 ">About Me</p>
+<li  id="List_c21bL1-genk" class="lay_Lr3XA1 vis_eHHGV intr_bQwWU1 "">
+<a  id="Link_PDLZU2-genk" class="vis_i01PD2 " aria-label="About Me" href="/about">
+<p  id="Text_fkJvR2-genk" class="vis_sJTox1 ">About Me</p>
 </a>
 </li>
 </ul>
 </div>
-<div  id="Flex_1210502406-genk" class="lay_2427431289 ">
-<button  id="Butt_3692203482-genk" class="lay_1515371949 mapa_1029637290 vis_3863708168 intr_2738320283 " aria-label="search-dialog">
-<div  id="Flex_3491220137-genk" class="lay_2352082878 ">
-<i  id="Icon_461205268-genk" class="bi bi-search vis_2456070613 " href="bi bi-search">
+<div  id="Flex_My8vJ1-genk" class="lay_ZlFHe2 ">
+<button  id="Butt_4cPje2-genk" class="lay_3TLYe1 mapa_4hFg71 vis_A7Qpx3 intr_xtuuh1 " aria-label="search-dialog">
+<div  id="Flex_GVosn1-genk" class="lay_cC6BZ2 ">
+<i  id="Icon_IOcFT1-genk" class="bi bi-search vis_exlBf4 " href="bi bi-search">
 </i>
-<p  id="Text_762272481-genk" class="vis_1253340569 ">Search...</p>
+<p  id="Text_JcyRc2-genk" class="vis_BCSPy ">Search...</p>
 </div>
-<i  id="Icon_1306428635-genk" class="bi bi-command vis_2456070613 " href="bi bi-command">
+<i  id="Icon_khVZv2-genk" class="bi bi-command vis_exlBf4 " href="bi bi-command">
 </i>
 </button>
-<a  id="Redi_1240995215-genk" class="vis_2782233086 " aria-label="redirect link to tether github repo" href="https://github.com/vic-Rokx/vapor">
-<i  id="Icon_511390286-genk" class="bi bi-github vis_3319038623 intr_3436696024 " href="bi bi-github">
+<a  id="Redi_hX0UL3-genk" class="vis_i01PD2 " aria-label="redirect link to tether github repo" href="https://github.com/vic-Rokx/vapor">
+<i  id="Icon_gFUVi1-genk" class="bi bi-github vis_3JgbB2 intr_HNOBs3 " href="bi bi-github">
 </i>
 </a>
-<a  id="Redi_3895430976-genk" class="vis_2782233086 " aria-label="redirect link to discord" href="https://github.com/vic-Rokx/vapor">
-<i  id="Icon_1817279550-genk" class="bi bi-discord vis_3319038623 intr_3436696024 " href="bi bi-discord">
+<a  id="Redi_eLVSY1-genk" class="vis_i01PD2 " aria-label="redirect link to discord" href="https://github.com/vic-Rokx/vapor">
+<i  id="Icon_OWJVM-genk" class="bi bi-discord vis_3JgbB2 intr_HNOBs3 " href="bi bi-discord">
 </i>
 </a>
-<a  id="Redi_2254899441-genk" class="vis_2782233086 " aria-label="redirect link to ziglang" href="https://ziglang.org/">
-<div  id="Grap_1858277661-genk" class="lay_395582524 vis_378852699 intr_457968657 ">
+<a  id="Redi_fLF6S4-genk" class="vis_i01PD2 " aria-label="redirect link to ziglang" href="https://ziglang.org/">
+<div  id="Grap_0Nwfa-genk" class="lay_I5plQ vis_KcpTB1 intr_0KzKp2 ">
 </div>
 </a>
-<button  id="Butt_1425044638-genk" class="mapa_2382506810 vis_4269074653 ">
-<i  id="Icon_558382312-genk" class="bi bi-cloud-moon vis_3319038623 intr_3436696024 " href="bi bi-cloud-moon">
+<button  id="Butt_w1eIB-genk" class="mapa_CrkEb2 vis_8H90T4 " aria-label="toggle theme">
+<i  id="Icon_dQsaW2-genk" class="bi bi-cloud-moon vis_3JgbB2 intr_HNOBs3 " href="bi bi-cloud-moon">
 </i>
 </button>
 </div>
 </div>
 
 
-<div  id="Flex_2924438023-genk" class="lay_1580544207 ">
-<div  id="Flex_2076201045-genk" class="lay_1435409200 mapa_227533584 ">
-<p  id="Text_3136811225-genk" class="vis_4209938342 ">Install</p>
-<img  id="Imag_574773064-genk" class="lay_824965278 pos_2312966451 " src="/assets/ZVM.png">
+<div  id="Flex_DvduB3-genk" class="lay_Vknxi1 ">
+<div  id="Flex_uAnKa2-genk" class="lay_IVp8Z1 mapa_WshOF ">
+<p  id="Text_SSnNk2-genk" class="vis_QkzEr2 ">Install</p>
+<img  id="Imag_R6CeG4-genk" class="lay_a9Tpt pos_VEyWW2 " src="/assets/ZVM.png">
 </img>
-<img  id="Imag_3229208825-genk" class="lay_3296201278 pos_55937719 " src="/assets/ZIG.svg">
+<img  id="Imag_OugcT2-genk" class="lay_kWW4b3 pos_Hxhm3 " src="/assets/ZIG.svg">
 </img>
-<button  id="CtxB_1943625362-genk" class="lay_3426496787 pos_1781655325 mapa_1639140863 vis_674019049 intr_3267677006 ">
-<div  id="Flex_787898365-genk" class="lay_619210704 pos_138615651 vis_1611002382 ">
-<i  id="Icon_3915216689-genk" class="bi bi-clipboard vis_1950349343 " href="bi bi-clipboard">
+<button  id="CtxB_tZCRq-genk" class="lay_oAEsI1 pos_DwdZw1 mapa_rPfvm1 vis_xoDWI2 intr_qCoSH2 ">
+<p  id="Text_3nVbW1-genk" class="lay_iKMqA2 vis_QjDof1 ">curl -sSL https://raw.githubusercontent.com/tether-labs/metal/main/install.sh | bash</p>
+<div  id="Flex_pbmOO3-genk" class="lay_Qz8uf vis_1CLzF ">
+<i  id="Icon_Y3iHI3-genk" class="bi bi-clipboard vis_ZtdGV1 " href="bi bi-clipboard">
 </i>
 </div>
-<p  id="Text_544705611-genk" class="lay_1992507932 vis_4289151707 ">curl -sSL https://raw.githubusercontent.com/tether-labs/metal/main/install.sh | bash</p>
+</button>
+<button  id="CtxB_uZw4k3-genk" class="lay_oAEsI1 pos_DwdZw1 mapa_rPfvm1 vis_xoDWI2 intr_qCoSH2 ">
+<p  id="Text_7h4ND3-genk" class="lay_iKMqA2 vis_QjDof1 ">metal create myapp</p>
+<div  id="Flex_Xsk4G-genk" class="lay_Qz8uf vis_1CLzF ">
+<i  id="Icon_rKi502-genk" class="bi bi-clipboard vis_ZtdGV1 " href="bi bi-clipboard">
+</i>
+</div>
+</button>
+<button  id="CtxB_rNR3x1-genk" class="lay_oAEsI1 pos_DwdZw1 mapa_rPfvm1 vis_xoDWI2 intr_qCoSH2 ">
+<p  id="Text_34nAi1-genk" class="lay_iKMqA2 vis_QjDof1 ">my-app && metal run web</p>
+<div  id="Flex_XRiXR3-genk" class="lay_Qz8uf vis_1CLzF ">
+<i  id="Icon_A9vPf1-genk" class="bi bi-clipboard vis_ZtdGV1 " href="bi bi-clipboard">
+</i>
+</div>
 </button>
 </div>
 </div>

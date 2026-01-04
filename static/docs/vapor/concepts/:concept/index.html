@@ -1,0 +1,343 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <title>Tether</title>
+  <meta charset="utf-8" />
+  <meta name="google-site-verification" content="12aR_338F0VaglKbfvPLczdZV_Ej6AVx9Ef7M4ULfLU" />
+  <meta name="description"
+    content="Tether website includes documentation on all three components Fabric, Tether, and Treehouse. As well as instructions on installation and use cases." />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" href="/assets/icon.svg" type="image/svg+xml" />
+  <link rel="preload" href="/zig-out/bin/vapor.wasm" as="fetch" type="application/wasm" crossorigin />
+
+  <!-- Preconnect stays the same -->
+  <link href="https://fonts.googleapis.com" />
+  <link href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://cdn.jsdelivr.net" crossorigin />
+
+  <!-- Load fonts async with media trick -->
+  <link
+    href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300;1,400;1,500&display=swap"
+    rel="stylesheet" media="print" onload="this.media='all'" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,100..700;1,100..700&family=Montserrat:wght@400;700&display=swap"
+    rel="stylesheet" media="print" onload="this.media='all'" />
+
+  <link rel="preload" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" as="style"
+    onload="this.rel='stylesheet'" />
+  <noscript>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" />
+  </noscript>
+
+  <script type="module" src="/web/wasi_obj.js"></script>
+
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: Montserrat;
+      font-weight: 400;
+      height: 100vh;
+      width: 100%;
+      box-sizing: border-box;
+      flex-shrink: 0;
+      background-color: rgba(var(--background));
+      color: rgb(var(--text_color));
+      transition:
+        background-color 0.3s ease,
+        color 0.3s ease;
+      scrollbar-width: none;
+      /* Firefox */
+      -ms-overflow-style: none;
+      /* IE/Edge */
+    }
+
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+      -webkit-scrollbar: display: none;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+      /* Chrome, Safari, Opera */
+      margin: 0;
+    }
+
+
+    p,
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
+      line-height: 1.5;
+      font-size-adjust: 0.5;
+    }
+
+    textarea {
+      line-height: 1.5;
+      font-size-adjust: 0.5;
+    }
+
+    table {
+      border-collapse: separate;
+      border-spacing: 0;
+    }
+
+    /* Basic sidebar styling */
+    .onthispage a {
+      text-decoration: none;
+      transition: all 0.3s ease;
+    }
+
+    /* This is the class we will toggle */
+    .onthispage a.active {
+      color: dodgerblue;
+      font-weight: bold;
+      transform: scale(1.1);
+    }
+
+    .stats {
+      position: fixed;
+      bottom: 10px;
+      right: 10px;
+      padding: 10px;
+      font-family: monospace;
+      font-size: 14px;
+      z-index: 10000;
+      /* background-color: rgba(var(--background)); */
+      background-color: rgb(var(--background));
+      background-image: radial-gradient(circle, rgb(var(--text_color)) 0.5px, transparent 0px);
+      background-size: 20px 20px;
+      background-position: center center;
+      border-width: 1px;
+      border-style: solid;
+      border-color: rgb(var(--text_color));
+      box-shadow: 4px 4px 0px 0px rgb(var(--text_color));
+      text-decoration: none;
+      color: rgb(var(--text_color));
+    }
+  </style>
+  <link rel="stylesheet" href="/static/style_variables.css" />
+  <link rel="stylesheet" href="/static/docs/vapor/concepts/:concept/style.css" />
+</head></head>
+
+<body>
+  <div class="stats" id="stats">
+    FPS: <span id="fps">0</span><br />
+    Frame Time: <span id="frameTime">0</span>ms<br />
+    Render Time: <span id="renderTime">0</span>ms<br />
+  </div>
+  <div id="contents" style="display: contents"><div  id="Flex_F7PI52-genk" class="lay_fcXl83 pos_7BU3c4 mapa_c1Pmw ">
+
+<div  id="Flex_c6Klb2-genk" class="lay_FjeHV pos_pfYov2 mapa_GjRnP2 vis_MMutl ">
+<div  id="Flex_EQhAH-genk" class="lay_LKxiW1 ">
+<a  id="Link_MDFfj2-genk" class="vis_Ou2Cm1 " aria-label="home page of tether" href="/">
+<img  id="Imag_3a76D3-genk" class="lay_yNQAV4 " src="/assets/circlelogo.webp">
+</img>
+</a>
+<p  id="Text_ETdnT4-genk" class="vis_BBCjf4 ">Tether</p>
+<div  id="Flex_w5fve1-genk" class="lay_VhOU93 vis_WPwxh ">
+</div>
+<p  id="Text_85dkt-genk" class="vis_qoatr3 ">Docs</p>
+</div>
+<button  id="Butt_jJ7LO1-genk" class="lay_vNJoO2 mapa_4hFg71 vis_A7Qpx3 intr_xtuuh1 " aria-label="search-dialog">
+<div  id="Flex_aVpng2-genk" class="lay_cC6BZ2 ">
+<i  id="Icon_zd1wL1-genk" class="bi bi-search vis_exlBf4 " href="bi bi-search">
+</i>
+<p  id="Text_0sN8V2-genk" class="vis_om8yd3 ">Search...</p>
+</div>
+<i  id="Icon_4iWUo3-genk" class="bi bi-command vis_exlBf4 " href="bi bi-command">
+</i>
+</button>
+<div  id="Flex_CEwmN1-genk" class="lay_aRjFA2 mapa_TK4ER4 ">
+<button  id="Butt_kUst22-genk" class="vis_8H90T4 " aria-label="toggle theme">
+<i  id="Icon_0aSVe-genk" class="bi bi-cloud-moon vis_3JgbB2 intr_HNOBs3 " href="bi bi-cloud-moon">
+</i>
+</button>
+</div>
+</div>
+<div  id="Flex_Zuojo-genk" class="lay_fcXl83 pos_FWJ613 ">
+<ul  id="List_t7l7o1-genk" class="lay_k7bGB4 mapa_bnttp vis_0iRpV4 ">
+<li  id="List_VrvNq1-genk" class="lay_AAqfn3 vis_m3Gxp2 intr_1axpu "">
+<button  id="CtxB_q9oZu1-genk" class="lay_IvyKF mapa_3Qb5v vis_8H90T4 ">
+<i  id="Icon_3Zhb22-genk" class="bi bi-house vis_i6tu9 " href="bi bi-house">
+</i>
+<p  id="Text_4n3oB3-genk" class="vis_fKNC34 ">Overview</p>
+</button>
+</li>
+<li  id="List_SfQM3-genk" class="lay_AAqfn3 vis_6QsRw2 intr_RlB5D3 "">
+<button  id="CtxB_A661i1-genk" class="lay_IvyKF mapa_3Qb5v vis_8H90T4 ">
+<i  id="Icon_crTQB2-genk" class="bi bi-fire vis_gm3id2 " href="bi bi-fire">
+</i>
+<p  id="Text_d5qcK3-genk" class="vis_MfoiW1 ">Just let me build!!!!</p>
+</button>
+</li>
+<li  id="List_TfA0x2-genk" class="lay_AAqfn3 vis_6QsRw2 intr_RlB5D3 "">
+<button  id="CtxB_jylnc-genk" class="lay_IvyKF mapa_3Qb5v vis_8H90T4 ">
+<i  id="Icon_KQQiX1-genk" class="bi bi-mortarboard vis_gm3id2 " href="bi bi-mortarboard">
+</i>
+<p  id="Text_1eRzx2-genk" class="vis_MfoiW1 ">Basics</p>
+</button>
+</li>
+<li  id="List_QTfy91-genk" class="lay_AAqfn3 vis_6QsRw2 intr_RlB5D3 "">
+<button  id="CtxB_EO5g3-genk" class="lay_IvyKF mapa_3Qb5v vis_8H90T4 ">
+<i  id="Icon_1bHgi2-genk" class="bi bi-filetype-js vis_gm3id2 " href="bi bi-filetype-js">
+</i>
+<p  id="Text_ioIx84-genk" class="vis_MfoiW1 ">New to Zig</p>
+</button>
+</li>
+<li  id="List_RTPc34-genk" class="lay_AAqfn3 vis_6QsRw2 intr_RlB5D3 "">
+<button  id="CtxB_C08pD4-genk" class="lay_IvyKF mapa_3Qb5v vis_8H90T4 ">
+<i  id="Icon_n5jiY3-genk" class="bi bi-diagram-3 vis_gm3id2 " href="bi bi-diagram-3">
+</i>
+<p  id="Text_k7qF1-genk" class="vis_MfoiW1 ">Project Structure</p>
+</button>
+</li>
+<li  id="List_OHuaG2-genk" class="lay_AAqfn3 vis_6QsRw2 intr_RlB5D3 "">
+<button  id="CtxB_CR1mN1-genk" class="lay_IvyKF mapa_3Qb5v vis_8H90T4 ">
+<i  id="Icon_M8xDS3-genk" class="bi bi-signpost vis_gm3id2 " href="bi bi-signpost">
+</i>
+<p  id="Text_NMJQb4-genk" class="vis_MfoiW1 ">Routing</p>
+</button>
+</li>
+<li  id="List_L5PZT-genk" class="lay_AAqfn3 vis_6QsRw2 intr_RlB5D3 "">
+<button  id="CtxB_5X6Xi3-genk" class="lay_IvyKF mapa_3Qb5v vis_8H90T4 ">
+<i  id="Icon_lWojF2-genk" class="bi bi-arrow-repeat vis_gm3id2 " href="bi bi-arrow-repeat">
+</i>
+<p  id="Text_mkAwO3-genk" class="vis_MfoiW1 ">Reactivity</p>
+</button>
+</li>
+<li  id="List_M59DN3-genk" class="lay_AAqfn3 vis_6QsRw2 intr_RlB5D3 "">
+<button  id="CtxB_Qd4fh-genk" class="lay_IvyKF mapa_3Qb5v vis_8H90T4 ">
+<i  id="Icon_V6Lp3-genk" class="bi bi-paint-bucket vis_gm3id2 " href="bi bi-paint-bucket">
+</i>
+<p  id="Text_CKM6U1-genk" class="vis_MfoiW1 ">Styling</p>
+</button>
+</li>
+<li  id="List_JtdBa1-genk" class="lay_AAqfn3 vis_6QsRw2 intr_RlB5D3 "">
+<button  id="CtxB_smVNM4-genk" class="lay_IvyKF mapa_3Qb5v vis_8H90T4 ">
+<i  id="Icon_b2rTc4-genk" class="bi bi-device-hdd-fill vis_gm3id2 " href="bi bi-device-hdd-fill">
+</i>
+<p  id="Text_Y4y051-genk" class="vis_MfoiW1 ">Vaporize</p>
+</button>
+</li>
+<li  id="List_ZJ7Z33-genk" class="lay_AAqfn3 vis_6QsRw2 intr_RlB5D3 "">
+<button  id="CtxB_t4CyV1-genk" class="lay_IvyKF mapa_3Qb5v vis_8H90T4 ">
+<i  id="Icon_NKF913-genk" class="bi bi-memory vis_gm3id2 " href="bi bi-memory">
+</i>
+<p  id="Text_OYbLA4-genk" class="vis_MfoiW1 ">Memory</p>
+</button>
+</li>
+<li  id="List_W7cXG1-genk" class="lay_AAqfn3 vis_6QsRw2 intr_RlB5D3 "">
+<button  id="CtxB_39vQH3-genk" class="lay_IvyKF mapa_3Qb5v vis_8H90T4 ">
+<i  id="Icon_AICq92-genk" class="bi bi-columns vis_gm3id2 " href="bi bi-columns">
+</i>
+<p  id="Text_BWY2J3-genk" class="vis_MfoiW1 ">Layout</p>
+</button>
+</li>
+<li  id="List_X7MBA4-genk" class="lay_AAqfn3 vis_6QsRw2 intr_RlB5D3 "">
+<button  id="CtxB_xYiuk2-genk" class="lay_IvyKF mapa_3Qb5v vis_8H90T4 ">
+<i  id="Icon_AVMIp1-genk" class="bi bi-tools vis_gm3id2 " href="bi bi-tools">
+</i>
+<p  id="Text_BjiUy2-genk" class="vis_MfoiW1 ">Kit</p>
+</button>
+</li>
+<li  id="List_Uvq9N2-genk" class="lay_AAqfn3 vis_6QsRw2 intr_RlB5D3 "">
+<button  id="CtxB_dbZYF4-genk" class="lay_IvyKF mapa_3Qb5v vis_8H90T4 ">
+<i  id="Icon_1VGJj2-genk" class="bi bi-cursor vis_gm3id2 " href="bi bi-cursor">
+</i>
+<p  id="Text_2jcVs3-genk" class="vis_MfoiW1 ">Events & Handlers</p>
+</button>
+</li>
+<li  id="List_RjL8a-genk" class="lay_AAqfn3 vis_6QsRw2 intr_RlB5D3 "">
+<button  id="CtxB_7hnyG-genk" class="lay_IvyKF mapa_3Qb5v vis_8H90T4 ">
+<i  id="Icon_FdXEW2-genk" class="bi bi-hourglass-split vis_gm3id2 " href="bi bi-hourglass-split">
+</i>
+<p  id="Text_wqYVw3-genk" class="vis_MfoiW1 ">Lifecycle Hooks</p>
+</button>
+</li>
+<li  id="List_Sj5mT3-genk" class="lay_AAqfn3 vis_6QsRw2 intr_RlB5D3 "">
+<button  id="CtxB_8T9pX1-genk" class="lay_IvyKF mapa_3Qb5v vis_8H90T4 ">
+<i  id="Icon_EKExT2-genk" class="bi bi-motherboard vis_gm3id2 " href="bi bi-motherboard">
+</i>
+<p  id="Text_FYa9d3-genk" class="vis_MfoiW1 ">Codex Engine</p>
+</button>
+</li>
+<li  id="List_PXakg1-genk" class="lay_AAqfn3 vis_6QsRw2 intr_RlB5D3 "">
+<button  id="CtxB_C4NEC1-genk" class="lay_IvyKF mapa_3Qb5v vis_8H90T4 ">
+<i  id="Icon_mRV6N4-genk" class="bi bi-ethernet vis_gm3id2 " href="bi bi-ethernet">
+</i>
+<p  id="Text_jTcdp-genk" class="vis_MfoiW1 ">Performance</p>
+</button>
+</li>
+<li  id="List_QXKOa4-genk" class="lay_AAqfn3 vis_6QsRw2 intr_RlB5D3 "">
+<button  id="CtxB_c3zDb-genk" class="lay_IvyKF mapa_3Qb5v vis_8H90T4 ">
+<i  id="Icon_mboKk3-genk" class="bi bi-award vis_gm3id2 " href="bi bi-award">
+</i>
+<p  id="Text_PdawT-genk" class="vis_MfoiW1 ">Tutorials</p>
+</button>
+</li>
+<li  id="List_NLpMn2-genk" class="lay_AAqfn3 vis_6QsRw2 intr_RlB5D3 "">
+<button  id="CtxB_jf2DX3-genk" class="lay_IvyKF mapa_3Qb5v vis_8H90T4 ">
+<i  id="Icon_LkKEc2-genk" class="bi bi-screwdriver vis_gm3id2 " href="bi bi-screwdriver">
+</i>
+<p  id="Text_MygQl3-genk" class="vis_MfoiW1 ">Metal</p>
+</button>
+</li>
+</ul>
+</div>
+<div  id="Flex_auYNi3-genk" class="lay_5j34Q1 pos_8jULZ2 ">
+<div  id="Flex_FWnvo2-genk" class="lay_sRkjz ">
+<i  id="Icon_GbeME4-genk" class="bi bi-view-list vis_hOuFU " href="bi bi-view-list">
+</i>
+<p  id="Text_Ddltg-genk" class="vis_iaakP ">On this page</p>
+</div>
+<ul  id="List_0c5ny1-genk" class="lay_EHt132 mapa_JuL712 vis_0iRpV4 ">
+<li  id="List_Jw3ZQ4-genk" class="lay_AAqfn3 "">
+<a  id="Link_UCTCe3-genk" class="lay_Du4fK mapa_5cfTW4 vis_YoqZT4 " aria-label="What is Vapor?" href="#what-is-vapor">
+<p  id="Text_OQdXA2-genk" class="vis_1JqMW2 ">What is Vapor?</p>
+</a>
+</li>
+<li  id="List_GkYXd2-genk" class="lay_AAqfn3 "">
+<a  id="Link_QZ9P1-genk" class="lay_Du4fK mapa_5cfTW4 vis_YoqZT4 " aria-label="Quickstart" href="#quickstart">
+<p  id="Text_Mkpcs2-genk" class="vis_1JqMW2 ">Quickstart</p>
+</a>
+</li>
+<li  id="List_DY3Wq-genk" class="lay_AAqfn3 "">
+<a  id="Link_bVOXD2-genk" class="lay_Du4fK mapa_5cfTW4 vis_YoqZT4 " aria-label="Vapor is simple" href="#vapor-is-simple">
+<p  id="Text_mppO14-genk" class="vis_1JqMW2 ">Vapor is simple</p>
+</a>
+</li>
+<li  id="List_EYn9k3-genk" class="lay_AAqfn3 "">
+<a  id="Link_eluw34-genk" class="lay_Du4fK mapa_5cfTW4 vis_YoqZT4 " aria-label="How it works" href="#how-it-works">
+<p  id="Text_Rdo0d1-genk" class="vis_1JqMW2 ">How it works</p>
+</a>
+</li>
+<li  id="List_BMI8x1-genk" class="lay_AAqfn3 "">
+<a  id="Link_a8dkY2-genk" class="lay_Du4fK mapa_5cfTW4 vis_YoqZT4 " aria-label="Why Zig?" href="#why-zig">
+<p  id="Text_splDq3-genk" class="vis_1JqMW2 ">Why Zig?</p>
+</a>
+</li>
+<li  id="List_8An6A-genk" class="lay_AAqfn3 "">
+<a  id="Link_pBI66-genk" class="lay_Du4fK mapa_5cfTW4 vis_YoqZT4 " aria-label="Making a Button" href="#making-a-button">
+<p  id="Text_Ybw5i2-genk" class="vis_1JqMW2 ">Making a Button</p>
+</a>
+</li>
+<li  id="List_9AXk33-genk" class="lay_AAqfn3 "">
+<a  id="Link_c8fOL4-genk" class="lay_Du4fK mapa_5cfTW4 vis_YoqZT4 " aria-label="Builder Pattern" href="#builder">
+<p  id="Text_3p7ld1-genk" class="vis_1JqMW2 ">Builder Pattern</p>
+</a>
+</li>
+</ul>
+</div>
+
+
+
+</div>
+</div>
+</body>
+</html>

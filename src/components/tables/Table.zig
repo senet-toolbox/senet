@@ -1,0 +1,983 @@
+const std = @import("std");
+const Vapor = @import("vapor");
+const Text = Vapor.Text;
+const Box = Vapor.Box;
+const ButtonCtx = Vapor.CtxButton;
+const Stack = Vapor.Stack;
+const Components = @import("Components.zig");
+const TableContainer = Components.Table;
+const Select = @import("../Select.zig").Select;
+const animEnter = @import("../Select.zig").animateEnter;
+const animExit = @import("../Select.zig").animateExit;
+const Icon = Vapor.Icon;
+const TextField = Vapor.TextField;
+const TextFmt = Vapor.TextFmt;
+const File = Vapor.FileReader;
+const VirtualList = @import("Virtualize.zig").VirtualList;
+
+pub const DisplayMode = enum {
+    paginated,
+    virtual, // Virtualized scrolling
+    all, // Show everything (small datasets)
+};
+
+pub const Sort = enum {
+    none,
+    asc,
+    desc,
+};
+
+pub const Align = enum {
+    none,
+    left,
+    center,
+    right,
+};
+
+var border_color: Vapor.Types.Color = .palette(.border_color_light);
+var icon_color: Vapor.Types.Color = .palette(.icon_color);
+var tint: Vapor.Types.Background = .transparentizeHex(.palette(.tint), 0.8);
+var checkbox_color_icon: Vapor.Types.Color = .palette(.background);
+var checkbox_color: Vapor.Types.Color = .palette(.text_color);
+
+const SelectType = Select(usize);
+
+pub fn Row(comptime T: type) type {
+    return struct {
+        value: T,
+        is_selected: bool = false,
+        is_shown: bool = true,
+    };
+}
+
+pub fn Column(comptime T: type) type {
+    return struct {
+        title: []const u8,
+        key: []const u8,
+        width: f32 = 0,
+        alignment: ?Align = .none,
+        sort: ?Sort = null,
+        render: ?*const fn (*Row(T)) void = null,
+        search: bool = false,
+        filter: bool = false,
+    };
+}
+
+pub fn Action(comptime T: type) type {
+    return struct {
+        label: []const u8,
+        icon: ?*const Vapor.IconTokens = null,
+        on_action: ?*const fn (item: *T) void = null,
+    };
+}
+
+pub fn Table(comptime T: type, comptime columns: []const Column(T), config: struct { actions: ?[]const Action(T) = null }) type {
+    comptime {
+        if (!@hasField(T, "id")) {
+            @compileError("Table requires a field named 'id'");
+        }
+    }
+
+    const IdType = comptime blk: {
+        const fields = @typeInfo(T).@"struct".fields;
+        for (fields) |field| {
+            if (std.mem.eql(u8, field.name, "id")) {
+                break :blk field.type;
+            }
+        }
+        unreachable;
+    };
+
+    return struct {
+        const Self = @This();
+        data: []T,
+        rows: []Row(T) = undefined,
+        filtered_data: Vapor.Array(T),
+        per_page: usize = 10,
+        selected_rows: std.AutoHashMap(IdType, void),
+        file_name: []const u8 = "content",
+        display_mode: DisplayMode = .paginated,
+        scroll_offset: usize = 0,
+        visible_row_count: usize = 20, // For virtual mode
+        show_id_column: bool = false,
+        on_select: ?*const fn (item: *T) void = null,
+        on_select_all: ?*const fn () void = null,
+        action_select: SelectType = undefined,
+
+        const table_columns: []const Column(T) = columns;
+        var action_width: f32 = 5;
+        var row_height: f32 = 48;
+        var row_width: f32 = 90;
+        var checkbox_width: f32 = 5;
+        var show_actions: bool = false;
+
+        var actions: []const Action(T) = config.actions orelse &.{};
+
+        var action_top_pos: f16 = 0;
+        var action_right_pos: f16 = 0;
+        var binded_action: Vapor.Binded = .{};
+        var search_box: Vapor.Binded = .{};
+        var binded_cols: []Vapor.Binded = &.{};
+        var show_search: bool = false;
+        var clicked_index: usize = 0;
+        var search_top: f32 = 0;
+        var search_right: f32 = 0;
+        var filter_top: f32 = 0;
+        var filter_right: f32 = 0;
+        var show_filter: bool = false;
+        var current_page: usize = 0;
+        var current_search_text: []const u8 = "";
+        var active_filters: [columns.len]?[]const u8 = [_]?[]const u8{null} ** columns.len;
+        var enum_filters: std.StringHashMap(void) = undefined;
+        var downloading: bool = false;
+        var virtual_list: VirtualList(T) = undefined;
+        var row_index: usize = 0;
+
+        const TriggerCtx = struct {
+            index: usize,
+            table: *Self,
+        };
+
+        pub fn init(table: *Self, data: []T) void {
+            var rows: []Row(T) = undefined;
+            rows = Vapor.arena(.persist).alloc(Row(T), data.len) catch |err| blk: {
+                Vapor.printErr("Failed to allocate rows: {any}", .{err});
+                break :blk &.{};
+            };
+            for (rows, 0..) |*row, i| {
+                row.* = Row(T){ .value = data[i] };
+            }
+
+            binded_cols = Vapor.arena(.persist).alloc(Vapor.Binded, table_columns.len) catch |err| blk: {
+                Vapor.printErr("Failed to allocate binded cols: {any}", .{err});
+                break :blk &.{};
+            };
+            for (0..table_columns.len) |i| {
+                binded_cols[i] = .{};
+            }
+
+            enum_filters = std.StringHashMap(void).init(Vapor.arena(.persist));
+
+            table.* = Self{
+                .data = data,
+                .rows = rows,
+                .filtered_data = Vapor.array(T, .persist),
+                .selected_rows = std.AutoHashMap(IdType, void).init(Vapor.arena(.persist)),
+            };
+
+            if (config.actions) |c_actions| {
+                actions = c_actions;
+                var items = Vapor.arena(.persist).alloc(Select(usize).Item, actions.len) catch unreachable;
+                for (actions, 0..) |action, i| {
+                    items[i] = .{ .value = i, .label = action.label, .icon = action.icon };
+                }
+                table.action_select = .fromItems(items);
+                table.action_select.render_trigger = false;
+                table.action_select.trigger_component = ActionTrigger;
+                table.action_select.on_select = selectAction;
+            }
+
+            table.filtered_data.appendSlice(data[0..]) catch unreachable;
+            virtual_list = VirtualList(T).init(.{
+                .data = table.data,
+                .render_ctx = VirtualRow,
+                .item_height = .px(row_height),
+                .item_width = .percent(row_width),
+                .buffer_size = 5,
+            });
+        }
+
+        pub fn refresh(table: *Self) void {
+            table.filtered_data.clearRetainingCapacity(); // Clear the old data
+            table.filtered_data.appendSlice(table.data[0..]) catch unreachable; // Append the new data
+            table.applyFilters(); // Apply the filters
+        }
+
+        fn selectAction(select: *Select(usize), item: *Select(usize).Item) void {
+            const table: *Self = @fieldParentPtr("action_select", select);
+            const row = &table.data[row_index + current_page * table.per_page];
+            if (actions[item.value].on_action) |on_action| {
+                on_action(row);
+            }
+        }
+
+        fn VirtualRow(row: T, i: usize, ctx: ?*anyopaque) void {
+            if (ctx == null) return;
+            const table: *Self = @ptrCast(@alignCast(ctx));
+            const last_row = virtual_list.data.len - 1 == i;
+            Box()
+                .width(.percent(100))
+                .height(.px(row_height))
+                .padding(.horizontal(8))
+                .border(.bottom(if (!last_row) border_color else .transparent))
+                .layout(.x_between_center).children({
+                Box()
+                    .width(.percent(checkbox_width))
+                    .children({
+                    // Box()
+                    CheckBox(selectRow, .{ table, &table.data[i] })
+                        .background(if (table.includes(row.id)) tint else .transparent)
+                        .border(.round(if (table.includes(row.id)) .transparent else border_color, .all(4)))
+                        .hoverScale()
+                        .layout(.center)
+                        .children({
+                        Icon(.check)
+                            .font(16, 300, checkbox_color_icon)
+                            .end();
+                    });
+                });
+                Box()
+                    .width(.percent(row_width))
+                    .layout(.x_even_center).children({
+                    inline for (table_columns) |column| {
+                        const name = column.key;
+                        const value = @field(row, name);
+                        Box()
+                            .width(.percent(100))
+                            .layout(.left_center)
+                            .children({
+                            switch (@typeInfo(@TypeOf(value))) {
+                                .int => Text(value).end(),
+                                .@"enum" => Text(value).end(),
+                                .pointer => |ptr| {
+                                    if (ptr.size == .slice) {
+                                        Text(value).end();
+                                    }
+                                },
+                                else => {
+                                    Vapor.printErr("Type {any} not supported", .{@typeInfo(@TypeOf(value))});
+                                },
+                            }
+                        });
+                    }
+                });
+                Box()
+                    .width(.percent(action_width))
+                    .layout(.right_center)
+                    .height(.px(24))
+                    .children({
+                    table.action_select.renderTrigger();
+                });
+            });
+        }
+
+        // ============ Search Functions ============
+        fn matchesSearch(comptime key: []const u8, item: T, query: []const u8) bool {
+            if (query.len == 0) return true;
+
+            const value = @field(item, key);
+            const value_str = fieldToString(value);
+
+            return std.ascii.indexOfIgnoreCase(value_str, query) != null;
+        }
+
+        fn matchesFilter(comptime key: []const u8, item: T) bool {
+            const value = @field(item, key);
+            const value_str = fieldToString(value);
+            return enum_filters.get(value_str) != null;
+        }
+
+        fn fieldToString(value: anytype) []const u8 {
+            return switch (@typeInfo(@TypeOf(value))) {
+                .pointer => |ptr| {
+                    if (ptr.size == .slice and ptr.child == u8) {
+                        return value;
+                    }
+                    return "";
+                },
+                .@"enum" => @tagName(value),
+                .int => blk: {
+                    break :blk Vapor.fmtln("{d}", .{value});
+                },
+                else => "",
+            };
+        }
+
+        fn applyFilters(table: *Self) void {
+            table.filtered_data.clearRetainingCapacity();
+
+            for (table.data) |item| {
+                var matches = true;
+
+                inline for (columns, 0..) |col, i| {
+                    // 1. Check text search (Existing logic)
+                    if (active_filters[i]) |filter_text| {
+                        if (!matchesSearch(col.key, item, filter_text)) {
+                            matches = false;
+                            break;
+                        }
+                    }
+
+                    // 2. Check enum filter (Fixed logic)
+                    // We only apply the filter logic if this specific column allows filtering
+                    if (col.filter) {
+                        // We need to look up the field type at comptime to get its enum values
+                        const fields = @typeInfo(T).@"struct".fields;
+
+                        inline for (fields) |field| {
+                            if (comptime std.mem.eql(u8, field.name, col.key)) {
+
+                                // Ensure this is actually an enum field
+                                if (@typeInfo(field.type) == .@"enum") {
+                                    const all_enum_values = std.enums.values(field.type);
+                                    var is_filtering_this_col = false;
+
+                                    // Check if ANY value belonging to this column's enum type is currently selected
+                                    for (all_enum_values) |val| {
+                                        const val_str = fieldToString(val);
+                                        if (enum_filters.get(val_str) != null) {
+                                            is_filtering_this_col = true;
+                                            break;
+                                        }
+                                    }
+
+                                    // Only filter the row if the user has actually selected a filter
+                                    // relevant to THIS specific column
+                                    if (is_filtering_this_col) {
+                                        if (!matchesFilter(col.key, item)) {
+                                            matches = false;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    // If matches became false inside the inner inline loop, break the outer column loop
+                    if (!matches) break;
+                }
+
+                if (matches) {
+                    table.filtered_data.append(item) catch unreachable;
+                }
+            }
+        }
+
+        fn search(table: *Self, evt: *Vapor.Event) void {
+            const text = evt.text();
+            search_box.text = text;
+
+            // Store filter for the clicked column
+            active_filters[clicked_index] = if (text.len > 0) text else null;
+
+            table.applyFilters();
+        }
+
+        fn clearText(table: *Self) void {
+            search_box.text = "";
+            active_filters[clicked_index] = null;
+            table.applyFilters();
+        }
+
+        pub fn ActionTrigger(_: *Select(usize)) void {
+            Box()
+                .width(.px(24))
+                .height(.px(24))
+                .cursor(.pointer)
+                .background(.palette(.background))
+                .hover(.{
+                    .background = tint,
+                    .text_color = checkbox_color_icon,
+                })
+                .font(14, 300, .palette(.text_color))
+                .duration(200)
+                .border(.round(.transparent, .all(4)))
+                .layout(.center)
+                .children({
+                Vapor.Icon(.three_dots)
+                    .font(16, 300, null)
+                    .end();
+            });
+        }
+
+        fn selectRow(table: *Self, row: *T) void {
+            const id = row.id;
+            if (table.selected_rows.get(id)) |_| {
+                _ = table.selected_rows.fetchRemove(id);
+                if (table.on_select) |on_select| {
+                    on_select(row);
+                }
+                return;
+            }
+            table.selected_rows.put(id, {}) catch unreachable;
+
+            if (table.on_select) |on_select| {
+                on_select(row);
+            }
+        }
+
+        fn includes(table: *Self, id: IdType) bool {
+            if (table.selected_rows.get(id) != null) return true;
+            return false;
+        }
+
+        fn Rows(table: *Self) void {
+            const items_to_render = switch (table.display_mode) {
+                .paginated => blk: {
+                    const start_index = current_page * table.per_page;
+                    var end_index = start_index + table.per_page;
+                    if (end_index > table.filtered_data.items.len) {
+                        end_index = table.filtered_data.items.len;
+                    }
+                    break :blk table.filtered_data.items[start_index..end_index];
+                },
+                .all => table.data,
+                else => {
+                    Vapor.printErr("Error called virtualize on Rows", .{});
+                    unreachable;
+                },
+            };
+
+            Stack()
+                .width(.percent(100))
+                .children({
+                // If we remove the outer box we get very strange behaviour
+                Box()
+                    .inlineStyle(
+                        \\max-width: 16%;
+                        \\min-width: 10%;
+                    , .{})
+                    .pos(.tl(.percent(0), .percent(0), .absolute))
+                    .children({
+                    table.action_select.renderSelect();
+                });
+                // const fields = @typeInfo(T).@"struct".fields;
+                for (items_to_render, 0..) |*row, i| {
+                    const last_row = table.rows.len - 1 == i;
+                    Box()
+                        .width(.percent(100))
+                        .height(.px(row_height))
+                        .layout(.x_between_center).children({
+                        Box()
+                            .padding(.horizontal(18))
+                            .width(.percent(100))
+                            .height(.px(row_height))
+                            .background(.palette(.background))
+                            .border(.bottom(if (!last_row) border_color else .transparent))
+                            // .hover(.{
+                            //     .background = .black,
+                            //     .text_color = .white,
+                            //     // .border = .sharp(.all(1), .black),
+                            //     // .transform = .{
+                            //     //     .trans_x = -2,
+                            //     //     .trans_y = -20,
+                            //     //     // .scale_size = 1.01,
+                            //     //     .type = &.{ .translateX, .translateY },
+                            //     //     .size_type = .percent,
+                            //     // },
+                            //     // .shadow = .{
+                            //     //     .color = .transparentizeHex(.black, 1),
+                            //     //     .spread = 0,
+                            //     //     .left = 8,
+                            //     //     .top = 8,
+                            //     // },
+                            // })
+                            .layout(.x_between_center).children({
+                            Box()
+                                .width(.percent(checkbox_width))
+                                .children({
+                                CheckBox(selectRow, .{ table, row })
+                                    // .background(if (table.includes(row.id)) tint else .transparent)
+                                    .border(.solid(.all(1), if (table.includes(row.id)) .transparentizeHex(.palette(.tint), 0.8) else border_color, .all(6)))
+                                    .hoverScale()
+                                    .layout(.center)
+                                    .children({
+                                    if (table.includes(row.id)) {
+                                        Box()
+                                            .width(.px(14))
+                                            .height(.px(14))
+                                            .background(if (table.includes(row.id)) .transparentizeHex(.palette(.tint), 0.8) else .transparent)
+                                            .border(.round(if (table.includes(row.id)) .transparent else border_color, .all(4)))
+                                            .hoverScale()
+                                            .layout(.center)
+                                            .children({});
+                                    }
+                                    // Icon(.check)
+                                    //     .font(16, 300, checkbox_color_icon)
+                                    //     .end();
+                                });
+                            });
+                            Box()
+                                .width(.percent(row_width))
+                                .layout(.x_even_center).children({
+                                inline for (table_columns) |column| {
+                                    const name = column.key;
+                                    const value = @field(row, name);
+                                    Box()
+                                        .width(.percent(100))
+                                        .layout(.left_center)
+                                        .children({
+                                        switch (@typeInfo(@TypeOf(value))) {
+                                            .int => Text(value).end(),
+                                            .@"enum" => Text(value).end(),
+                                            .pointer => |ptr| {
+                                                if (ptr.size == .slice) {
+                                                    Text(value).end();
+                                                }
+                                            },
+                                            else => {
+                                                Vapor.printErr("Type {any} not supported", .{@typeInfo(@TypeOf(value))});
+                                            },
+                                        }
+                                    });
+                                }
+                            });
+                            ButtonCtx(setRow, .{i})
+                                .width(.percent(action_width))
+                                .layout(.right_center)
+                                .height(.px(24))
+                                .pos(.relative)
+                                .children({
+                                // const trigger_index = Vapor.arena(.frame).create(usize) catch unreachable;
+                                // trigger_index.* = i;
+                                table.action_select.renderTrigger();
+                                // table.action_select.toggle();
+                            });
+                        });
+                    });
+                }
+            });
+        }
+
+        fn setRow(index: usize) void {
+            Vapor.print("setRow", .{});
+            row_index = index;
+        }
+
+        fn makeSortFn(comptime key: []const u8) fn (Sort, T, T) bool {
+            return struct {
+                fn compare(sort_type: Sort, a: T, b: T) bool {
+                    const value_a = @field(a, key);
+                    const value_b = @field(b, key);
+                    const val1 = if (sort_type == .asc) value_a else value_b;
+                    const val2 = if (sort_type == .asc) value_b else value_a;
+                    return switch (@typeInfo(@TypeOf(value_a))) {
+                        .pointer => |ptr| {
+                            if (ptr.size == .slice) {
+                                return std.ascii.lessThanIgnoreCase(val1, val2);
+                            }
+                            return false;
+                        },
+                        .@"enum" => @intFromEnum(val1) < @intFromEnum(val2),
+                        .int, .float => val1 < val2,
+                        else => Vapor.printErr("Sorting not supported for {any}", .{@typeInfo(@TypeOf(val1))}),
+                    };
+                }
+            }.compare;
+        }
+
+        fn sortColumn(self: *Self, comptime sort_type: Sort, comptime key: []const u8) void {
+            std.mem.sort(T, self.filtered_data.items, sort_type, makeSortFn(key));
+        }
+
+        fn mountSearchBox(_: *Self) void {
+            search_box.focus();
+        }
+
+        fn handleFilter(table: *Self, comptime FT: type, value: FT) void {
+            const text = fieldToString(value);
+            if (enum_filters.get(text)) |_| {
+                if (!enum_filters.remove(text)) {
+                    Vapor.printErr("Failed to remove filter", .{});
+                }
+            } else {
+                _ = enum_filters.put(text, {}) catch unreachable;
+            }
+            table.applyFilters();
+        }
+
+        fn CommonFilter() Vapor.Builder(.pure) {
+            return Stack()
+                .animationEnter(&animEnter)
+                .animationExit(&animExit)
+                .width(.percent(100))
+                .layout(.center)
+                .background(.palette(.background))
+                .height(.fit)
+                .border(.round(border_color, .all(6)))
+                .shadow(.{
+                .top = 4,
+                .spread = 2,
+                .blur = 6,
+                .color = .transparentizeHex(.black, 0.05),
+            });
+        }
+
+        fn FilterSelect(table: *Self, comptime FT: type, comptime values: []const FT) void {
+            CommonFilter()
+                .padding(.all(4))
+                .spacing(8)
+                .children({
+                for (values) |value| {
+                    ButtonCtx(handleFilter, .{ table, FT, value })
+                        .width(.percent(100))
+                        .height(.px(36))
+                        .background(if (enum_filters.get(fieldToString(value)) != null) tint else .transparent)
+                        .pointer()
+                        .layout(.left_center)
+                        .duration(100)
+                        .hover(.{
+                            .background = tint,
+                            .text_color = checkbox_color_icon,
+                        })
+                        .padding(.tblr(6, 6, 6, 24))
+                        .border(.round(.transparent, .all(6)))
+                        .font(14, 300, if (enum_filters.get(fieldToString(value)) != null) checkbox_color_icon else .palette(.text_color))
+                        .children({
+                        Text(value)
+                            .fontFamily("Montserrat")
+                            .end();
+                    });
+                }
+            });
+        }
+        fn Search(table: *Self) void {
+            CommonFilter()
+                .children({
+                Vapor.Static.HooksCtx(.mounted, mountSearchBox, .{table})({
+                    Box()
+                        .width(.percent(100))
+                        .padding(.all(4))
+                        .pointer()
+                        .layout(.x_between_center)
+                        .children({
+                        Box()
+                            .border(.round(.transparent, .all(6)))
+                            .width(.px(32))
+                            .height(.px(32))
+                            .background(tint)
+                            .layout(.center)
+                            .children({
+                            Icon(.search)
+                                .font(18, 300, checkbox_color_icon)
+                                .end();
+                        });
+                        TextField(.string)
+                            .ref(&search_box)
+                            .val(&search_box.text)
+                            .placeholder("Filter...")
+                            .width(.grow)
+                            .border(.none)
+                            .padding(.horizontal(12))
+                            .outline(.none)
+                            .fontFamily("Montserrat")
+                            .background(.transparent)
+                            .font(16, 300, icon_color)
+                            .onEventCtx(.input, search, table)
+                            .end();
+                        ButtonCtx(clearText, .{table})
+                            .background(.transparent)
+                            .pointer()
+                            .padding(.all(4))
+                            .children({
+                            Icon(.x_lg)
+                                .font(14, 300, icon_color)
+                                .end();
+                        });
+                    });
+                });
+            });
+        }
+
+        fn toggleFilter(_: *Self, index: usize) void {
+            // If clicking same column, toggle. If different column, switch to it.
+            if (clicked_index == index and show_filter) {
+                show_filter = false;
+            } else {
+                show_filter = true;
+                clicked_index = index;
+            }
+
+            const bounds = binded_cols[index].getBoundingClientRect() orelse return;
+            filter_top = bounds.height;
+            filter_right = 0;
+        }
+
+        fn toggleSearch(_: *Self, index: usize) void {
+            // If clicking same column, toggle. If different column, switch to it.
+            if (clicked_index == index and show_search) {
+                show_search = false;
+            } else {
+                show_search = true;
+                clicked_index = index;
+
+                // Load existing filter for this column
+                search_box.text = active_filters[index] orelse "";
+            }
+
+            const bounds = binded_cols[index].getBoundingClientRect() orelse return;
+            search_top = bounds.height;
+            search_right = 0;
+        }
+
+        fn Pagination(table: *Self) void {
+            if (table.filtered_data.items.len == 0) return;
+            const page_count: f32 = @floatFromInt(@divTrunc(table.filtered_data.items.len, table.per_page) + 1);
+            const float_current_page: f32 = @floatFromInt(current_page);
+
+            Box()
+                .width(.percent(100))
+                .layout(.x_between_center)
+                .padding(.tblr(8, 8, 18, 18))
+                .height(.px(row_height))
+                .layout(.x_between_center)
+                .spacing(8)
+                .children({
+                TextFmt("Page: {d}/{d}", .{ float_current_page + 1, page_count })
+                    .font(16, 300, icon_color)
+                    .end();
+                Box()
+                    .spacing(16)
+                    .children({
+                    if (float_current_page > 0) {
+                        ButtonCtx(prevPage, .{table})
+                            .background(.transparent)
+                            .cursor(.pointer)
+                            .children({
+                            Icon(.chevron_left)
+                                .font(16, 300, icon_color)
+                                .end();
+                        });
+                    }
+                    if (float_current_page < page_count - 1) {
+                        ButtonCtx(nextPage, .{table})
+                            .background(.transparent)
+                            .cursor(.pointer)
+                            .children({
+                            Icon(.chevron_right)
+                                .font(16, 300, icon_color)
+                                .end();
+                        });
+                    }
+                });
+            });
+        }
+
+        fn prevPage(_: *Self) void {
+            if (current_page == 0) return;
+            current_page -= 1;
+        }
+
+        fn nextPage(table: *Self) void {
+            if (current_page > table.data.len - 1) return;
+            current_page += 1;
+        }
+
+        fn selectAll(table: *Self) void {
+            if (table.selected_rows.count() == table.data.len - 1) {
+                table.selected_rows.clearRetainingCapacity();
+                return;
+            }
+            for (table.data) |row| {
+                table.selected_rows.put(row.id, {}) catch unreachable;
+            }
+
+            if (table.on_select_all) |on_select_all| {
+                on_select_all();
+            }
+        }
+
+        const FileType = enum {
+            // csv,
+            json,
+        };
+
+        fn download(table: *Self, file_type: FileType) void {
+            downloading = true;
+
+            switch (file_type) {
+                .json => {
+                    const allocator = Vapor.arena(.persist);
+                    var out: std.io.Writer.Allocating = .init(allocator);
+                    var downloadable_rows: Vapor.Array(T) = Vapor.array(T, .persist);
+
+                    for (table.data, 0..) |row, i| {
+                        if (table.includes(i)) {
+                            downloadable_rows.append(row) catch unreachable;
+                        }
+                    }
+
+                    std.json.Stringify.value(downloadable_rows.items, .{ .whitespace = .indent_2 }, &out.writer) catch unreachable;
+                    var arr = out.toArrayList();
+                    defer arr.deinit(allocator);
+
+                    const content = arr.toOwnedSlice(allocator) catch unreachable;
+                    defer allocator.free(content);
+                    const name = Vapor.fmtln("{s}.json", .{table.file_name});
+                    File.downloadFile(name, content, .@"application/json");
+                },
+            }
+        }
+
+        fn CommonToggleFilter(func: anytype, args: anytype) Vapor.ButtonBuilder(.pure) {
+            return ButtonCtx(func, args)
+                .cursor(.pointer)
+                .border(.round(.transparent, .all(4)))
+                .padding(.all(4))
+                .height(.px(24))
+                .width(.px(24))
+                .border(.round(.transparent, .all(4)))
+                .duration(100)
+                .layout(.left_center)
+                .width(.fit)
+                .spacing(8)
+                .font(14, 300, .palette(.text_color))
+                .hover(.{
+                .background = tint,
+                .text_color = checkbox_color_icon,
+            });
+        }
+        fn CheckBox(func: anytype, args: anytype) Vapor.ButtonBuilder(.pure) {
+            return ButtonCtx(func, args)
+                .width(.px(20))
+                .height(.px(20))
+                .cursor(.pointer)
+                .duration(100)
+                .hoverScale();
+        }
+
+        pub fn render(table: *Self) void {
+            Stack()
+                .width(.percent(100))
+                .height(.percent(100))
+                .direction(.column)
+                .layout(.top_center)
+                .children({
+                Box()
+                    .height(.px(row_height))
+                    .border(.bottom(border_color))
+                    .padding(.horizontal(18))
+                    .width(.percent(100))
+                    .layout(.x_between_center)
+                    .children({
+                    Box()
+                        .width(.percent(checkbox_width))
+                        .children({
+                        const active = table.selected_rows.count() == table.data.len - 1;
+                        CheckBox(selectAll, .{table})
+                            .hoverScale()
+                            .border(.solid(.all(1), if (active) .transparentizeHex(.palette(.tint), 0.8) else border_color, .all(6)))
+                            .layout(.center)
+                            .children({
+                            if (table.selected_rows.count() == table.data.len - 1) {
+                                Box()
+                                    .width(.px(14))
+                                    .height(.px(14))
+                                    .background(if (active) .transparentizeHex(.palette(.tint), 0.8) else .transparent)
+                                    .border(.round(if (active) .transparent else border_color, .all(4)))
+                                    .hoverScale()
+                                    .layout(.center)
+                                    .children({});
+                            }
+                        });
+                    });
+
+                    Box()
+                        .width(.percent(row_width))
+                        .height(.px(row_height))
+                        .layout(.x_even_center).children({
+                        const fields = @typeInfo(T).@"struct".fields;
+                        inline for (table_columns, 0..) |*column, i| {
+                            Box()
+                                .ref(&binded_cols[i])
+                                .pos(.relative)
+                                .width(.percent(100))
+                                .layout(.left_center)
+                                .spacing(4)
+                                .children({
+                                Text(column.title)
+                                    .fontFamily("Montserrat")
+                                    .font(16, null, null).end();
+
+                                if (column.sort) |sort_type| {
+                                    CommonToggleFilter(sortColumn, .{ table, sort_type, column.key })
+                                        .children({
+                                        switch (sort_type) {
+                                            .asc => Icon(.sort_alpha_down).font(14, 700, null).end(),
+                                            .desc => Icon(.sort_alpha_up).font(14, 700, null).end(),
+                                            else => {},
+                                        }
+                                    });
+                                }
+                                if (column.search) {
+                                    CommonToggleFilter(toggleSearch, .{ table, i })
+                                        .children({
+                                        Icon(.search).font(14, 700, null).end();
+                                    });
+                                }
+                                if (column.filter) {
+                                    CommonToggleFilter(toggleFilter, .{ table, i })
+                                        .children({
+                                        Icon(.funnel).font(14, 700, null).end();
+                                    });
+                                }
+                                Box()
+                                    .pos(.tl(.px(0), .percent(0), .absolute))
+                                    .width(.fit)
+                                    .zIndex(1000)
+                                    .inlineStyle("transform: translate({d}px, {d}px)", .{ filter_right, filter_top })
+                                    .children({
+                                    if (column.filter and show_filter and clicked_index == i) {
+                                        inline for (fields) |field| {
+                                            const name = field.name;
+                                            const field_type = field.type;
+                                            if (std.mem.eql(u8, column.key, name)) {
+                                                if (@typeInfo(field_type) == .@"enum") {
+                                                    FilterSelect(table, field_type, std.enums.values(field_type));
+                                                }
+                                            }
+                                        }
+                                    }
+                                });
+
+                                Box()
+                                    .pos(.tl(.px(0), .percent(0), .absolute))
+                                    .width(.fit)
+                                    .zIndex(1000)
+                                    .inlineStyle("transform: translate({d}px, {d}px)", .{ search_right, search_top })
+                                    .children({
+                                    if (column.search and show_search and clicked_index == i) {
+                                        Search(table);
+                                    }
+                                });
+                            });
+                        }
+                    });
+                    Box()
+                        .width(.percent(action_width))
+                        .layout(.right_center)
+                        .height(.px(24))
+                        .children({
+                        Box()
+                            .width(.percent(100))
+                            .height(.percent(100))
+                            .layout(.left_center)
+                            .spacing(8)
+                            .children({
+                            CommonToggleFilter(download, .{ table, .json })
+                                .layout(.center)
+                                .cursor(.pointer)
+                                .padding(.all(0))
+                                .children({
+                                Vapor.Icon(.filetype_json)
+                                    .font(18, 300, null)
+                                    .end();
+                            });
+                        });
+                    });
+                });
+                if (table.display_mode == .virtual) {
+                    virtual_list.renderWithCtx(@ptrCast(table));
+                    Box()
+                        .width(.percent(14))
+                        .pos(.tl(.percent(0), .percent(0), .absolute))
+                        .children({
+                        table.action_select.renderSelect();
+                    });
+                } else {
+                    table.Rows();
+                    table.Pagination();
+                }
+            });
+        }
+    };
+}

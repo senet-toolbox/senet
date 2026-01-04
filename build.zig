@@ -1,39 +1,30 @@
 const std = @import("std");
 const builtin = @import("builtin");
-fn generateHtml(b: *std.Build, run: *std.Build.Step.Run) void {
+fn generateHtml(b: *std.Build, run: *std.Build.Step.Run, static: bool, atomic: bool) void {
     const target = b.graph.host;
 
     const optimize = std.builtin.OptimizeMode.Debug;
     // Create a module for your config file
-    const user_config_module = b.addModule("user_config", .{
-        .root_source_file = b.path("src/my_config.zig"),
-        .target = target,
-        .optimize = optimize,
-    });
+    // const user_config_module = b.addModule("user_config", .{
+    //     .root_source_file = b.path("src/my_config.zig"),
+    //     .target = target,
+    //     .optimize = optimize,
+    // });
 
     // Define your build options
 
     const vapor = b.dependency("vapor", .{
         .target = target,
         .optimize = optimize,
+        .static = static,
+        .atomic = atomic,
     });
 
     const vapor_module = vapor.module("vapor");
 
-    vapor_module.addImport("user_config", user_config_module);
+    // vapor_module.addImport("user_config", user_config_module);
     vapor_module.addImport("vapor", vapor_module);
 
-    // Create a module for your config file
-    const wasm_module = b.addModule("wasm", .{
-        .root_source_file = b.path("wasm/functions.zig"),
-        .target = target,
-        .optimize = optimize,
-        .imports = &.{
-            .{ .name = "vapor", .module = vapor_module },
-        },
-    });
-
-    vapor_module.addImport("wasm", wasm_module);
 
     // ADD THIS: Create a theme module that has access tovapor
     const theme_module = b.addModule("theme", .{
@@ -61,7 +52,7 @@ fn generateHtml(b: *std.Build, run: *std.Build.Step.Run) void {
         .imports = &.{
             .{ .name = "vapor", .module = vapor_module },
             .{ .name = "theme", .module = theme_module }, // ADD THIS
-            .{ .name = "user_config", .module = user_config_module },
+            // .{ .name = "user_config", .module = user_config_module },
             .{ .name = "vaporize", .module = vaporize_module },
         },
     });
@@ -77,19 +68,19 @@ fn generateHtml(b: *std.Build, run: *std.Build.Step.Run) void {
 pub fn build(b: *std.Build) void {
     var generator: std.Build.Step.Run = undefined;
     const generate = b.option(bool, "generate", "Generate HTML") orelse false;
+    const static = b.option(bool, "static", "Statically link the wasm module") orelse false;
+    const atomic = b.option(bool, "atomic", "Atomically link the wasm module") orelse false;
 
     if (generate) {
-        generateHtml(b, &generator);
+        generateHtml(b, &generator, static, atomic);
     }
 
     const wasm_target = b.standardTargetOptions(.{
-        // .default_target = .{ .cpu_arch = .x86_64, .os_tag = .macos }
-        .default_target = .{ .cpu_arch = .wasm32, .os_tag = .freestanding },
+        // .default_target = .{ .cpu_arch = .x86_64 },
+        .default_target = .{ .cpu_arch = .wasm32, .os_tag = .wasi },
     });
 
-    const optimize = b.standardOptimizeOption(.{
-        // .preferred_optimize_mode = .ReleaseSmall,
-    });
+    const optimize = b.standardOptimizeOption(.{});
 
     // Create a module for your config file
     const user_config_module = b.addModule("user_config", .{
@@ -98,29 +89,21 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
 
-    const vapor = b.dependency("vapor", .{
+    const vapor_dep = b.dependency("vapor", .{
         .target = wasm_target,
         .optimize = optimize,
-        .static = false,
-        .atomic = false,
+        .static = static,
+        .atomic = atomic,
     });
 
-    const vapor_module = vapor.module("vapor");
+    // 1. Get the compiled library artifact
+    // const vapor_lib = vapor_dep.artifact("vapor_lib");
+
+    // 2. Link it to your executable
+    const vapor_module = vapor_dep.module("vapor");
 
     vapor_module.addImport("user_config", user_config_module);
     vapor_module.addImport("vapor", vapor_module);
-
-    // Create a module for your config file
-    const wasm_module = b.addModule("wasm", .{
-        .root_source_file = b.path("wasm/functions.zig"),
-        .target = wasm_target,
-        .optimize = optimize,
-        .imports = &.{
-            .{ .name = "vapor", .module = vapor_module },
-        },
-    });
-
-    vapor_module.addImport("wasm", wasm_module);
 
     // ADD THIS: Create a theme module that has access tovapor
     const theme_module = b.addModule("theme", .{
@@ -158,15 +141,15 @@ pub fn build(b: *std.Build) void {
         .root_module = exe_mod,
     });
 
-    exe.stack_size = 4 * 1024 * 1024;
+    // exe.linkLibrary(vapor_lib);
+
+    exe.stack_size = 10 * 1024 * 1024;
 
     if (generate) {
         exe.step.dependOn(&generator.step);
     }
 
     exe.rdynamic = true;
-    // exe.use_llvm = true;
-    // exe.linker_allow_shlib_undefined = true;
 
     b.installArtifact(exe);
 
@@ -180,4 +163,5 @@ pub fn build(b: *std.Build) void {
 
     const run_step = b.step("run", "Run the app");
     run_step.dependOn(&run_cmd.step);
+
 }

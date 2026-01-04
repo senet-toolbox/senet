@@ -14,7 +14,7 @@ pub fn Counter(comptime T: type, initial_value: T) type {
 
         fn decrement() void {
             if (count == 0 and T == u32) {
-                Vapor.alert("You can't go negative! On a u32");
+                Vapor.alert("You can't go negative! On a u32", .{});
                 return;
             }
             count -= 1;
@@ -23,8 +23,13 @@ pub fn Counter(comptime T: type, initial_value: T) type {
         pub fn render() void {
             Box().layout(.center).spacing(16).padding(.all(20)).children({
                 Button(.{ .on_press = decrement })
+                    .shadow(.card(.palette(.text_color)))
                     .padding(.all(8))
-                    .border(.simple(.palette(.border_color_light)))
+                    .border(.simple(.palette(.text_color)))
+                    .background(.palette(.background))
+                    .duration(100)
+                    .hoverScale()
+                    .width(.percent(20))
                     .cursor(.pointer)
                     .children({
                     Text("-").font(18, null, .palette(.text_color)).end();
@@ -37,8 +42,13 @@ pub fn Counter(comptime T: type, initial_value: T) type {
                 }
 
                 Button(.{ .on_press = increment })
+                    .shadow(.card(.palette(.text_color)))
                     .padding(.all(8))
-                    .border(.simple(.palette(.border_color_light)))
+                    .border(.simple(.palette(.text_color)))
+                    .background(.palette(.background))
+                    .duration(100)
+                    .hoverScale()
+                    .width(.percent(20))
                     .cursor(.pointer)
                     .children({
                     Text("+").font(18, null, .palette(.text_color)).end();

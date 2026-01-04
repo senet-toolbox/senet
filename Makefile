@@ -6,7 +6,7 @@ all: build
 
 # Build the Zig codebase
 build:
-	$(ZIG) build 
+	$(ZIG) build-exe sync/cache.zig -O ReleaseSmall -target wasm32-wasi -dynamic -fno-entry -rdynamic
 	# $(ZIG) build --release=small
 	# $(ZIG) build --release=safe
 	# $(ZIG) build --release=small -Drelease=true

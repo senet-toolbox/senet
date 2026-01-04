@@ -1,4 +1,10 @@
-import { wasmInstance, styleSheet, readWasmString } from "./wasi_obj.js";
+import { COMPONENT_TYPES } from "./traversal.js";
+import {
+  wasmInstance,
+  styleSheet,
+  readWasmString,
+  rebuildCacheFromStylesheet,
+} from "./wasi_obj.js";
 // export const styleSheet =
 // document.styleSheets[0] ||
 // document.head.appendChild(document.createElement("style")).sheet;
@@ -14,6 +20,47 @@ export function addKeyframesToStylesheet(keyframesCSS) {
   // styleSheet.insertRule(keyframesCSS, styleSheet.cssRules.length);
 }
 
+export function batchRemoveTombStones() {
+  // console.log("batchRemoveTombStones");
+  const tombstoneCount = wasmInstance.getTombstoneCount();
+  if (tombstoneCount === 0) return;
+
+  // Collect classNames to remove
+  const toRemove = new Set();
+  for (let i = 0; i < tombstoneCount; i++) {
+    const ptr = wasmInstance.getTombstoneClassNamePtr(i);
+    if (ptr === 0) continue;
+    const len = wasmInstance.getTombstoneClassNameLength(i);
+    const className = `.${readWasmString(ptr, len)}`;
+    toRemove.add(className);
+  }
+
+  // Collect all rules we want to keep
+  const rulesToKeep = [];
+  for (let i = 0; i < styleSheet.cssRules.length; i++) {
+    const rule = styleSheet.cssRules[i];
+    const selector = rule.selectorText;
+    // Check base selector (without :hover etc) against toRemove
+    const baseSelector = selector ? selector.split(":")[0] : null;
+
+    if (!selector || !toRemove.has(baseSelector)) {
+      rulesToKeep.push(rule.cssText);
+    }
+  }
+
+  // Rebuild stylesheet
+  styleSheet.replaceSync(rulesToKeep.join("\n"));
+
+  // Rebuild cache
+  rebuildCacheFromStylesheet();
+
+  wasmInstance.clearTombstones();
+}
+
+export let cacheHits = 0;
+export let cacheMisses = 0;
+
+const processedStyleIds = new Set();
 // Function to add or update a component's style
 export function updateComponentStyle(
   nodePtr,
@@ -21,79 +68,141 @@ export function updateComponentStyle(
   styleString,
   element,
 ) {
+  if (specified_className.length === 0) return;
+
+  // Fast path: if we've seen this exact styleId combo before, just set class and return
+  if (processedStyleIds.has(specified_className)) {
+    element.setAttribute("class", specified_className);
+    return specified_className;
+  }
+
   let className = specified_className;
-  if (className.length === 0) return;
+
   const style_slice = className.split(" ");
+
   while (true) {
     className = style_slice.pop();
     if (className === undefined) {
       break;
     }
     if (className.length === 0) continue;
+
     if (!styleRuleCache.has(`.${className}`)) {
-      if (className.substring(0, 3) === "vis") {
+      cacheMisses++;
+      if (className.startsWith("vis_")) {
         const ptr = wasmInstance.getVisualStyle(nodePtr, 3);
         const len = wasmInstance.getVisualLen();
         const css = readWasmString(ptr, len);
         const newIndex = styleSheet.cssRules.length;
         styleSheet.insertRule(`.${className} { ${css} }`, newIndex);
         styleRuleCache.set(`.${className}`, newIndex);
-      } else if (className.substring(0, 3) === "pos") {
+      } else if (className.startsWith("pos_")) {
         const ptr = wasmInstance.getPositionStyle(nodePtr, 3);
         const len = wasmInstance.getPositionLen();
         const css = readWasmString(ptr, len);
         const newIndex = styleSheet.cssRules.length;
         styleSheet.insertRule(`.${className} { ${css} }`, newIndex);
         styleRuleCache.set(`.${className}`, newIndex);
-      } else if (className.substring(0, 3) === "lay") {
+      } else if (className.startsWith("lay_")) {
         const ptr = wasmInstance.getLayoutStyle(nodePtr, 3);
         const len = wasmInstance.getLayoutLen();
         const css = readWasmString(ptr, len);
         const newIndex = styleSheet.cssRules.length;
         styleSheet.insertRule(`.${className} { ${css} }`, newIndex);
         styleRuleCache.set(`.${className}`, newIndex);
-      } else if (className.substring(0, 4) === "intr") {
+      } else if (className.startsWith("intr_")) {
         const ptr = wasmInstance.getVisualStyle(nodePtr, 0);
         const len = wasmInstance.getVisualLen();
         const css = readWasmString(ptr, len);
         const newIndex = styleSheet.cssRules.length;
         styleSheet.insertRule(`.${className}:hover { ${css} }`, newIndex);
         styleRuleCache.set(`.${className}`, newIndex);
-      } else if (className.substring(0, 4) === "mapa") {
+      } else if (className.startsWith("mapa_")) {
         const ptr = wasmInstance.getMapaStyle(nodePtr, 0);
         const len = wasmInstance.getMapaLen();
         const css = readWasmString(ptr, len);
         const newIndex = styleSheet.cssRules.length;
         styleSheet.insertRule(`.${className} { ${css} }`, newIndex);
         styleRuleCache.set(`.${className}`, newIndex);
+      } else if (className.startsWith("anim_")) {
+        const ptr = wasmInstance.getAnimationStyle(nodePtr, 0);
+        const len = wasmInstance.getAnimationLen();
+        const css = readWasmString(ptr, len);
+        const newIndex = styleSheet.cssRules.length;
+        styleSheet.insertRule(`.${className} { ${css} }`, newIndex);
+        styleRuleCache.set(`.${className}`, newIndex);
+      } else if (className.startsWith("tran_")) {
+        const ptr = wasmInstance.getTransformsStyle(nodePtr, 0);
+        const len = wasmInstance.getTransformsLen();
+        const css = readWasmString(ptr, len);
+        const newIndex = styleSheet.cssRules.length;
+        styleSheet.insertRule(`.${className} { ${css} }`, newIndex);
+        styleRuleCache.set(`.${className}`, newIndex);
+      } else if (element.localName !== "i" && specified_className.length > 0) {
+        const ruleIndex = styleRuleCache.get(`.${className}`);
+        if (ruleIndex === undefined) {
+          const newIndex = styleSheet.cssRules.length;
+          styleSheet.insertRule(`.${className} { ${styleString} }`, newIndex);
+          styleRuleCache.set(`.${className}`, newIndex);
+        } else {
+          styleSheet.deleteRule(ruleIndex);
+          styleSheet.insertRule(`.${className} { ${styleString} }`, ruleIndex);
+        }
+
+        const intr_ptr = wasmInstance.getVisualStyle(nodePtr, 0);
+        const intr_len = wasmInstance.getVisualLen();
+        const intr_css = readWasmString(intr_ptr, intr_len);
+
+        const intr_index = styleRuleCache.get(`.${className}:hover`);
+        if (intr_index === undefined) {
+          const new_intr_newIndex = styleSheet.cssRules.length;
+          styleSheet.insertRule(
+            `.${className}:hover { ${intr_css} }`,
+            new_intr_newIndex,
+          );
+          styleRuleCache.set(`.${className}:hover`, new_intr_newIndex);
+        } else {
+          styleSheet.deleteRule(intr_index);
+          styleSheet.insertRule(
+            `.${className}:hover { ${intr_css} }`,
+            intr_index,
+          );
+        }
       }
+    } else if (element.localName !== "i" && specified_className.length > 0) {
+      cacheHits++;
+      const hasVisual = className.startsWith("vis_");
+      const hasPosition = className.startsWith("pos_");
+      const hasLayout = className.startsWith("lay_");
+      const hasInteractive = className.startsWith("intr_");
+      const hasMapa = className.startsWith("mapa_");
+      const hasAnimation = className.startsWith("anim_");
+      const hasAny =
+        hasVisual ||
+        hasPosition ||
+        hasLayout ||
+        hasInteractive ||
+        hasMapa ||
+        hasAnimation;
+      // This means we have named class set by the user
+      if (!hasAny) {
+        const ruleIndex = styleRuleCache.get(`.${className}`);
+        if (ruleIndex === undefined) {
+          const newIndex = styleSheet.cssRules.length;
+          styleSheet.insertRule(`.${className} { ${styleString} }`, newIndex);
+        } else {
+          styleSheet.deleteRule(ruleIndex);
+          styleSheet.insertRule(`.${className} { ${styleString} }`, ruleIndex);
+        }
+      }
+      // This breaks the markdown
     }
-    //   const ruleIndex = styleRuleCache.get(`.${className}`);
-    //   styleSheet.deleteRule(ruleIndex);
-    //   styleSheet.insertRule(`.${className} { ${styleString} }`, ruleIndex);
-    // } else if (className.length > 0 && element.localName !== "i") {
-    //   const newIndex = styleSheet.cssRules.length;
-    //   styleSheet.insertRule(`.${className} { ${styleString} }`, newIndex);
-    //   styleRuleCache.set(`.${className}`, newIndex);
-    // } else {
-    //   // This is for icons
-    //   const newIndex = styleSheet.cssRules.length;
-    //   styleSheet.insertRule(
-    //     `.${className.split(" ").pop()} { ${styleString} }`,
-    //     newIndex,
-    //   );
-    //   styleRuleCache.set(`.${className}`, newIndex);
-    // }
   }
   // Here we check if the user specfied a class name
   // Apply class to element
 
-  if (element.localName === "svg") {
-    element.setAttribute("class", specified_className);
-    element.classList.add(specified_className);
-  } else {
-    element.className = specified_className;
-  }
+  processedStyleIds.add(specified_className);
+  element.setAttribute("class", specified_className);
   return specified_className;
 }
 
@@ -116,7 +225,7 @@ export function setRuleStyle(specified_className, element) {
     // }
     // element.className = className;
     element.setAttribute("class", className);
-    element.classList.add(className);
+    // element.classList.add(className);
     return;
   }
   // Here we check if the user specfied a class name
@@ -154,7 +263,7 @@ export function setRuleStyle(specified_className, element) {
     // }
     element.className = className;
   } else if (specified_className.length > 0 && element.localName !== "i") {
-    if (specified_className.includes("-genk")) {
+    if (specified_className.includes("-gk")) {
       specified_className = `${specified_className}`;
     } else {
       className = specified_className;
@@ -260,7 +369,7 @@ export function applyHoverClass(element, styleId, hoverStyles) {
   let selector;
   if (
     styleId.length > 0 &&
-    !styleId.includes("-genk") &&
+    !styleId.includes("-gk") &&
     !styleId.includes("common-")
   ) {
     // If styleId is provided, we need to target the element with this class

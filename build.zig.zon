@@ -41,8 +41,6 @@
         },
         .vapor = .{
             .path = "../vapor",
-            // .url = "https://github.com/tether-labs/vapor/archive/refs/tags/v1.1.3.tar.gz",
-            // .hash = "vapor-0.0.0-KeTeudyDBwBJm-xvopUQvHLnl1KGzeBcif21pa8XP18Z",
         },
         .metal = .{
             .path = "../metal-cli",

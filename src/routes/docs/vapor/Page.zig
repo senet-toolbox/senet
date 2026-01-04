@@ -204,7 +204,7 @@ fn counter() void {
 }
 
 fn alert() void {
-    Vapor.alert("Welcome to Vapor!");
+    Vapor.alert("Welcome to Vapor!", .{});
 }
 
 const Counter = struct {
@@ -287,7 +287,7 @@ pub fn render() void {
                     if (markdown_loaded) {
                         content.content(component);
                     } else {
-                        // Vapor.Null();
+                        Vapor.Null();
                     }
                 });
             });

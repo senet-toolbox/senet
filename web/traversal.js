@@ -1,6 +1,7 @@
 import {
   wasmInstance,
   readRenderCommand,
+  readUINode,
   activeNodeIds,
   readWasmString,
   rerenderRoute,
@@ -22,7 +23,9 @@ import {
   eventHandlers,
   eventStorage,
   hooksCtxCreated,
+  hooksDestroyCtx,
   hooksMounted,
+  hooksMountedCtx,
   loadedSections,
   observeredSections,
   pureNodeRegistry,
@@ -88,6 +91,8 @@ export const COMPONENT_TYPES = {
   HEADING: 53,
   VIDEO: 54,
   NOOP: 55,
+  TABLE_HEAD: 56,
+  ANCHOR: 57,
 };
 
 const STATE_TYPES = {
@@ -363,33 +368,168 @@ function processInputElement(element, renderCmd) {
   // });
   // }
 }
-/**
- * Delete a subtree while preserving any descendant whose id contains "layout".
- * 1. DFS through children.
- * 2. If a child is (or contains) a layout root, move it out before deleting.
- * 3. Finally delete the now-layout-free wrapper node itself.
- */
-export function recurseDestroy(el) {
-  if (!el) return;
 
-  // Recurse through children first
-  for (const child of Array.from(el.children)) {
-    recurseDestroy(child);
+export async function animateExitRecursive(el, index, toRemoveMap) {
+  if (!el) return;
+  el.dataset.removing = "true";
+
+  // First, recursively handle children that are in the removal set
+  const childRemovals = [];
+  for (const [id, { el: childEl, index: childIndex }] of toRemoveMap) {
+    if (
+      childEl !== el &&
+      el.contains(childEl) &&
+      childEl.parentElement?.closest(`[data-removing="true"]`) === el
+    ) {
+      // Direct child in removal set
+      childRemovals.push(
+        animateExitRecursive(childEl, childIndex, toRemoveMap),
+      );
+    }
+  }
+  await Promise.all(childRemovals);
+
+  // Now animate this element
+  const animPtr = wasmInstance.getRemovalAnimationPtr(index);
+  if (animPtr > 0) {
+    const animLen = wasmInstance.getRemovalAnimationLen(index);
+    const css = readWasmString(animPtr, animLen);
+    if (css) {
+      el.style.animation = css;
+      void el.offsetWidth;
+      await new Promise((resolve) => {
+        el.addEventListener("animationend", () => resolve(), { once: true });
+      });
+    }
   }
 
-  // Clean up registries
+  // Cleanup
+  domNodeRegistry.delete(el.id);
+  pureNodeRegistry.delete(el.id);
+  loadedSections.delete(el.id);
+  const eventData = eventHandlers.get(el.id);
+  if (eventData) {
+    for (const [eventType, handler] of Object.entries(eventData)) {
+      el.removeEventListener(eventType, handler);
+    }
+    eventHandlers.delete(el.id);
+  }
+  el.remove();
+}
+
+export async function animateExit(el, index = -1, skipAnimation = false) {
+  if (!el) return;
+
+  el.dataset.removing = "true";
+
+  let shouldAnimate = !skipAnimation;
+
+  if (shouldAnimate && index > -1) {
+    const animPtr = wasmInstance.getRemovalAnimationPtr(index);
+
+    if (animPtr > 0) {
+      const animLen = wasmInstance.getRemovalAnimationLen(index);
+      const css = readWasmString(animPtr, animLen);
+
+      if (css) {
+        // DEBUG: Check if element is still in DOM
+        el.style.animation = css;
+
+        // Force reflow
+        void el.offsetWidth;
+
+        // DEBUG: Check computed style
+        await new Promise((resolve) => {
+          el.addEventListener(
+            "animationend",
+            () => {
+              resolve();
+            },
+            { once: true },
+          );
+        });
+      }
+    }
+  }
+
+  // Cleanup children (skip their animations)
+  for (const child of Array.from(el.children)) {
+    await animateExit(child, 0, true);
+  }
+
+  // Cleanup registries
   domNodeRegistry.delete(el.id);
   pureNodeRegistry.delete(el.id);
   loadedSections.delete(el.id);
 
   const eventData = eventHandlers.get(el.id);
-  if (eventData !== undefined) {
+  if (eventData) {
     for (const [eventType, handler] of Object.entries(eventData)) {
       el.removeEventListener(eventType, handler);
-      eventHandlers.delete(el.id);
+    }
+    eventHandlers.delete(el.id);
+  }
+  el.remove();
+}
+
+export async function recurseDestroy(el, skipAnimation = false) {
+  if (!el) return;
+
+  el.dataset.removing = "true";
+  const domNode = domNodeRegistry.get(el.id);
+  const nodePtr = domNode?.node_ptr;
+
+  let shouldAnimate = !skipAnimation;
+
+  if (shouldAnimate && nodePtr) {
+    const exitAnimationPtr = wasmInstance.getExitAnimationStyle(nodePtr);
+
+    if (exitAnimationPtr > 0) {
+      const exitAnimationLen = wasmInstance.getAnimationLen();
+      const exitAnimationCss = readWasmString(
+        exitAnimationPtr,
+        exitAnimationLen,
+      );
+
+      if (exitAnimationCss) {
+        // DEBUG: Check if element is still in DOM
+        el.style.animation = exitAnimationCss;
+
+        // Force reflow
+        void el.offsetWidth;
+
+        // DEBUG: Check computed style
+        await new Promise((resolve) => {
+          el.addEventListener(
+            "animationend",
+            () => {
+              resolve();
+            },
+            { once: true },
+          );
+        });
+      }
     }
   }
-  // Remove the element entirely (no special cases)
+
+  // Cleanup children (skip their animations)
+  for (const child of Array.from(el.children)) {
+    await recurseDestroy(child, true);
+  }
+
+  // Cleanup registries
+  domNodeRegistry.delete(el.id);
+  pureNodeRegistry.delete(el.id);
+  loadedSections.delete(el.id);
+
+  const eventData = eventHandlers.get(el.id);
+  if (eventData) {
+    for (const [eventType, handler] of Object.entries(eventData)) {
+      el.removeEventListener(eventType, handler);
+    }
+    eventHandlers.delete(el.id);
+  }
+
   el.remove();
 }
 
@@ -400,18 +540,16 @@ export function recurseDestroy(el) {
  * @param {Object} layout - The layout information
  * @returns {HTMLAnchorElement} - The created link element
  */
-function createLinkElement(element, renderCmd) {
+function createLinkElement(element, uinode) {
   let href =
-    renderCmd.props.hrefLen > 0
-      ? readWasmString(renderCmd.props.hrefPtr, renderCmd.props.hrefLen)
-      : "";
+    uinode.hrefLen > 0 ? readWasmString(uinode.hrefPtr, uinode.hrefLen) : "";
   if (href === null) {
     element.href = href;
   } else {
     element.href = href;
   }
 
-  const label = wasmInstance.getAriaLabel(renderCmd.nodePtr);
+  const label = wasmInstance.getAriaLabel(uinode.offset);
   if (label) {
     const length = wasmInstance.getAriaLabelLen();
     element.ariaLabel = readWasmString(label, length);
@@ -679,16 +817,13 @@ function getTextData(route, id) {
 
 /**
  * Create an element based on its type
- * @param {Object} renderCmd - The render command
+ * @param {Object} uinode - The render command
  * @returns {HTMLElement} - The created element
  */
 export function attachElementListeners(element, renderCmd) {
   switch (renderCmd.elemType) {
     case COMPONENT_TYPES.GRAPHIC:
-      const href = readWasmString(
-        renderCmd.props.hrefPtr,
-        renderCmd.props.hrefLen,
-      );
+      const href = readWasmString(renderCmd.hrefPtr, renderCmd.hrefLen);
       fetch(href)
         .then((res) => res.text())
         .then((text) => {
@@ -722,8 +857,9 @@ export function attachElementListeners(element, renderCmd) {
     case COMPONENT_TYPES.BUTTON_CTX:
       element.type = "button";
       element.addEventListener("click", (event) => {
-        event.preventDefault();
-        event.stopPropagation();
+        console.log("Button CTX", event);
+        // event.preventDefault();
+        // event.stopPropagation();
         const idPtr = allocString(renderCmd.id);
         wasmInstance.ctxButtonCallback(idPtr);
       });
@@ -757,18 +893,16 @@ export function attachElementListeners(element, renderCmd) {
  * @param {Object} renderCmd - The render command
  * @returns {HTMLElement} - The created element
  */
-export function createElementByType(renderCmd) {
+export function createElementByType(uinode) {
   let element;
   let text;
   let label;
   let route = currentPath === "/" ? "/root" : `/root${currentPath}`;
 
-  switch (renderCmd.elemType) {
+  switch (uinode.elemType) {
     case COMPONENT_TYPES.TEXT:
       element = document.createElement("p");
-      text =
-        getTextData(route, renderCmd.id) ??
-        readWasmString(renderCmd.props.textPtr, renderCmd.props.textLen);
+      text = readWasmString(uinode.textPtr, uinode.textLen);
       element.textContent = text;
       break;
 
@@ -778,96 +912,89 @@ export function createElementByType(renderCmd) {
         "-webkit-linear-gradient(45deg, #E04F67, #C72C4A, #4800FF)";
       element.style["-webkit-background-clip"] = "text";
       element.style["-webkit-text-fill-color"] = "transparent";
-      element.textContent = renderCmd.props.text;
+      element.textContent = uinode.text;
       break;
 
     case COMPONENT_TYPES.TEXT_AREA:
-      const textareaPtr =
-        wasmInstance.getTextFieldParams(renderCmd.nodePtr) >>> 0;
+      const textareaPtr = wasmInstance.getTextFieldParams(uinode.offset) >>> 0;
       element = document.createElement("textarea");
+      // element.lang = "json";
       if (textareaPtr) {
-        const fieldCount = wasmInstance.getTextFieldCount(renderCmd.nodePtr);
+        const fieldCount = wasmInstance.getTextFieldCount(uinode.offset);
         const reader = new DynamicStructReader(
           wasmInstance,
           wasmInstance.memory,
         );
         const fieldStruct = reader.readStruct(
-          renderCmd.nodePtr,
+          uinode.offset,
           textareaPtr,
           fieldCount,
           "getTextFieldDescriptor",
         );
+        console.log(fieldStruct);
         element.value =
-          fieldStruct.value !== null ? String(fieldStruct.value) : "";
-        element.value =
-          fieldStruct.default !== null ? String(fieldStruct.default) : "";
+          fieldStruct.value !== null
+            ? String(fieldStruct.value)
+            : fieldStruct.default !== null
+              ? String(fieldStruct.default)
+              : "";
       }
-      // text = readWasmString(renderCmd.props.textPtr, renderCmd.props.textLen);
-      // element.textContent = text;
       break;
 
     case COMPONENT_TYPES.HTML_TEXT:
       element = document.createElement("p");
       text =
-        getTextData(route, renderCmd.id) ??
-        readWasmString(renderCmd.props.textPtr, renderCmd.props.textLen);
+        getTextData(route, uinode.id) ??
+        readWasmString(uinode.textPtr, uinode.textLen);
       element.innerHTML = text;
       break;
 
     case COMPONENT_TYPES.CODE:
       element = document.createElement("code");
-      text = readWasmString(renderCmd.props.textPtr, renderCmd.props.textLen);
+      text = readWasmString(uinode.textPtr, uinode.textLen);
       element.textContent = text;
       break;
 
     case COMPONENT_TYPES.SPAN:
       element = document.createElement("span");
-      text = readWasmString(renderCmd.props.textPtr, renderCmd.props.textLen);
+      text = readWasmString(uinode.textPtr, uinode.textLen);
       element.innerText = text;
       break;
 
     case COMPONENT_TYPES.JSON_EDITOR:
       element = document.createElement("textarea");
-      text = readWasmString(renderCmd.props.textPtr, renderCmd.props.textLen);
+      text = readWasmString(uinode.textPtr, uinode.textLen);
       element.textContent = text;
       break;
 
     case COMPONENT_TYPES.ALLOC_TEXT:
       element = document.createElement("p");
-      text = readWasmString(renderCmd.props.textPtr, renderCmd.props.textLen);
+      text = readWasmString(uinode.textPtr, uinode.textLen);
       element.textContent = text;
       break;
 
     case COMPONENT_TYPES.IMAGE:
       element = document.createElement("img");
-      const alt = wasmInstance.getAlt(renderCmd.nodePtr);
+      const alt = wasmInstance.getAlt(uinode.offset);
       if (alt >>> 0) {
         const length = wasmInstance.getAltLen();
         const altText = readWasmString(alt, length);
         element.setAttribute("alt", altText);
       }
-      const src = readWasmString(
-        renderCmd.props.hrefPtr,
-        renderCmd.props.hrefLen,
-      );
+      const src = readWasmString(uinode.hrefPtr, uinode.hrefLen);
+      console.log("Image", src);
       element.setAttribute("src", src);
       break;
 
     case COMPONENT_TYPES.LAZY_IMAGE:
       element = document.createElement("img");
-      element.src = readWasmString(
-        renderCmd.props.hrefPtr,
-        renderCmd.props.hrefLen,
-      );
+      element.src = readWasmString(uinode.hrefPtr, uinode.hrefLen);
       element.loading = "lazy";
       break;
 
     case COMPONENT_TYPES.PRE_IMAGE:
       element = document.createElement("img");
-      element.src = readWasmString(
-        renderCmd.props.hrefPtr,
-        renderCmd.props.hrefLen,
-      );
+      element.src = readWasmString(uinode.hrefPtr, uinode.hrefLen);
       element.setAttribute("fetchpriority", "high");
       break;
 
@@ -882,14 +1009,11 @@ export function createElementByType(renderCmd) {
     case COMPONENT_TYPES.GRADIENT:
     case COMPONENT_TYPES.GRAPHIC:
       element = document.createElement("div");
-      if (renderCmd.elemType === COMPONENT_TYPES.GRADIENT) {
+      if (uinode.elemType === COMPONENT_TYPES.GRADIENT) {
         element.style.background =
           "-webkit-linear-gradient(45deg, #8886f2, #e04597, #ee6994)";
-      } else if (renderCmd.elemType === COMPONENT_TYPES.GRAPHIC) {
-        const href = readWasmString(
-          renderCmd.props.hrefPtr,
-          renderCmd.props.hrefLen,
-        );
+      } else if (uinode.elemType === COMPONENT_TYPES.GRAPHIC) {
+        const href = readWasmString(uinode.hrefPtr, uinode.hrefLen);
         fetch(href)
           .then((res) => res.text())
           .then((text) => {
@@ -900,43 +1024,37 @@ export function createElementByType(renderCmd) {
           });
       }
       break;
-
-    case COMPONENT_TYPES.DIALOG:
-      element = document.createElement("dialog");
-      break;
-
-    case COMPONENT_TYPES.DIALOG_SHOW:
-      element = _createDialogButton(renderCmd, true);
-      break;
-
-    case COMPONENT_TYPES.DIALOG_CLOSE:
-      element = _createDialogButton(renderCmd, false);
+    case COMPONENT_TYPES.ANCHOR:
+      element = document.createElement("div");
       break;
 
     case COMPONENT_TYPES.TEXT_FIELD:
       element = document.createElement("input");
-      text = readWasmString(renderCmd.props.textPtr, renderCmd.props.textLen);
-      const field_ptr = wasmInstance.getFieldName(renderCmd.nodePtr) >>> 0;
+      text = readWasmString(uinode.textPtr, uinode.textLen);
+      const field_ptr = wasmInstance.getFieldName(uinode.offset) >>> 0;
       if (field_ptr) {
         const field_len = wasmInstance.getFieldNameLen();
         const field = readWasmString(field_ptr, field_len);
         element.name = field;
       }
-      const instansePtr = wasmInstance.getTextFieldParams(renderCmd.nodePtr);
+      const instansePtr = wasmInstance.getTextFieldParams(uinode.offset);
       if (instansePtr) {
-        const fieldCount = wasmInstance.getTextFieldCount(renderCmd.nodePtr);
+        const fieldCount = wasmInstance.getTextFieldCount(uinode.offset);
         const reader = new DynamicStructReader(
           wasmInstance,
           wasmInstance.memory,
         );
         const fieldStruct = reader.readStruct(
-          renderCmd.nodePtr,
+          uinode.offset,
           instansePtr,
           fieldCount,
           "getTextFieldDescriptor",
         );
-        element.value =
+        element.placeholder =
           fieldStruct.default !== null ? String(fieldStruct.default) : "";
+        element.value =
+          fieldStruct.value !== null ? String(fieldStruct.value) : "";
+
         switch (fieldStruct.type) {
           case 0:
             element.type = "number";
@@ -966,6 +1084,17 @@ export function createElementByType(renderCmd) {
             element.type = "tel";
             break;
         }
+        if (element.type !== "number") {
+          if (fieldStruct.max_len) {
+            element.maxLength = fieldStruct.max_len;
+          }
+          if (fieldStruct.min_len) {
+            element.minLength = fieldStruct.min_len;
+          }
+        } else {
+          element.max = fieldStruct.max_len;
+          element.min = fieldStruct.min_len;
+        }
       }
       break;
 
@@ -973,38 +1102,38 @@ export function createElementByType(renderCmd) {
     case COMPONENT_TYPES.BUTTON_CYCLE:
       element = document.createElement("button");
       element.type = "button";
-      label = wasmInstance.getAriaLabel(renderCmd.nodePtr);
+      label = wasmInstance.getAriaLabel(uinode.offset);
       if (label) {
         const length = wasmInstance.getAriaLabelLen();
         element.ariaLabel = readWasmString(label, length);
       }
-      element.addEventListener("click", async (event) => {
-        state.currentDepthNode = renderCmd.id;
-        event.preventDefault();
-        event.stopPropagation();
-        const idPtr = allocString(renderCmd.id);
-        if (renderCmd.elemType === COMPONENT_TYPES.BUTTON_CYCLE) {
-          wasmInstance.buttonCycleCallback(idPtr);
-        } else {
-          wasmInstance.buttonCallback(idPtr);
-        }
-      });
+      // element.addEventListener("click", async (event) => {
+      //   state.currentDepthNode = uinode.id;
+      //   event.preventDefault();
+      //   event.stopPropagation();
+      //   const idPtr = allocString(uinode.id);
+      //   if (uinode.elemType === COMPONENT_TYPES.BUTTON_CYCLE) {
+      //     wasmInstance.buttonCycleCallback(idPtr);
+      //   } else {
+      //     wasmInstance.buttonCallback(idPtr);
+      //   }
+      // });
       break;
 
     case COMPONENT_TYPES.BUTTON_CTX:
       element = document.createElement("button");
       element.type = "button";
-      label = wasmInstance.getAriaLabel(renderCmd.nodePtr);
+      label = wasmInstance.getAriaLabel(uinode.offset);
       if (label) {
         const length = wasmInstance.getAriaLabelLen();
         element.ariaLabel = readWasmString(label, length);
       }
-      element.addEventListener("click", (event) => {
-        event.preventDefault();
-        event.stopPropagation();
-        const idPtr = allocString(renderCmd.id);
-        wasmInstance.ctxButtonCallback(idPtr);
-      });
+      // element.addEventListener("click", (event) => {
+      //   event.preventDefault();
+      //   event.stopPropagation();
+      //   const idPtr = allocString(uinode.id);
+      //   wasmInstance.ctxButtonCallback(idPtr);
+      // });
       break;
 
     case COMPONENT_TYPES.SUBMIT_BUTTON:
@@ -1014,14 +1143,14 @@ export function createElementByType(renderCmd) {
 
     case COMPONENT_TYPES.HEADER:
       element = document.createElement("h1"); // Will be replaced by HEADING
-      text = readWasmString(renderCmd.props.textPtr, renderCmd.props.textLen);
+      text = readWasmString(uinode.textPtr, uinode.textLen);
       element.textContent = text;
       break;
 
     case COMPONENT_TYPES.SVG:
       const svgString =
-        getTextData(route, renderCmd.id) ??
-        readWasmString(renderCmd.props.textPtr, renderCmd.props.textLen);
+        getTextData(route, uinode.id) ??
+        readWasmString(uinode.textPtr, uinode.textLen);
       const cleanSvg = svgString.replace(/^\s+|\s+$/g, "");
       const parser = new DOMParser();
       const doc = parser.parseFromString(cleanSvg, "image/svg+xml");
@@ -1030,20 +1159,20 @@ export function createElementByType(renderCmd) {
 
     case COMPONENT_TYPES.LINK:
       element = document.createElement("a");
-      element = createLinkElement(element, renderCmd);
+      element = createLinkElement(element, uinode);
       break;
 
     case COMPONENT_TYPES.REDIRECT_LINK:
       element = document.createElement("a");
-      const aria_label = wasmInstance.getAriaLabel(renderCmd.nodePtr);
+      const aria_label = wasmInstance.getAriaLabel(uinode.offset);
       if (aria_label) {
         const length = wasmInstance.getAriaLabelLen();
         element.ariaLabel = readWasmString(aria_label, length);
       }
 
       element.href =
-        renderCmd.props.hrefLen > 0
-          ? readWasmString(renderCmd.props.hrefPtr, renderCmd.props.hrefLen)
+        uinode.hrefLen > 0
+          ? readWasmString(uinode.hrefPtr, uinode.hrefLen)
           : "";
       break;
 
@@ -1051,14 +1180,9 @@ export function createElementByType(renderCmd) {
     case COMPONENT_TYPES.EMBEDICON:
       element = document.createElement("link");
       element.rel =
-        renderCmd.elemType === COMPONENT_TYPES.EMBEDLINK
-          ? "stylesheet"
-          : "icon";
+        uinode.elemType === COMPONENT_TYPES.EMBEDLINK ? "stylesheet" : "icon";
       element.crossorigin = "anonymous";
-      element.href = readWasmString(
-        renderCmd.props.hrefPtr,
-        renderCmd.props.hrefLen,
-      );
+      element.href = readWasmString(uinode.hrefPtr, uinode.hrefLen);
       break;
 
     case COMPONENT_TYPES.ICON:
@@ -1084,10 +1208,10 @@ export function createElementByType(renderCmd) {
     case COMPONENT_TYPES.LABEL:
       element = document.createElement("label");
       // element.htmlFor = readWasmString(
-      //   renderCmd.props.hrefPtr,
-      //   renderCmd.props.hrefLen,
+      //   uinode.hrefPtr,
+      //   uinode.hrefLen,
       // );
-      text = readWasmString(renderCmd.props.textPtr, renderCmd.props.textLen);
+      text = readWasmString(uinode.textPtr, uinode.textLen);
       element.textContent = text;
       break;
 
@@ -1109,11 +1233,15 @@ export function createElementByType(renderCmd) {
       break;
 
     case COMPONENT_TYPES.TABLE_HEADER:
-      element = document.createElement("th");
+      element = document.createElement("thead");
       break;
 
     case COMPONENT_TYPES.TABLE_BODY:
       element = document.createElement("tbody");
+      break;
+
+    case COMPONENT_TYPES.TABLE_HEAD:
+      element = document.createElement("th");
       break;
 
     case COMPONENT_TYPES.CANVAS:
@@ -1121,18 +1249,18 @@ export function createElementByType(renderCmd) {
       break;
 
     case COMPONENT_TYPES.HEADING:
-      const level = wasmInstance.getHeadingLevel(renderCmd.nodePtr); // Use template literal to create h1-h6, defaulting to h1
+      const level = wasmInstance.getHeadingLevel(uinode.offset); // Use template literal to create h1-h6, defaulting to h1
       element = document.createElement(
         `h${level > 0 && level < 7 ? level : 1}`,
       );
-      text = readWasmString(renderCmd.props.textPtr, renderCmd.props.textLen);
+      text = readWasmString(uinode.textPtr, uinode.textLen);
       element.textContent = text;
       break;
 
     case COMPONENT_TYPES.VIDEO:
       console.log("Video");
       element = document.createElement("video");
-      const offset = wasmInstance.getVideo(renderCmd.nodePtr);
+      const offset = wasmInstance.getVideo(uinode.offset);
       console.log("Offset", offset);
       if (offset === 0) break; // Use break, not return
       const videoView = new DataView(wasmInstance.memory.buffer, offset);
@@ -1154,78 +1282,53 @@ export function createElementByType(renderCmd) {
   }
 
   if (element) {
-    element.id = renderCmd.id;
+    element.id = uinode.id;
   }
   return element;
-} /**
+}
+
+/**
  * Setup element with common properties and register it
  * @param {HTMLElement} element - The element to set up
  * @param {Object} renderCmd - The render command
  */
-export function setupElement(element, renderCmd) {
-  element.id = renderCmd.id;
+export function setupElement(element, uinode) {
+  element.id = uinode.id;
 
-  if (renderCmd.elemType === COMPONENT_TYPES.ICON) {
-    element.className = renderCmd.styleId;
-  }
-
-  // Apply styles
-  if (state.initial_render && renderCmd.styleId.length > 0) {
-    setRuleStyle(renderCmd.styleId, element);
-  } else if (!state.initial_render && renderCmd.styleId.length > 0) {
-    const cssStylePtr = wasmInstance.getStyle(renderCmd.nodePtr);
-    if (cssStylePtr !== 0) {
-      const cssStyleLen = wasmInstance.getStyleLen();
-      renderCmd.props.css = readWasmString(cssStylePtr, cssStyleLen);
+  if (state.initial_render && uinode.styleId.length > 0) {
+    const inlineStylePtr = wasmInstance.getInlineStyle(uinode.offset);
+    const inlineStyleLen = wasmInstance.getInlineStyleLen(uinode.offset);
+    if (inlineStylePtr !== 0) {
+      const inlineStyle = readWasmString(inlineStylePtr, inlineStyleLen);
+      element.setAttribute("style", inlineStyle);
     }
-    element.className = renderCmd.styleId;
+    setRuleStyle(uinode.styleId, element);
+  } else if (!state.initial_render && uinode.styleId.length > 0) {
+    const inlineStylePtr = wasmInstance.getInlineStyle(uinode.offset);
+    if (inlineStylePtr !== 0) {
+      const inlineStyleLen = wasmInstance.getInlineStyleLen(uinode.offset);
+      const inlineStyle = readWasmString(inlineStylePtr, inlineStyleLen);
+      element.setAttribute("style", inlineStyle);
+    }
 
     // Update styling
-    updateComponentStyle(
-      renderCmd.nodePtr,
-      renderCmd.styleId,
-      renderCmd.props.css,
-      element,
-    );
-  }
-
-  if (renderCmd.props.tooltipTitle.length > 0) {
-    element.setAttribute("data-tooltip", renderCmd.props.tooltipTitle);
-    applyTooltipClass(element, renderCmd.styleId, renderCmd.props.tooltipCss);
-  }
-
-  if (renderCmd.props.hoverCss.length > 0 && renderCmd.styleId.length > 0) {
-    applyHoverClass(element, renderCmd.styleId, renderCmd.props.hoverCss);
-  }
-
-  if (renderCmd.props.focusCss.length > 0) {
-    applyFocusClass(element, renderCmd.styleId, renderCmd.props.focusCss);
-  }
-
-  if (renderCmd.props.focusWithinCss.length > 0) {
-    applyFocusWithinClass(
-      element,
-      renderCmd.styleId,
-      renderCmd.props.focusWithinCss,
-    );
+    updateComponentStyle(uinode.offset, uinode.styleId, "", element);
   }
 
   // Register the element
 
-  domNodeRegistry.set(renderCmd.id, {
-    elementType: renderCmd.elemType,
-    node_ptr: renderCmd.nodePtr,
+  if (uinode.elemType === COMPONENT_TYPES.ICON) {
+    const iconName = readWasmString(uinode.hrefPtr, uinode.hrefLen);
+    element.className = iconName + " " + uinode.styleId;
+  }
+
+  domNodeRegistry.set(uinode.id, {
+    elementType: uinode.elemType,
+    node_ptr: uinode.offset,
     domNode: element,
-    exitAnimationId: renderCmd.exitAnimationId,
-    destroyId: renderCmd.hooks.destroyId > 0 ? renderCmd.hooks.destroyId : null,
+    exitAnimationId: uinode.exitAnimationId,
+    destroyId: uinode.hooks.destroyId > 0 ? uinode.hooks.destroyId : null,
   });
-  // if (renderCmd.stateType === STATE_TYPES.PURE) {
-  //   pureNodeRegistry.set(renderCmd.id, {
-  //     id: renderCmd.id,
-  //     state: renderCmd.props,
-  //     index: renderCmd.index,
-  //   });
-  // }
 }
 
 /**
@@ -1233,93 +1336,112 @@ export function setupElement(element, renderCmd) {
  * @param {HTMLElement} element - The element to update
  * @param {Object} renderCmd - The render command
  */
-export function updateElement(element, renderCmd) {
+export function updateElement(element, uinode) {
   // Update text content if needed
-  if (
-    renderCmd.elemType === COMPONENT_TYPES.TEXT ||
-    renderCmd.elemType === COMPONENT_TYPES.HEADER ||
-    renderCmd.elemType === COMPONENT_TYPES.ALLOC_TEXT ||
-    renderCmd.elemType === COMPONENT_TYPES.HEADING
-  ) {
-    const text = readWasmString(
-      renderCmd.props.textPtr,
-      renderCmd.props.textLen,
-    );
-    element.textContent = text;
-  } else if (renderCmd.elemType === COMPONENT_TYPES.TEXT_FIELD || renderCmd.elemType === COMPONENT_TYPES.TEXT_AREA) {
-    const instansePtr =
-      wasmInstance.getTextFieldParams(renderCmd.nodePtr) >>> 0;
-    if (instansePtr) {
-      const fieldCount = wasmInstance.getTextFieldCount(renderCmd.nodePtr);
-      const reader = new DynamicStructReader(wasmInstance, wasmInstance.memory);
-      const fieldStruct = reader.readStruct(
-        renderCmd.nodePtr,
-        instansePtr,
-        fieldCount,
-        "getTextFieldDescriptor",
-      );
-      element.value =
-        fieldStruct.value !== null ? String(fieldStruct.value) : "";
-    }
+  if (uinode.changedProps > 0) {
+    if (
+      uinode.elemType === COMPONENT_TYPES.TEXT ||
+      uinode.elemType === COMPONENT_TYPES.HEADER ||
+      uinode.elemType === COMPONENT_TYPES.ALLOC_TEXT ||
+      uinode.elemType === COMPONENT_TYPES.HEADING ||
+      uinode.elemType === COMPONENT_TYPES.LABEL
+    ) {
+      const text = readWasmString(uinode.textPtr, uinode.textLen);
+      element.textContent = text;
+    } else if (
+      uinode.elemType === COMPONENT_TYPES.TEXT_FIELD ||
+      uinode.elemType === COMPONENT_TYPES.TEXT_AREA
+    ) {
+      const instansePtr = wasmInstance.getTextFieldParams(uinode.offset) >>> 0;
+      if (instansePtr) {
+        const fieldCount = wasmInstance.getTextFieldCount(uinode.offset);
+        const reader = new DynamicStructReader(
+          wasmInstance,
+          wasmInstance.memory,
+        );
+        const fieldStruct = reader.readStruct(
+          uinode.offset,
+          instansePtr,
+          fieldCount,
+          "getTextFieldDescriptor",
+        );
+        element.value =
+          fieldStruct.value !== null ? String(fieldStruct.value) : "";
+      }
 
-    // const text = readWasmString(
-    //   renderCmd.props.textPtr,
-    //   renderCmd.props.textLen,
-    // );
-  } else if (renderCmd.elemType === COMPONENT_TYPES.ICON) {
-    // const href = readWasmString(
-    //   renderCmd.props.hrefPtr,
-    //   renderCmd.props.hrefLen,
-    // );
-    // element.className = href;
-  } else if (renderCmd.elemType === COMPONENT_TYPES.HTML_TEXT) {
-    const text = readWasmString(
-      renderCmd.props.textPtr,
-      renderCmd.props.textLen,
-    );
-    element.innerHTML = text;
+      // const text = readWasmString(
+      //   uinode.textPtr,
+      //   uinode.textLen,
+      // );
+    } else if (uinode.elemType === COMPONENT_TYPES.ICON) {
+      const iconName = readWasmString(uinode.hrefPtr, uinode.hrefLen);
+      element.className = iconName + " " + uinode.styleId;
+      uinode.styleId = iconName + " " + uinode.styleId;
+      // const href = readWasmString(
+      //   uinode.hrefPtr,
+      //   uinode.hrefLen,
+      // );
+      // element.className = href;
+    } else if (uinode.elemType === COMPONENT_TYPES.HTML_TEXT) {
+      const text = readWasmString(uinode.textPtr, uinode.textLen);
+      element.innerHTML = text;
+    } else if (uinode.elemType === COMPONENT_TYPES.IMAGE) {
+      const src = readWasmString(uinode.hrefPtr, uinode.hrefLen);
+      console.log("Image", src);
+      console.log("Image", element);
+      element.src = src;
+    } else if (uinode.elemType === COMPONENT_TYPES.SVG) {
+      const svgString = readWasmString(uinode.textPtr, uinode.textLen);
+      const cleanSvg = svgString.replace(/^\s+|\s+$/g, "");
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(cleanSvg, "image/svg+xml");
+      element.innerHTML = doc.documentElement.outerHTML;
+    }
   }
 
   // This means that the style hash has changed and we need to update
-  if (renderCmd.changedStyle > 0) {
-    const cssStylePtr = wasmInstance.getStyle(renderCmd.nodePtr);
+  if (uinode.changedStyle > 0) {
+    let css = "";
+    const cssStylePtr = wasmInstance.getStyle(uinode.offset);
     if (cssStylePtr !== 0) {
       const cssStyleLen = wasmInstance.getStyleLen();
-      renderCmd.props.css = readWasmString(cssStylePtr, cssStyleLen);
+      css = readWasmString(cssStylePtr, cssStyleLen);
     }
     // Update styling
-    updateComponentStyle(
-      renderCmd.nodePtr,
-      renderCmd.styleId,
-      renderCmd.props.css,
-      element,
-    );
+    updateComponentStyle(uinode.offset, uinode.styleId, css, element);
+
+    const inlineStylePtr = wasmInstance.getInlineStyle(uinode.offset);
+    const inlineStyleLen = wasmInstance.getInlineStyleLen(uinode.offset);
+    if (inlineStylePtr !== 0) {
+      const inlineStyle = readWasmString(inlineStylePtr, inlineStyleLen);
+      element.setAttribute("style", inlineStyle);
+    } else if (uinode.elemType === COMPONENT_TYPES.ICON) {
+      const iconName = readWasmString(uinode.hrefPtr, uinode.hrefLen);
+      element.className = iconName + " " + uinode.styleId;
+      uinode.styleId = iconName + " " + uinode.styleId;
+    }
   } else {
-    element.className = renderCmd.styleId;
+    // element.className = uinode.styleId;
   }
 
-  if (renderCmd.props.hoverCss.length > 0) {
-    applyHoverClass(element, renderCmd.styleId, renderCmd.props.hoverCss);
-  }
-
-  if (renderCmd.props.focusCss.length > 0) {
-    applyFocusClass(element, renderCmd.styleId, renderCmd.props.focusCss);
-  }
-
-  if (renderCmd.props.focusWithinCss.length > 0) {
-    applyFocusWithinClass(
-      element,
-      renderCmd.styleId,
-      renderCmd.props.focusWithinCss,
-    );
-  }
-  if (renderCmd.stateType === STATE_TYPES.PURE) {
-    pureNodeRegistry.set(renderCmd.id, {
-      id: renderCmd.id,
-      state: renderCmd.props,
-      index: renderCmd.index,
-    });
-  }
+  // if (uinode.hoverCss.length > 0) {
+  //   applyHoverClass(element, uinode.styleId, uinode.hoverCss);
+  // }
+  //
+  // if (uinode.focusCss.length > 0) {
+  //   applyFocusClass(element, uinode.styleId, uinode.focusCss);
+  // }
+  //
+  // if (uinode.focusWithinCss.length > 0) {
+  //   applyFocusWithinClass(element, uinode.styleId, uinode.focusWithinCss);
+  // }
+  // if (uinode.stateType === STATE_TYPES.PURE) {
+  //   pureNodeRegistry.set(uinode.id, {
+  //     id: uinode.id,
+  //     state: uinode,
+  //     index: uinode.index,
+  //   });
+  // }
 }
 
 /**
@@ -1363,6 +1485,156 @@ export function generateSections(virtual, virtual_ptr, layout) {
   }
 }
 
+export let t1 = 0,
+  t2 = 0,
+  t3 = 0,
+  t4 = 0,
+  t5 = 0,
+  t6 = 0,
+  t7 = 0,
+  t8 = 0;
+
+export function resetTimers() {
+  t1 = 0;
+  t2 = 0;
+  t3 = 0;
+  t4 = 0;
+  t5 = 0;
+  t6 = 0;
+  t7 = 0;
+  t8 = 0;
+}
+
+/**
+ * Traverse and render the component tree
+ * @param {HTMLElement} parent - The parent element html element
+ * @param {HTMLElement} tree_node - The current tree node  *UINode
+ * @param {Object} layout - The layout information
+ */
+export function traverseUINodes(parent, parentUINode) {
+  if (!parent) return;
+
+  // const children_count = wasmInstance.getUINodeChildrenCount(parentUINode);
+  const uinodes = [];
+  let s = performance.now();
+
+  // Collect children by walking the linked list - O(n)
+  let childPtr = wasmInstance.getUINodeFirstChild(parentUINode);
+
+  while (childPtr) {
+    s = performance.now();
+    const uiNode = readUINode(childPtr);
+    t1 += performance.now() - s;
+
+    s = performance.now();
+    uinodes.push([uiNode, childPtr]);
+    t7 += performance.now() - s;
+
+    s = performance.now();
+    childPtr = wasmInstance.getUINodeNextSibling(childPtr);
+    t2 += performance.now() - s;
+  }
+
+  for (let i = uinodes.length - 1; i >= 0; i--) {
+    const uinode = uinodes[i][0];
+    const child_ptr = uinodes[i][1];
+    activeNodeIds.add(uinode.id);
+    let element = null;
+    if (uinode.isDirty) {
+      s = performance.now();
+      element = domNodeRegistry.get(uinode.id)?.domNode;
+      // element = document.getElementById(uinode.id);
+      t3 += performance.now() - s;
+      if (element && state.initial_render) {
+        attachElementListeners(element, uinode);
+        traverseUINodes(element, child_ptr);
+      } else if (!element || state.initial_render) {
+        // Create new element
+        s = performance.now();
+        element = createElementByType(uinode);
+        t6 += performance.now() - s;
+
+        if (!element) continue; // Skip if element creation failed
+
+        // Set up the element
+        s = performance.now();
+        setupElement(element, uinode);
+        t5 += performance.now() - s;
+
+        // Append to parent
+        const next = uinodes[i + 1];
+        let anchor = null;
+        if (next) {
+          const nextId = next[0]?.id; // id of the next sibling
+          anchor = nextId ? document.getElementById(nextId) : null;
+        }
+
+        s = performance.now();
+        parent.insertBefore(element, anchor);
+        t4 += performance.now() - s;
+        traverseUINodes(element, child_ptr);
+
+        if (uinode.elemType === COMPONENT_TYPES.HOOKS_CTX) {
+          const hooks_type = wasmInstance.getHooksType(uinode.offset);
+          switch (hooks_type) {
+            case 0:
+              hooksMountedCtx.set(uinode.id, true);
+              break;
+            case 1:
+              hooksDestroyCtx.set(uinode.id, true);
+              break;
+            case 2:
+              hooksCtxCreated.set(uinode.id, true);
+              break;
+          }
+          element.className = "";
+        } else if (uinode.elemType === COMPONENT_TYPES.HOOKS) {
+          if (uinode.hooks.mountedId > 0) {
+            hooksMounted.set(uinode.id, true);
+            element.className = "";
+          }
+          if (uinode.hooks.createdId > 0) {
+            wasmInstance.hooksCreatedCallback(uinode.hooks.createdId);
+          }
+          if (uinode.hooks.updatedId > 0) {
+            wasmInstance.hooksUpdatedCallback(uinode.hooks.updatedId);
+          }
+        } else if (uinode.hooks.createdId > 0) {
+          hooksCtxCreated.set(uinode.id, true);
+        }
+      } else {
+        // Here we may need to change the positions of the elements
+        // Update existing element
+        updateElement(element, uinode);
+
+        // Calculate the intended anchor (next sibling)
+        const next = uinodes[i + 1];
+        let anchor = null;
+        if (next) {
+          const nextId = next[0]?.id;
+          anchor = nextId ? document.getElementById(nextId) : null;
+        }
+        // In traverseUINodes, when checking siblings:
+        let actualNextSibling = element.nextSibling;
+        while (actualNextSibling?.dataset?.removing) {
+          actualNextSibling = actualNextSibling.nextSibling;
+        }
+
+        if (element.parentNode !== parent || actualNextSibling !== anchor) {
+          parent.insertBefore(element, anchor);
+        }
+
+        // Process children
+        traverseUINodes(element, child_ptr);
+      }
+    } else {
+      // Element is not dirty, just process its children
+      const element = document.getElementById(uinode.id);
+      traverseUINodes(element, child_ptr);
+    }
+  }
+}
+
 /**
  * Traverse and render the component tree
  * @param {HTMLElement} parent - The parent element html element
@@ -1389,6 +1661,9 @@ export function traverse(parent, has_children, tree_node, layout) {
     const child_ptr = wasmInstance.getTreeNodeChild(tree_node, i);
     const rndcmd_ptr = wasmInstance.getRenderCommandPtr(child_ptr);
     const renderCmd = readRenderCommand(rndcmd_ptr, layout);
+
+    const uiNode = readUINode(renderCmd.nodePtr);
+    console.log(uiNode);
     renderCmds.push([renderCmd, child_ptr]);
   }
 
@@ -1405,8 +1680,10 @@ export function traverse(parent, has_children, tree_node, layout) {
 
         // Handle hooks mounted calls
         if (renderCmd.elemType === COMPONENT_TYPES.HOOKS_CTX) {
+          console.log("HOOKS_CTX");
           if (renderCmd.hooks.mountedId > 0) {
-            wasmInstance.ctxHooksMountedCallback(renderCmd.hooks.mountedId);
+            hooksMountedCtx.set(renderCmd.id, true);
+            element.className = "";
           }
         } else if (renderCmd.elemType === COMPONENT_TYPES.HOOKS) {
           if (renderCmd.hooks.mountedId > 0) {
@@ -1442,8 +1719,10 @@ export function traverse(parent, has_children, tree_node, layout) {
         traverse(element, renderCmd.props.has_children, child_ptr, layout);
 
         if (renderCmd.elemType === COMPONENT_TYPES.HOOKS_CTX) {
+          console.log("HOOKS_CTX");
           if (renderCmd.hooks.mountedId > 0) {
-            wasmInstance.ctxHooksMountedCallback(renderCmd.hooks.mountedId);
+            hooksMountedCtx.set(renderCmd.id, true);
+            element.className = "";
           }
         } else if (renderCmd.elemType === COMPONENT_TYPES.HOOKS) {
           if (renderCmd.hooks.mountedId > 0) {
@@ -1489,89 +1768,6 @@ export function traverse(parent, has_children, tree_node, layout) {
       traverse(element, renderCmd.props.has_children, child_ptr, layout);
     }
   }
-
-  // for (let i = 0; i < children_count; i++) {
-  //   const child_ptr = wasmInstance.getTreeNodeChild(tree_node, i);
-  //   const rndcmd_ptr = wasmInstance.getRenderCommandPtr(child_ptr);
-  //   const renderCmd = readRenderCommand(rndcmd_ptr, layout);
-  //
-  //   // console.log(renderCmd.isDirty, renderCmd.id);
-  //   activeNodeIds.add(renderCmd.id);
-  //
-  //   if (renderCmd.isDirty) {
-  //     // Mark as processed
-  //     // wasmInstance.setDirtyToFalse(renderCmd.nodePtr);
-  //
-  //     let element = document.getElementById(renderCmd.id);
-  //
-  //     // This is the first render, so this is where we virtualize
-  //     if (!element || state.initial_render) {
-  //       // Create new element
-  //       element = createElementByType(renderCmd, tree_node, layout, parent);
-  //
-  //       if (!element) continue; // Skip if element creation failed
-  //
-  //       // Set up the element
-  //       setupElement(element, renderCmd);
-  //
-  //       if (renderCmd.elemType === COMPONENT_TYPES.VIRTUALIZE) {
-  //         // We loop through the sections, and create section elements with empty content, and attach and observer
-  //         // to the section element.
-  //         generateSections(element, child_ptr, layout);
-  //       } else {
-  //         // Process children
-  //         traverse(element, child_ptr, layout);
-  //       }
-  //
-  //       // Append to parent
-  //       const referenceNode = parent.children[renderCmd.index];
-  //       parent.insertBefore(element, referenceNode);
-  //       if (renderCmd.elemType === COMPONENT_TYPES.JSON_EDITOR) {
-  //         requestAnimationFrame(() => {
-  //           initJsonEditor(parent, element);
-  //         });
-  //       }
-  //
-  //       // Trigger hooks
-  //       if (renderCmd.elemType === COMPONENT_TYPES.HOOKS_CTX) {
-  //         if (renderCmd.hooks.mountedId > 0) {
-  //           wasmInstance.ctxHooksMountedCallback(renderCmd.hooks.mountedId);
-  //         }
-  //       } else if (renderCmd.elemType === COMPONENT_TYPES.HOOKS) {
-  //         if (renderCmd.hooks.mountedId > 0) {
-  //           const idPtr = allocString(renderCmd.id);
-  //           wasmInstance.hooksMountedCallback(idPtr);
-  //         }
-  //         if (renderCmd.hooks.createdId > 0) {
-  //           wasmInstance.hooksCreatedCallback(renderCmd.hooks.createdId);
-  //         }
-  //         if (renderCmd.hooks.updatedId > 0) {
-  //           wasmInstance.hooksUpdatedCallback(renderCmd.hooks.updatedId);
-  //         }
-  //       }
-  //     } else {
-  //       // Here we may need to change the positions of the elements
-  //       // Update existing element
-  //       updateElement(element, renderCmd);
-  //
-  //       // We we grab the node that is in the wrong position
-  //       const referenceNode = parent.children[renderCmd.index];
-  //       if (referenceNode) {
-  //         console.log(renderCmd.index, referenceNode.id, element.id);
-  //         if (referenceNode.id !== renderCmd.id) {
-  //           parent.insertBefore(element, referenceNode);
-  //         }
-  //       }
-  //
-  //       // Process children
-  //       traverse(element, child_ptr, layout);
-  //     }
-  //   } else {
-  //     // Element is not dirty, just process its children
-  //     const element = document.getElementById(renderCmd.id);
-  //     traverse(element, child_ptr, layout);
-  //   }
-  // }
 }
 
 export function traverseRemove(parent, tree_node, layout) {

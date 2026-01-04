@@ -1,9 +1,6 @@
 const std = @import("std");
 const Vapor = @import("vapor");
 const Static = Vapor.Static;
-const Pure = Vapor.Pure;
-const Dynamic = Vapor.Dynamic;
-const Signal = Vapor.Signal;
 const println = Vapor.println;
 const root = @import("../main.zig");
 const Search = @import("Search.zig");
@@ -82,12 +79,6 @@ inline fn routes() void {
 }
 
 const Self = @This();
-var show_dropdown: Signal(bool) = undefined;
-
-fn showDropDown() void {
-    println("SHOW DROPDOWN", .{});
-    show_dropdown.set(!show_dropdown.get());
-}
 
 fn switchTheme(opt: []const u8) void {
     println("Switch Theme! {s}", .{opt});
@@ -100,17 +91,14 @@ fn switchTheme(opt: []const u8) void {
 }
 
 pub fn init() void {
-    show_dropdown.init(false);
     Search.init();
 }
 
 pub fn closeAll(evt: *Vapor.Event) void {
     evt.preventDefault();
-    // show_dropdown.set(false);
 }
 
 pub fn setDefault() void {
-    show_dropdown.set(false);
 }
 
 fn openDialog() void {
@@ -402,7 +390,7 @@ fn mount() void {
 const Styles = struct {
     pub const item = Vapor.Style{
         .list_style = .none,
-        .size = .{ .width = .elastic(50, 130), .height = .px(30) },
+        .size = .{ .width = .auto, .height = .px(30) },
         .layout = .{ .y = .center, .x = .start },
         .visual = .{ .border = .bottom(.transparent) },
         // .transition = .{ .duration = 100 },

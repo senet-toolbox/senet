@@ -42,7 +42,7 @@ var new_form: Compiler.vaporize.Form(Form) = undefined;
 pub fn init() void {
     // markdown.compile(vaporize_page) catch unreachable;
     Vapor.Kit.fetch("/src/routes/docs/vapor/concepts/:concept/vaporize/vaporize_page.md", handlePage, .{ .method = .GET });
-    generated_markdown.compile("") catch |err| {
+    generated_markdown.compile(table) catch |err| {
         Vapor.printErr("Failed to compile markdown: {any} invalid input", .{err});
         return;
     };
@@ -79,7 +79,7 @@ fn RealtimeMarkdown() void {
     Stack()
         .layout(.center)
         .margin(.tb(12, 32))
-    .padding(.all(8))
+        .padding(.all(8))
         .width(.percent(100))
         .border(.simple(.transparentizeHex(.palette(.tint), 0.1)))
         .children({
@@ -90,19 +90,28 @@ fn RealtimeMarkdown() void {
     });
 }
 
+var table: []const u8 =
+    \\| Header 1 | Header 2 | Header 3 |
+    \\|----------|----------|----------|
+    \\| cell 1   | cell 2   | cell 3   |
+    \\| cell 4   | cell 5   | cell 6   |
+;
+
+
 fn text_area() void {
-    Vapor.TextArea()
-        .height(.px(128))
-        .shadow(.card(.transparentizeHex(.palette(.tint), 0.3)))
-        .border(.simple(.transparentizeHex(.palette(.tint), 0.1)))
-        .outline(.none)
-        .layer(.grid(4, 1, .palette(.grid_color)))
-        .spacing(4)
-        .fontFamily("IBM Plex Mono,monospace")
-        .font(14, null, .palette(.text_color))
-        .padding(.all(8))
-        .onChange(onChange)
-        .end();
+        Vapor.TextArea()
+            .val(&table)
+            .height(.px(128))
+            .shadow(.card(.transparentizeHex(.palette(.tint), 0.3)))
+            .border(.simple(.transparentizeHex(.palette(.tint), 0.1)))
+            .outline(.none)
+            .layer(.grid(4, 1, .palette(.grid_color)))
+            .spacing(4)
+            .fontFamily("IBM Plex Mono,monospace")
+            .font(14, null, .palette(.text_color))
+            .padding(.all(8))
+            .onChange(onChange)
+            .end();
 }
 
 pub fn form() void {
@@ -142,4 +151,3 @@ pub fn render() void {
     if (!markdown_loaded) return;
     content.content(component);
 }
-

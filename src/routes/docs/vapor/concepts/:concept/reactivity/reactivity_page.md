@@ -94,7 +94,7 @@ pub fn render() void {
 
 {#atomic-mode}
 
-### Atomic Mode (91% rule)
+### Atomic Mode
 
 Atomic mode is the default mode of Vapor. It is the simplest mode, if a **User interacts with the UI**, or an **Event is triggered**, like
 `timeout`, `onChange`, `onPress`, `onHover`, `fetch` ect.
@@ -102,15 +102,17 @@ Vapor will check what is changed and only update the changed elements, ie their 
 
 **The overhead cost of doing this is minimal, since we are working in WASM.**
 
-This accomplishes **91%** of the work needed to update and render the UI without any explicit state management. The last 9% is handled through
+Atomic mode acts a event engine, where each event into and out of Vapor's engine results in a call to check what is changed, and only update the changed elements.
+
+This accomplishes the majority of the work needed to update and render the UI without any explicit state management. The remaining is handled through
 Explicit State Containers called `Signal(T)` or manually calling `cycle()`.
 
-**Just** because Vapor offers these features, doesn't mean they are needed, both this _Documentation_ site, and _Acorn_, are built using atomic mode, and use no 
+**Just** because Vapor offers these features, doesn't mean they are needed, both this _Documentation_ site, and _Acorn_, are built using atomic mode, and use no
 `Signal(T)` containers or `cycle()` calls.
 
-The **Solution** to state management, isn't to solve it all, but to solve **91%** of the problem.
+The **Solution** to state management, isn't to solve it all, but to solve **+90%** of the problem.
 
-The last **9%** is when you want to use a state management system. Because now the user is not interacting and you are not receiving events with the UI.
+The remaining **%** is when you want to use a state management system. Because now the user is not interacting and you are not receiving events.
 
 ```zig
 const Vapor = @import("vapor");
@@ -143,14 +145,15 @@ pub fn render() void {
 Since the user interacts with the UI, an event is triggered, Vapor sees this, and then checks what is changed, added, or removed. And updates the UI accordingly.
 Since Vapor runs in WASM, this process is extremely fast, and uses very little memory.
 
-#### The last 9%
-
+#### The remaining %
 
 As long as there is an input into Vapor, then the UI will update, only small edge cases are not handled, for example, if you write your own external functionality.
 
 Another scenario is, as you probably have noticed the numbered boxes on the right. These are generated after the Markdown file is compiled and the UI is rendered. After this
-we query to see how many Section Elements were created, and then create a bunch of Numbered Boxes. But since no event happened, the UI did not update. 
+we query to see how many Section Elements were created, and then create a bunch of Numbered Boxes. But since no event happened, the UI does not update.
 Thus we must call `cycle()` to trigger the UI update.
+
+Querying elements is not an event, it is a function call, and thus not considered.
 
 {#immediate-mode}
 
@@ -208,7 +211,7 @@ Most UI elements never change after initial render.
 Vapor optimizes for this reality by exposing `Static`
 elements.
 
-In practice, the only difference between a `Static` `Text` and a `Text` is the import. 
+In practice, the only difference between a `Static` `Text` and a `Text` is the import.
 This site, never uses `Static` elements, while Acorn does, this is mainly for readability and maintainability.
 Since most of the documentation site, is made up of Mardown files.
 

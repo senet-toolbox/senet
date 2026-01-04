@@ -295,9 +295,12 @@ pub fn openLocalFile(conn: std.net.Server.Connection, mime: []const u8, mimetype
 
     const file_cwd = try std.fmt.allocPrint(allocator, ".{s}", .{path});
     const cwd = std.fs.cwd();
-    var file = cwd.openFile(file_cwd, .{}) catch {
-        // std.debug.print("Error opening file: {}\n", .{err});
-        return;
+    var file = cwd.openFile(file_cwd, .{}) catch |err| blk: {
+        std.debug.print("Opening file: {any} {s}\n", .{ err, file_cwd });
+        break :blk cwd.openFile("./template.html", .{}) catch |template_err| {
+            std.debug.print("Opening file: {any} {s}\n", .{ template_err, "./template.html" });
+            return;
+        };
     }; // Get file size
     const file_size = try file.getEndPos();
 

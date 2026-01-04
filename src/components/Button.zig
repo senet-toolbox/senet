@@ -1,0 +1,27 @@
+const Vapor = @import("vapor");
+const ButtonCtx = Vapor.CtxButton;
+
+var background: Vapor.Types.Background = .transparentizeHex(.hex("#F5F5F5"), 0.2);
+var border: Vapor.Types.BorderGrouped = .round(.palette(.border_color_light), .all(12));
+
+pub fn Button(func: anytype, args: anytype) Vapor.ButtonBuilder(.pure) {
+    return ButtonCtx(func, args)
+        .layout(.x_between_center)
+        .spacing(8)
+        .width(.fit)
+        .height(.fit)
+        .border(border)
+        .background(background)
+        .duration(100)
+        .padding(.tblr(8, 8, 10, 10))
+        .duration(100)
+        .newShadow(Vapor.Types.NewShadow.init()
+            .inset(0, -2, .transparentizeHex(.black, 0.3))
+            .drop(0, 1, 3, .transparentizeHex(.black, 0.1)))
+        .hover(.{
+        .transform = .scaleDecimal(1.01),
+        .new_shadow = Vapor.Types.NewShadow.init()
+            .inset(0, -2, .transparentizeHex(.black, 0))
+            .drop(0, 1, 3, .transparentizeHex(.black, 0)),
+    });
+}

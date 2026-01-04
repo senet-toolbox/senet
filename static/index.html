@@ -9,18 +9,21 @@
     content="Tether website includes documentation on all three components Fabric, Tether, and Treehouse. As well as instructions on installation and use cases." />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="icon" href="/assets/icon.svg" type="image/svg+xml" />
-  <link href="/zig-out/bin/vapor.wasm" as="fetch" type="application/wasm" crossorigin />
+  <link rel="preload" href="/zig-out/bin/vapor.wasm" as="fetch" type="application/wasm" crossorigin />
 
   <!-- Preconnect stays the same -->
   <link href="https://fonts.googleapis.com" />
   <link href="https://fonts.gstatic.com" crossorigin />
   <link href="https://cdn.jsdelivr.net" crossorigin />
 
+  <!-- Load fonts async with media trick -->
   <link
     href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300;1,400;1,500&display=swap"
-    rel="stylesheet">
+    rel="stylesheet" media="print" onload="this.media='all'" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,100..700;1,100..700&family=Montserrat:wght@400;700&display=swap"
+    rel="stylesheet" media="print" onload="this.media='all'" />
 
-  <!-- Load fonts async with media trick -->
   <link rel="preload" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" as="style"
     onload="this.rel='stylesheet'" />
   <noscript>
@@ -33,7 +36,7 @@
     body {
       margin: 0;
       padding: 0;
-      font-family: "DM Mono", monospace;
+      font-family: Montserrat;
       font-weight: 400;
       height: 100vh;
       width: 100%;
@@ -102,18 +105,61 @@
       bottom: 10px;
       right: 10px;
       padding: 10px;
-      border-radius: 4px;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
       font-family: monospace;
-      font-size: 12px;
+      font-size: 14px;
       z-index: 10000;
-      background-color: rgba(var(--background));
+      /* background-color: rgba(var(--background)); */
+      background-color: rgb(var(--background));
+      background-image: radial-gradient(circle, rgb(var(--text_color)) 0.5px, transparent 0px);
+      background-size: 20px 20px;
+      background-position: center center;
+      border-width: 1px;
+      border-style: solid;
+      border-color: rgb(var(--text_color));
+      box-shadow: 4px 4px 0px 0px rgb(var(--text_color));
+      text-decoration: none;
+      color: rgb(var(--text_color));
+    }
+
+    .reload-indicator {
+      position: fixed;
+      top: 16px;
+      right: 16px;
+      background: #1a1a1a;
+      color: #fff;
+      padding: 10px 16px;
+      border-radius: 6px;
+      display: none;
+      align-items: center;
+      gap: 10px;
+      font-family: system-ui, sans-serif;
+      font-size: 14px;
+      z-index: 99999;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    }
+
+    .reload-indicator.visible {
+      display: flex;
+    }
+
+    .reload-spinner {
+      width: 14px;
+      height: 14px;
+      border: 2px solid #333;
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
     }
   </style>
-  <link rel="stylesheet" href="/static/style_variables.css" />
+  <!-- <link rel="stylesheet" href="/static/style_variables.css" /> -->
   <link rel="stylesheet" href="/static/style.css" />
-</head>
-</head>
+</head></head>
 
 <body>
   <div class="stats" id="stats">
@@ -121,87 +167,2398 @@
     Frame Time: <span id="frameTime">0</span>ms<br />
     Render Time: <span id="renderTime">0</span>ms<br />
   </div>
-  <div id="contents" style="display: contents">
-    <div id="nav" class="lay_2355004687 pos_4226863089 mapa_2487839144 vis_858635165 ">
-      <div id="Flex_2851033941-genk" class="lay_742044807 ">
-        <a id="Link_2148954699-genk" class="vis_2782233086 " aria-label="home page of tether" href="/">
-          <div id="Flex_915028410-genk"
-            class="lay_3212761532 mapa_4117309395 vis_3610111763 anim_752735341 intr_2275201365 ">
-            <div id="Grap_1707722983-genk" class="lay_4075706570 vis_4265825448 intr_3191807552 ">
-            </div>
-          </div>
-        </a>
-        <ul id="List_641040586-genk" class="lay_80028923 ">
-          <li id="List_1931446036-genk" class="lay_1071775855 vis_2381593747 intr_4101004655 "">
-<a  id=" Link_4269899483-genk" class="vis_2782233086 " aria-label="Vapor" href="/docs/vapor">
-            <p id="Text_3814987054-genk" class="vis_3491491361 ">Vapor</p>
-            </a>
-          </li>
-          <li id="List_290914501-genk" class="lay_1071775855 vis_2381593747 intr_4101004655 "">
-<a  id=" Link_782871717-genk" class="vis_2782233086 " aria-label="Reverb" href="/docs/reverb">
-            <p id="Text_4061285904-genk" class="vis_3491491361 ">Reverb</p>
-            </a>
-          </li>
-          <li id="List_2945350262-genk" class="lay_1071775855 vis_2381593747 intr_4101004655 "">
-<a  id=" Link_1339705068-genk" class="vis_2782233086 " aria-label="Canopy" href="/docs/treehouse">
-            <p id="Text_3493225210-genk" class="vis_3491491361 ">Canopy</p>
-            </a>
-          </li>
-          <li id="List_1304818727-genk" class="lay_1071775855 vis_2381593747 intr_4101004655 "">
-<a  id=" Link_2218807839-genk" class="vis_2782233086 " aria-label="Metal" href="/docs/metal">
-            <p id="Text_3389213952-genk" class="vis_3491491361 ">Metal</p>
-            </a>
-          </li>
-          <li id="List_3959254488-genk" class="lay_1071775855 vis_2381593747 intr_4101004655 "">
-<a  id=" Link_459460175-genk" class="vis_2782233086 " aria-label="About Me" href="/about">
-            <p id="Text_1476673945-genk" class="vis_3491491361 ">About Me</p>
-            </a>
-          </li>
-        </ul>
-      </div>
-      <div id="Flex_1210502406-genk" class="lay_2427431289 ">
-        <button id="Butt_3692203482-genk" class="lay_1515371949 mapa_1029637290 vis_3863708168 intr_2738320283 "
-          aria-label="search-dialog">
-          <div id="Flex_3491220137-genk" class="lay_2352082878 ">
-            <i id="Icon_461205268-genk" class="bi bi-search vis_2456070613 " href="bi bi-search">
-            </i>
-            <p id="Text_762272481-genk" class="vis_1253340569 ">Search...</p>
-          </div>
-          <i id="Icon_1306428635-genk" class="bi bi-command vis_2456070613 " href="bi bi-command">
-          </i>
-        </button>
-        <a id="Redi_1240995215-genk" class="vis_2782233086 " aria-label="redirect link to tether github repo"
-          href="https://github.com/vic-Rokx/vapor">
-          <i id="Icon_511390286-genk" class="bi bi-github vis_3319038623 intr_3436696024 " href="bi bi-github">
-          </i>
-        </a>
-        <a id="Redi_3895430976-genk" class="vis_2782233086 " aria-label="redirect link to discord"
-          href="https://github.com/vic-Rokx/vapor">
-          <i id="Icon_1817279550-genk" class="bi bi-discord vis_3319038623 intr_3436696024 " href="bi bi-discord">
-          </i>
-        </a>
-        <a id="Redi_2254899441-genk" class="vis_2782233086 " aria-label="redirect link to ziglang"
-          href="https://ziglang.org/">
-          <div id="Grap_1858277661-genk" class="lay_395582524 vis_378852699 intr_457968657 ">
-          </div>
-        </a>
-        <button id="Butt_1425044638-genk" class="mapa_2382506810 vis_4269074653 ">
-          <i id="Icon_558382312-genk" class="bi bi-cloud-moon vis_3319038623 intr_3436696024 " href="bi bi-cloud-moon">
-          </i>
-        </button>
-      </div>
-    </div>
-
-
-    <div id="Flex_2924438023-genk" class="lay_1853124179 ">
-      <p id="Text_3473539826-genk" class="vis_3357513371 ">Error: Page Not Found</p>
-      <div id="Flex_435669510-genk" class="lay_2753401826 ">
-        <button id="Butt_4259817468-genk" class="lay_2838297064 vis_1987440936 anim_752735341 intr_2275201365 ">
-          <p id="Text_1913000997-genk" class="vis_523113798 ">Go back</p>
-        </button>
-      </div>
-    </div>
+  <div id="reload-indicator" class="reload-indicator">
+    <div class="reload-spinner"></div>
+    <span>Reloading...</span>
   </div>
-</body>
+  <div id="contents" style="display: contents"><div  id="nav" class="lay_ZIMNZ2 pos_7BU3c4 mapa_obiMi2 vis_iMRGa1 ">
+<div  id="Flex_PAew63-gk" class="lay_dkXDo ">
+<a  id="Link_6S1Rg1-gk" class="vis_i01PD2 " aria-label="home page of tether" href="/">
+<div  id="Flex_US9fX4-gk" class="lay_O2QQV3 mapa_3GodU4 vis_DAOXU1 anim_yrWjP2 intr_HK65V ">
+<div  id="Grap_RlR0V3-gk" class="lay_kSFpR4 vis_Wvp9J1 intr_wtIFA1 ">
+</div>
+</div>
+</a>
+<ul  id="List_7zzFJ-gk" class="lay_5BnP5 ">
+<li  id="List_mPxsr3-gk" class="lay_1EjZF4 vis_eHHGV intr_bQwWU1 "">
+<a  id="Link_U1zip3-gk" class="vis_i01PD2 " aria-label="[0] = Vapor" href="/docs/vapor">
+<p  id="Text_FT58v1-gk" class="vis_sJTox1 ">[0] = Vapor</p>
+</a>
+</li>
+<li  id="List_jDSr42-gk" class="lay_1EjZF4 vis_eHHGV intr_bQwWU1 "">
+<a  id="Link_asJRG3-gk" class="vis_i01PD2 " aria-label="[1] = Reverb" href="/docs/reverb">
+<p  id="Text_Bux4H2-gk" class="vis_sJTox1 ">[1] = Reverb</p>
+</a>
+</li>
+<li  id="List_g1xpH-gk" class="lay_1EjZF4 vis_eHHGV intr_bQwWU1 "">
+<a  id="Link_5Hi584-gk" class="vis_i01PD2 " aria-label="[2] = Canopy" href="/docs/treehouse">
+<p  id="Text_cFnrO-gk" class="vis_sJTox1 ">[2] = Canopy</p>
+</a>
+</li>
+<li  id="List_h1hTB3-gk" class="lay_1EjZF4 vis_eHHGV intr_bQwWU1 "">
+<a  id="Link_PcwDO3-gk" class="vis_i01PD2 " aria-label="Metal" href="/docs/metal">
+<p  id="Text_x91g02-gk" class="vis_sJTox1 ">Metal</p>
+</a>
+</li>
+<li  id="List_epBSO1-gk" class="lay_1EjZF4 vis_eHHGV intr_bQwWU1 "">
+<a  id="Link_1o8QS3-gk" class="vis_i01PD2 " aria-label="About Me" href="/about">
+<p  id="Text_AL7QE2-gk" class="vis_sJTox1 ">About Me</p>
+</a>
+</li>
+</ul>
+</div>
+<div  id="Flex_My8vJ1-gk" class="lay_ZlFHe2 ">
+<button  id="Butt_NDL6r3-gk" class="lay_3TLYe1 mapa_4hFg71 vis_A7Qpx3 intr_xtuuh1 " aria-label="search-dialog">
+<div  id="Flex_4OHY51-gk" class="lay_cC6BZ2 ">
+<i  id="Icon_ta9FQ1-gk" class="vis_exlBf4 " href="bi bi-search">
+</i>
+<p  id="Text_aIk4Z3-gk" class="vis_BCSPy ">Search...</p>
+</div>
+<i  id="Icon_EASCM2-gk" class="vis_exlBf4 " href="bi bi-command">
+</i>
+</button>
+<a  id="Redi_UEpJf2-gk" class="vis_i01PD2 " aria-label="redirect link to tether github repo" href="https://github.com/vic-Rokx/vapor">
+<i  id="Icon_fysdi2-gk" class="vis_3JgbB2 intr_HNOBs3 " href="bi bi-github">
+</i>
+</a>
+<a  id="Redi_R2KIs-gk" class="vis_i01PD2 " aria-label="redirect link to discord" href="https://github.com/vic-Rokx/vapor">
+<i  id="Icon_GGwJG4-gk" class="vis_3JgbB2 intr_HNOBs3 " href="bi bi-discord">
+</i>
+</a>
+<a  id="Redi_S24wl3-gk" class="vis_i01PD2 " aria-label="redirect link to ziglang" href="https://ziglang.org/">
+<div  id="Grap_lvhMt3-gk" class="lay_I5plQ vis_KcpTB1 intr_0KzKp2 ">
+</div>
+</a>
+<button  id="Butt_FdZfN1-gk" class="mapa_CrkEb2 vis_8H90T4 " aria-label="toggle theme">
+<i  id="Icon_tNywc3-gk" class="vis_3JgbB2 intr_HNOBs3 " href="bi bi-cloud-moon">
+</i>
+</button>
+</div>
+</div>
 
+
+<div  id="Flex_DvduB3-gk" class="lay_sbN0Q ">
+<div  id="Flex_vGzZR2-gk" class="lay_UyiE81 pos_hOs8S3 mapa_TK4ER4 vis_UBjfs3 ">
+<div  id="Flex_JMhms3-gk" class="lay_hhXQ03 pos_zUeQg1 vis_wVRmk2 anim_7NAwO2 intr_qCoSH2 ">
+<p  id="Text_uxfdc3-gk">01</p>
+</div>
+<div  id="Flex_GACl52-gk" class="lay_hhXQ03 pos_57sl61 vis_wVRmk2 anim_PYQ9S4 intr_qCoSH2 ">
+<p  id="Text_0p0M33-gk">02</p>
+</div>
+<div  id="Flex_DygjI-gk" class="lay_hhXQ03 pos_3WXlH vis_wVRmk2 anim_ZdNb54 intr_qCoSH2 ">
+<p  id="Text_pcxKB1-gk">03</p>
+</div>
+<p  id="Text_3SiZo-gk" class="pos_mtp4j vis_2fdHn2 ">.layout = .center, .layer = .grid(14, 1, .palette(.grid_color))</p>
+<p  id="Text_4SSDi3-gk" class="pos_1oj2i1 vis_2fdHn2 ">.transform = .direction_scale(.down, .px(4), 1.05), .border = .simple(.palette(.tint)))</p>
+<div  id="Flex_CmfzI4-gk" class="lay_ph40P4 mapa_V8jPI3 ">
+<p  id="Html_8xhMz2-gk" class="lay_nVKK41 vis_8su3T3 "><code>vapor rendered in 0.6ms</code></p>
+
+<div  id="Flex_TK8pR1-gk" class="lay_2TkWG4 mapa_CrkEb2 ">
+<p  id="Html_UNVSB4-gk" class="big-heading">A <i style="color: rgb(var(--tint))">toolbox</i> for the Web</p>
+
+</div>
+</div>
+<div  id="Flex_9aAyV2-gk" class="lay_iU2WM3 mapa_LsvRW3 ">
+<p  id="Html_nGj9Y-gk" class="lay_nVKK41 vis_hOuFU "><strong style="color: rgb(var(--tint))">Tether</strong>
+includes a <a style="text-decoration: none; color: rgb(var(--text_color));" href="/docs/vapor"><i>Frontend [0]</i></a>, 
+<a style="text-decoration: none; color: rgb(var(--text_color)); "href="/docs/vapor"><i>Backend [1]</i></a>, and 
+<a style="text-decoration: none; color: rgb(var(--text_color)); "href="/docs/vapor"><i>Database [2]</i></a>.
+Yet ships with <strong style="color: rgb(var(--text_color))"><i>zero</i></strong> dependencies.</p>
+
+<p  id="Html_oGTnR3-gk" class="lay_nVKK41 vis_hOuFU "><strong style="color: rgb(var(--tint))">Out the Box</strong> production defaults, and
+<strong style="color: rgb(var(--text_color))"><i>+100 UI Components</i></strong>.</p>
+
+</div>
+<div  id="Flex_6Ofwi-gk" class="lay_xwUFk2 ">
+<a  id="Link_Abcn23-gk" class="lay_MCJgV2 vis_4cjOk3 anim_yrWjP2 intr_HK65V " aria-label="what is tether?" href="/huh">
+<p  id="Text_R9Ptx3-gk" class="lay_nVKK41 ">Huh?</p>
+</a>
+<a  id="Link_7P7mF1-gk" class="lay_MCJgV2 vis_JKpV4 anim_yrWjP2 intr_M29B5 " aria-label="download page for tether" href="/install">
+<p  id="Text_gC1t21-gk" class="lay_nVKK41 ">Install</p>
+<i  id="Icon_xIff-gk" class="lay_OVZ2I3 " href="bi bi-cloud-download-fill">
+</i>
+</a>
+</div>
+<p  id="Html_joT6N3-gk" class="lay_nVKK41 vis_F3VLW4 "><strong style="color: rgb(var(--text_color))">THIS</strong>
+entire website, is just a mere
+<strong style="color: rgb(var(--text_color))"><i>180kb</i></strong>
+.</p>
+
+</div>
+<div  id="Flex_s4UYe-gk" class="lay_WuwLv3 pos_99ILY4 mapa_jigL04 vis_pniAH4 ">
+<div  id="Flex_AhFdD2-gk" class="lay_eVZ0F1 ">
+<p  id="Text_1Yo0H2-gk" class="vis_ZtdGV1 ">Powered By</p>
+<div  id="Flex_9s1nr2-gk" class="lay_t5OKY mapa_LsvRW3 ">
+<div  id="Grap_hB0OW-gk" class="lay_erQL6 vis_zXVKS2 ">
+</div>
+</div>
+</div>
+<div  id="Flex_7VkbQ-gk" class="lay_nn0Q93 ">
+<p  id="Text_zF0R13-gk" class="vis_ZtdGV1 ">Used By</p>
+<div  id="Flex_Fe55A1-gk" class="lay_UxqMt1 ">
+<img  id="acorn-image-light" class="lay_dQbOB4 " src="/assets/acorn.png">
+</img>
+<p  id="Text_sFjrs3-gk" class="vis_vK0Aj ">Acorn</p>
+</div>
+</div>
+</div>
+</div>
+<div  id="Flex_Aj8tO1-gk" class="lay_Vknxi1 vis_s1psy3 ">
+<div  id="Flex_GW1Us3-gk" class="lay_gYPNe2 ">
+<div  id="Grap_kkrd7-gk" class="lay_kSFpR4 ">
+</div>
+</div>
+</div>
+<div  id="Flex_BjsWI4-gk" class="lay_MqIUB1 pos_DwdZw1 mapa_320yE1 vis_wxLIU1 ">
+<p  id="Text_B5ZUu-gk" class="pos_2xpmY2 vis_2fdHn2 ">.width(.percent(100)).padding(.tb(64, 64)).layout(.x_even).border(.top(.hex("#E4E4E4")))</p>
+<div  id="Flex_JPmGV1-gk" class="lay_cbDM94 ">
+<p  id="Text_KuFeT3-gk" class="vis_pfISW2 ">Vapor</p>
+<p  id="Html_4fXwo3-gk" class="vis_KnyBU1 ">Is a Comptime UI Engine in Zig. Vapor generates native HTML, Objc, from one codebase. <div>ZIG → WASM → UI</div></p>
+
+</div>
+<div  id="Flex_KPWuO4-gk" class="lay_cbDM94 ">
+<p  id="Text_v0XXq2-gk" class="vis_pfISW2 ">Reverb</p>
+<p  id="Html_flopB3-gk" class="vis_KnyBU1 ">Is a simple, yet powerful, backend framework for Zig. Zero runtime allocations, High performance, Express like.</p>
+
+</div>
+<div  id="Flex_HD1tb2-gk" class="lay_cbDM94 ">
+<p  id="Text_WQ5G42-gk" class="vis_pfISW2 ">Canopy</p>
+<p  id="Html_GBNYP2-gk" class="vis_KnyBU1 ">Runs as a in memory cache at the front and a persistent database at the back. All the while boasting throughput on par with Redis.</p>
+
+</div>
+</div>
+<div  id="Flex_8XNVV2-gk" class="lay_OCKoZ4 pos_DwdZw1 mapa_G9G2i ">
+<p  id="Text_QAeS53-gk" class="pos_56SRy vis_2fdHn2 ">.dots(0.5, 8, .black).shadow(.card(.black))</p>
+<div  id="Flex_YUrEg3-gk" class="lay_6bjEU1 mapa_TK4ER4 vis_gFiAH2 ">
+<div  id="Flex_58oYt2-gk" class="lay_x4rOR3 pos_DwdZw1 mapa_Fls5t vis_i01PD2 ">
+<div  id="Flex_sIckb2-gk" class="lay_H7iHV3 ">
+<code  id="Code_5yX2K-gk">
+<div  id="Flex_eMxxF4-gk" class="lay_Zxl4O4 ">
+<p  id="Text_VgWOG4-gk" class="lay_OcuwW3 vis_5a2Ng1 ">1</p>
+<div  id="Flex_ZoUVA-gk" class="lay_Zxl4O4 vis_7B5W52 ">
+<p  id="Text_neRvw1-gk" class="vis_cEtlN ">// All normal Zig code</p>
+</div>
+</div>
+<div  id="Flex_bASwS2-gk" class="lay_Zxl4O4 ">
+<p  id="Text_nwdvb4-gk" class="lay_OcuwW3 vis_5a2Ng1 ">2</p>
+<div  id="Flex_r4c2W-gk" class="lay_Zxl4O4 vis_7B5W52 ">
+<p  id="Text_mrb3f2-gk" class="vis_HovEC1 ">const</p>
+<p  id="Text_jf62s-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_kfqfl3-gk" class="vis_UKfgn1 ">Vapor</p>
+<p  id="Text_hTLey1-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_eHqcB-gk" class="vis_1xQSr3 ">=</p>
+<p  id="Text_fHaG53-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_c55FI1-gk" class="vis_UKfgn1 ">@import</p>
+<p  id="Text_d5psB4-gk" class="vis_1xQSr3 ">(</p>
+<p  id="Text_atJrO2-gk" class="vis_x81xr3 ">"vapor"</p>
+<p  id="Text_EI0lt1-gk" class="vis_1xQSr3 ">)</p>
+<p  id="Text_B6Vj6-gk" class="vis_1xQSr3 ">;</p>
+</div>
+</div>
+<div  id="Flex_Yywuf-gk" class="lay_Zxl4O4 ">
+<p  id="Text_BoTpb3-gk" class="lay_OcuwW3 vis_5a2Ng1 ">3</p>
+<div  id="Flex_RCZTk1-gk" class="lay_Zxl4O4 vis_7B5W52 ">
+</div>
+</div>
+<div  id="Flex_ZygYZ3-gk" class="lay_Zxl4O4 ">
+<p  id="Text_xKPzY3-gk" class="lay_OcuwW3 vis_5a2Ng1 ">4</p>
+<div  id="Flex_5fcl94-gk" class="lay_Zxl4O4 vis_7B5W52 ">
+<p  id="Text_XNtNn3-gk" class="vis_HovEC1 ">var</p>
+<p  id="Text_UBOM02-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_RzsKD-gk" class="vis_UKfgn1 ">counter</p>
+<p  id="Text_Szcy63-gk" class="vis_1xQSr3 ">:</p>
+<p  id="Text_Pn7xJ1-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_QnraD4-gk" class="vis_UKfgn1 ">i32</p>
+<p  id="Text_NbMZQ2-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_KPrXd-gk" class="vis_1xQSr3 ">=</p>
+<p  id="Text_LPbBX3-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_jdMEp1-gk" class="vis_UKfgn1 ">0</p>
+<p  id="Text_gRrC2-gk" class="vis_1xQSr3 ">;</p>
+</div>
+</div>
+<div  id="Flex_WmBXm1-gk" class="lay_Zxl4O4 ">
+<p  id="Text_HfB8y3-gk" class="lay_OcuwW3 vis_5a2Ng1 ">5</p>
+<div  id="Flex_PzOuY4-gk" class="lay_Zxl4O4 vis_7B5W52 ">
+<p  id="Text_3EhJf3-gk" class="vis_HovEC1 ">fn</p>
+<p  id="Text_02CIs1-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_xpgG5-gk" class="vis_GBD8J1 ">increment</p>
+<p  id="Text_ypQuy2-gk" class="vis_1xQSr3 ">(</p>
+<p  id="Text_vdvsB1-gk" class="vis_1xQSr3 ">)</p>
+<p  id="Text_wdfW54-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_tRAVI2-gk" class="vis_TLNmO4 ">void</p>
+<p  id="Text_qFfTV-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_rFP7P3-gk" class="vis_1xQSr3 ">{</p>
+<p  id="Text_pm8fD2-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_maddQ-gk" class="vis_UKfgn1 ">counter</p>
+<p  id="Text_naNHK3-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_kOsFX1-gk" class="vis_1xQSr3 ">+=</p>
+<p  id="Text_lOctQ4-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_iC7sd2-gk" class="vis_UKfgn1 ">1</p>
+<p  id="Text_f0cqq-gk" class="vis_1xQSr3 ">;</p>
+<p  id="Text_g0MUk3-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_doqSx1-gk" class="vis_1xQSr3 ">}</p>
+</div>
+</div>
+<div  id="Flex_XmvAg4-gk" class="lay_Zxl4O4 ">
+<p  id="Text_Qgygh1-gk" class="lay_OcuwW3 vis_5a2Ng1 ">6</p>
+<div  id="Flex_Y0CTI2-gk" class="lay_Zxl4O4 vis_7B5W52 ">
+<p  id="Text_bZBWg3-gk" class="vis_HovEC1 ">fn</p>
+<p  id="Text_YNgUt1-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_VBBT6-gk" class="vis_GBD8J1 ">decrement</p>
+<p  id="Text_WBv603-gk" class="vis_1xQSr3 ">(</p>
+<p  id="Text_TzP5D1-gk" class="vis_1xQSr3 ">)</p>
+<p  id="Text_Uz9j64-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_RnehJ2-gk" class="vis_TLNmO4 ">void</p>
+<p  id="Text_Ob9gW-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_PbtJQ3-gk" class="vis_1xQSr3 ">{</p>
+<p  id="Text_vFIJr2-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_s3nH41-gk" class="vis_UKfgn1 ">counter</p>
+<p  id="Text_t3Xvx3-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_qr1uA2-gk" class="vis_1xQSr3 ">-=</p>
+<p  id="Text_nfWsN-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_ofGWH3-gk" class="vis_UKfgn1 ">1</p>
+<p  id="Text_lTlUU1-gk" class="vis_1xQSr3 ">;</p>
+<p  id="Text_mTV8O4-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_jH07b2-gk" class="vis_1xQSr3 ">}</p>
+</div>
+</div>
+<div  id="Flex_UaQ9t2-gk" class="lay_Zxl4O4 ">
+<p  id="Text_X8L0V4-gk" class="lay_OcuwW3 vis_5a2Ng1 ">7</p>
+<div  id="Flex_bGJ7P-gk" class="lay_Zxl4O4 vis_7B5W52 ">
+</div>
+</div>
+<div  id="Flex_ROv761-gk" class="lay_Zxl4O4 ">
+<p  id="Text_SiI362-gk" class="lay_OcuwW3 vis_5a2Ng1 ">8</p>
+<div  id="Flex_a2Wpg2-gk" class="lay_Zxl4O4 vis_7B5W52 ">
+<p  id="Text_pWmGl-gk" class="vis_cEtlN ">// Render</p>
+</div>
+</div>
+<div  id="Flex_SOflz3-gk" class="lay_Zxl4O4 ">
+<p  id="Text_iKDrL2-gk" class="lay_OcuwW3 vis_5a2Ng1 ">9</p>
+<div  id="Flex_qeQdw2-gk" class="lay_Zxl4O4 vis_7B5W52 ">
+<p  id="Text_AR615-gk" class="vis_HovEC1 ">pub</p>
+<p  id="Text_BRqey2-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_8FLdB1-gk" class="vis_HovEC1 ">fn</p>
+<p  id="Text_9F5H54-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_63aFI2-gk" class="vis_f5h9s ">ButtonComponent</p>
+<p  id="Text_3r4EV-gk" class="vis_1xQSr3 ">(</p>
+<p  id="Text_4rorO3-gk" class="vis_1xQSr3 ">)</p>
+<p  id="Text_1fJqb1-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_2f3UV4-gk" class="vis_TLNmO4 ">void</p>
+<p  id="Text_AdgO61-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_BdQ204-gk" class="vis_1xQSr3 ">{</p>
+</div>
+</div>
+<div  id="Flex_GakQy2-gk" class="lay_Zxl4O4 ">
+<p  id="Text_w0vGV1-gk" class="lay_OcuwW3 vis_5a2Ng1 ">10</p>
+<div  id="Flex_4L8362-gk" class="lay_Zxl4O4 vis_7B5W52 ">
+<p  id="Text_HtIzS1-gk" class="vis_UKfgn1 ">    </p>
+<p  id="Text_It2dM4-gk" class="vis_f5h9s ">Button</p>
+<p  id="Text_FhXbZ2-gk" class="vis_1xQSr3 ">(</p>
+<p  id="Text_CV2am-gk" class="vis_UKfgn1 ">increment</p>
+<p  id="Text_DVmDg3-gk" class="vis_1xQSr3 ">)</p>
+<p  id="Text_AJHCt1-gk" class="vis_1xQSr3 ">.</p>
+<p  id="Text_77mA6-gk" class="vis_GBD8J1 ">hoverScale</p>
+<p  id="Text_87Woz2-gk" class="vis_1xQSr3 ">(</p>
+<p  id="Text_5v0nC1-gk" class="vis_1xQSr3 ">)</p>
+<p  id="Text_Jq6Sf4-gk" class="vis_1xQSr3 ">.</p>
+<p  id="Text_GebQs2-gk" class="vis_GBD8J1 ">border</p>
+<p  id="Text_DS6P51-gk" class="vis_1xQSr3 ">(</p>
+<p  id="Text_ESq2z3-gk" class="vis_1xQSr3 ">.</p>
+<p  id="Text_BGL1C2-gk" class="vis_UKfgn1 ">simple</p>
+<p  id="Text_84qzO-gk" class="vis_1xQSr3 ">)</p>
+<p  id="Text_94adI3-gk" class="vis_1xQSr3 ">.</p>
+<p  id="Text_6s4cV1-gk" class="vis_GBD8J1 ">children</p>
+<p  id="Text_7soFP4-gk" class="vis_1xQSr3 ">(</p>
+<p  id="Text_4gJEc2-gk" class="vis_1xQSr3 ">{</p>
+</div>
+</div>
+<div  id="Flex_DOFPB1-gk" class="lay_Zxl4O4 ">
+<p  id="Text_doAU34-gk" class="lay_OcuwW3 vis_5a2Ng1 ">11</p>
+<div  id="Flex_l8OGe4-gk" class="lay_Zxl4O4 vis_7B5W52 ">
+<p  id="Text_DB3864-gk" class="vis_UKfgn1 ">        </p>
+<p  id="Text_AzX6J2-gk" class="vis_f5h9s ">Text</p>
+<p  id="Text_7n25W-gk" class="vis_1xQSr3 ">(</p>
+<p  id="Text_8nmiP3-gk" class="vis_x81xr3 ">"+"</p>
+<p  id="Text_5bHhc1-gk" class="vis_1xQSr3 ">)</p>
+<p  id="Text_6b1LW4-gk" class="vis_1xQSr3 ">.</p>
+<p  id="Text_3PWJj2-gk" class="vis_GBD8J1 ">bold</p>
+<p  id="Text_0D1Iw-gk" class="vis_1xQSr3 ">(</p>
+<p  id="Text_1Dlvp3-gk" class="vis_1xQSr3 ">)</p>
+<p  id="Text_xg5TQ2-gk" class="vis_1xQSr3 ">.</p>
+<p  id="Text_uUaRd-gk" class="vis_GBD8J1 ">end</p>
+<p  id="Text_vUK5X3-gk" class="vis_1xQSr3 ">(</p>
+<p  id="Text_sIp3k1-gk" class="vis_1xQSr3 ">)</p>
+<p  id="Text_tIZhd4-gk" class="vis_1xQSr3 ">;</p>
+</div>
+</div>
+<div  id="Flex_EOz254-gk" class="lay_Zxl4O4 ">
+<p  id="Text_We6q21-gk" class="lay_OcuwW3 vis_5a2Ng1 ">12</p>
+<div  id="Flex_eyJcd1-gk" class="lay_Zxl4O4 vis_7B5W52 ">
+<p  id="Text_8iyK01-gk" class="vis_UKfgn1 ">    </p>
+<p  id="Text_9iiyt3-gk" class="vis_1xQSr3 ">}</p>
+<p  id="Text_6WDx62-gk" class="vis_1xQSr3 ">)</p>
+<p  id="Text_3KivJ-gk" class="vis_1xQSr3 ">;</p>
+</div>
+</div>
+<div  id="Flex_BCU1I2-gk" class="lay_Zxl4O4 ">
+<p  id="Text_tHKMa4-gk" class="lay_OcuwW3 vis_5a2Ng1 ">13</p>
+<div  id="Flex_xPITU-gk" class="lay_Zxl4O4 vis_7B5W52 ">
+</div>
+</div>
+<div  id="Flex_80zzU-gk" class="lay_Zxl4O4 ">
+<p  id="Text_eaALF2-gk" class="lay_OcuwW3 vis_5a2Ng1 ">14</p>
+<div  id="Flex_uyFzN-gk" class="lay_Zxl4O4 vis_7B5W52 ">
+<p  id="Text_QL5HW2-gk" class="vis_UKfgn1 ">    </p>
+<p  id="Text_N9aFj-gk" class="vis_f5h9s ">Text</p>
+<p  id="Text_O9Ktc3-gk" class="vis_1xQSr3 ">(</p>
+<p  id="Text_Lxorp1-gk" class="vis_UKfgn1 ">counter</p>
+<p  id="Text_IlJq2-gk" class="vis_1xQSr3 ">)</p>
+<p  id="Text_Jl3Uw2-gk" class="vis_1xQSr3 ">.</p>
+<p  id="Text_GZYS91-gk" class="vis_GBD8J1 ">font</p>
+<p  id="Text_HZI634-gk" class="vis_1xQSr3 ">(</p>
+<p  id="Text_ENn4G2-gk" class="vis_UKfgn1 ">24</p>
+<p  id="Text_aGwau1-gk" class="vis_1xQSr3 ">,</p>
+<p  id="Text_X4RZ7-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_Y4BD13-gk" class="vis_UKfgn1 ">700</p>
+<p  id="Text_VsfBE1-gk" class="vis_1xQSr3 ">,</p>
+<p  id="Text_WsPp74-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_TgunK2-gk" class="vis_1xQSr3 ">.</p>
+<p  id="Text_QUPmX-gk" class="vis_GBD8J1 ">palette</p>
+<p  id="Text_RU9QR3-gk" class="vis_1xQSr3 ">(</p>
+<p  id="Text_OIeOe1-gk" class="vis_1xQSr3 ">.</p>
+<p  id="Text_PIO2Y4-gk" class="vis_UKfgn1 ">tint</p>
+<p  id="Text_pNWRl3-gk" class="vis_1xQSr3 ">)</p>
+<p  id="Text_mB1Qy1-gk" class="vis_1xQSr3 ">)</p>
+<p  id="Text_jzVOB-gk" class="vis_1xQSr3 ">.</p>
+<p  id="Text_kzF253-gk" class="vis_GBD8J1 ">end</p>
+<p  id="Text_hnk0I1-gk" class="vis_1xQSr3 ">(</p>
+<p  id="Text_inUeB4-gk" class="vis_1xQSr3 ">)</p>
+<p  id="Text_fbzcO2-gk" class="vis_1xQSr3 ">;</p>
+</div>
+</div>
+<div  id="Flex_90jdO3-gk" class="lay_Zxl4O4 ">
+<p  id="Text_46uUl2-gk" class="lay_OcuwW3 vis_5a2Ng1 ">15</p>
+<div  id="Flex_CQ7HM3-gk" class="lay_Zxl4O4 vis_7B5W52 ">
+</div>
+</div>
+<div  id="Flex_6oDcb1-gk" class="lay_Zxl4O4 ">
+<p  id="Text_iLlIt2-gk" class="lay_OcuwW3 vis_5a2Ng1 ">16</p>
+<div  id="Flex_qfy4U3-gk" class="lay_Zxl4O4 vis_7B5W52 ">
+<p  id="Text_i4cGt1-gk" class="vis_UKfgn1 ">    </p>
+<p  id="Text_fs6F6-gk" class="vis_f5h9s ">Button</p>
+<p  id="Text_gsqsz2-gk" class="vis_1xQSr3 ">(</p>
+<p  id="Text_dgLrC1-gk" class="vis_UKfgn1 ">decrement</p>
+<p  id="Text_eg5V64-gk" class="vis_1xQSr3 ">)</p>
+<p  id="Text_bUaTJ2-gk" class="vis_1xQSr3 ">.</p>
+<p  id="Text_YI5SW-gk" class="vis_GBD8J1 ">hoverScale</p>
+<p  id="Text_ZIp5Q3-gk" class="vis_1xQSr3 ">(</p>
+<p  id="Text_W6K4d1-gk" class="vis_1xQSr3 ">)</p>
+<p  id="Text_ULafa4-gk" class="vis_1xQSr3 ">.</p>
+<p  id="Text_R95en2-gk" class="vis_GBD8J1 ">border</p>
+<p  id="Text_OxZc01-gk" class="vis_1xQSr3 ">(</p>
+<p  id="Text_PxJGu3-gk" class="vis_1xQSr3 ">.</p>
+<p  id="Text_MloE72-gk" class="vis_UKfgn1 ">simple</p>
+<p  id="Text_JZJDK-gk" class="vis_1xQSr3 ">)</p>
+<p  id="Text_KZ3rD3-gk" class="vis_1xQSr3 ">.</p>
+<p  id="Text_HNYpQ1-gk" class="vis_GBD8J1 ">children</p>
+<p  id="Text_INITK4-gk" class="vis_1xQSr3 ">(</p>
+<p  id="Text_FBnRX2-gk" class="vis_1xQSr3 ">{</p>
+</div>
+</div>
+<div  id="Flex_7oxFV4-gk" class="lay_Zxl4O4 ">
+<p  id="Text_pLHsK3-gk" class="lay_OcuwW3 vis_5a2Ng1 ">17</p>
+<div  id="Flex_xfUev3-gk" class="lay_Zxl4O4 vis_7B5W52 ">
+<p  id="Text_Pwz9U1-gk" class="vis_UKfgn1 ">        </p>
+<p  id="Text_QwjnN4-gk" class="vis_f5h9s ">Text</p>
+<p  id="Text_NkEma2-gk" class="vis_1xQSr3 ">(</p>
+<p  id="Text_KYjkn-gk" class="vis_x81xr3 ">"-"</p>
+<p  id="Text_LYTOh3-gk" class="vis_1xQSr3 ">)</p>
+<p  id="Text_IMyMu1-gk" class="vis_1xQSr3 ">.</p>
+<p  id="Text_FATL7-gk" class="vis_GBD8J1 ">bold</p>
+<p  id="Text_GADz03-gk" class="vis_1xQSr3 ">(</p>
+<p  id="Text_DyhxD1-gk" class="vis_1xQSr3 ">)</p>
+<p  id="Text_VJmTb-gk" class="vis_1xQSr3 ">.</p>
+<p  id="Text_WJW7V3-gk" class="vis_GBD8J1 ">end</p>
+<p  id="Text_T716i1-gk" class="vis_1xQSr3 ">(</p>
+<p  id="Text_U7ljb4-gk" class="vis_1xQSr3 ">)</p>
+<p  id="Text_RvFio2-gk" class="vis_1xQSr3 ">;</p>
+</div>
+</div>
+<div  id="Flex_4cSEi2-gk" class="lay_Zxl4O4 ">
+<p  id="Text_9g31k3-gk" class="lay_OcuwW3 vis_5a2Ng1 ">18</p>
+<div  id="Flex_H0HnK4-gk" class="lay_Zxl4O4 vis_7B5W52 ">
+<p  id="Text_vqvHz2-gk" class="vis_UKfgn1 ">    </p>
+<p  id="Text_seQGC1-gk" class="vis_1xQSr3 ">}</p>
+<p  id="Text_teAu54-gk" class="vis_1xQSr3 ">)</p>
+<p  id="Text_qSfsI2-gk" class="vis_1xQSr3 ">;</p>
+</div>
+</div>
+<div  id="Flex_1QxCv-gk" class="lay_Zxl4O4 ">
+<p  id="Text_Wrjh01-gk" class="lay_OcuwW3 vis_5a2Ng1 ">19</p>
+<div  id="Flex_qR41q3-gk" class="lay_Zxl4O4 vis_7B5W52 ">
+<p  id="Text_8QaPd3-gk" class="vis_1xQSr3 ">}</p>
+</div>
+</div>
+<div  id="Flex_RV5c8-gk" class="lay_Zxl4O4 ">
+<p  id="Text_BYawA4-gk" class="lay_OcuwW3 vis_5a2Ng1 ">20</p>
+<div  id="Flex_RwfaJ2-gk" class="lay_Zxl4O4 vis_7B5W52 ">
+</div>
+</div>
+</code>
+</div>
+</div>
+</div>
+<div  id="Flex_VIMDt1-gk" class="lay_yj4Je3 mapa_TK4ER4 ">
+<div  id="Flex_NOv5F3-gk" class="lay_hZvYa2 ">
+<p  id="Text_LE3jt1-gk" class="vis_lnMvY2 ">Vapor Code Sample</p>
+</div>
+<p  id="Html_wcUaC1-gk" class="vis_pEncD4 ">Vapor lets you build user interfaces using a simple, <strong>what you see is what you get</strong> approach. 
+The code on the left shows two core concepts that make Vapor special: <i style="color: rgb(var(--tint))">automatic UI updates</i>
+ and <i style="color: rgb(var(--tint))">flexible styling</i>.</p>
+
+<ul  id="List_RtRc74-gk" class="vis_kYSZA ">
+<li  id="List_t5MWo3-gk"">
+<p  id="Html_6SyA23-gk" class="vis_pEncD4 ">Notice how the counter updates? 
+We use a plain variable <i style="color: rgb(var(--tint))"><code>counter</code></i> 
+for the state, <strong>no special hooks or functions.</strong> <i style="color: rgb(var(--tint))"><code>Text</code></i>
+automatically updates when <i style="color: rgb(var(--tint))"><code>counter</code></i> changes.</p>
+
+</li>
+</ul>
+<p  id="Html_uQjCJ2-gk" class="vis_pEncD4 ">The <i style="color: rgb(var(--tint))"><code>Inline Style</code></i> Method (Chaining) For quick or unique styles, you can "chain" 
+modifiers directly onto the component. This is fast, readable, and keeps the styles right next to the component they affect.</p>
+
+<div  id="Flex_Fo9fl-gk" class="lay_Sxijj3 ">
+<div  id="Flex_J81Rj-gk" class="lay_v1GH02 ">
+<div  id="Flex_FiS1l-gk" class="lay_bjyfY3 ">
+<button  id="Butt_WEIJg3-gk" class="lay_rvVpr2 mapa_rPfvm1 vis_736Rf1 anim_yrWjP2 intr_HK65V ">
+<p  id="Text_AVRkD1-gk" class="vis_fLzDC4 ">+</p>
+</button>
+<p  id="Text_Ovg0r1-gk" class="lay_ZCPsJ vis_ddtxw ">0</p>
+<button  id="Butt_QqHG6-gk" class="lay_rvVpr2 mapa_rPfvm1 vis_736Rf1 anim_yrWjP2 intr_HK65V ">
+<p  id="Text_IUCoG4-gk" class="vis_fLzDC4 ">-</p>
+</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div  id="Flex_5LsTi-gk" class="lay_xR4q44 vis_7uRVI4 ">
+<div  id="Flex_MEfE14-gk" class="lay_iU2WM3 ">
+<p  id="Text_rWapU2-gk" class="vis_yriDC1 ">Vaporization</p>
+<p  id="Html_bHs7q2-gk" class="vis_pEncD4 ">Vaporization is a tool that allows you to generate UI from a 
+<i style="color: rgb(var(--tint))"><code>struct</code></i>
+or other data types, like 
+<i style="color: rgb(var(--tint))"><code>strings</code></i>,
+<i style="color: rgb(var(--tint))"><code>numbers</code></i>, and
+<i style="color: rgb(var(--tint))"><code>arrays</code></i>, or even
+<i style="color: rgb(var(--tint))"><code>markdown</code></i>.</p>
+
+</div>
+<div  id="Flex_J2ADE2-gk" class="lay_RKnBh1 ">
+<div  id="Flex_QQeM52-gk" class="lay_JGwEC2 vis_gFiAH2 ">
+<div  id="Flex_601m04-gk" class="lay_x4rOR3 pos_DwdZw1 mapa_Fls5t vis_i01PD2 ">
+<div  id="Flex_yaprK2-gk" class="lay_H7iHV3 ">
+<code  id="Code_VrQuw1-gk">
+<div  id="Flex_yi0o2-gk" class="lay_Zxl4O4 ">
+<p  id="Text_tYmMW-gk" class="lay_OcuwW3 vis_5a2Ng1 ">1</p>
+<div  id="Flex_D97gL3-gk" class="lay_Zxl4O4 vis_7B5W52 ">
+<p  id="Text_lKLq33-gk" class="vis_HovEC1 ">const</p>
+<p  id="Text_i8qoG1-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_j8aSA4-gk" class="vis_UKfgn1 ">LoginForm</p>
+<p  id="Text_gw4RN2-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_dkZPa-gk" class="vis_1xQSr3 ">=</p>
+<p  id="Text_ekJ3U3-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_bYo1h1-gk" class="vis_HovEC1 ">struct</p>
+<p  id="Text_cYYfa4-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_ZM3en2-gk" class="vis_1xQSr3 ">{</p>
+</div>
+</div>
+<div  id="Flex_zikRw2-gk" class="lay_Zxl4O4 ">
+<p  id="Text_5cYrA2-gk" class="lay_OcuwW3 vis_5a2Ng1 ">2</p>
+<div  id="Flex_Dwldl2-gk" class="lay_Zxl4O4 vis_7B5W52 ">
+<p  id="Text_QiokT-gk" class="vis_UKfgn1 ">    </p>
+<p  id="Text_RiYON3-gk" class="vis_UKfgn1 ">email</p>
+<p  id="Text_OW3Na1-gk" class="vis_1xQSr3 ">:</p>
+<p  id="Text_PWn0U4-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_MKIzg2-gk" class="vis_1xQSr3 ">[</p>
+<p  id="Text_J8nxt-gk" class="vis_1xQSr3 ">]</p>
+<p  id="Text_K8Xbn3-gk" class="vis_HovEC1 ">const</p>
+<p  id="Text_Hw1a02-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_EkWYD-gk" class="vis_UKfgn1 ">u8</p>
+<p  id="Text_UEWjC-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_VEGN63-gk" class="vis_1xQSr3 ">=</p>
+<p  id="Text_S2lLJ1-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_T2VzC4-gk" class="vis_x81xr3 ">""</p>
+<p  id="Text_QqzxP2-gk" class="vis_1xQSr3 ">,</p>
+</div>
+</div>
+<div  id="Flex_wWFQ91-gk" class="lay_Zxl4O4 ">
+<p  id="Text_h2i5X1-gk" class="lay_OcuwW3 vis_5a2Ng1 ">3</p>
+<div  id="Flex_pMvr72-gk" class="lay_Zxl4O4 vis_7B5W52 ">
+<p  id="Text_Bc8Qb3-gk" class="vis_UKfgn1 ">    </p>
+<p  id="Text_8QdOo1-gk" class="vis_UKfgn1 ">password</p>
+<p  id="Text_5E8N1-gk" class="vis_1xQSr3 ">:</p>
+<p  id="Text_6Es0v2-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_32Nz71-gk" class="vis_1xQSr3 ">[</p>
+<p  id="Text_427d14-gk" class="vis_1xQSr3 ">]</p>
+<p  id="Text_1qbbE2-gk" class="vis_HovEC1 ">const</p>
+<p  id="Text_yd6aR-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_zdqDL3-gk" class="vis_UKfgn1 ">u8</p>
+<p  id="Text_5di59-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_6dSj23-gk" class="vis_1xQSr3 ">=</p>
+<p  id="Text_3RxhF1-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_4RhL94-gk" class="vis_x81xr3 ">""</p>
+<p  id="Text_1FCKM2-gk" class="vis_1xQSr3 ">,</p>
+</div>
+</div>
+<div  id="Flex_xWz334-gk" class="lay_Zxl4O4 ">
+<p  id="Text_fFkQi1-gk" class="lay_OcuwW3 vis_5a2Ng1 ">4</p>
+<div  id="Flex_nZxCJ2-gk" class="lay_Zxl4O4 vis_7B5W52 ">
+<p  id="Text_eoZWX4-gk" class="vis_UKfgn1 ">    </p>
+<p  id="Text_bc4Vk2-gk" class="vis_HovEC1 ">const</p>
+<p  id="Text_YQZTx-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_ZQJ7r3-gk" class="vis_UKfgn1 ">__validations</p>
+<p  id="Text_WEo542-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_T2J4H-gk" class="vis_1xQSr3 ">=</p>
+<p  id="Text_U23iA3-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_RqXgN1-gk" class="vis_1xQSr3 ">.</p>
+<p  id="Text_SqHKH4-gk" class="vis_1xQSr3 ">{</p>
+</div>
+</div>
+<div  id="Flex_uKU2G2-gk" class="lay_Zxl4O4 ">
+<p  id="Text_ygiHZ-gk" class="lay_OcuwW3 vis_5a2Ng1 ">5</p>
+<div  id="Flex_61w3A1-gk" class="lay_Zxl4O4 vis_7B5W52 ">
+<p  id="Text_AjBZY-gk" class="vis_UKfgn1 ">        </p>
+<p  id="Text_BjvCS3-gk" class="vis_1xQSr3 ">.</p>
+<p  id="Text_8XQBf1-gk" class="vis_UKfgn1 ">email</p>
+<p  id="Text_9XApY4-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_6Lfnl2-gk" class="vis_1xQSr3 ">=</p>
+<p  id="Text_39Amy-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_49uPs3-gk" class="vis_UKfgn1 ">Validation</p>
+<p  id="Text_1xOO52-gk" class="vis_1xQSr3 ">{</p>
+<p  id="Text_yktMI-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_yclXl2-gk" class="vis_1xQSr3 ">.</p>
+<p  id="Text_vQGWy-gk" class="vis_UKfgn1 ">field_type</p>
+<p  id="Text_wQ0As3-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_tEV852-gk" class="vis_1xQSr3 ">=</p>
+<p  id="Text_q207I-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_r2kkB3-gk" class="vis_1xQSr3 ">.</p>
+<p  id="Text_oqEjO1-gk" class="vis_UKfgn1 ">email</p>
+<p  id="Text_pqyMI4-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_meTLV2-gk" class="vis_1xQSr3 ">}</p>
+<p  id="Text_jSyJi-gk" class="vis_1xQSr3 ">,</p>
+</div>
+</div>
+<div  id="Flex_r8z0T-gk" class="lay_Zxl4O4 ">
+<p  id="Text_yifqM4-gk" class="lay_OcuwW3 vis_5a2Ng1 ">6</p>
+<div  id="Flex_E7lUV2-gk" class="lay_Zxl4O4 vis_7B5W52 ">
+<p  id="Text_wcm3T4-gk" class="vis_UKfgn1 ">        </p>
+<p  id="Text_tQH2g2-gk" class="vis_1xQSr3 ">.</p>
+<p  id="Text_qEm0t-gk" class="vis_UKfgn1 ">password</p>
+<p  id="Text_rEWem3-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_o21dz1-gk" class="vis_1xQSr3 ">=</p>
+<p  id="Text_lqVbC-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_mqFF63-gk" class="vis_UKfgn1 ">Validation</p>
+<p  id="Text_jekDJ1-gk" class="vis_1xQSr3 ">{</p>
+<p  id="Text_keUrC4-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_irXCZ-gk" class="vis_1xQSr3 ">.</p>
+<p  id="Text_jrHqS3-gk" class="vis_UKfgn1 ">field_type</p>
+<p  id="Text_gfmof1-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_hfWSZ4-gk" class="vis_1xQSr3 ">=</p>
+<p  id="Text_eT1Rm2-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_bHWPz-gk" class="vis_1xQSr3 ">.</p>
+<p  id="Text_cHG3t3-gk" class="vis_UKfgn1 ">password</p>
+<p  id="Text_Z5l162-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_WtF0J-gk" class="vis_1xQSr3 ">}</p>
+<p  id="Text_XtzdC3-gk" class="vis_1xQSr3 ">,</p>
+</div>
+</div>
+<div  id="Flex_s8jeM3-gk" class="lay_Zxl4O4 ">
+<p  id="Text_mROAX1-gk" class="lay_OcuwW3 vis_5a2Ng1 ">7</p>
+<div  id="Flex_ulbw72-gk" class="lay_Zxl4O4 vis_7B5W52 ">
+<p  id="Text_yOmHC4-gk" class="vis_UKfgn1 ">    </p>
+<p  id="Text_vCHGP2-gk" class="vis_1xQSr3 ">}</p>
+<p  id="Text_s0mEc-gk" class="vis_1xQSr3 ">;</p>
+</div>
+</div>
+<div  id="Flex_pwDdZ1-gk" class="lay_Zxl4O4 ">
+<p  id="Text_OdaMb1-gk" class="lay_OcuwW3 vis_5a2Ng1 ">8</p>
+<div  id="Flex_Wxn8C2-gk" class="lay_Zxl4O4 vis_7B5W52 ">
+<p  id="Text_tQUEd-gk" class="vis_1xQSr3 ">}</p>
+<p  id="Text_uQEsW3-gk" class="vis_1xQSr3 ">;</p>
+</div>
+</div>
+<div  id="Flex_qwxGT4-gk" class="lay_Zxl4O4 ">
+<p  id="Text_XhlX62-gk" class="lay_OcuwW3 vis_5a2Ng1 ">9</p>
+<div  id="Flex_f1zJh2-gk" class="lay_Zxl4O4 vis_7B5W52 ">
+</div>
+</div>
+<div  id="Flex_qIt5c4-gk" class="lay_Zxl4O4 ">
+<p  id="Text_eVMRh3-gk" class="lay_OcuwW3 vis_5a2Ng1 ">10</p>
+<div  id="Flex_mpZDI4-gk" class="lay_Zxl4O4 vis_7B5W52 ">
+<p  id="Text_LsKA4-gk" class="vis_HovEC1 ">var</p>
+<p  id="Text_Ms4ox2-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_JgZmA1-gk" class="vis_UKfgn1 ">vaporizer</p>
+<p  id="Text_KgJQ44-gk" class="vis_1xQSr3 ">:</p>
+<p  id="Text_HUoOH2-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_EIJNU-gk" class="vis_UKfgn1 ">Vaporizer</p>
+<p  id="Text_FI31O3-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_C6Yza1-gk" class="vis_1xQSr3 ">=</p>
+<p  id="Text_D6IdU4-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_16NJe-gk" class="vis_1xQSr3 ">.</p>
+<p  id="Text_267xX3-gk" class="vis_1xQSr3 ">{</p>
+<p  id="Text_ztbvk1-gk" class="vis_1xQSr3 ">}</p>
+<p  id="Text_0uLZe4-gk" class="vis_1xQSr3 ">;</p>
+</div>
+</div>
+<div  id="Flex_n6O4p2-gk" class="lay_Zxl4O4 ">
+<p  id="Text_1iqqO2-gk" class="lay_OcuwW3 vis_5a2Ng1 ">11</p>
+<div  id="Flex_924dz2-gk" class="lay_Zxl4O4 vis_7B5W52 ">
+<p  id="Text_0CcIy-gk" class="vis_HovEC1 ">var</p>
+<p  id="Text_1CMwr3-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_yzqu42-gk" class="vis_UKfgn1 ">login_form</p>
+<p  id="Text_vnLtH-gk" class="vis_1xQSr3 ">:</p>
+<p  id="Text_wn5XB3-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_tbaVO1-gk" class="vis_UKfgn1 ">vaporizer</p>
+<p  id="Text_ubK9I4-gk" class="vis_1xQSr3 ">.</p>
+<p  id="Text_rPp7V2-gk" class="vis_f5h9s ">Form</p>
+<p  id="Text_oDK6i-gk" class="vis_1xQSr3 ">(</p>
+<p  id="Text_SO7jO2-gk" class="vis_UKfgn1 ">LoginForm</p>
+<p  id="Text_PCchb-gk" class="vis_1xQSr3 ">)</p>
+<p  id="Text_QCMLV3-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_N0rJi1-gk" class="vis_1xQSr3 ">=</p>
+<p  id="Text_O0bxb4-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_Lo5wo2-gk" class="vis_1xQSr3 ">.</p>
+<p  id="Text_Icau11-gk" class="vis_1xQSr3 ">{</p>
+<p  id="Text_JcKYv3-gk" class="vis_1xQSr3 ">}</p>
+<p  id="Text_GQpW82-gk" class="vis_1xQSr3 ">;</p>
+</div>
+</div>
+<div  id="Flex_kus221-gk" class="lay_Zxl4O4 ">
+<p  id="Text_opJiT4-gk" class="lay_OcuwW3 vis_5a2Ng1 ">12</p>
+<div  id="Flex_sxHpN-gk" class="lay_Zxl4O4 vis_7B5W52 ">
+</div>
+</div>
+<div  id="Flex_lucgv3-gk" class="lay_Zxl4O4 ">
+<p  id="Text_0Gzq2-gk" class="lay_OcuwW3 vis_5a2Ng1 ">13</p>
+<div  id="Flex_8aCdd-gk" class="lay_Zxl4O4 vis_7B5W52 ">
+<p  id="Text_PUEIh2-gk" class="vis_HovEC1 ">pub</p>
+<p  id="Text_MIjGu-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_NITun3-gk" class="vis_HovEC1 ">fn</p>
+<p  id="Text_K6ys02-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_HuSrD-gk" class="vis_GBD8J1 ">init</p>
+<p  id="Text_IuCV73-gk" class="vis_1xQSr3 ">(</p>
+<p  id="Text_FihTK1-gk" class="vis_1xQSr3 ">)</p>
+<p  id="Text_GiR7E4-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_DWw5R2-gk" class="vis_TLNmO4 ">void</p>
+<p  id="Text_zqYX53-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_we3WI1-gk" class="vis_1xQSr3 ">{</p>
+</div>
+</div>
+<div  id="Flex_ii7f82-gk" class="lay_Zxl4O4 ">
+<p  id="Text_96FwY-gk" class="lay_OcuwW3 vis_5a2Ng1 ">14</p>
+<div  id="Flex_HQSi91-gk" class="lay_Zxl4O4 vis_7B5W52 ">
+<p  id="Text_06Zcz2-gk" class="vis_UKfgn1 ">    </p>
+<p  id="Text_xt3bC1-gk" class="vis_cEtlN ">// compile the struct into a UI form</p>
+</div>
+</div>
+<div  id="Flex_fWcdL-gk" class="lay_Zxl4O4 ">
+<p  id="Text_Y3bAD1-gk" class="lay_OcuwW3 vis_5a2Ng1 ">15</p>
+<div  id="Flex_sdvT24-gk" class="lay_Zxl4O4 vis_7B5W52 ">
+<p  id="Text_qkCWI1-gk" class="vis_UKfgn1 ">    </p>
+<p  id="Text_rkw9C4-gk" class="vis_UKfgn1 ">login_form</p>
+<p  id="Text_oYR8P2-gk" class="vis_1xQSr3 ">.</p>
+<p  id="Text_lMw6c-gk" class="vis_GBD8J1 ">compile</p>
+<p  id="Text_mMgkV3-gk" class="vis_1xQSr3 ">(</p>
+<p  id="Text_jABji1-gk" class="vis_1xQSr3 ">)</p>
+<p  id="Text_kAvMc4-gk" class="vis_1xQSr3 ">;</p>
+</div>
+</div>
+<div  id="Flex_gWMHF3-gk" class="lay_Zxl4O4 ">
+<p  id="Text_8OXmR3-gk" class="lay_OcuwW3 vis_5a2Ng1 ">16</p>
+<div  id="Flex_GikY24-gk" class="lay_Zxl4O4 vis_7B5W52 ">
+<p  id="Text_9lIlf3-gk" class="vis_1xQSr3 ">}</p>
+</div>
+</div>
+<div  id="Flex_dKrFS1-gk" class="lay_Zxl4O4 ">
+<p  id="Text_jnS822-gk" class="lay_OcuwW3 vis_5a2Ng1 ">17</p>
+<div  id="Flex_r7guc2-gk" class="lay_Zxl4O4 vis_7B5W52 ">
+</div>
+</div>
+<div  id="Flex_eKbtL4-gk" class="lay_Zxl4O4 ">
+<p  id="Text_cCqto3-gk" class="lay_OcuwW3 vis_5a2Ng1 ">18</p>
+<div  id="Flex_kW3gP4-gk" class="lay_Zxl4O4 vis_7B5W52 ">
+<p  id="Text_96RT73-gk" class="vis_HovEC1 ">fn</p>
+<p  id="Text_6uvRK1-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_7uf5E4-gk" class="vis_f5h9s ">LoginComponent</p>
+<p  id="Text_4iA4R2-gk" class="vis_1xQSr3 ">(</p>
+<p  id="Text_1Wf2e-gk" class="vis_1xQSr3 ">)</p>
+<p  id="Text_2WPgX3-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_zJuek1-gk" class="vis_TLNmO4 ">void</p>
+<p  id="Text_0KeIe4-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_x79Hr2-gk" class="vis_1xQSr3 ">{</p>
+</div>
+</div>
+<div  id="Flex_b86sY2-gk" class="lay_Zxl4O4 ">
+<p  id="Text_2OFgb3-gk" class="lay_OcuwW3 vis_5a2Ng1 ">19</p>
+<div  id="Flex_AiSSC4-gk" class="lay_Zxl4O4 vis_7B5W52 ">
+<p  id="Text_CoEbn-gk" class="vis_UKfgn1 ">    </p>
+<p  id="Text_DoyEh3-gk" class="vis_UKfgn1 ">login_form</p>
+<p  id="Text_AcTDu1-gk" class="vis_1xQSr3 ">.</p>
+<p  id="Text_7QyB7-gk" class="vis_GBD8J1 ">render</p>
+<p  id="Text_8Qip03-gk" class="vis_1xQSr3 ">(</p>
+<p  id="Text_5EDoD1-gk" class="vis_1xQSr3 ">)</p>
+<p  id="Text_6ExR74-gk" class="vis_1xQSr3 ">;</p>
+</div>
+</div>
+<div  id="Flex_1EEHm1-gk" class="lay_Zxl4O4 ">
+<p  id="Text_LCjE91-gk" class="lay_OcuwW3 vis_5a2Ng1 ">20</p>
+<div  id="Flex_TWw0k1-gk" class="lay_Zxl4O4 vis_7B5W52 ">
+<p  id="Text_HL4pS1-gk" class="vis_1xQSr3 ">}</p>
+</div>
+</div>
+<div  id="Flex_2Eyuf4-gk" class="lay_Zxl4O4 ">
+<p  id="Text_Je3cR3-gk" class="lay_OcuwW3 vis_5a2Ng1 ">21</p>
+<div  id="Flex_RyGO24-gk" class="lay_Zxl4O4 vis_7B5W52 ">
+</div>
+</div>
+</code>
+</div>
+</div>
+</div>
+<div  id="Flex_NE9LI-gk" class="lay_JGwEC2 ">
+<div  id="Flex_GkdID1-gk" class="lay_toMCN4 vis_IezQy1 ">
+<p  id="Text_nUjDo-gk" class="lay_vtJG3 mapa_TK4ER4 vis_dulgq2 ">SIGN UP</p>
+<div  id="Flex_vowzO1-gk" class="lay_ph40P4 mapa_MG7pt1 ">
+
+<div  id="Flex_1X83J-gk" class="lay_vsADV ">
+
+
+
+
+<p  id="Text_AdhVV1-gk" class="lay_KMf8e2 vis_p2W5i2 ">error</p>
+</div>
+<div  id="Flex_2XsgC3-gk" class="lay_vsADV ">
+
+
+
+
+<p  id="Text_25f8Q2-gk" class="lay_KMf8e2 vis_p2W5i2 ">error</p>
+</div>
+
+<p  id="Text_4T7nr1-gk">Submit</p>
+
+
+</div>
+</div>
+</div>
+</div>
+</div>
+<div  id="Flex_6Lc7c3-gk" class="lay_ygm0M vis_7uRVI4 ">
+<div  id="Flex_7K2xm3-gk" class="lay_erITT4 ">
+<div  id="Flex_6q7EH3-gk" class="lay_s7yXu3 ">
+<div  id="Flex_vSb7o3-gk" class="lay_u6tpY1 ">
+<p  id="Text_nQxJC-gk" class="vis_yriDC1 ">Reverb</p>
+<p  id="Html_XBFcX-gk" class="vis_pEncD4 ">Reverb is a backend web framework that is built on top of
+<i style="color: rgb(var(--tint))"><code>Loom</code></i>.</p>
+
+<p  id="Html_YBzFR3-gk" class="vis_pEncD4 "><i style="color: rgb(var(--tint))"><code>Reverb</code></i>,
+has a focus on performance, built-in defaults, and a simple API.</p>
+
+<div  id="Grap_tt7ZY4-gk" class="lay_gUiP44 vis_hjI3E3 intr_0KzKp2 ">
+</div>
+</div>
+</div>
+<div  id="Flex_3ecCU1-gk" class="lay_s7yXu3 vis_gFiAH2 ">
+<div  id="Flex_Ttb6J1-gk" class="lay_x4rOR3 pos_DwdZw1 mapa_Fls5t vis_i01PD2 ">
+<div  id="Flex_V8PL5-gk" class="lay_H7iHV3 ">
+<code  id="Code_bt3cB1-gk">
+<div  id="Flex_1Oxw62-gk" class="lay_Zxl4O4 ">
+<p  id="Text_l2X964-gk" class="lay_OcuwW3 vis_5a2Ng1 ">1</p>
+<div  id="Flex_pAVG-gk" class="lay_Zxl4O4 vis_7B5W52 ">
+<p  id="Text_ffA2j3-gk" class="vis_HovEC1 ">const</p>
+<p  id="Text_cTf0w1-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_ZHAz8-gk" class="vis_UKfgn1 ">std</p>
+<p  id="Text_aHuc23-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_X5PbF1-gk" class="vis_1xQSr3 ">=</p>
+<p  id="Text_Y59F94-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_VtdDM2-gk" class="vis_UKfgn1 ">@import</p>
+<p  id="Text_Sh8CZ-gk" class="vis_1xQSr3 ">(</p>
+<p  id="Text_ThspS3-gk" class="vis_x81xr3 ">"std"</p>
+<p  id="Text_3UoKC4-gk" class="vis_1xQSr3 ">)</p>
+<p  id="Text_0IJJP2-gk" class="vis_1xQSr3 ">;</p>
+</div>
+</div>
+<div  id="Flex_yBSvJ-gk" class="lay_Zxl4O4 ">
+<p  id="Text_Qa3Ch1-gk" class="lay_OcuwW3 vis_5a2Ng1 ">2</p>
+<div  id="Flex_kAOVW4-gk" class="lay_Zxl4O4 vis_7B5W52 ">
+<p  id="Text_1ipf44-gk" class="vis_HovEC1 ">const</p>
+<p  id="Text_yVKeH2-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_vJpcU-gk" class="vis_UKfgn1 ">Reverb</p>
+<p  id="Text_wJZGO3-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_t74Fb1-gk" class="vis_1xQSr3 ">=</p>
+<p  id="Text_u7osU4-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_rvIrh2-gk" class="vis_UKfgn1 ">@import</p>
+<p  id="Text_ojnpu-gk" class="vis_1xQSr3 ">(</p>
+<p  id="Text_pjXTo3-gk" class="vis_x81xr3 ">"reverb"</p>
+<p  id="Text_Z9vRe1-gk" class="vis_1xQSr3 ">)</p>
+<p  id="Text_a9f5Y4-gk" class="vis_1xQSr3 ">;</p>
+</div>
+</div>
+<div  id="Flex_zBCZD3-gk" class="lay_Zxl4O4 ">
+<p  id="Text_uOql53-gk" class="lay_OcuwW3 vis_5a2Ng1 ">3</p>
+<div  id="Flex_2j3Yg3-gk" class="lay_Zxl4O4 vis_7B5W52 ">
+</div>
+</div>
+<div  id="Flex_wzgXQ1-gk" class="lay_Zxl4O4 ">
+<p  id="Text_yrSKR4-gk" class="lay_OcuwW3 vis_5a2Ng1 ">4</p>
+<div  id="Flex_20RRL-gk" class="lay_Zxl4O4 vis_7B5W52 ">
+<p  id="Text_X5hwd-gk" class="vis_HovEC1 ">fn</p>
+<p  id="Text_Y5RaX3-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_VtvYk1-gk" class="vis_GBD8J1 ">ping</p>
+<p  id="Text_WtfCe4-gk" class="vis_1xQSr3 ">(</p>
+<p  id="Text_ThABr2-gk" class="vis_UKfgn1 ">ctx</p>
+<p  id="Text_QVf941-gk" class="vis_1xQSr3 ">:</p>
+<p  id="Text_RVPnx3-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_OJulA2-gk" class="vis_1xQSr3 ">*</p>
+<p  id="Text_L7PkN-gk" class="vis_UKfgn1 ">Reverb</p>
+<p  id="Text_9LDOw-gk" class="vis_1xQSr3 ">.</p>
+<p  id="Text_ALx1q3-gk" class="vis_UKfgn1 ">Context</p>
+<p  id="Text_79S032-gk" class="vis_1xQSr3 ">)</p>
+<p  id="Text_4xwyF-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_5xgc93-gk" class="vis_1xQSr3 ">!</p>
+<p  id="Text_2lBbM1-gk" class="vis_TLNmO4 ">void</p>
+<p  id="Text_3lvEG4-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_0ZQDT2-gk" class="vis_1xQSr3 ">{</p>
+</div>
+</div>
+<div  id="Flex_xzQBK4-gk" class="lay_Zxl4O4 ">
+<p  id="Text_ojR4w3-gk" class="lay_OcuwW3 vis_5a2Ng1 ">5</p>
+<div  id="Flex_w3fqW4-gk" class="lay_Zxl4O4 vis_7B5W52 ">
+<p  id="Text_5Qnfv3-gk" class="vis_UKfgn1 ">    </p>
+<p  id="Text_2EIe82-gk" class="vis_HovEC1 ">try</p>
+<p  id="Text_z1ncL-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_02XGF3-gk" class="vis_UKfgn1 ">ctx</p>
+<p  id="Text_xp1FS1-gk" class="vis_1xQSr3 ">.</p>
+<p  id="Text_yplsL4-gk" class="vis_f5h9s ">STRING</p>
+<p  id="Text_vdGrY2-gk" class="vis_1xQSr3 ">(</p>
+<p  id="Text_sRlpl-gk" class="vis_x81xr3 ">"Hello World!"</p>
+<p  id="Text_tRVTf3-gk" class="vis_1xQSr3 ">)</p>
+<p  id="Text_lnw5Y1-gk" class="vis_1xQSr3 ">;</p>
+</div>
+</div>
+<div  id="Flex_unv9X2-gk" class="lay_Zxl4O4 ">
+<p  id="Text_A9NXH-gk" class="lay_OcuwW3 vis_5a2Ng1 ">6</p>
+<div  id="Flex_ITaJs-gk" class="lay_Zxl4O4 vis_7B5W52 ">
+<p  id="Text_QHtlG-gk" class="vis_1xQSr3 ">}</p>
+</div>
+</div>
+<div  id="Flex_rbQ8k-gk" class="lay_Zxl4O4 ">
+<p  id="Text_YlXol-gk" class="lay_OcuwW3 vis_5a2Ng1 ">7</p>
+<div  id="Flex_sLs7b3-gk" class="lay_Zxl4O4 vis_7B5W52 ">
+</div>
+</div>
+<div  id="Flex_sbAmd3-gk" class="lay_Zxl4O4 ">
+<p  id="Text_YgHf1-gk" class="lay_OcuwW3 vis_5a2Ng1 ">8</p>
+<div  id="Flex_g0VRc-gk" class="lay_Zxl4O4 vis_7B5W52 ">
+<p  id="Text_3mg1L1-gk" class="vis_HovEC1 ">pub</p>
+<p  id="Text_4mQfE4-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_1avdR2-gk" class="vis_HovEC1 ">fn</p>
+<p  id="Text_yNQce-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_zNAGY3-gk" class="vis_GBD8J1 ">main</p>
+<p  id="Text_wBfEl1-gk" class="vis_1xQSr3 ">(</p>
+<p  id="Text_xBPse4-gk" class="vis_1xQSr3 ">)</p>
+<p  id="Text_uztqr2-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_rnOp41-gk" class="vis_1xQSr3 ">!</p>
+<p  id="Text_rzoiQ-gk" class="vis_TLNmO4 ">void</p>
+<p  id="Text_szYMK3-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_pn3LX1-gk" class="vis_1xQSr3 ">{</p>
+</div>
+</div>
+<div  id="Flex_pPfkq1-gk" class="lay_Zxl4O4 ">
+<p  id="Text_jrGCE3-gk" class="lay_OcuwW3 vis_5a2Ng1 ">9</p>
+<div  id="Flex_rBUyo3-gk" class="lay_Zxl4O4 vis_7B5W52 ">
+<p  id="Text_FB9ri3-gk" class="vis_UKfgn1 ">    </p>
+<p  id="Text_Czdpv1-gk" class="vis_HovEC1 ">var</p>
+<p  id="Text_9n8o8-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_AnsR23-gk" class="vis_UKfgn1 ">gpa</p>
+<p  id="Text_7bNQF1-gk" class="vis_1xQSr3 ">:</p>
+<p  id="Text_8b7494-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_5Pc2M2-gk" class="vis_UKfgn1 ">std</p>
+<p  id="Text_2D71Z-gk" class="vis_1xQSr3 ">.</p>
+<p  id="Text_3DreS3-gk" class="vis_UKfgn1 ">heap</p>
+<p  id="Text_DI1T64-gk" class="vis_1xQSr3 ">.</p>
+<p  id="Text_A6WRJ2-gk" class="vis_f5h9s ">DebugAllocator</p>
+<p  id="Text_7u0QW-gk" class="vis_1xQSr3 ">(</p>
+<p  id="Text_8uk3Q3-gk" class="vis_1xQSr3 ">.</p>
+<p  id="Text_5iF2d1-gk" class="vis_1xQSr3 ">{</p>
+<p  id="Text_6izfW4-gk" class="vis_1xQSr3 ">}</p>
+<p  id="Text_3WUej2-gk" class="vis_1xQSr3 ">)</p>
+<p  id="Text_0Kzcw-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_1KjGq3-gk" class="vis_1xQSr3 ">=</p>
+<p  id="Text_y7EF32-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_ODMeG1-gk" class="vis_1xQSr3 ">.</p>
+<p  id="Text_PD6IA4-gk" class="vis_GBD8J1 ">init</p>
+<p  id="Text_M1bGN2-gk" class="vis_1xQSr3 ">(</p>
+<p  id="Text_Jp5Fa-gk" class="vis_1xQSr3 ">)</p>
+<p  id="Text_KppsT3-gk" class="vis_1xQSr3 ">;</p>
+</div>
+</div>
+<div  id="Flex_TERsU2-gk" class="lay_Zxl4O4 ">
+<p  id="Text_3bPTc1-gk" class="lay_OcuwW3 vis_5a2Ng1 ">10</p>
+<div  id="Flex_BvcFD2-gk" class="lay_Zxl4O4 vis_7B5W52 ">
+<p  id="Text_wLGtS2-gk" class="vis_UKfgn1 ">    </p>
+<p  id="Text_t9lrf-gk" class="vis_HovEC1 ">defer</p>
+<p  id="Text_u9VVZ3-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_rxzTm1-gk" class="vis_HovEC1 ">if</p>
+<p  id="Text_sxj7g4-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_plE6t2-gk" class="vis_1xQSr3 ">(</p>
+<p  id="Text_mZj461-gk" class="vis_UKfgn1 ">gpa</p>
+<p  id="Text_nZTiz3-gk" class="vis_1xQSr3 ">.</p>
+<p  id="Text_kNygC2-gk" class="vis_GBD8J1 ">deinit</p>
+<p  id="Text_cXnu6-gk" class="vis_1xQSr3 ">(</p>
+<p  id="Text_dXXY03-gk" class="vis_1xQSr3 ">)</p>
+<p  id="Text_aL2XD1-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_bLmA74-gk" class="vis_1xQSr3 ">!=</p>
+<p  id="Text_Y9H9K2-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_Vxl7X-gk" class="vis_1xQSr3 ">.</p>
+<p  id="Text_WxVlQ3-gk" class="vis_UKfgn1 ">ok</p>
+<p  id="Text_Tl0kd1-gk" class="vis_1xQSr3 ">)</p>
+<p  id="Text_UlkNX4-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_RZFMk2-gk" class="vis_UKfgn1 ">@panic</p>
+<p  id="Text_reNlx1-gk" class="vis_1xQSr3 ">(</p>
+<p  id="Text_oSsjA-gk" class="vis_x81xr3 ">"Memmory leak..."</p>
+<p  id="Text_pScN43-gk" class="vis_1xQSr3 ">)</p>
+<p  id="Text_mG7MH1-gk" class="vis_1xQSr3 ">;</p>
+</div>
+</div>
+<div  id="Flex_Q2wqh-gk" class="lay_Zxl4O4 ">
+<p  id="Text_7wQtg3-gk" class="lay_OcuwW3 vis_5a2Ng1 ">11</p>
+<div  id="Flex_NKWXp1-gk" class="lay_Zxl4O4 vis_7B5W52 ">
+<p  id="Text_eX5mZ3-gk" class="vis_UKfgn1 ">    </p>
+<p  id="Text_bLakm1-gk" class="vis_HovEC1 ">const</p>
+<p  id="Text_cLKOg4-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_Z9pMt2-gk" class="vis_UKfgn1 ">allocator</p>
+<p  id="Text_WxJL61-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_Xx3zz3-gk" class="vis_1xQSr3 ">=</p>
+<p  id="Text_UlYxC2-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_RZ3wP-gk" class="vis_UKfgn1 ">gpa</p>
+<p  id="Text_SZnZJ3-gk" class="vis_1xQSr3 ">.</p>
+<p  id="Text_aPKRx3-gk" class="vis_GBD8J1 ">allocator</p>
+<p  id="Text_XDpPA2-gk" class="vis_1xQSr3 ">(</p>
+<p  id="Text_U1KON-gk" class="vis_1xQSr3 ">)</p>
+<p  id="Text_V142H3-gk" class="vis_1xQSr3 ">;</p>
+</div>
+</div>
+<div  id="Flex_R2gUb3-gk" class="lay_Zxl4O4 ">
+<p  id="Text_tDqXI3-gk" class="lay_OcuwW3 vis_5a2Ng1 ">12</p>
+<div  id="Flex_1Y3Kt3-gk" class="lay_Zxl4O4 vis_7B5W52 ">
+</div>
+</div>
+<div  id="Flex_OqATo1-gk" class="lay_Zxl4O4 ">
+<p  id="Text_VP2kM3-gk" class="lay_OcuwW3 vis_5a2Ng1 ">13</p>
+<div  id="Flex_djFWx3-gk" class="lay_Zxl4O4 vis_7B5W52 ">
+<p  id="Text_9HaIS4-gk" class="vis_UKfgn1 ">    </p>
+<p  id="Text_655Hf2-gk" class="vis_HovEC1 ">const</p>
+<p  id="Text_3tZFs-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_4tJtl3-gk" class="vis_UKfgn1 ">server</p>
+<p  id="Text_1hory1-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_yUJqB-gk" class="vis_1xQSr3 ">=</p>
+<p  id="Text_zU3U53-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_wIYSI1-gk" class="vis_1xQSr3 ">.</p>
+<p  id="Text_xII6C4-gk" class="vis_GBD8J1 ">new</p>
+<p  id="Text_dGy4A-gk" class="vis_1xQSr3 ">(</p>
+<p  id="Text_eGii33-gk" class="vis_1xQSr3 ">.</p>
+<p  id="Text_b4DhG1-gk" class="vis_1xQSr3 ">{</p>
+<p  id="Text_c4xKA4-gk" class="vis_1xQSr3 ">}</p>
+<p  id="Text_ZsRJN2-gk" class="vis_1xQSr3 ">,</p>
+<p  id="Text_WgwHa-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_XggvT3-gk" class="vis_UKfgn1 ">allocator</p>
+<p  id="Text_UUBug1-gk" class="vis_1xQSr3 ">)</p>
+<p  id="Text_VUvXa4-gk" class="vis_1xQSr3 ">;</p>
+</div>
+</div>
+<div  id="Flex_LefR1-gk" class="lay_Zxl4O4 ">
+<p  id="Text_Q0cVU1-gk" class="lay_OcuwW3 vis_5a2Ng1 ">14</p>
+<div  id="Flex_kawoJ4-gk" class="lay_Zxl4O4 vis_7B5W52 ">
+</div>
+</div>
+<div  id="Flex_MeP5v2-gk" class="lay_Zxl4O4 ">
+<p  id="Text_lsBct3-gk" class="lay_OcuwW3 vis_5a2Ng1 ">15</p>
+<div  id="Flex_tCPOU4-gk" class="lay_Zxl4O4 vis_7B5W52 ">
+<p  id="Text_EvBpT3-gk" class="vis_UKfgn1 ">    </p>
+<p  id="Text_Bjgng1-gk" class="vis_HovEC1 ">try</p>
+<p  id="Text_CjQRa4-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_9XvPn2-gk" class="vis_UKfgn1 ">server</p>
+<p  id="Text_6LQO01-gk" class="vis_1xQSr3 ">.</p>
+<p  id="Text_7LA2u3-gk" class="vis_GBD8J1 ">get</p>
+<p  id="Text_49f072-gk" class="vis_1xQSr3 ">(</p>
+<p  id="Text_1x9zJ-gk" class="vis_x81xr3 ">"/"</p>
+<p  id="Text_2xtcD3-gk" class="vis_1xQSr3 ">,</p>
+<p  id="Text_kxi5n-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_lxSjg3-gk" class="vis_UKfgn1 ">ping</p>
+<p  id="Text_ilxht1-gk" class="vis_1xQSr3 ">,</p>
+<p  id="Text_fZSg6-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_gZCK03-gk" class="vis_1xQSr3 ">&</p>
+<p  id="Text_dNhID1-gk" class="vis_1xQSr3 ">.</p>
+<p  id="Text_eNRw64-gk" class="vis_1xQSr3 ">{</p>
+<p  id="Text_bBwuJ2-gk" class="vis_1xQSr3 ">}</p>
+<p  id="Text_YzQtW-gk" class="vis_1xQSr3 ">)</p>
+<p  id="Text_ZzAXQ3-gk" class="vis_1xQSr3 ">;</p>
+</div>
+</div>
+<div  id="Flex_JSu381-gk" class="lay_Zxl4O4 ">
+<p  id="Text_gS9fU1-gk" class="lay_OcuwW3 vis_5a2Ng1 ">16</p>
+<div  id="Flex_omMR52-gk" class="lay_Zxl4O4 vis_7B5W52 ">
+</div>
+</div>
+<div  id="Flex_KSeh14-gk" class="lay_Zxl4O4 ">
+<p  id="Text_kfHep-gk" class="lay_OcuwW3 vis_5a2Ng1 ">17</p>
+<div  id="Flex_szUQQ1-gk" class="lay_Zxl4O4 vis_7B5W52 ">
+<p  id="Text_a5BIa4-gk" class="vis_UKfgn1 ">    </p>
+<p  id="Text_XtfGn2-gk" class="vis_HovEC1 ">try</p>
+<p  id="Text_UhAF01-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_Vhust3-gk" class="vis_UKfgn1 ">server</p>
+<p  id="Text_SVPr62-gk" class="vis_1xQSr3 ">.</p>
+<p  id="Text_PJupJ-gk" class="vis_GBD8J1 ">listen</p>
+<p  id="Text_QJeTD3-gk" class="vis_1xQSr3 ">(</p>
+<p  id="Text_N79SQ1-gk" class="vis_1xQSr3 ">)</p>
+<p  id="Text_O7t5K4-gk" class="vis_1xQSr3 ">;</p>
+</div>
+</div>
+<div  id="Flex_HG9gE2-gk" class="lay_Zxl4O4 ">
+<p  id="Text_66Bsl-gk" class="lay_OcuwW3 vis_5a2Ng1 ">18</p>
+<div  id="Flex_EQOeM1-gk" class="lay_Zxl4O4 vis_7B5W52 ">
+<p  id="Text_bGv6E2-gk" class="vis_1xQSr3 ">}</p>
+</div>
+</div>
+<div  id="Flex_E4eeR-gk" class="lay_Zxl4O4 ">
+<p  id="Text_jOeNC4-gk" class="lay_OcuwW3 vis_5a2Ng1 ">19</p>
+<div  id="Flex_zmj1L2-gk" class="lay_Zxl4O4 vis_7B5W52 ">
+</div>
+</div>
+<div  id="Flex_iL1jL4-gk" class="lay_Zxl4O4 ">
+<p  id="Text_8Ar512-gk" class="lay_OcuwW3 vis_5a2Ng1 ">20</p>
+<div  id="Flex_GU4sb2-gk" class="lay_Zxl4O4 vis_7B5W52 ">
+</div>
+</div>
+</code>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div  id="Flex_3976p1-gk" class="lay_xR4q44 vis_7uRVI4 ">
+<div  id="Flex_XVRjZ3-gk" class="lay_erITT4 ">
+<div  id="Flex_T63Vt2-gk" class="lay_s7yXu3 ">
+<div  id="Flex_GQREj-gk" class="lay_u6tpY1 ">
+<p  id="Text_4bNWC-gk" class="vis_yriDC1 ">Simple Routing & Powerful Middleware</p>
+<p  id="Html_GsoyI3-gk" class="vis_pEncD4 ">Send data to client, and database with one liners. Automatic handling of errors, middleware, and more.</p>
+
+</div>
+</div>
+<div  id="Flex_QuXT61-gk" class="lay_OH75R4 vis_gFiAH2 ">
+<div  id="Flex_mS8Wz3-gk" class="lay_x4rOR3 pos_DwdZw1 mapa_Fls5t vis_i01PD2 ">
+<div  id="Flex_s52fM3-gk" class="lay_H7iHV3 ">
+<code  id="Code_YJaBQ4-gk">
+<div  id="Flex_PMLf04-gk" class="lay_Zxl4O4 ">
+<p  id="Text_TxXZB2-gk" class="lay_OcuwW3 vis_5a2Ng1 ">1</p>
+<div  id="Flex_bHlLm2-gk" class="lay_Zxl4O4 vis_7B5W52 ">
+<p  id="Text_YwxLB4-gk" class="vis_HovEC1 ">const</p>
+<p  id="Text_VkSKO2-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_SYxIb-gk" class="vis_UKfgn1 ">std</p>
+<p  id="Text_TYhwU3-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_QMCvh1-gk" class="vis_1xQSr3 ">=</p>
+<p  id="Text_RMwYb4-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_OARXo2-gk" class="vis_UKfgn1 ">@import</p>
+<p  id="Text_LyvV11-gk" class="vis_1xQSr3 ">(</p>
+<p  id="Text_Myf9v3-gk" class="vis_x81xr3 ">"std"</p>
+<p  id="Text_4h3DW-gk" class="vis_1xQSr3 ">)</p>
+<p  id="Text_5hnqP3-gk" class="vis_1xQSr3 ">;</p>
+</div>
+</div>
+<div  id="Flex_MAqdD2-gk" class="lay_Zxl4O4 ">
+<p  id="Text_9kZux3-gk" class="lay_OcuwW3 vis_5a2Ng1 ">2</p>
+<div  id="Flex_H4ngY4-gk" class="lay_Zxl4O4 vis_7B5W52 ">
+<p  id="Text_dg5r14-gk" class="vis_HovEC1 ">const</p>
+<p  id="Text_aUapE2-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_XI5oR-gk" class="vis_UKfgn1 ">Canopy</p>
+<p  id="Text_YIpRL3-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_V6KQY1-gk" class="vis_1xQSr3 ">=</p>
+<p  id="Text_W644S4-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_TuY2f2-gk" class="vis_UKfgn1 ">@import</p>
+<p  id="Text_Qi31s-gk" class="vis_1xQSr3 ">(</p>
+<p  id="Text_Rinel3-gk" class="vis_x81xr3 ">"canopy"</p>
+<p  id="Text_nPQR9-gk" class="vis_1xQSr3 ">)</p>
+<p  id="Text_oPA533-gk" class="vis_1xQSr3 ">;</p>
+</div>
+</div>
+<div  id="Flex_JyKcQ-gk" class="lay_Zxl4O4 ">
+<p  id="Text_2mqCN4-gk" class="lay_OcuwW3 vis_5a2Ng1 ">3</p>
+<div  id="Flex_IAwqV2-gk" class="lay_Zxl4O4 vis_7B5W52 ">
+</div>
+</div>
+<div  id="Flex_Ky4GK3-gk" class="lay_Zxl4O4 ">
+<p  id="Text_xrHvS3-gk" class="lay_OcuwW3 vis_5a2Ng1 ">4</p>
+<div  id="Flex_5CVh34-gk" class="lay_Zxl4O4 vis_7B5W52 ">
+<p  id="Text_KlOT74-gk" class="vis_HovEC1 ">const</p>
+<p  id="Text_HZtRK2-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_ENOQX-gk" class="vis_UKfgn1 ">User</p>
+<p  id="Text_FN84R3-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_CBd2e1-gk" class="vis_1xQSr3 ">=</p>
+<p  id="Text_DBNgX4-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_Azrek2-gk" class="vis_HovEC1 ">struct</p>
+<p  id="Text_7nMdx-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_8n6Hr3-gk" class="vis_1xQSr3 ">{</p>
+</div>
+</div>
+<div  id="Flex_HmZEX1-gk" class="lay_Zxl4O4 ">
+<p  id="Text_HCRhE3-gk" class="lay_OcuwW3 vis_5a2Ng1 ">5</p>
+<div  id="Flex_PWeTp3-gk" class="lay_Zxl4O4 vis_7B5W52 ">
+<p  id="Text_YV4Yg-gk" class="vis_UKfgn1 ">    </p>
+<p  id="Text_ZVoBa3-gk" class="vis_UKfgn1 ">name</p>
+<p  id="Text_WJJAn1-gk" class="vis_1xQSr3 ">:</p>
+<p  id="Text_T7o8-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_U7Ymt2-gk" class="vis_1xQSr3 ">[</p>
+<p  id="Text_Rv2l61-gk" class="vis_1xQSr3 ">]</p>
+<p  id="Text_SvmO04-gk" class="vis_HovEC1 ">const</p>
+<p  id="Text_PjHND2-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_MXmLQ-gk" class="vis_UKfgn1 ">u8</p>
+<p  id="Text_gBgHK2-gk" class="vis_1xQSr3 ">,</p>
+</div>
+</div>
+<div  id="Flex_ImJsQ4-gk" class="lay_Zxl4O4 ">
+<p  id="Text_6PZnK-gk" class="lay_OcuwW3 vis_5a2Ng1 ">6</p>
+<div  id="Flex_EjmZv-gk" class="lay_Zxl4O4 vis_7B5W52 ">
+<p  id="Text_Ds7W83-gk" class="vis_1xQSr3 ">}</p>
+<p  id="Text_AgcUL1-gk" class="vis_1xQSr3 ">;</p>
+</div>
+</div>
+<div  id="Flex_Faoqd2-gk" class="lay_Zxl4O4 ">
+<p  id="Text_n4PQf3-gk" class="lay_OcuwW3 vis_5a2Ng1 ">7</p>
+<div  id="Flex_vOcCG4-gk" class="lay_Zxl4O4 vis_7B5W52 ">
+</div>
+</div>
+<div  id="Flex_COJpq-gk" class="lay_Zxl4O4 ">
+<p  id="Text_z04AR1-gk" class="lay_OcuwW3 vis_5a2Ng1 ">8</p>
+<div  id="Flex_JbOTG4-gk" class="lay_Zxl4O4 vis_7B5W52 ">
+<p  id="Text_ZQFuT1-gk" class="vis_cEtlN ">// Get a user by ID</p>
+</div>
+</div>
+<div  id="Flex_DO3Tk3-gk" class="lay_Zxl4O4 ">
+<p  id="Text_eiEkK-gk" class="lay_OcuwW3 vis_5a2Ng1 ">9</p>
+<div  id="Flex_m2SWv-gk" class="lay_Zxl4O4 vis_7B5W52 ">
+<p  id="Text_UdKwp-gk" class="vis_HovEC1 ">fn</p>
+<p  id="Text_Vd4aj3-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_SRZYw1-gk" class="vis_GBD8J1 ">getUser</p>
+<p  id="Text_PF4X9-gk" class="vis_1xQSr3 ">(</p>
+<p  id="Text_QFoA33-gk" class="vis_UKfgn1 ">ctx</p>
+<p  id="Text_N3J9G1-gk" class="vis_1xQSr3 ">:</p>
+<p  id="Text_O33n94-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_LrXlM2-gk" class="vis_1xQSr3 ">*</p>
+<p  id="Text_If2kZ-gk" class="vis_UKfgn1 ">Context</p>
+<p  id="Text_UD1Xd2-gk" class="vis_1xQSr3 ">)</p>
+<p  id="Text_R1WVq-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_S1G9k3-gk" class="vis_1xQSr3 ">!</p>
+<p  id="Text_Ppk7x1-gk" class="vis_TLNmO4 ">void</p>
+<p  id="Text_MdF6A-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_Ndzj33-gk" class="vis_1xQSr3 ">{</p>
+</div>
+</div>
+<div  id="Flex_Pq0rC4-gk" class="lay_Zxl4O4 ">
+<p  id="Text_efjG3-gk" class="lay_OcuwW3 vis_5a2Ng1 ">10</p>
+<div  id="Flex_mzw2e-gk" class="lay_Zxl4O4 vis_7B5W52 ">
+<p  id="Text_2OLga3-gk" class="vis_UKfgn1 ">    </p>
+<p  id="Text_zBqen1-gk" class="vis_HovEC1 ">const</p>
+<p  id="Text_wzKd-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_xz4Hu2-gk" class="vis_UKfgn1 ">id</p>
+<p  id="Text_unZF71-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_vnJt04-gk" class="vis_1xQSr3 ">=</p>
+<p  id="Text_sborD2-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_pPJqQ-gk" class="vis_HovEC1 ">try</p>
+<p  id="Text_qP3UK3-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_MIlNR4-gk" class="vis_UKfgn1 ">ctx</p>
+<p  id="Text_J6GMe2-gk" class="vis_1xQSr3 ">.</p>
+<p  id="Text_GukKr-gk" class="vis_GBD8J1 ">param</p>
+<p  id="Text_HuUyk3-gk" class="vis_1xQSr3 ">(</p>
+<p  id="Text_Eizwx1-gk" class="vis_x81xr3 ">"id"</p>
+<p  id="Text_BWUvA-gk" class="vis_1xQSr3 ">)</p>
+<p  id="Text_CWEZ43-gk" class="vis_1xQSr3 ">;</p>
+</div>
+</div>
+<div  id="Flex_MeVpP2-gk" class="lay_Zxl4O4 ">
+<p  id="Text_2C8iV4-gk" class="lay_OcuwW3 vis_5a2Ng1 ">11</p>
+<div  id="Flex_6K6pP-gk" class="lay_Zxl4O4 vis_7B5W52 ">
+<p  id="Text_W6NVM1-gk" class="vis_UKfgn1 ">    </p>
+<p  id="Text_X679G4-gk" class="vis_HovEC1 ">const</p>
+<p  id="Text_Uub7T2-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_Ri66g-gk" class="vis_UKfgn1 ">user</p>
+<p  id="Text_SiqjZ3-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_PWLim1-gk" class="vis_1xQSr3 ">=</p>
+<p  id="Text_QW5Mg4-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_NKaKt2-gk" class="vis_HovEC1 ">try</p>
+<p  id="Text_K85J61-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_ItLWD1-gk" class="vis_UKfgn1 ">Canopy</p>
+<p  id="Text_Jt5A74-gk" class="vis_1xQSr3 ">.</p>
+<p  id="Text_Gha8K2-gk" class="vis_UKfgn1 ">db</p>
+<p  id="Text_DV57X-gk" class="vis_1xQSr3 ">.</p>
+<p  id="Text_EVpkQ3-gk" class="vis_GBD8J1 ">get</p>
+<p  id="Text_BJKjd1-gk" class="vis_1xQSr3 ">(</p>
+<p  id="Text_CJ4NX4-gk" class="vis_UKfgn1 ">User</p>
+<p  id="Text_97ZLk2-gk" class="vis_1xQSr3 ">,</p>
+<p  id="Text_6v3Kx-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_7vnxq3-gk" class="vis_UKfgn1 ">id</p>
+<p  id="Text_X0wM43-gk" class="vis_1xQSr3 ">)</p>
+<p  id="Text_UoQLH1-gk" class="vis_1xQSr3 ">;</p>
+</div>
+</div>
+<div  id="Flex_JS0oc-gk" class="lay_Zxl4O4 ">
+<p  id="Text_HdhYh3-gk" class="lay_OcuwW3 vis_5a2Ng1 ">12</p>
+<div  id="Flex_X1nCq1-gk" class="lay_Zxl4O4 vis_7B5W52 ">
+<p  id="Text_9QyRK4-gk" class="vis_UKfgn1 ">    </p>
+<p  id="Text_6ETQX2-gk" class="vis_HovEC1 ">try</p>
+<p  id="Text_32yOk-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_42i2e3-gk" class="vis_UKfgn1 ">ctx</p>
+<p  id="Text_1qC1r1-gk" class="vis_1xQSr3 ">.</p>
+<p  id="Text_ydhz3-gk" class="vis_f5h9s ">JSON</p>
+<p  id="Text_zdRdx2-gk" class="vis_1xQSr3 ">(</p>
+<p  id="Text_wRwbA1-gk" class="vis_UKfgn1 ">user</p>
+<p  id="Text_xRgF44-gk" class="vis_1xQSr3 ">)</p>
+<p  id="Text_hF4kf-gk" class="vis_1xQSr3 ">;</p>
+</div>
+</div>
+<div  id="Flex_KSkRW3-gk" class="lay_Zxl4O4 ">
+<p  id="Text_DC6913-gk" class="lay_OcuwW3 vis_5a2Ng1 ">13</p>
+<div  id="Flex_LWJvb3-gk" class="lay_Zxl4O4 vis_7B5W52 ">
+<p  id="Text_dBKhQ4-gk" class="vis_1xQSr3 ">}</p>
+</div>
+</div>
+<div  id="Flex_HGFQj1-gk" class="lay_Zxl4O4 ">
+<p  id="Text_XWsHQ3-gk" class="lay_OcuwW3 vis_5a2Ng1 ">14</p>
+<div  id="Flex_fq5414-gk" class="lay_Zxl4O4 vis_7B5W52 ">
+</div>
+</div>
+<div  id="Flex_IGz3d4-gk" class="lay_Zxl4O4 ">
+<p  id="Text_Vjucb3-gk" class="lay_OcuwW3 vis_5a2Ng1 ">15</p>
+<div  id="Flex_d38PC4-gk" class="lay_Zxl4O4 vis_7B5W52 ">
+<p  id="Text_BOnJa4-gk" class="vis_cEtlN ">// Create a new user</p>
+</div>
+</div>
+<div  id="Flex_F4U2q2-gk" class="lay_Zxl4O4 ">
+<p  id="Text_svO2J2-gk" class="lay_OcuwW3 vis_5a2Ng1 ">16</p>
+<div  id="Flex_0Gcot2-gk" class="lay_Zxl4O4 vis_7B5W52 ">
+<p  id="Text_0aeRV-gk" class="vis_HovEC1 ">fn</p>
+<p  id="Text_1aO5P3-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_yNt3c1-gk" class="vis_GBD8J1 ">createUser</p>
+<p  id="Text_zNdhV4-gk" class="vis_1xQSr3 ">(</p>
+<p  id="Text_wB8gi2-gk" class="vis_UKfgn1 ">ctx</p>
+<p  id="Text_tzcev-gk" class="vis_1xQSr3 ">:</p>
+<p  id="Text_uzMIp3-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_rnrG22-gk" class="vis_1xQSr3 ">*</p>
+<p  id="Text_obMFF-gk" class="vis_UKfgn1 ">Context</p>
+<p  id="Text_ek7X61-gk" class="vis_1xQSr3 ">)</p>
+<p  id="Text_fkrA04-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_cYM9D2-gk" class="vis_1xQSr3 ">!</p>
+<p  id="Text_ZMr7Q-gk" class="vis_TLNmO4 ">void</p>
+<p  id="Text_aMblJ3-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_XA6kW1-gk" class="vis_1xQSr3 ">{</p>
+</div>
+</div>
+<div  id="Flex_Csy031-gk" class="lay_Zxl4O4 ">
+<p  id="Text_f3stN4-gk" class="lay_OcuwW3 vis_5a2Ng1 ">17</p>
+<div  id="Flex_jBq0I-gk" class="lay_Zxl4O4 vis_7B5W52 ">
+<p  id="Text_5DfFf4-gk" class="vis_UKfgn1 ">    </p>
+<p  id="Text_21AEs2-gk" class="vis_HovEC1 ">var</p>
+<p  id="Text_zoeC51-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_0pOqy3-gk" class="vis_UKfgn1 ">user</p>
+<p  id="Text_xctoB2-gk" class="vis_1xQSr3 ">:</p>
+<p  id="Text_uQOnO-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_vQ8RI3-gk" class="vis_UKfgn1 ">User</p>
+<p  id="Text_sEdPV1-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_tEN3P4-gk" class="vis_1xQSr3 ">=</p>
+<p  id="Text_RuLrM2-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_OiqpZ-gk" class="vis_UKfgn1 ">undefined</p>
+<p  id="Text_PiaTT3-gk" class="vis_1xQSr3 ">;</p>
+</div>
+</div>
+<div  id="Flex_Dsiew3-gk" class="lay_Zxl4O4 ">
+<p  id="Text_vfmhd4-gk" class="lay_OcuwW3 vis_5a2Ng1 ">18</p>
+<div  id="Flex_znkoX-gk" class="lay_Zxl4O4 vis_7B5W52 ">
+<p  id="Text_NAKLo2-gk" class="vis_UKfgn1 ">    </p>
+<p  id="Text_KyoJ11-gk" class="vis_HovEC1 ">try</p>
+<p  id="Text_LyYxu3-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_Im3w72-gk" class="vis_UKfgn1 ">ctx</p>
+<p  id="Text_FaYuK-gk" class="vis_1xQSr3 ">.</p>
+<p  id="Text_GaIYE3-gk" class="vis_GBD8J1 ">bind</p>
+<p  id="Text_DOnWR1-gk" class="vis_1xQSr3 ">(</p>
+<p  id="Text_EOXAL4-gk" class="vis_UKfgn1 ">User</p>
+<p  id="Text_BC29Y2-gk" class="vis_1xQSr3 ">,</p>
+<p  id="Text_rzKW92-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_onpUM-gk" class="vis_1xQSr3 ">&</p>
+<p  id="Text_pnZ8G3-gk" class="vis_UKfgn1 ">user</p>
+<p  id="Text_mb47T1-gk" class="vis_1xQSr3 ">)</p>
+<p  id="Text_nbokM4-gk" class="vis_1xQSr3 ">;</p>
+</div>
+</div>
+<div  id="Flex_AgDd92-gk" class="lay_Zxl4O4 ">
+<p  id="Text_1X7Q44-gk" class="lay_OcuwW3 vis_5a2Ng1 ">19</p>
+<div  id="Flex_9rKCf4-gk" class="lay_Zxl4O4 vis_7B5W52 ">
+<p  id="Text_SA5fm3-gk" class="vis_UKfgn1 ">    </p>
+<p  id="Text_PyZdz1-gk" class="vis_HovEC1 ">try</p>
+<p  id="Text_Mm4cC-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_NmoF63-gk" class="vis_UKfgn1 ">Canopy</p>
+<p  id="Text_KaJEJ1-gk" class="vis_1xQSr3 ">.</p>
+<p  id="Text_La3sC4-gk" class="vis_UKfgn1 ">db</p>
+<p  id="Text_IOYqP2-gk" class="vis_1xQSr3 ">.</p>
+<p  id="Text_FC3pc-gk" class="vis_GBD8J1 ">insert</p>
+<p  id="Text_GCnSW3-gk" class="vis_1xQSr3 ">(</p>
+<p  id="Text_4gdNR1-gk" class="vis_UKfgn1 ">user</p>
+<p  id="Text_5gN1L4-gk" class="vis_1xQSr3 ">)</p>
+<p  id="Text_2UszX2-gk" class="vis_1xQSr3 ">;</p>
+</div>
+</div>
+<div  id="Flex_alL2N1-gk" class="lay_Zxl4O4 ">
+<p  id="Text_0ZWyT4-gk" class="lay_OcuwW3 vis_5a2Ng1 ">20</p>
+<div  id="Flex_4hU5O-gk" class="lay_Zxl4O4 vis_7B5W52 ">
+<p  id="Text_8x1c13-gk" class="vis_UKfgn1 ">    </p>
+<p  id="Text_5lWaE1-gk" class="vis_HovEC1 ">try</p>
+<p  id="Text_6lGE84-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_3ZlCL2-gk" class="vis_UKfgn1 ">ctx</p>
+<p  id="Text_0NGBY-gk" class="vis_1xQSr3 ">.</p>
+<p  id="Text_1N0pR3-gk" class="vis_f5h9s ">STRING</p>
+<p  id="Text_yAVne1-gk" class="vis_1xQSr3 ">(</p>
+<p  id="Text_zAFRY4-gk" class="vis_x81xr3 ">"User created!"</p>
+<p  id="Text_wyjPl2-gk" class="vis_1xQSr3 ">)</p>
+<p  id="Text_okOkW4-gk" class="vis_1xQSr3 ">;</p>
+</div>
+</div>
+<div  id="Flex_bl5gG4-gk" class="lay_Zxl4O4 ">
+<p  id="Text_3ZKfD-gk" class="lay_OcuwW3 vis_5a2Ng1 ">21</p>
+<div  id="Flex_BtXRo-gk" class="lay_Zxl4O4 vis_7B5W52 ">
+<p  id="Text_uGkYD3-gk" class="vis_1xQSr3 ">}</p>
+</div>
+</div>
+<div  id="Flex_YZaeT2-gk" class="lay_Zxl4O4 ">
+<p  id="Text_HrYQd4-gk" class="lay_OcuwW3 vis_5a2Ng1 ">22</p>
+<div  id="Flex_LzWXX-gk" class="lay_Zxl4O4 vis_7B5W52 ">
+</div>
+</div>
+<div  id="Flex_VN5dg-gk" class="lay_Zxl4O4 ">
+<p  id="Text_K0msm1-gk" class="lay_OcuwW3 vis_5a2Ng1 ">23</p>
+<div  id="Flex_ea6Cc4-gk" class="lay_Zxl4O4 vis_7B5W52 ">
+<p  id="Text_LLHdR2-gk" class="vis_cEtlN ">// Middleware</p>
+</div>
+</div>
+<div  id="Flex_WNpGa3-gk" class="lay_Zxl4O4 ">
+<p  id="Text_g3H5r-gk" class="lay_OcuwW3 vis_5a2Ng1 ">24</p>
+<div  id="Flex_oNUrR1-gk" class="lay_Zxl4O4 vis_7B5W52 ">
+<p  id="Text_Sebhe3-gk" class="vis_HovEC1 ">fn</p>
+<p  id="Text_PS6gr1-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_MGbe4-gk" class="vis_GBD8J1 ">logger</p>
+<p  id="Text_NGLIy2-gk" class="vis_1xQSr3 ">(</p>
+<p  id="Text_K4qGB1-gk" class="vis_UKfgn1 ">next</p>
+<p  id="Text_L4au44-gk" class="vis_1xQSr3 ">:</p>
+<p  id="Text_Is4tH2-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_FgZrU-gk" class="vis_UKfgn1 ">Next</p>
+<p  id="Text_GgJVO3-gk" class="vis_1xQSr3 ">,</p>
+<p  id="Text_8qAOt1-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_5efM6-gk" class="vis_UKfgn1 ">ctx</p>
+<p  id="Text_6eP003-gk" class="vis_1xQSr3 ">:</p>
+<p  id="Text_3SuyC1-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_4Sec64-gk" class="vis_1xQSr3 ">*</p>
+<p  id="Text_1G9bJ2-gk" class="vis_UKfgn1 ">Context</p>
+<p  id="Text_y3eZW-gk" class="vis_1xQSr3 ">)</p>
+<p  id="Text_z3ODQ3-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_wrsBd1-gk" class="vis_1xQSr3 ">!</p>
+<p  id="Text_xrcpW4-gk" class="vis_TLNmO4 ">void</p>
+<p  id="Text_NxkEk3-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_KlFDx1-gk" class="vis_1xQSr3 ">{</p>
+</div>
+</div>
+<div  id="Flex_TBKFn1-gk" class="lay_Zxl4O4 ">
+<p  id="Text_yJOcC1-gk" class="lay_OcuwW3 vis_5a2Ng1 ">25</p>
+<div  id="Flex_6ebOn1-gk" class="lay_Zxl4O4 vis_7B5W52 ">
+<p  id="Text_srg3L1-gk" class="vis_UKfgn1 ">    </p>
+<p  id="Text_trQhE4-gk" class="vis_HovEC1 ">const</p>
+<p  id="Text_qfvfR2-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_nTQee-gk" class="vis_UKfgn1 ">start</p>
+<p  id="Text_oTAIY3-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_lHfGl1-gk" class="vis_1xQSr3 ">=</p>
+<p  id="Text_mHPue4-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_j5usr2-gk" class="vis_UKfgn1 ">std</p>
+<p  id="Text_gtOr41-gk" class="vis_1xQSr3 ">.</p>
+<p  id="Text_06smR-gk" class="vis_UKfgn1 ">time</p>
+<p  id="Text_16cQL3-gk" class="vis_1xQSr3 ">.</p>
+<p  id="Text_yt6PY1-gk" class="vis_GBD8J1 ">milliTimestamp</p>
+<p  id="Text_ztq2S4-gk" class="vis_1xQSr3 ">(</p>
+<p  id="Text_whL1f2-gk" class="vis_1xQSr3 ">)</p>
+<p  id="Text_tVqzr-gk" class="vis_1xQSr3 ">;</p>
+</div>
+</div>
+<div  id="Flex_QzoD-gk" class="lay_Zxl4O4 ">
+<p  id="Text_mVbzO1-gk" class="lay_OcuwW3 vis_5a2Ng1 ">26</p>
+<div  id="Flex_6wu4s3-gk" class="lay_Zxl4O4 vis_7B5W52 ">
+<p  id="Text_bYNIa2-gk" class="vis_UKfgn1 ">    </p>
+<p  id="Text_YMsGn-gk" class="vis_HovEC1 ">defer</p>
+<p  id="Text_ZMcug3-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_WA7tt1-gk" class="vis_UKfgn1 ">std</p>
+<p  id="Text_Tybr6-gk" class="vis_1xQSr3 ">.</p>
+<p  id="Text_UyLV03-gk" class="vis_UKfgn1 ">debug</p>
+<p  id="Text_RmqTD1-gk" class="vis_1xQSr3 ">.</p>
+<p  id="Text_Sma774-gk" class="vis_GBD8J1 ">print</p>
+<p  id="Text_Pa56K2-gk" class="vis_1xQSr3 ">(</p>
+<p  id="Text_RHdH34-gk" class="vis_x81xr3 ">"Request took {d}ms\n"</p>
+<p  id="Text_O58GG2-gk" class="vis_1xQSr3 ">,</p>
+<p  id="Text_LtcET-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_MtMsM3-gk" class="vis_1xQSr3 ">.</p>
+<p  id="Text_JhrqZ1-gk" class="vis_1xQSr3 ">{</p>
+<p  id="Text_KhbUT4-gk" class="vis_UKfgn1 ">std</p>
+<p  id="Text_HV6Tg2-gk" class="vis_1xQSr3 ">.</p>
+<p  id="Text_EJbRt-gk" class="vis_UKfgn1 ">time</p>
+<p  id="Text_FJL5n3-gk" class="vis_1xQSr3 ">.</p>
+<p  id="Text_C7q302-gk" class="vis_GBD8J1 ">milliTimestamp</p>
+<p  id="Text_cCySD1-gk" class="vis_1xQSr3 ">(</p>
+<p  id="Text_dCi674-gk" class="vis_1xQSr3 ">)</p>
+<p  id="Text_a0D5K2-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_Xoh3X-gk" class="vis_1xQSr3 ">-</p>
+<p  id="Text_YoRhQ3-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_Vcwfd1-gk" class="vis_UKfgn1 ">start</p>
+<p  id="Text_WcgJX4-gk" class="vis_1xQSr3 ">}</p>
+<p  id="Text_TQBIk2-gk" class="vis_1xQSr3 ">)</p>
+<p  id="Text_QEgGx-gk" class="vis_1xQSr3 ">;</p>
+</div>
+</div>
+<div  id="Flex_RzYrt2-gk" class="lay_Zxl4O4 ">
+<p  id="Text_dtH4v1-gk" class="lay_OcuwW3 vis_5a2Ng1 ">27</p>
+<div  id="Flex_lDVqV2-gk" class="lay_Zxl4O4 vis_7B5W52 ">
+</div>
+</div>
+<div  id="Flex_On3q61-gk" class="lay_Zxl4O4 ">
+<p  id="Text_0qOMA-gk" class="lay_OcuwW3 vis_5a2Ng1 ">28</p>
+<div  id="Flex_8Ac8l-gk" class="lay_Zxl4O4 vis_7B5W52 ">
+<p  id="Text_jO3BM4-gk" class="vis_UKfgn1 ">    </p>
+<p  id="Text_gCY9Z2-gk" class="vis_HovEC1 ">try</p>
+<p  id="Text_d038m-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_e0nlf3-gk" class="vis_GBD8J1 ">next</p>
+<p  id="Text_boHks1-gk" class="vis_1xQSr3 ">(</p>
+<p  id="Text_Ycmi5-gk" class="vis_UKfgn1 ">ctx</p>
+<p  id="Text_ZcWMz2-gk" class="vis_1xQSr3 ">)</p>
+<p  id="Text_WQ1LC1-gk" class="vis_1xQSr3 ">;</p>
+</div>
+</div>
+<div  id="Flex_PnnT04-gk" class="lay_Zxl4O4 ">
+<p  id="Text_A7upG4-gk" class="lay_OcuwW3 vis_5a2Ng1 ">29</p>
+<div  id="Flex_EFswA-gk" class="lay_Zxl4O4 vis_7B5W52 ">
+<p  id="Text_bPZ7Q2-gk" class="vis_1xQSr3 ">}</p>
+</div>
+</div>
+<div  id="Flex_psvsD3-gk" class="lay_Zxl4O4 ">
+<p  id="Text_9LDo14-gk" class="lay_OcuwW3 vis_5a2Ng1 ">30</p>
+<div  id="Flex_HfQac4-gk" class="lay_Zxl4O4 vis_7B5W52 ">
+</div>
+</div>
+<div  id="Flex_mgQrQ1-gk" class="lay_Zxl4O4 ">
+<p  id="Text_RbKLN4-gk" class="lay_OcuwW3 vis_5a2Ng1 ">31</p>
+<div  id="Flex_VjISH-gk" class="lay_Zxl4O4 vis_7B5W52 ">
+<p  id="Text_BlI8S-gk" class="vis_HovEC1 ">pub</p>
+<p  id="Text_Cl2mL3-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_9ZXkY1-gk" class="vis_HovEC1 ">fn</p>
+<p  id="Text_AZHOS4-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_7NmMf2-gk" class="vis_GBD8J1 ">main</p>
+<p  id="Text_4BHLs-gk" class="vis_1xQSr3 ">(</p>
+<p  id="Text_5B1zl3-gk" class="vis_1xQSr3 ">)</p>
+<p  id="Text_2zVxy1-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_zm0wB-gk" class="vis_1xQSr3 ">!</p>
+<p  id="Text_Ztkt14-gk" class="vis_TLNmO4 ">void</p>
+<p  id="Text_WhFsE2-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_TVkqR-gk" class="vis_1xQSr3 ">{</p>
+</div>
+</div>
+<div  id="Flex_ngAVK4-gk" class="lay_Zxl4O4 ">
+<p  id="Text_VcYuM4-gk" class="lay_OcuwW3 vis_5a2Ng1 ">32</p>
+<div  id="Flex_ZkW1H-gk" class="lay_Zxl4O4 vis_7B5W52 ">
+<p  id="Text_qrTzG4-gk" class="vis_UKfgn1 ">    </p>
+<p  id="Text_nfyxT2-gk" class="vis_cEtlN ">// Initialize the server</p>
+</div>
+</div>
+<div  id="Flex_kUfTX2-gk" class="lay_Zxl4O4 ">
+<p  id="Text_cbIms2-gk" class="lay_OcuwW3 vis_5a2Ng1 ">33</p>
+<div  id="Flex_kvVYT3-gk" class="lay_Zxl4O4 vis_7B5W52 ">
+<p  id="Text_C4jUB3-gk" class="vis_UKfgn1 ">    </p>
+<p  id="Text_9sDTO1-gk" class="vis_cEtlN ">// ...</p>
+</div>
+</div>
+<div  id="Flex_hIASk-gk" class="lay_Zxl4O4 ">
+<p  id="Text_4kMy72-gk" class="lay_OcuwW3 vis_5a2Ng1 ">34</p>
+<div  id="Flex_K8ScG-gk" class="lay_Zxl4O4 vis_7B5W52 ">
+</div>
+</div>
+<div  id="Flex_iIu5e3-gk" class="lay_Zxl4O4 ">
+<p  id="Text_u87GT3-gk" class="lay_OcuwW3 vis_5a2Ng1 ">35</p>
+<div  id="Flex_2TK244-gk" class="lay_Zxl4O4 vis_7B5W52 ">
+<p  id="Text_ExBZW2-gk" class="vis_UKfgn1 ">    </p>
+<p  id="Text_BlgXj-gk" class="vis_UKfgn1 ">Canopy</p>
+<p  id="Text_ClQBd3-gk" class="vis_1xQSr3 ">.</p>
+<p  id="Text_9Zv9q1-gk" class="vis_UKfgn1 ">db</p>
+<p  id="Text_6NQ83-gk" class="vis_1xQSr3 ">.</p>
+<p  id="Text_7NAmw2-gk" class="vis_GBD8J1 ">connect</p>
+<p  id="Text_4Bfk91-gk" class="vis_1xQSr3 ">(</p>
+<p  id="Text_5BPO34-gk" class="vis_1xQSr3 ">)</p>
+<p  id="Text_2ztMG2-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_COSE42-gk" class="vis_HovEC1 ">catch</p>
+<p  id="Text_9CxCH-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_AChqA3-gk" class="vis_1xQSr3 ">|</p>
+<p  id="Text_70CpN1-gk" class="vis_UKfgn1 ">err</p>
+<p  id="Text_80wSH4-gk" class="vis_1xQSr3 ">|</p>
+<p  id="Text_5oQRU2-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_2cvPh-gk" class="vis_1xQSr3 ">{</p>
+</div>
+</div>
+<div  id="Flex_f6P4r1-gk" class="lay_Zxl4O4 ">
+<p  id="Text_HLbfA2-gk" class="lay_OcuwW3 vis_5a2Ng1 ">36</p>
+<div  id="Flex_PfoRl2-gk" class="lay_Zxl4O4 vis_7B5W52 ">
+<p  id="Text_KZyBP4-gk" class="vis_UKfgn1 ">        </p>
+<p  id="Text_HNTAc2-gk" class="vis_UKfgn1 ">std</p>
+<p  id="Text_EBy8p-gk" class="vis_1xQSr3 ">.</p>
+<p  id="Text_FBimi3-gk" class="vis_UKfgn1 ">debug</p>
+<p  id="Text_CzClv1-gk" class="vis_1xQSr3 ">.</p>
+<p  id="Text_9nhj8-gk" class="vis_GBD8J1 ">print</p>
+<p  id="Text_AnRN23-gk" class="vis_1xQSr3 ">(</p>
+<p  id="Text_7bwLF1-gk" class="vis_x81xr3 ">"Failed to connect to database: {s}\n"</p>
+<p  id="Text_8bgz84-gk" class="vis_1xQSr3 ">,</p>
+<p  id="Text_Y89EC3-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_VwdCP1-gk" class="vis_1xQSr3 ">.</p>
+<p  id="Text_WwNqI4-gk" class="vis_1xQSr3 ">{</p>
+<p  id="Text_TksoV2-gk" class="vis_UKfgn1 ">err</p>
+<p  id="Text_QYNni-gk" class="vis_1xQSr3 ">}</p>
+<p  id="Text_RY7Rc3-gk" class="vis_1xQSr3 ">)</p>
+<p  id="Text_OMcPp1-gk" class="vis_1xQSr3 ">;</p>
+</div>
+</div>
+<div  id="Flex_cut24-gk" class="lay_Zxl4O4 ">
+<p  id="Text_CvYOR2-gk" class="lay_OcuwW3 vis_5a2Ng1 ">37</p>
+<div  id="Flex_SJe2a-gk" class="lay_Zxl4O4 vis_7B5W52 ">
+<p  id="Text_G9oEw3-gk" class="vis_UKfgn1 ">        </p>
+<p  id="Text_DxID92-gk" class="vis_HovEC1 ">return</p>
+<p  id="Text_AlnBM-gk" class="vis_1xQSr3 ">;</p>
+</div>
+</div>
+<div  id="Flex_dudgx2-gk" class="lay_Zxl4O4 ">
+<p  id="Text_K5zKV4-gk" class="lay_OcuwW3 vis_5a2Ng1 ">38</p>
+<div  id="Flex_ODxRP-gk" class="lay_Zxl4O4 vis_7B5W52 ">
+<p  id="Text_AkMbh1-gk" class="vis_UKfgn1 ">    </p>
+<p  id="Text_Bk6Fb4-gk" class="vis_1xQSr3 ">}</p>
+<p  id="Text_8YbDo2-gk" class="vis_1xQSr3 ">;</p>
+</div>
+</div>
+<div  id="Flex_ai8fA1-gk" class="lay_Zxl4O4 ">
+<p  id="Text_U66kW3-gk" class="lay_OcuwW3 vis_5a2Ng1 ">39</p>
+<div  id="Flex_cQJW74-gk" class="lay_Zxl4O4 vis_7B5W52 ">
+</div>
+</div>
+<div  id="Flex_0oG4O-gk" class="lay_Zxl4O4 ">
+<p  id="Text_lZ2hE-gk" class="lay_OcuwW3 vis_5a2Ng1 ">40</p>
+<div  id="Flex_5AN043-gk" class="lay_Zxl4O4 vis_7B5W52 ">
+<p  id="Text_sVN9L-gk" class="vis_UKfgn1 ">    </p>
+<p  id="Text_tV7nE3-gk" class="vis_HovEC1 ">try</p>
+<p  id="Text_qJclR1-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_rJMPL4-gk" class="vis_UKfgn1 ">server</p>
+<p  id="Text_o7rNY2-gk" class="vis_1xQSr3 ">.</p>
+<p  id="Text_lvLMl-gk" class="vis_GBD8J1 ">get</p>
+<p  id="Text_mv50f3-gk" class="vis_1xQSr3 ">(</p>
+<p  id="Text_jjayr1-gk" class="vis_x81xr3 ">"/:id"</p>
+<p  id="Text_gX5x4-gk" class="vis_1xQSr3 ">,</p>
+<p  id="Text_SkHTJ-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_Tk17D3-gk" class="vis_UKfgn1 ">getUser</p>
+<p  id="Text_QYW5Q1-gk" class="vis_1xQSr3 ">,</p>
+<p  id="Text_RYGjJ4-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_OMlhW2-gk" class="vis_1xQSr3 ">&</p>
+<p  id="Text_LAGgj-gk" class="vis_1xQSr3 ">.</p>
+<p  id="Text_MA0Kd3-gk" class="vis_1xQSr3 ">{</p>
+<p  id="Text_JyUIq1-gk" class="vis_UKfgn1 ">logger</p>
+<p  id="Text_GmzG3-gk" class="vis_1xQSr3 ">}</p>
+<p  id="Text_Hmjuw2-gk" class="vis_1xQSr3 ">)</p>
+<p  id="Text_hrrJA2-gk" class="vis_1xQSr3 ">;</p>
+</div>
+</div>
+<div  id="Flex_1o0iH3-gk" class="lay_Zxl4O4 ">
+<p  id="Text_mAahE2-gk" class="lay_OcuwW3 vis_5a2Ng1 ">41</p>
+<div  id="Flex_uUnTp2-gk" class="lay_Zxl4O4 vis_7B5W52 ">
+<p  id="Text_DDjDM4-gk" class="vis_UKfgn1 ">    </p>
+<p  id="Text_A1ECZ2-gk" class="vis_HovEC1 ">try</p>
+<p  id="Text_7piAm-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_8pSof3-gk" class="vis_UKfgn1 ">server</p>
+<p  id="Text_5dxms1-gk" class="vis_1xQSr3 ">.</p>
+<p  id="Text_2RSl5-gk" class="vis_GBD8J1 ">post</p>
+<p  id="Text_3RCPz2-gk" class="vis_1xQSr3 ">(</p>
+<p  id="Text_0FhNC1-gk" class="vis_x81xr3 ">"/"</p>
+<p  id="Text_1FR164-gk" class="vis_1xQSr3 ">,</p>
+<p  id="Text_pMy9c1-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_qMinV4-gk" class="vis_UKfgn1 ">createUser</p>
+<p  id="Text_nADmi2-gk" class="vis_1xQSr3 ">,</p>
+<p  id="Text_kyhkv-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_lyROp3-gk" class="vis_1xQSr3 ">&</p>
+<p  id="Text_imwM22-gk" class="vis_1xQSr3 ">.</p>
+<p  id="Text_faRLF-gk" class="vis_1xQSr3 ">{</p>
+<p  id="Text_gaBz83-gk" class="vis_UKfgn1 ">logger</p>
+<p  id="Text_dOgxL1-gk" class="vis_1xQSr3 ">}</p>
+<p  id="Text_eOQbF4-gk" class="vis_1xQSr3 ">)</p>
+<p  id="Text_4UY0T3-gk" class="vis_1xQSr3 ">;</p>
+</div>
+</div>
+<div  id="Flex_ybVgU1-gk" class="lay_Zxl4O4 ">
+<p  id="Text_sOqf92-gk" class="lay_OcuwW3 vis_5a2Ng1 ">42</p>
+<div  id="Flex_0j3Sk2-gk" class="lay_Zxl4O4 vis_7B5W52 ">
+<p  id="Text_atiRn3-gk" class="vis_1xQSr3 ">}</p>
+</div>
+</div>
+<div  id="Flex_zbFKO4-gk" class="lay_Zxl4O4 ">
+<p  id="Text_wP4F92-gk" class="lay_OcuwW3 vis_5a2Ng1 ">43</p>
+<div  id="Flex_4kH1k2-gk" class="lay_Zxl4O4 vis_7B5W52 ">
+</div>
+</div>
+</code>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div  id="Flex_vICIc1-gk" class="lay_xR4q44 vis_7uRVI4 ">
+<div  id="Flex_oVSn92-gk" class="lay_erITT4 ">
+<div  id="Flex_XdHlJ-gk" class="lay_s7yXu3 ">
+<div  id="Flex_PeCot3-gk" class="lay_u6tpY1 ">
+<p  id="Text_3QDZv-gk" class="vis_yriDC1 ">Builtin WebSockets</p>
+<p  id="Html_nAVrG1-gk" class="vis_pEncD4 ">Setup websockets with ease, and use them to communicate with anyone.</p>
+
+</div>
+</div>
+<div  id="Flex_Yd1PD3-gk" class="lay_OH75R4 vis_gFiAH2 ">
+<div  id="Flex_8cy5a4-gk" class="lay_x4rOR3 pos_DwdZw1 mapa_Fls5t vis_i01PD2 ">
+<div  id="Flex_4BeyM4-gk" class="lay_H7iHV3 ">
+<code  id="Code_FDFHT-gk">
+<div  id="Flex_C7rrU3-gk" class="lay_Zxl4O4 ">
+<p  id="Text_qBUgo-gk" class="lay_OcuwW3 vis_5a2Ng1 ">1</p>
+<div  id="Flex_yVhSP1-gk" class="lay_Zxl4O4 vis_7B5W52 ">
+<p  id="Text_QR2S63-gk" class="vis_HovEC1 ">const</p>
+<p  id="Text_NFXQJ1-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_OFH4D4-gk" class="vis_UKfgn1 ">std</p>
+<p  id="Text_L3m2Q2-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_IrG1d-gk" class="vis_1xQSr3 ">=</p>
+<p  id="Text_Jr0fW3-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_GfVdj1-gk" class="vis_UKfgn1 ">@import</p>
+<p  id="Text_HfFHd4-gk" class="vis_1xQSr3 ">(</p>
+<p  id="Text_ETkFq2-gk" class="vis_x81xr3 ">"std"</p>
+<p  id="Text_KgPlP2-gk" class="vis_1xQSr3 ">)</p>
+<p  id="Text_HUujc-gk" class="vis_1xQSr3 ">;</p>
+</div>
+</div>
+<div  id="Flex_9vLqh1-gk" class="lay_Zxl4O4 ">
+<p  id="Text_vgUPq2-gk" class="lay_OcuwW3 vis_5a2Ng1 ">2</p>
+<div  id="Flex_31iBR3-gk" class="lay_Zxl4O4 vis_7B5W52 ">
+<p  id="Text_Pifsz2-gk" class="vis_HovEC1 ">const</p>
+<p  id="Text_MWArC1-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_NWuU64-gk" class="vis_UKfgn1 ">loom</p>
+<p  id="Text_KKPTJ2-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_H8uRW-gk" class="vis_1xQSr3 ">=</p>
+<p  id="Text_I8e5Q3-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_Fw84d1-gk" class="vis_UKfgn1 ">@import</p>
+<p  id="Text_GwshW4-gk" class="vis_1xQSr3 ">(</p>
+<p  id="Text_DkNgj2-gk" class="vis_x81xr3 ">"loom"</p>
+<p  id="Text_ruYbb3-gk" class="vis_1xQSr3 ">)</p>
+<p  id="Text_oi3ao1-gk" class="vis_1xQSr3 ">;</p>
+</div>
+</div>
+<div  id="Flex_Av5Ub4-gk" class="lay_Zxl4O4 ">
+<p  id="Text_bRUQ12-gk" class="lay_OcuwW3 vis_5a2Ng1 ">3</p>
+<div  id="Flex_jlhCc2-gk" class="lay_Zxl4O4 vis_7B5W52 ">
+<p  id="Text_DDJJe1-gk" class="vis_HovEC1 ">const</p>
+<p  id="Text_ED3xX4-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_B1Yvk2-gk" class="vis_UKfgn1 ">Server</p>
+<p  id="Text_8p2ux-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_9pmXr3-gk" class="vis_1xQSr3 ">=</p>
+<p  id="Text_6dHW42-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_3RmUH-gk" class="vis_UKfgn1 ">@import</p>
+<p  id="Text_4RW8B3-gk" class="vis_1xQSr3 ">(</p>
+<p  id="Text_1F17O1-gk" class="vis_x81xr3 ">"reverb"</p>
+<p  id="Text_34nlJ1-gk" class="vis_1xQSr3 ">)</p>
+<p  id="Text_44XPD4-gk" class="vis_1xQSr3 ">.</p>
+<p  id="Text_1s1OQ2-gk" class="vis_UKfgn1 ">Server</p>
+<p  id="Text_yfWMd-gk" class="vis_1xQSr3 ">;</p>
+</div>
+</div>
+<div  id="Flex_7jaSo2-gk" class="lay_Zxl4O4 ">
+<p  id="Text_a7eKQ1-gk" class="lay_OcuwW3 vis_5a2Ng1 ">4</p>
+<div  id="Flex_iRr612-gk" class="lay_Zxl4O4 vis_7B5W52 ">
+<p  id="Text_PR7lR3-gk" class="vis_HovEC1 ">const</p>
+<p  id="Text_MFcje1-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_NFMNY4-gk" class="vis_UKfgn1 ">Context</p>
+<p  id="Text_K3rLl2-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_HrLKy-gk" class="vis_1xQSr3 ">=</p>
+<p  id="Text_Ir5yr3-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_Ffaw42-gk" class="vis_UKfgn1 ">@import</p>
+<p  id="Text_CT5vH-gk" class="vis_1xQSr3 ">(</p>
+<p  id="Text_DTpYB3-gk" class="vis_x81xr3 ">"reverb"</p>
+<p  id="Text_fHaaN4-gk" class="vis_1xQSr3 ">)</p>
+<p  id="Text_c55Za2-gk" class="vis_1xQSr3 ">.</p>
+<p  id="Text_ZtZXn-gk" class="vis_UKfgn1 ">Context</p>
+<p  id="Text_atJBh3-gk" class="vis_1xQSr3 ">;</p>
+</div>
+</div>
+<div  id="Flex_4X5R11-gk" class="lay_Zxl4O4 ">
+<p  id="Text_FXivr1-gk" class="lay_OcuwW3 vis_5a2Ng1 ">5</p>
+<div  id="Flex_NrvhS2-gk" class="lay_Zxl4O4 vis_7B5W52 ">
+<p  id="Text_aqCTe1-gk" class="vis_HovEC1 ">const</p>
+<p  id="Text_bqw6Y4-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_YeR5l2-gk" class="vis_UKfgn1 ">Websocket</p>
+<p  id="Text_VSw3y-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_WSghr3-gk" class="vis_1xQSr3 ">=</p>
+<p  id="Text_TGBg42-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_Q4geH-gk" class="vis_UKfgn1 ">loom</p>
+<p  id="Text_R4QIB3-gk" class="vis_1xQSr3 ">.</p>
+<p  id="Text_OsuGO1-gk" class="vis_UKfgn1 ">WebSocket</p>
+<p  id="Text_I1P2P1-gk" class="vis_1xQSr3 ">;</p>
+</div>
+</div>
+<div  id="Flex_5Xp4v3-gk" class="lay_Zxl4O4 ">
+<p  id="Text_MAcis1-gk" class="lay_OcuwW3 vis_5a2Ng1 ">6</p>
+<div  id="Flex_UUpUT2-gk" class="lay_Zxl4O4 vis_7B5W52 ">
+</div>
+</div>
+<div  id="Flex_2LK382-gk" class="lay_Zxl4O4 ">
+<p  id="Text_S1xQJ1-gk" class="lay_OcuwW3 vis_5a2Ng1 ">7</p>
+<div  id="Flex_aLADu1-gk" class="lay_Zxl4O4 vis_7B5W52 ">
+<p  id="Text_RlRic-gk" class="vis_HovEC1 ">fn</p>
+<p  id="Text_SlBMW3-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_PZgKj1-gk" class="vis_GBD8J1 ">onConnection</p>
+<p  id="Text_QZQyc4-gk" class="vis_1xQSr3 ">(</p>
+<p  id="Text_NNvwp2-gk" class="vis_UKfgn1 ">ws</p>
+<p  id="Text_KBQv21-gk" class="vis_1xQSr3 ">:</p>
+<p  id="Text_LBAZw3-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_IzeX92-gk" class="vis_1xQSr3 ">*</p>
+<p  id="Text_Fn9WM-gk" class="vis_UKfgn1 ">Websocket</p>
+<p  id="Text_xd3oH-gk" class="vis_1xQSr3 ">)</p>
+<p  id="Text_ydnRB3-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_vRIQO1-gk" class="vis_1xQSr3 ">!</p>
+<p  id="Text_wR24I4-gk" class="vis_TLNmO4 ">void</p>
+<p  id="Text_tFX2V2-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_q321i-gk" class="vis_1xQSr3 ">{</p>
+</div>
+</div>
+<div  id="Flex_z8p1L-gk" class="lay_Zxl4O4 ">
+<p  id="Text_rhWiL4-gk" class="lay_OcuwW3 vis_5a2Ng1 ">8</p>
+<div  id="Flex_76cMU2-gk" class="lay_Zxl4O4 vis_7B5W52 ">
+<p  id="Text_ZflLP4-gk" class="vis_UKfgn1 ">    </p>
+<p  id="Text_WTGKc2-gk" class="vis_UKfgn1 ">std</p>
+<p  id="Text_THlIp-gk" class="vis_1xQSr3 ">.</p>
+<p  id="Text_UHVwi3-gk" class="vis_UKfgn1 ">debug</p>
+<p  id="Text_R50vv1-gk" class="vis_1xQSr3 ">.</p>
+<p  id="Text_OtUt8-gk" class="vis_GBD8J1 ">print</p>
+<p  id="Text_PtEX23-gk" class="vis_1xQSr3 ">(</p>
+<p  id="Text_MhjVF1-gk" class="vis_x81xr3 ">"onConnection\n"</p>
+<p  id="Text_NhT994-gk" class="vis_1xQSr3 ">,</p>
+<p  id="Text_XSHRH3-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_UGmPU1-gk" class="vis_1xQSr3 ">.</p>
+<p  id="Text_VGW3O4-gk" class="vis_1xQSr3 ">{</p>
+<p  id="Text_S412b2-gk" class="vis_1xQSr3 ">}</p>
+<p  id="Text_PsV0o-gk" class="vis_1xQSr3 ">)</p>
+<p  id="Text_QsFeh3-gk" class="vis_1xQSr3 ">;</p>
+</div>
+</div>
+<div  id="Flex_09ZfE3-gk" class="lay_Zxl4O4 ">
+<p  id="Text_3rcQ33-gk" class="lay_OcuwW3 vis_5a2Ng1 ">9</p>
+<div  id="Flex_BBqCe3-gk" class="lay_Zxl4O4 vis_7B5W52 ">
+<p  id="Text_D0Ndx1-gk" class="vis_UKfgn1 ">    </p>
+<p  id="Text_AorbA-gk" class="vis_HovEC1 ">try</p>
+<p  id="Text_BobF43-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_8c6EH1-gk" class="vis_UKfgn1 ">ws</p>
+<p  id="Text_9cqrA4-gk" class="vis_1xQSr3 ">.</p>
+<p  id="Text_6QLqN2-gk" class="vis_GBD8J1 ">sendText</p>
+<p  id="Text_3Eqoa-gk" class="vis_1xQSr3 ">(</p>
+<p  id="Text_4EaSU3-gk" class="vis_x81xr3 ">"Hello from Reverb!"</p>
+<p  id="Text_125Rh1-gk" class="vis_1xQSr3 ">)</p>
+<p  id="Text_vkJ7E2-gk" class="vis_1xQSr3 ">;</p>
+</div>
+</div>
+<div  id="Flex_gKeVL1-gk" class="lay_Zxl4O4 ">
+<p  id="Text_EOV8p3-gk" class="lay_OcuwW3 vis_5a2Ng1 ">10</p>
+<div  id="Flex_MiiuP4-gk" class="lay_Zxl4O4 vis_7B5W52 ">
+<p  id="Text_fykEZ3-gk" class="vis_1xQSr3 ">}</p>
+</div>
+</div>
+<div  id="Flex_hKO9F4-gk" class="lay_Zxl4O4 ">
+<p  id="Text_pFUz41-gk" class="lay_OcuwW3 vis_5a2Ng1 ">11</p>
+<div  id="Flex_xZhlf1-gk" class="lay_Zxl4O4 vis_7B5W52 ">
+</div>
+</div>
+<div  id="Flex_e8t7S2-gk" class="lay_Zxl4O4 ">
+<p  id="Text_Zn1th2-gk" class="lay_OcuwW3 vis_5a2Ng1 ">12</p>
+<div  id="Flex_h7FfI3-gk" class="lay_Zxl4O4 vis_7B5W52 ">
+<p  id="Text_0orfW3-gk" class="vis_HovEC1 ">fn</p>
+<p  id="Text_xbMej1-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_yb6Id4-gk" class="vis_GBD8J1 ">onMessage</p>
+<p  id="Text_vPbGq2-gk" class="vis_1xQSr3 ">(</p>
+<p  id="Text_sD6F31-gk" class="vis_UKfgn1 ">ws</p>
+<p  id="Text_tDqsw3-gk" class="vis_1xQSr3 ">:</p>
+<p  id="Text_q1Lr92-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_npppM-gk" class="vis_1xQSr3 ">*</p>
+<p  id="Text_opZTG3-gk" class="vis_UKfgn1 ">Websocket</p>
+<p  id="Text_I718J2-gk" class="vis_1xQSr3 ">,</p>
+<p  id="Text_FvV6W-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_GvFkP3-gk" class="vis_UKfgn1 ">message</p>
+<p  id="Text_Djkic1-gk" class="vis_1xQSr3 ">:</p>
+<p  id="Text_EjUMW4-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_BXzKj2-gk" class="vis_UKfgn1 ">Websocket</p>
+<p  id="Text_8LUJw-gk" class="vis_1xQSr3 ">.</p>
+<p  id="Text_9LExp3-gk" class="vis_UKfgn1 ">Message</p>
+<p  id="Text_69jv22-gk" class="vis_1xQSr3 ">)</p>
+<p  id="Text_3xDuF-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_XEby94-gk" class="vis_1xQSr3 ">!</p>
+<p  id="Text_U26xM2-gk" class="vis_TLNmO4 ">void</p>
+<p  id="Text_RqavZ-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_SqKZT3-gk" class="vis_1xQSr3 ">{</p>
+</div>
+</div>
+<div  id="Flex_bwN6f-gk" class="lay_Zxl4O4 ">
+<p  id="Text_HTJCX3-gk" class="lay_OcuwW3 vis_5a2Ng1 ">13</p>
+<div  id="Flex_XrOqf1-gk" class="lay_Zxl4O4 vis_7B5W52 ">
+<p  id="Text_wWGZK3-gk" class="vis_UKfgn1 ">    </p>
+<p  id="Text_tKlXX1-gk" class="vis_HovEC1 ">switch</p>
+<p  id="Text_uKVBR4-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_r80Ae2-gk" class="vis_1xQSr3 ">(</p>
+<p  id="Text_owU8r-gk" class="vis_UKfgn1 ">message</p>
+<p  id="Text_pwEmk3-gk" class="vis_1xQSr3 ">)</p>
+<p  id="Text_mkjkx1-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_jYEjA-gk" class="vis_1xQSr3 ">{</p>
+</div>
+</div>
+<div  id="Flex_cw7kY3-gk" class="lay_Zxl4O4 ">
+<p  id="Text_IBHRC3-gk" class="lay_OcuwW3 vis_5a2Ng1 ">14</p>
+<div  id="Flex_QVUDn3-gk" class="lay_Zxl4O4 vis_7B5W52 ">
+<p  id="Text_g6bGz1-gk" class="vis_UKfgn1 ">        </p>
+<p  id="Text_du5FC-gk" class="vis_1xQSr3 ">.</p>
+<p  id="Text_eups53-gk" class="vis_UKfgn1 ">Text</p>
+<p  id="Text_biKrI1-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_ci4VC4-gk" class="vis_1xQSr3 ">=></p>
+<p  id="Text_ZWZTP2-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_WK4Sc-gk" class="vis_1xQSr3 ">|</p>
+<p  id="Text_XKo5W3-gk" class="vis_UKfgn1 ">text</p>
+<p  id="Text_U8J4j1-gk" class="vis_1xQSr3 ">|</p>
+<p  id="Text_MCpz53-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_J0KyI1-gk" class="vis_1xQSr3 ">{</p>
+</div>
+</div>
+<div  id="Flex_Zkcil1-gk" class="lay_Zxl4O4 ">
+<p  id="Text_yl6d33-gk" class="lay_OcuwW3 vis_5a2Ng1 ">15</p>
+<div  id="Flex_66KPe3-gk" class="lay_Zxl4O4 vis_7B5W52 ">
+<p  id="Text_gHc253-gk" class="vis_UKfgn1 ">            </p>
+<p  id="Text_d571I1-gk" class="vis_UKfgn1 ">std</p>
+<p  id="Text_e5reB4-gk" class="vis_1xQSr3 ">.</p>
+<p  id="Text_btLdO2-gk" class="vis_UKfgn1 ">debug</p>
+<p  id="Text_Yhqbb-gk" class="vis_1xQSr3 ">.</p>
+<p  id="Text_ZhaFV3-gk" class="vis_GBD8J1 ">print</p>
+<p  id="Text_WV5Ei1-gk" class="vis_1xQSr3 ">(</p>
+<p  id="Text_XVprb4-gk" class="vis_x81xr3 ">"Text: {s}\n"</p>
+<p  id="Text_UJKqo2-gk" class="vis_1xQSr3 ">,</p>
+<p  id="Text_qUUEf1-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_rUEsY4-gk" class="vis_1xQSr3 ">.</p>
+<p  id="Text_oIjql2-gk" class="vis_1xQSr3 ">{</p>
+<p  id="Text_l6Epy-gk" class="vis_UKfgn1 ">text</p>
+<p  id="Text_m6ySs3-gk" class="vis_1xQSr3 ">}</p>
+<p  id="Text_juSR52-gk" class="vis_1xQSr3 ">)</p>
+<p  id="Text_gixPI-gk" class="vis_1xQSr3 ">;</p>
+</div>
+</div>
+<div  id="Flex_akMMf4-gk" class="lay_Zxl4O4 ">
+<p  id="Text_iaJO13-gk" class="lay_OcuwW3 vis_5a2Ng1 ">16</p>
+<div  id="Flex_quWAc3-gk" class="lay_Zxl4O4 vis_7B5W52 ">
+<p  id="Text_LiYqK2-gk" class="vis_UKfgn1 ">        </p>
+<p  id="Text_IW3pX-gk" class="vis_1xQSr3 ">}</p>
+<p  id="Text_JWnSR3-gk" class="vis_1xQSr3 ">,</p>
+</div>
+</div>
+<div  id="Flex_XYrKs2-gk" class="lay_Zxl4O4 ">
+<p  id="Text_vfDrp3-gk" class="lay_OcuwW3 vis_5a2Ng1 ">17</p>
+<div  id="Flex_30RdQ4-gk" class="lay_Zxl4O4 vis_7B5W52 ">
+<p  id="Text_jZSfU-gk" class="vis_UKfgn1 ">        </p>
+<p  id="Text_kZCJO3-gk" class="vis_1xQSr3 ">.</p>
+<p  id="Text_hNhHb1-gk" class="vis_UKfgn1 ">Binary</p>
+<p  id="Text_iNRvU4-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_fBwth2-gk" class="vis_1xQSr3 ">=></p>
+<p  id="Text_czQsu-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_dzAWo3-gk" class="vis_1xQSr3 ">|</p>
+<p  id="Text_anfU12-gk" class="vis_UKfgn1 ">binary</p>
+<p  id="Text_XbATE-gk" class="vis_1xQSr3 ">|</p>
+<p  id="Text_bbjsg-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_cbTWa3-gk" class="vis_1xQSr3 ">{</p>
+</div>
+</div>
+<div  id="Flex_UMMJ51-gk" class="lay_Zxl4O4 ">
+<p  id="Text_1XYZG3-gk" class="lay_OcuwW3 vis_5a2Ng1 ">18</p>
+<div  id="Flex_9rlLr3-gk" class="lay_Zxl4O4 vis_7B5W52 ">
+<p  id="Text_HYt8r3-gk" class="vis_UKfgn1 ">            </p>
+<p  id="Text_EMO742-gk" class="vis_UKfgn1 ">std</p>
+<p  id="Text_BAt5H-gk" class="vis_1xQSr3 ">.</p>
+<p  id="Text_CAdjA3-gk" class="vis_UKfgn1 ">debug</p>
+<p  id="Text_9y7iN1-gk" class="vis_1xQSr3 ">.</p>
+<p  id="Text_AyrLH4-gk" class="vis_GBD8J1 ">print</p>
+<p  id="Text_7mMKU2-gk" class="vis_1xQSr3 ">(</p>
+<p  id="Text_4arIh-gk" class="vis_x81xr3 ">"Binary: {any}\n"</p>
+<p  id="Text_5abwa3-gk" class="vis_1xQSr3 ">,</p>
+<p  id="Text_DMSFp3-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_AAxD22-gk" class="vis_1xQSr3 ">.</p>
+<p  id="Text_7yRCF-gk" class="vis_1xQSr3 ">{</p>
+<p  id="Text_8yBq83-gk" class="vis_UKfgn1 ">binary</p>
+<p  id="Text_5mgoL1-gk" class="vis_1xQSr3 ">}</p>
+<p  id="Text_6mQSF4-gk" class="vis_1xQSr3 ">)</p>
+<p  id="Text_3avQS2-gk" class="vis_1xQSr3 ">;</p>
+</div>
+</div>
+<div  id="Flex_VM6xy3-gk" class="lay_Zxl4O4 ">
+<p  id="Text_58OrM2-gk" class="lay_OcuwW3 vis_5a2Ng1 ">19</p>
+<div  id="Flex_DSbdx2-gk" class="lay_Zxl4O4 vis_7B5W52 ">
+<p  id="Text_WiWoN2-gk" class="vis_UKfgn1 ">        </p>
+<p  id="Text_TW1na-gk" class="vis_1xQSr3 ">}</p>
+<p  id="Text_UWlQU3-gk" class="vis_1xQSr3 ">,</p>
+</div>
+</div>
+<div  id="Flex_vREMC3-gk" class="lay_Zxl4O4 ">
+<p  id="Text_4m5713-gk" class="lay_OcuwW3 vis_5a2Ng1 ">20</p>
+<div  id="Flex_C6Jtb3-gk" class="lay_Zxl4O4 vis_7B5W52 ">
+<p  id="Text_jA9uU4-gk" class="vis_UKfgn1 ">        </p>
+<p  id="Text_gydsh2-gk" class="vis_1xQSr3 ">.</p>
+<p  id="Text_dm8ru-gk" class="vis_UKfgn1 ">Pong</p>
+<p  id="Text_emsUo3-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_baNT12-gk" class="vis_1xQSr3 ">=></p>
+<p  id="Text_YOsRE-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_ZOc583-gk" class="vis_1xQSr3 ">|</p>
+<p  id="Text_WC74L1-gk" class="vis_UKfgn1 ">pong</p>
+<p  id="Text_XCrhE4-gk" class="vis_1xQSr3 ">|</p>
+<p  id="Text_nqX4Y1-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_oqHiR4-gk" class="vis_1xQSr3 ">{</p>
+</div>
+</div>
+<div  id="Flex_sFjKP1-gk" class="lay_Zxl4O4 ">
+<p  id="Text_fB1Tb1-gk" class="lay_OcuwW3 vis_5a2Ng1 ">21</p>
+<div  id="Flex_nVEFC2-gk" class="lay_Zxl4O4 vis_7B5W52 ">
+<p  id="Text_FX6GF1-gk" class="vis_UKfgn1 ">            </p>
+<p  id="Text_GXqt84-gk" class="vis_UKfgn1 ">std</p>
+<p  id="Text_DLLsL2-gk" class="vis_1xQSr3 ">.</p>
+<p  id="Text_A9qqY-gk" class="vis_UKfgn1 ">debug</p>
+<p  id="Text_B9aUS3-gk" class="vis_1xQSr3 ">.</p>
+<p  id="Text_8x4Tf1-gk" class="vis_GBD8J1 ">print</p>
+<p  id="Text_9xo6Z4-gk" class="vis_1xQSr3 ">(</p>
+<p  id="Text_6lJ5m2-gk" class="vis_x81xr3 ">"Pong: {any}\n"</p>
+<p  id="Text_3Zo3z-gk" class="vis_1xQSr3 ">,</p>
+<p  id="Text_JJm332-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_G7H2G-gk" class="vis_1xQSr3 ">.</p>
+<p  id="Text_H71g93-gk" class="vis_1xQSr3 ">{</p>
+<p  id="Text_EvVeM1-gk" class="vis_UKfgn1 ">pong</p>
+<p  id="Text_FvFIG4-gk" class="vis_1xQSr3 ">}</p>
+<p  id="Text_CjkGT2-gk" class="vis_1xQSr3 ">)</p>
+<p  id="Text_9XFFg-gk" class="vis_1xQSr3 ">;</p>
+</div>
+</div>
+<div  id="Flex_tFTyI4-gk" class="lay_Zxl4O4 ">
+<p  id="Text_GIIMy-gk" class="lay_OcuwW3 vis_5a2Ng1 ">22</p>
+<div  id="Flex_OcV8Z1-gk" class="lay_Zxl4O4 vis_7B5W52 ">
+<p  id="Text_sHW3Z3-gk" class="vis_UKfgn1 ">        </p>
+<p  id="Text_p512m1-gk" class="vis_1xQSr3 ">}</p>
+<p  id="Text_q5lff4-gk" class="vis_1xQSr3 ">,</p>
+</div>
+</div>
+<div  id="Flex_q3ywV2-gk" class="lay_Zxl4O4 ">
+<p  id="Text_0qpFb2-gk" class="lay_OcuwW3 vis_5a2Ng1 ">23</p>
+<div  id="Flex_8A32C3-gk" class="lay_Zxl4O4 vis_7B5W52 ">
+<p  id="Text_96W7A3-gk" class="vis_UKfgn1 ">        </p>
+<p  id="Text_6u06N1-gk" class="vis_1xQSr3 ">.</p>
+<p  id="Text_7ukjG4-gk" class="vis_UKfgn1 ">Close</p>
+<p  id="Text_4iFiT2-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_1Wkgg-gk" class="vis_1xQSr3 ">=></p>
+<p  id="Text_2WUKa3-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_zJzIn1-gk" class="vis_1xQSr3 ">|</p>
+<p  id="Text_w7UH-gk" class="vis_UKfgn1 ">close</p>
+<p  id="Text_x7Evt2-gk" class="vis_1xQSr3 ">|</p>
+<p  id="Text_HMCqM4-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_EAhoZ2-gk" class="vis_1xQSr3 ">{</p>
+</div>
+</div>
+<div  id="Flex_nrSvi-gk" class="lay_Zxl4O4 ">
+<p  id="Text_WFALX2-gk" class="lay_OcuwW3 vis_5a2Ng1 ">24</p>
+<div  id="Flex_mdFzf-gk" class="lay_Zxl4O4 vis_7B5W52 ">
+<p  id="Text_YfYiY4-gk" class="vis_UKfgn1 ">            </p>
+<p  id="Text_VT3hl2-gk" class="vis_UKfgn1 ">std</p>
+<p  id="Text_SHYfy-gk" class="vis_1xQSr3 ">.</p>
+<p  id="Text_THIJs3-gk" class="vis_UKfgn1 ">debug</p>
+<p  id="Text_Q5nH52-gk" class="vis_1xQSr3 ">.</p>
+<p  id="Text_NtHGI-gk" class="vis_GBD8J1 ">print</p>
+<p  id="Text_Ot1uB3-gk" class="vis_1xQSr3 ">(</p>
+<p  id="Text_LhWsO1-gk" class="vis_x81xr3 ">"Close: {any}\n"</p>
+<p  id="Text_MhGWI4-gk" class="vis_1xQSr3 ">,</p>
+<p  id="Text_wF7uZ3-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_t3csm1-gk" class="vis_1xQSr3 ">.</p>
+<p  id="Text_u3MWg4-gk" class="vis_1xQSr3 ">{</p>
+<p  id="Text_rrqUt2-gk" class="vis_UKfgn1 ">close</p>
+<p  id="Text_ofLT61-gk" class="vis_1xQSr3 ">}</p>
+<p  id="Text_pf5704-gk" class="vis_1xQSr3 ">)</p>
+<p  id="Text_mTa5D2-gk" class="vis_1xQSr3 ">;</p>
+</div>
+</div>
+<div  id="Flex_orCZc3-gk" class="lay_Zxl4O4 ">
+<p  id="Text_i6vci2-gk" class="lay_OcuwW3 vis_5a2Ng1 ">25</p>
+<div  id="Flex_qQ8PJ3-gk" class="lay_Zxl4O4 vis_7B5W52 ">
+<p  id="Text_wdVw74-gk" class="vis_UKfgn1 ">        </p>
+<p  id="Text_tR0vK2-gk" class="vis_1xQSr3 ">}</p>
+<p  id="Text_qFVtX-gk" class="vis_1xQSr3 ">,</p>
+</div>
+</div>
+<div  id="Flex_lfhXp1-gk" class="lay_Zxl4O4 ">
+<p  id="Text_JWqyI1-gk" class="lay_OcuwW3 vis_5a2Ng1 ">26</p>
+<div  id="Flex_Rq3lt1-gk" class="lay_Zxl4O4 vis_7B5W52 ">
+<p  id="Text_wzeRo3-gk" class="vis_UKfgn1 ">        </p>
+<p  id="Text_tn9Q12-gk" class="vis_HovEC1 ">else</p>
+<p  id="Text_qbeOE-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_rbO283-gk" class="vis_1xQSr3 ">=></p>
+<p  id="Text_oPt0L1-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_pPdeE4-gk" class="vis_1xQSr3 ">{</p>
+<p  id="Text_mD8dR2-gk" class="vis_1xQSr3 ">}</p>
+<p  id="Text_j1dbe-gk" class="vis_1xQSr3 ">,</p>
+</div>
+</div>
+<div  id="Flex_iTCW2-gk" class="lay_Zxl4O4 ">
+<p  id="Text_Z9SVB3-gk" class="lay_OcuwW3 vis_5a2Ng1 ">27</p>
+<div  id="Flex_pXX9K1-gk" class="lay_Zxl4O4 vis_7B5W52 ">
+<p  id="Text_SLV5v1-gk" class="vis_UKfgn1 ">    </p>
+<p  id="Text_P9048-gk" class="vis_1xQSr3 ">}</p>
+</div>
+</div>
+<div  id="Flex_jTw9w2-gk" class="lay_Zxl4O4 ">
+<p  id="Text_5ZoMl1-gk" class="lay_OcuwW3 vis_5a2Ng1 ">28</p>
+<div  id="Flex_Dt19M2-gk" class="lay_Zxl4O4 vis_7B5W52 ">
+<p  id="Text_kCFcS2-gk" class="vis_UKfgn1 ">    </p>
+<p  id="Text_h0kaf-gk" class="vis_HovEC1 ">try</p>
+<p  id="Text_i0UEZ3-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_foyCm1-gk" class="vis_UKfgn1 ">ws</p>
+<p  id="Text_goiqf4-gk" class="vis_1xQSr3 ">.</p>
+<p  id="Text_dcDps2-gk" class="vis_GBD8J1 ">sendText</p>
+<p  id="Text_aQin51-gk" class="vis_1xQSr3 ">(</p>
+<p  id="Text_bQSRz3-gk" class="vis_x81xr3 ">"This is onMessage send"</p>
+<p  id="Text_YExPC2-gk" class="vis_1xQSr3 ">)</p>
+<p  id="Text_IqQWe4-gk" class="vis_1xQSr3 ">;</p>
+</div>
+</div>
+<div  id="Flex_gHR891-gk" class="lay_Zxl4O4 ">
+<p  id="Text_BQ95C1-gk" class="lay_OcuwW3 vis_5a2Ng1 ">29</p>
+<div  id="Flex_JkMrm1-gk" class="lay_Zxl4O4 vis_7B5W52 ">
+<p  id="Text_dAUbw1-gk" class="vis_1xQSr3 ">}</p>
+</div>
+</div>
+<div  id="Flex_6NZXM-gk" class="lay_Zxl4O4 ">
+<p  id="Text_t2Exq-gk" class="lay_OcuwW3 vis_5a2Ng1 ">30</p>
+<div  id="Flex_DdYGg3-gk" class="lay_Zxl4O4 vis_7B5W52 ">
+</div>
+</div>
+<div  id="Flex_7NJBG3-gk" class="lay_Zxl4O4 ">
+<p  id="Text_jfUFe-gk" class="lay_OcuwW3 vis_5a2Ng1 ">31</p>
+<div  id="Flex_rzh1F1-gk" class="lay_Zxl4O4 vis_7B5W52 ">
+<p  id="Text_lZzEi-gk" class="vis_HovEC1 ">pub</p>
+<p  id="Text_mZjsb3-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_jNEro1-gk" class="vis_HovEC1 ">fn</p>
+<p  id="Text_gBjp1-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_hBTTv2-gk" class="vis_GBD8J1 ">main</p>
+<p  id="Text_ezxR81-gk" class="vis_1xQSr3 ">(</p>
+<p  id="Text_fzh524-gk" class="vis_1xQSr3 ">)</p>
+<p  id="Text_cnC4F2-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_Zbh2S-gk" class="vis_1xQSr3 ">!</p>
+<p  id="Text_bQ38E3-gk" class="vis_TLNmO4 ">void</p>
+<p  id="Text_YEY6R1-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_ZEIkK4-gk" class="vis_1xQSr3 ">{</p>
+</div>
+</div>
+<div  id="Flex_4Bo9T1-gk" class="lay_Zxl4O4 ">
+<p  id="Text_9HfNg1-gk" class="lay_OcuwW3 vis_5a2Ng1 ">32</p>
+<div  id="Flex_Hbs9H2-gk" class="lay_Zxl4O4 vis_7B5W52 ">
+<p  id="Text_hRvZg-gk" class="vis_UKfgn1 ">    </p>
+<p  id="Text_iRfDa3-gk" class="vis_HovEC1 ">var</p>
+<p  id="Text_fFACn1-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_c3fA-gk" class="vis_UKfgn1 ">allocator</p>
+<p  id="Text_d3Pot2-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_artm61-gk" class="vis_1xQSr3 ">=</p>
+<p  id="Text_brdQ04-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_Yf8PD2-gk" class="vis_UKfgn1 ">std</p>
+<p  id="Text_VTdNQ-gk" class="vis_1xQSr3 ">.</p>
+<p  id="Text_T8rGL2-gk" class="vis_UKfgn1 ">heap</p>
+<p  id="Text_QwLFY-gk" class="vis_1xQSr3 ">.</p>
+<p  id="Text_Rw5tR3-gk" class="vis_UKfgn1 ">page_allocator</p>
+<p  id="Text_Okare1-gk" class="vis_1xQSr3 ">;</p>
+</div>
+</div>
+<div  id="Flex_5BYnM4-gk" class="lay_Zxl4O4 ">
+<p  id="Text_zNw9I3-gk" class="lay_OcuwW3 vis_5a2Ng1 ">33</p>
+<div  id="Flex_7i9ws3-gk" class="lay_Zxl4O4 vis_7B5W52 ">
+</div>
+</div>
+<div  id="Flex_2z2mZ2-gk" class="lay_Zxl4O4 ">
+<p  id="Text_xaHoW-gk" class="lay_OcuwW3 vis_5a2Ng1 ">34</p>
+<div  id="Flex_5vUa71-gk" class="lay_Zxl4O4 vis_7B5W52 ">
+<p  id="Text_qtlzL-gk" class="vis_UKfgn1 ">    </p>
+<p  id="Text_rtVdF3-gk" class="vis_HovEC1 ">var</p>
+<p  id="Text_oh0cS1-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_phkFM4-gk" class="vis_UKfgn1 ">server</p>
+<p  id="Text_mVFEZ2-gk" class="vis_1xQSr3 ">:</p>
+<p  id="Text_jJkCm-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_kJUqf3-gk" class="vis_UKfgn1 ">Server</p>
+<p  id="Text_h7zos1-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_evTn5-gk" class="vis_1xQSr3 ">=</p>
+<p  id="Text_OVGMl-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_PV00f3-gk" class="vis_UKfgn1 ">undefined</p>
+<p  id="Text_MJVyr1-gk" class="vis_1xQSr3 ">;</p>
+</div>
+</div>
+<div  id="Flex_zmXkm-gk" class="lay_Zxl4O4 ">
+<p  id="Text_ZcEfc-gk" class="lay_OcuwW3 vis_5a2Ng1 ">35</p>
+<div  id="Flex_tCZyR3-gk" class="lay_Zxl4O4 vis_7B5W52 ">
+<p  id="Text_KU8Jn-gk" class="vis_UKfgn1 ">    </p>
+<p  id="Text_LUswg3-gk" class="vis_HovEC1 ">const</p>
+<p  id="Text_IINvt1-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_F6st6-gk" class="vis_UKfgn1 ">loom_config</p>
+<p  id="Text_G6cX03-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_Du6WD1-gk" class="vis_1xQSr3 ">=</p>
+<p  id="Text_Euq974-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_BiL8K2-gk" class="vis_UKfgn1 ">Server</p>
+<p  id="Text_8Wq6X-gk" class="vis_1xQSr3 ">.</p>
+<p  id="Text_ALYfE1-gk" class="vis_UKfgn1 ">Config</p>
+<p  id="Text_BLIJ84-gk" class="vis_1xQSr3 ">{</p>
+</div>
+</div>
+<div  id="Flex_0nHOg3-gk" class="lay_Zxl4O4 ">
+<p  id="Text_N0KlL-gk" class="lay_OcuwW3 vis_5a2Ng1 ">36</p>
+<div  id="Flex_VKXXw-gk" class="lay_Zxl4O4 vis_7B5W52 ">
+<p  id="Text_pZ5PS3-gk" class="vis_UKfgn1 ">        </p>
+<p  id="Text_mNaNf1-gk" class="vis_1xQSr3 ">.</p>
+<p  id="Text_nNK1Z4-gk" class="vis_UKfgn1 ">max</p>
+<p  id="Text_kBpzl2-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_hzJyy-gk" class="vis_1xQSr3 ">=</p>
+<p  id="Text_iz3cs3-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_fnYa52-gk" class="vis_UKfgn1 ">1024</p>
+<p  id="Text_cb3ZI-gk" class="vis_1xQSr3 ">,</p>
+</div>
+</div>
+<div  id="Flex_xamMt1-gk" class="lay_Zxl4O4 ">
+<p  id="Text_oVbyl3-gk" class="lay_OcuwW3 vis_5a2Ng1 ">37</p>
+<div  id="Flex_wpokM4-gk" class="lay_Zxl4O4 vis_7B5W52 ">
+<p  id="Text_b7poM2-gk" class="vis_UKfgn1 ">    </p>
+<p  id="Text_YvJnZ-gk" class="vis_1xQSr3 ">}</p>
+<p  id="Text_Zv3RT3-gk" class="vis_1xQSr3 ">;</p>
+</div>
+</div>
+<div  id="Flex_uOHL6-gk" class="lay_Zxl4O4 ">
+<p  id="Text_cWWpG1-gk" class="lay_OcuwW3 vis_5a2Ng1 ">38</p>
+<div  id="Flex_w6r864-gk" class="lay_Zxl4O4 vis_7B5W52 ">
+<p  id="Text_oYXsI4-gk" class="vis_UKfgn1 ">    </p>
+<p  id="Text_lM2rV2-gk" class="vis_HovEC1 ">try</p>
+<p  id="Text_iAXpi-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_jAHTc3-gk" class="vis_UKfgn1 ">server</p>
+<p  id="Text_gylRp1-gk" class="vis_1xQSr3 ">.</p>
+<p  id="Text_dmGQ2-gk" class="vis_GBD8J1 ">new</p>
+<p  id="Text_em04w2-gk" class="vis_1xQSr3 ">(</p>
+<p  id="Text_baV291-gk" class="vis_UKfgn1 ">loom_config</p>
+<p  id="Text_caFg24-gk" class="vis_1xQSr3 ">,</p>
+<p  id="Text_a31YW4-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_XrVWj2-gk" class="vis_1xQSr3 ">&</p>
+<p  id="Text_Uf0Vw-gk" class="vis_UKfgn1 ">allocator</p>
+<p  id="Text_Vfk8q3-gk" class="vis_1xQSr3 ">,</p>
+<p  id="Text_STF732-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_PHk5G-gk" class="vis_UKfgn1 ">null</p>
+<p  id="Text_QHUj93-gk" class="vis_1xQSr3 ">)</p>
+<p  id="Text_N5zhM1-gk" class="vis_1xQSr3 ">;</p>
+</div>
+</div>
+<div  id="Flex_vO1zz2-gk" class="lay_Zxl4O4 ">
+<p  id="Text_UXaUE2-gk" class="lay_OcuwW3 vis_5a2Ng1 ">39</p>
+<div  id="Flex_crnGp2-gk" class="lay_Zxl4O4 vis_7B5W52 ">
+</div>
+</div>
+<div  id="Flex_LU9OD2-gk" class="lay_Zxl4O4 ">
+<p  id="Text_P77bD4-gk" class="lay_OcuwW3 vis_5a2Ng1 ">40</p>
+<div  id="Flex_TF5i7-gk" class="lay_Zxl4O4 vis_7B5W52 ">
+<p  id="Text_sxCoh1-gk" class="vis_UKfgn1 ">    </p>
+<p  id="Text_txwRb4-gk" class="vis_HovEC1 ">try</p>
+<p  id="Text_qlRQo2-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_nZwO11-gk" class="vis_UKfgn1 ">server</p>
+<p  id="Text_oZg2v3-gk" class="vis_1xQSr3 ">.</p>
+<p  id="Text_lNB182-gk" class="vis_GBD8J1 ">useWss</p>
+<p  id="Text_iBgzK-gk" class="vis_1xQSr3 ">(</p>
+<p  id="Text_jBQdE3-gk" class="vis_1xQSr3 ">.</p>
+<p  id="Text_gzubR1-gk" class="vis_1xQSr3 ">{</p>
+</div>
+</div>
+<div  id="Flex_IIeMQ-gk" class="lay_Zxl4O4 ">
+<p  id="Text_vcmRV2-gk" class="lay_OcuwW3 vis_5a2Ng1 ">41</p>
+<div  id="Flex_B1s5e-gk" class="lay_Zxl4O4 vis_7B5W52 ">
+<p  id="Text_ll8qs2-gk" class="vis_UKfgn1 ">        </p>
+<p  id="Text_iZdo51-gk" class="vis_1xQSr3 ">.</p>
+<p  id="Text_jZNSz3-gk" class="vis_UKfgn1 ">onConnection</p>
+<p  id="Text_gNsQC2-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_dBNPP-gk" class="vis_1xQSr3 ">=</p>
+<p  id="Text_eB73J3-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_bzb1W1-gk" class="vis_UKfgn1 ">onConnection</p>
+<p  id="Text_czLfP4-gk" class="vis_1xQSr3 ">,</p>
+</div>
+</div>
+<div  id="Flex_JIO0K3-gk" class="lay_Zxl4O4 ">
+<p  id="Text_cbL6f3-gk" class="lay_OcuwW3 vis_5a2Ng1 ">42</p>
+<div  id="Flex_kvYsF4-gk" class="lay_Zxl4O4 vis_7B5W52 ">
+<p  id="Text_y4fGn3-gk" class="vis_UKfgn1 ">        </p>
+<p  id="Text_vs9F02-gk" class="vis_1xQSr3 ">.</p>
+<p  id="Text_sgeDD-gk" class="vis_UKfgn1 ">onMessage</p>
+<p  id="Text_tgOr63-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_qUtpJ1-gk" class="vis_1xQSr3 ">=</p>
+<p  id="Text_rUdTD4-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_oI8SQ2-gk" class="vis_UKfgn1 ">onMessage</p>
+<p  id="Text_l6dQd-gk" class="vis_1xQSr3 ">,</p>
+</div>
+</div>
+<div  id="Flex_G6tyW1-gk" class="lay_Zxl4O4 ">
+<p  id="Text_ICwMi2-gk" class="lay_OcuwW3 vis_5a2Ng1 ">43</p>
+<div  id="Flex_QW99J3-gk" class="lay_Zxl4O4 vis_7B5W52 ">
+<p  id="Text_ArAU24-gk" class="vis_UKfgn1 ">        </p>
+<p  id="Text_7ffSF2-gk" class="vis_1xQSr3 ">.</p>
+<p  id="Text_4TARS-gk" class="vis_UKfgn1 ">max_body_size</p>
+<p  id="Text_5Tu4M3-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_2HP3Z1-gk" class="vis_1xQSr3 ">=</p>
+<p  id="Text_3H9hS4-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_05eff2-gk" class="vis_UKfgn1 ">1024</p>
+<p  id="Text_xs8es-gk" class="vis_1xQSr3 ">,</p>
+</div>
+</div>
+<div  id="Flex_H6dcQ4-gk" class="lay_Zxl4O4 ">
+<p  id="Text_QM1zc4-gk" class="lay_OcuwW3 vis_5a2Ng1 ">44</p>
+<div  id="Flex_UUz5X-gk" class="lay_Zxl4O4 vis_7B5W52 ">
+<p  id="Text_ahXAR-gk" class="vis_UKfgn1 ">    </p>
+<p  id="Text_bhHoK3-gk" class="vis_1xQSr3 ">}</p>
+<p  id="Text_YVmmX1-gk" class="vis_1xQSr3 ">)</p>
+<p  id="Text_ZVWQR4-gk" class="vis_1xQSr3 ">;</p>
+</div>
+</div>
+<div  id="Flex_Eu7bd2-gk" class="lay_Zxl4O4 ">
+<p  id="Text_3PYU91-gk" class="lay_OcuwW3 vis_5a2Ng1 ">45</p>
+<div  id="Flex_BjlGk1-gk" class="lay_Zxl4O4 vis_7B5W52 ">
+</div>
+</div>
+<div  id="Flex_BicZq-gk" class="lay_Zxl4O4 ">
+<p  id="Text_FD3tU2-gk" class="lay_OcuwW3 vis_5a2Ng1 ">46</p>
+<div  id="Flex_Vb8Xd-gk" class="lay_Zxl4O4 vis_7B5W52 ">
+<p  id="Text_XyTgb-gk" class="vis_UKfgn1 ">    </p>
+<p  id="Text_YyDKV3-gk" class="vis_HovEC1 ">try</p>
+<p  id="Text_VmiIi1-gk" class="vis_UKfgn1 "> </p>
+<p  id="Text_WmSwb4-gk" class="vis_UKfgn1 ">server</p>
+<p  id="Text_Taxuo2-gk" class="vis_1xQSr3 ">.</p>
+<p  id="Text_QOSt11-gk" class="vis_GBD8J1 ">listen</p>
+<p  id="Text_ROCXv3-gk" class="vis_1xQSr3 ">(</p>
+<p  id="Text_OChV82-gk" class="vis_1xQSr3 ">)</p>
+<p  id="Text_L0CUL-gk" class="vis_1xQSr3 ">;</p>
+</div>
+</div>
+<div  id="Flex_CiMDk3-gk" class="lay_Zxl4O4 ">
+<p  id="Text_Rkvpu-gk" class="lay_OcuwW3 vis_5a2Ng1 ">47</p>
+<div  id="Flex_Z49cV1-gk" class="lay_Zxl4O4 vis_7B5W52 ">
+<p  id="Text_U8zcw3-gk" class="vis_1xQSr3 ">}</p>
+</div>
+</div>
+<div  id="Flex_9WrBx1-gk" class="lay_Zxl4O4 ">
+<p  id="Text_zyocK1-gk" class="lay_OcuwW3 vis_5a2Ng1 ">48</p>
+<div  id="Flex_7J2Pv1-gk" class="lay_Zxl4O4 vis_7B5W52 ">
+</div>
+</div>
+</code>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div  id="Flex_wIwvV4-gk" class="lay_v6rNw pos_DwdZw1 mapa_Jd1Po1 vis_hUHP9 ">
+<div  id="Flex_kt7ZO4-gk" class="lay_AS3Ff3 ">
+<div  id="Grap_XLwXe2-gk" class="lay_kSFpR4 ">
+</div>
+</div>
+<p  id="Text_WBujD-gk" class="vis_OOqwo ">Forget the templates and the modules</p>
+<p  id="Text_XBeN73-gk" class="vis_2GZRx2 ">Works out of the Box</p>
+<p  id="Text_Uz8MK1-gk" class="vis_OOqwo ">Ship Apps, with an Engine instead!</p>
+<div  id="Flex_cJM8v1-gk" class="lay_4F0tz2 mapa_tsrSN ">
+<button  id="CtxB_sKHLJ4-gk" class="lay_Qplg03 mapa_rPfvm1 vis_ltmO23 anim_rDmju1 intr_ZfPgK1 ">
+<img  id="Imag_kX65l-gk" class="lay_e383O vis_BnP951 " src="/assets/vaporize.png">
+</img>
+<p  id="Text_r3Cew-gk" class="lay_CQSaD vis_OUaIM ">Generate UI with Vaporize</p>
+</button>
+<button  id="CtxB_p8mJW2-gk" class="lay_Qplg03 mapa_rPfvm1 vis_ltmO23 anim_rDmju1 intr_ZfPgK1 ">
+<img  id="Imag_U5eyN2-gk" class="lay_e383O vis_BnP951 " src="/assets/vaporize.png">
+</img>
+<p  id="Text_bbjXZ2-gk" class="lay_CQSaD vis_OUaIM ">Generate CRUDs in seconds</p>
+</button>
+<button  id="CtxB_mwGIj-gk" class="lay_Qplg03 mapa_rPfvm1 vis_ltmO23 anim_rDmju1 intr_ZfPgK1 ">
+<img  id="Imag_ST6Uj2-gk" class="lay_e383O vis_BnP951 " src="/assets/vaporize.png">
+</img>
+<p  id="Text_Fxhd82-gk" class="lay_CQSaD vis_OUaIM ">Build your own Database</p>
+</button>
+</div>
+</div>
+<div  id="Flex_t6Rui2-gk" class="lay_xpK9o3 mapa_Fls5t vis_98VVU ">
+<div  id="Flex_9AHa93-gk" class="lay_L3xIB2 mapa_x8DNe2 ">
+<p  id="Text_Sh3L01-gk" class="vis_Q1BDN4 ">Community</p>
+<div  id="Flex_a1H7b1-gk" class="lay_ysrHf4 ">
+<a  id="Redi_dsim23-gk" class="vis_8tpww2 " aria-label="github page of tether" href="https://github.com/tether-labs">
+<p  id="Text_SeiVc1-gk" class="vis_ZtdGV1 ">Github</p>
+</a>
+<a  id="Redi_agDlF1-gk" class="vis_8tpww2 " aria-label="discord page of tether" href="https://discord.gg/tether">
+<p  id="Text_l5hMT-gk" class="vis_ZtdGV1 ">Discord</p>
+</a>
+<a  id="Redi_bgxO94-gk" class="vis_8tpww2 " aria-label="youtube page of tether" href="https://youtube.com/tetherlabs">
+<p  id="Text_ty0ET2-gk" class="vis_ZtdGV1 ">Youtube</p>
+</a>
+</div>
+</div>
+<div  id="Flex_6ylYM1-gk" class="lay_L3xIB2 mapa_x8DNe2 ">
+<p  id="Text_XOvpc3-gk" class="vis_Q1BDN4 ">Resources</p>
+<div  id="Flex_fi8cD4-gk" class="lay_b6Qkb1 ">
+<a  id="Redi_pjiq63-gk" class="vis_8tpww2 " aria-label="docs page of tether" href="https://docs.tether.sh">
+<p  id="Text_Jax7M1-gk" class="vis_ZtdGV1 ">Vapor Docs</p>
+</a>
+<a  id="Redi_mXDpJ1-gk" class="vis_8tpww2 " aria-label="docs page of tether" href="https://docs.tether.sh">
+<p  id="Text_8bkU8-gk" class="vis_ZtdGV1 ">Reverb Docs</p>
+</a>
+<a  id="Redi_nXxSD4-gk" class="vis_8tpww2 " aria-label="docs page of tether" href="https://docs.tether.sh">
+<p  id="Text_Hfvfd-gk" class="vis_ZtdGV1 ">Canopy Docs</p>
+</a>
+<a  id="Redi_kLSRQ2-gk" class="vis_8tpww2 " aria-label="blog page of tether" href="https://blog.tether.sh">
+<p  id="Text_Zv2Dz-gk" class="vis_ZtdGV1 ">Blog</p>
+</a>
+</div>
+</div>
+<div  id="Flex_7yVCG4-gk" class="lay_L3xIB2 mapa_x8DNe2 ">
+<p  id="Text_NGuZ73-gk" class="vis_Q1BDN4 ">Projects</p>
+<div  id="Flex_Va7Mi3-gk" class="lay_b6Qkb1 ">
+<a  id="Redi_U2D423-gk" class="vis_8tpww2 " aria-label="nightwatch page of tether" href="/acorn">
+<p  id="Text_apuL-gk" class="vis_ZtdGV1 ">Acorn</p>
+</a>
+<a  id="Redi_Rqh2F1-gk" class="vis_8tpww2 " aria-label="heights and minds page of tether" href="https://heightsandminds.org">
+<p  id="Text_aX1MV1-gk" class="vis_ZtdGV1 ">Heights & Minds</p>
+</a>
+<a  id="Redi_SqRg84-gk" class="vis_8tpww2 " aria-label="metal page of tether" href="https://metal.tether.sh">
+<p  id="Text_PTRob4-gk" class="vis_ZtdGV1 ">Metal</p>
+</a>
+</div>
+</div>
+<div  id="Flex_4m0BT2-gk" class="lay_L3xIB2 mapa_x8DNe2 ">
+<div  id="Flex_78WUf4-gk" class="lay_sRkjz ">
+<p  id="Text_fiig32-gk" class="vis_Q1BDN4 ">TETHER</p>
+<div  id="Grap_jBPec-gk" class="lay_9pnfr2 vis_tBb2L3 ">
+</div>
+</div>
+<p  id="Text_tPIfU-gk" class="vis_3JJM7 ">Lace up 🤘</p>
+</div>
+</div>
+</div>
+</body>
 </html>

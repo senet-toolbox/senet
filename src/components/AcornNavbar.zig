@@ -1,28 +1,24 @@
 const std = @import("std");
 const Vapor = @import("vapor");
 const Static = Vapor.Static;
-const Pure = Vapor.Pure;
-const Dynamic = Vapor.Dynamic;
 const Signal = Vapor.Signal;
 const println = Vapor.println;
 const root = @import("../main.zig");
 const Search = @import("Search.zig");
 const Kit = Vapor.Kit;
-const Chain = Vapor.Chain;
-const Text = Chain.Text;
-const Box = Chain.Box;
-const Link = Chain.Link;
-const Stack = Chain.Stack;
-const Image = Chain.Image;
-const Svg = Chain.Svg;
-const Center = Chain.Center;
-const Icon = Chain.Icon;
-const List = Chain.List;
-const ListItem = Chain.ListItem;
-const CtxButton = Chain.CtxButton;
-const RedirectLink = Chain.RedirectLink;
-const ButtonCycle = Chain.ButtonCycle;
-const Button = Chain.Button;
+const Text = Vapor.Text;
+const Box = Vapor.Box;
+const Link = Vapor.Link;
+const Stack = Vapor.Stack;
+const Image = Vapor.Image;
+const Svg = Vapor.Svg;
+const Center = Vapor.Center;
+const Icon = Vapor.Icon;
+const List = Vapor.List;
+const ListItem = Vapor.ListItem;
+const CtxButton = Vapor.CtxButton;
+const RedirectLink = Vapor.RedirectLink;
+const Button = Vapor.Button;
 const Theme = @import("theme");
 
 var theme_background: Vapor.Types.Color = undefined;
@@ -241,7 +237,7 @@ pub fn render() void {
                 });
             });
             Box.style(&.{ .layout = .right_center })({
-                ButtonCycle(.{ .on_press = openMenu }).style(&.{
+                Button(.{ .on_press = openMenu }).style(&.{
                     .size = .hw(.px(36), .px(48)),
                     .visual = .bg(.palette(.background)),
                 })({
@@ -261,7 +257,7 @@ pub fn render() void {
                     })({});
                 });
 
-                ButtonCycle(.{ .on_press = openMenu }).style(&.{
+                Button(.{ .on_press = openMenu }).style(&.{
                     .size = .hw(.px(36), .px(48)),
                     .visual = .bg(.palette(.background)),
                 })({

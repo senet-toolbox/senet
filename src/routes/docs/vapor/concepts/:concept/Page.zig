@@ -23,6 +23,7 @@ const Vaporize = @import("vaporize/Page.zig");
 const CsrVsSsr = @import("csr_vs_ssr/Page.zig");
 const CodexEngine = @import("codex-engine/Page.zig");
 const Performance = @import("performance/Page.zig");
+const Animation = @import("animation/Page.zig");
 const Memory = @import("memory/Page.zig");
 const NewToZig = @import("new-to-zig/Page.zig");
 const Menu = @import("../../Menu.zig");
@@ -31,6 +32,8 @@ const root = @import("../../../../../main.zig");
 const Sheet = @import("../../Sheet.zig").Sheet;
 const Box = Static.Box;
 const Center = Static.Center;
+const Todo = @import("todo/Page.zig");
+const ReactToVapor = @import("react-to-vapor/Page.zig");
 
 var sheet: Sheet(void, Menu.render) = undefined;
 
@@ -39,10 +42,12 @@ const Routes = enum {
     @"new-to-zig",
     vaporize,
     routing,
+    layout,
     reactivity,
-    // // performance,
-    // // // authentication,
-    // // // introduction,
+    animation,
+    // performance,
+    // // authentication,
+    // // introduction,
     kit,
     project,
     events,
@@ -54,35 +59,38 @@ const Routes = enum {
     memory,
     // // // keystone,
     // // tutorials,
-    layout,
-    // // csr_vs_ssr,
-    // // @"ui-inversion",
+    // csr_vs_ssr,
+    // @"ui-inversion",
     @"codex-engine",
+    todo,
 };
 
 // Initialization
 pub fn init() void {
     Basics.init();
+    Animation.init();
     Vaporize.init();
     Routing.init();
+    Layout.init();
     Reactivity.init();
     Kit.init();
     NewToZig.init();
-    // // Gotchas.init();
-    // // JSLibs.init();
+    // // // Gotchas.init();
+    // // // JSLibs.init();
     Events.init();
-    // // Bridge.init();
+    // // // Bridge.init();
     Project.init();
     Just.init();
     Styling.init();
     Hooks.init();
-    // Performance.init();
-    // Tutorials.init();
-    Layout.init();
-    // CsrVsSsr.init();
+    // // Performance.init();
+    // // Tutorials.init();
+    // // CsrVsSsr.init();
     CodexEngine.init();
     Memory.init();
+    // Todo.init();
     // sheet.init(&Vapor.lib.allocator_global);
+    ReactToVapor.init();
     Page(.{ .route = "/docs/vapor/concepts/:concept/" }, render, null);
 }
 
@@ -94,6 +102,9 @@ fn getRender(path: []const u8) ?*const fn () void {
             switch (route) {
                 .basics => {
                     return Basics.render;
+                },
+                .animation => {
+                    return Animation.render;
                 },
                 .vaporize => {
                     return Vaporize.render;
@@ -152,7 +163,9 @@ fn getRender(path: []const u8) ?*const fn () void {
                 .@"codex-engine" => {
                     return CodexEngine.render;
                 },
-                // else => return null,
+                .todo => {
+                    return Todo.render;
+                },
             }
         }
     }

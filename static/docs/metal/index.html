@@ -9,7 +9,7 @@
     content="Tether website includes documentation on all three components Fabric, Tether, and Treehouse. As well as instructions on installation and use cases." />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="icon" href="/assets/icon.svg" type="image/svg+xml" />
-  <!-- <link href="/zig-out/bin/vapor.wasm" as="fetch" type="application/wasm" crossorigin /> -->
+  <link rel="preload" href="/zig-out/bin/vapor.wasm" as="fetch" type="application/wasm" crossorigin />
 
   <!-- Preconnect stays the same -->
   <link href="https://fonts.googleapis.com" />
@@ -18,13 +18,11 @@
 
   <!-- Load fonts async with media trick -->
   <link
+    href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300;1,400;1,500&display=swap"
+    rel="stylesheet" media="print" onload="this.media='all'" />
+  <link
     href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,100..700;1,100..700&family=Montserrat:wght@400;700&display=swap"
     rel="stylesheet" media="print" onload="this.media='all'" />
-  <noscript>
-    <link
-      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,100..700;1,100..700&family=Montserrat:wght@400;700&display=swap"
-      rel="stylesheet" />
-  </noscript>
 
   <link rel="preload" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" as="style"
     onload="this.rel='stylesheet'" />
@@ -32,7 +30,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" />
   </noscript>
 
-  <!-- <script type="module" src="/web/wasi_obj.js"></script> -->
+  <script type="module" src="/web/wasi_obj.js"></script>
 
   <style>
     body {
@@ -107,15 +105,23 @@
       bottom: 10px;
       right: 10px;
       padding: 10px;
-      border-radius: 4px;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
       font-family: monospace;
-      font-size: 12px;
+      font-size: 14px;
       z-index: 10000;
-      background-color: rgba(var(--background));
+      /* background-color: rgba(var(--background)); */
+      background-color: rgb(var(--background));
+      background-image: radial-gradient(circle, rgb(var(--text_color)) 0.5px, transparent 0px);
+      background-size: 20px 20px;
+      background-position: center center;
+      border-width: 1px;
+      border-style: solid;
+      border-color: rgb(var(--text_color));
+      box-shadow: 4px 4px 0px 0px rgb(var(--text_color));
+      text-decoration: none;
+      color: rgb(var(--text_color));
     }
   </style>
-    <link rel="stylesheet" href="/static/style_variables.css" />
+  <link rel="stylesheet" href="/static/style_variables.css" />
   <link rel="stylesheet" href="/static/docs/metal/style.css" />
 </head></head>
 
@@ -125,199 +131,399 @@
     Frame Time: <span id="frameTime">0</span>ms<br />
     Render Time: <span id="renderTime">0</span>ms<br />
   </div>
-  <div id="contents" style="display: contents"><div  id="Flex_1910533797-genk" class="lay_2877939849 pos_4226863089 mapa_868563432 ">
+  <div id="contents" style="display: contents"><div  id="Flex_F7PI52-genk" class="lay_fcXl83 pos_7BU3c4 mapa_c1Pmw ">
 
-<div  id="Flex_3597875999-genk" class="lay_462274557 pos_2686566505 mapa_2213458730 vis_4060112500 ">
-<div  id="Flex_1483566905-genk" class="lay_1399690073 ">
-<a  id="Link_3156340840-genk" class="vis_4026586765 " aria-label="home page of tether" href="/">
-<img  id="Imag_3973669968-genk" class="lay_4125082454 " src="/assets/circlelogo.webp">
+<div  id="Flex_c6Klb2-genk" class="lay_FjeHV pos_pfYov2 mapa_GjRnP2 vis_MMutl ">
+<div  id="Flex_EQhAH-genk" class="lay_LKxiW1 ">
+<a  id="Link_MDFfj2-genk" class="vis_Ou2Cm1 " aria-label="home page of tether" href="/">
+<img  id="Imag_3a76D3-genk" class="lay_yNQAV4 " src="/assets/circlelogo.webp">
 </img>
 </a>
-<p  id="Text_2011813760-genk" class="vis_3874154844 ">Tether</p>
-<div  id="Flex_3268910740-genk" class="lay_2888630313 vis_738904499 ">
+<p  id="Text_ETdnT4-genk" class="vis_BBCjf4 ">Tether</p>
+<div  id="Flex_w5fve1-genk" class="lay_VhOU93 vis_WPwxh ">
 </div>
-<p  id="Text_3025717986-genk" class="vis_427668022 ">Docs</p>
+<p  id="Text_85dkt-genk" class="vis_qoatr3 ">Docs</p>
 </div>
-<button  id="Butt_638613694-genk" class="lay_2198888647 mapa_1029637290 vis_958342801 intr_2738320283 " aria-label="search-dialog">
-<div  id="Flex_2789358433-genk" class="lay_2352082878 ">
-<i  id="Icon_27933977-genk" class="bi bi-search vis_2456070613 " href="bi bi-search">
+<button  id="Butt_jJ7LO1-genk" class="lay_vNJoO2 mapa_4hFg71 vis_A7Qpx3 intr_xtuuh1 " aria-label="search-dialog">
+<div  id="Flex_aVpng2-genk" class="lay_cC6BZ2 ">
+<i  id="Icon_zd1wL1-genk" class="bi bi-search vis_exlBf4 " href="bi bi-search">
 </i>
-<p  id="Text_329001190-genk" class="vis_1521912593 ">Search...</p>
+<p  id="Text_0sN8V2-genk" class="vis_om8yd3 ">Search...</p>
 </div>
-<i  id="Icon_351431027-genk" class="bi bi-command vis_2456070613 " href="bi bi-command">
+<i  id="Icon_4iWUo3-genk" class="bi bi-command vis_exlBf4 " href="bi bi-command">
 </i>
 </button>
-<div  id="Flex_2497471131-genk" class="lay_1983778634 mapa_4066845637 ">
-<button  id="Butt_1093389614-genk" class="vis_4269074653 " aria-label="toggle theme">
-<i  id="Icon_811890849-genk" class="bi bi-cloud-moon vis_3319038623 intr_3436696024 " href="bi bi-cloud-moon">
+<div  id="Flex_CEwmN1-genk" class="lay_aRjFA2 mapa_TK4ER4 ">
+<button  id="Butt_kUst22-genk" class="vis_8H90T4 " aria-label="toggle theme">
+<i  id="Icon_0aSVe-genk" class="bi bi-cloud-moon vis_3JgbB2 intr_HNOBs3 " href="bi bi-cloud-moon">
 </i>
 </button>
 </div>
 </div>
-<div  id="Flex_1957344464-genk" class="lay_2877939849 pos_2764679835 ">
-<ul  id="List_2220907845-genk" class="lay_3831026980 mapa_766915671 vis_75664072 ">
-<li  id="List_1904249994-genk" class="lay_3482410926 vis_1091182311 intr_1664040927 "">
-<button  id="CtxB_1196568359-genk" class="lay_226645792 mapa_843586635 vis_4269074653 ">
-<i  id="Icon_3897236413-genk" class="bi bi-house vis_366807592 " href="bi bi-house">
+<div  id="Flex_Zuojo-genk" class="lay_fcXl83 pos_FWJ613 ">
+<ul  id="List_t7l7o1-genk" class="lay_k7bGB4 mapa_bnttp vis_0iRpV4 ">
+<li  id="List_VrvNq1-genk" class="lay_AAqfn3 vis_m3Gxp2 intr_1axpu "">
+<button  id="CtxB_q9oZu1-genk" class="lay_IvyKF mapa_3Qb5v vis_8H90T4 ">
+<i  id="Icon_3Zhb22-genk" class="bi bi-house vis_i6tu9 " href="bi bi-house">
 </i>
-<p  id="Text_4198303626-genk" class="vis_4143872434 ">Overview</p>
+<p  id="Text_4n3oB3-genk" class="vis_fKNC34 ">Overview</p>
 </button>
 </li>
-<li  id="List_263718459-genk" class="lay_3482410926 vis_1091182311 intr_1664040927 "">
-<button  id="CtxB_2742267153-genk" class="lay_226645792 mapa_843586635 vis_4269074653 ">
-<i  id="Icon_1812463823-genk" class="bi bi-fire vis_366807592 " href="bi bi-fire">
+<li  id="List_SfQM3-genk" class="lay_AAqfn3 vis_6QsRw2 intr_RlB5D3 "">
+<button  id="CtxB_A661i1-genk" class="lay_IvyKF mapa_3Qb5v vis_8H90T4 ">
+<i  id="Icon_crTQB2-genk" class="bi bi-fire vis_gm3id2 " href="bi bi-fire">
 </i>
-<p  id="Text_2113531036-genk" class="vis_4143872434 ">Just let me build!!!!</p>
+<p  id="Text_d5qcK3-genk" class="vis_MfoiW1 ">Just let me build!!!!</p>
 </button>
 </li>
-<li  id="List_2918154220-genk" class="lay_3482410926 vis_1091182311 intr_1664040927 "">
-<button  id="CtxB_567246822-genk" class="lay_226645792 mapa_843586635 vis_4269074653 ">
-<i  id="Icon_4141294290-genk" class="bi bi-mortarboard vis_366807592 " href="bi bi-mortarboard">
+<li  id="List_TfA0x2-genk" class="lay_AAqfn3 vis_6QsRw2 intr_RlB5D3 "">
+<button  id="CtxB_jylnc-genk" class="lay_IvyKF mapa_3Qb5v vis_8H90T4 ">
+<i  id="Icon_KQQiX1-genk" class="bi bi-mortarboard vis_gm3id2 " href="bi bi-mortarboard">
 </i>
-<p  id="Text_737491743-genk" class="vis_4143872434 ">Basics</p>
+<p  id="Text_1eRzx2-genk" class="vis_MfoiW1 ">Basics</p>
 </button>
 </li>
-<li  id="List_1277622685-genk" class="lay_3482410926 vis_1091182311 intr_1664040927 "">
-<button  id="CtxB_1796090290-genk" class="lay_226645792 mapa_843586635 vis_4269074653 ">
-<i  id="Icon_3471191475-genk" class="bi bi-diagram-3 vis_366807592 " href="bi bi-diagram-3">
+<li  id="List_QTfy91-genk" class="lay_AAqfn3 vis_6QsRw2 intr_RlB5D3 "">
+<button  id="CtxB_EO5g3-genk" class="lay_IvyKF mapa_3Qb5v vis_8H90T4 ">
+<i  id="Icon_1bHgi2-genk" class="bi bi-filetype-js vis_gm3id2 " href="bi bi-filetype-js">
 </i>
-<p  id="Text_3772258688-genk" class="vis_4143872434 ">Project Structure</p>
+<p  id="Text_ioIx84-genk" class="vis_MfoiW1 ">New to Zig</p>
 </button>
 </li>
-<li  id="List_3932058446-genk" class="lay_3482410926 vis_1091182311 intr_1664040927 "">
-<button  id="CtxB_2428155280-genk" class="lay_226645792 mapa_843586635 vis_4269074653 ">
-<i  id="Icon_3908301357-genk" class="bi bi-signpost vis_366807592 " href="bi bi-signpost">
+<li  id="List_RTPc34-genk" class="lay_AAqfn3 vis_6QsRw2 intr_RlB5D3 "">
+<button  id="CtxB_C08pD4-genk" class="lay_IvyKF mapa_3Qb5v vis_8H90T4 ">
+<i  id="Icon_n5jiY3-genk" class="bi bi-diagram-3 vis_gm3id2 " href="bi bi-diagram-3">
 </i>
-<p  id="Text_4209368570-genk" class="vis_4143872434 ">Routing</p>
+<p  id="Text_k7qF1-genk" class="vis_MfoiW1 ">Project Structure</p>
 </button>
 </li>
-<li  id="List_2291526911-genk" class="lay_3482410926 vis_1091182311 intr_1664040927 "">
-<button  id="CtxB_993561162-genk" class="lay_226645792 mapa_843586635 vis_4269074653 ">
-<i  id="Icon_877848626-genk" class="bi bi-arrow-repeat vis_366807592 " href="bi bi-arrow-repeat">
+<li  id="List_OHuaG2-genk" class="lay_AAqfn3 vis_6QsRw2 intr_RlB5D3 "">
+<button  id="CtxB_CR1mN1-genk" class="lay_IvyKF mapa_3Qb5v vis_8H90T4 ">
+<i  id="Icon_M8xDS3-genk" class="bi bi-signpost vis_gm3id2 " href="bi bi-signpost">
 </i>
-<p  id="Text_1769013375-genk" class="vis_4143872434 ">Reactivity</p>
+<p  id="Text_NMJQb4-genk" class="vis_MfoiW1 ">Routing</p>
 </button>
 </li>
-<li  id="List_650995376-genk" class="lay_3482410926 vis_1091182311 intr_1664040927 "">
-<button  id="CtxB_1618136294-genk" class="lay_226645792 mapa_843586635 vis_4269074653 ">
-<i  id="Icon_39330801-genk" class="bi bi-columns vis_366807592 " href="bi bi-columns">
+<li  id="List_L5PZT-genk" class="lay_AAqfn3 vis_6QsRw2 intr_RlB5D3 "">
+<button  id="CtxB_5X6Xi3-genk" class="lay_IvyKF mapa_3Qb5v vis_8H90T4 ">
+<i  id="Icon_lWojF2-genk" class="bi bi-arrow-repeat vis_gm3id2 " href="bi bi-arrow-repeat">
 </i>
-<p  id="Text_340398014-genk" class="vis_4143872434 ">Layout</p>
+<p  id="Text_mkAwO3-genk" class="vis_MfoiW1 ">Reactivity</p>
 </button>
 </li>
-<li  id="List_3305431137-genk" class="lay_3482410926 vis_1091182311 intr_1664040927 "">
-<button  id="CtxB_3291424578-genk" class="lay_226645792 mapa_843586635 vis_4269074653 ">
-<i  id="Icon_2592184661-genk" class="bi bi-paint-bucket vis_366807592 " href="bi bi-paint-bucket">
+<li  id="List_M59DN3-genk" class="lay_AAqfn3 vis_6QsRw2 intr_RlB5D3 "">
+<button  id="CtxB_Qd4fh-genk" class="lay_IvyKF mapa_3Qb5v vis_8H90T4 ">
+<i  id="Icon_V6Lp3-genk" class="bi bi-paint-bucket vis_gm3id2 " href="bi bi-paint-bucket">
 </i>
-<p  id="Text_2893251874-genk" class="vis_4143872434 ">Styling</p>
+<p  id="Text_CKM6U1-genk" class="vis_MfoiW1 ">Styling</p>
 </button>
 </li>
-<li  id="List_1664899602-genk" class="lay_3482410926 vis_1091182311 intr_1664040927 "">
-<button  id="CtxB_58471367-genk" class="lay_226645792 mapa_843586635 vis_4269074653 ">
-<i  id="Icon_650740305-genk" class="bi bi-tools vis_366807592 " href="bi bi-tools">
+<li  id="List_JtdBa1-genk" class="lay_AAqfn3 vis_6QsRw2 intr_RlB5D3 "">
+<button  id="CtxB_smVNM4-genk" class="lay_IvyKF mapa_3Qb5v vis_8H90T4 ">
+<i  id="Icon_b2rTc4-genk" class="bi bi-device-hdd-fill vis_gm3id2 " href="bi bi-device-hdd-fill">
 </i>
-<p  id="Text_2080388894-genk" class="vis_4143872434 ">Kit</p>
+<p  id="Text_Y4y051-genk" class="vis_MfoiW1 ">Vaporize</p>
 </button>
 </li>
-<li  id="List_1274605306-genk" class="lay_3482410926 vis_1091182311 intr_1664040927 "">
-<button  id="CtxB_3846079750-genk" class="lay_226645792 mapa_843586635 vis_4269074653 ">
-<i  id="Icon_3574300441-genk" class="bi bi-cursor vis_366807592 " href="bi bi-cursor">
+<li  id="List_ZJ7Z33-genk" class="lay_AAqfn3 vis_6QsRw2 intr_RlB5D3 "">
+<button  id="CtxB_t4CyV1-genk" class="lay_IvyKF mapa_3Qb5v vis_8H90T4 ">
+<i  id="Icon_NKF913-genk" class="bi bi-memory vis_gm3id2 " href="bi bi-memory">
 </i>
-<p  id="Text_3875367654-genk" class="vis_4143872434 ">Events & Handlers</p>
+<p  id="Text_OYbLA4-genk" class="vis_MfoiW1 ">Memory</p>
 </button>
 </li>
-<li  id="List_3929041067-genk" class="lay_3482410926 vis_1091182311 intr_1664040927 "">
-<button  id="CtxB_2350479453-genk" class="lay_226645792 mapa_843586635 vis_4269074653 ">
-<i  id="Icon_1104706338-genk" class="bi bi-hourglass-split vis_366807592 " href="bi bi-hourglass-split">
+<li  id="List_W7cXG1-genk" class="lay_AAqfn3 vis_6QsRw2 intr_RlB5D3 "">
+<button  id="CtxB_39vQH3-genk" class="lay_IvyKF mapa_3Qb5v vis_8H90T4 ">
+<i  id="Icon_AICq92-genk" class="bi bi-columns vis_gm3id2 " href="bi bi-columns">
 </i>
-<p  id="Text_1405773551-genk" class="vis_4143872434 ">Lifecycle Hooks</p>
+<p  id="Text_BWY2J3-genk" class="vis_MfoiW1 ">Layout</p>
 </button>
 </li>
-<li  id="List_2288509532-genk" class="lay_3482410926 vis_1091182311 intr_1664040927 "">
-<button  id="CtxB_1118982512-genk" class="lay_226645792 mapa_843586635 vis_4269074653 ">
-<i  id="Icon_1504549630-genk" class="bi bi-ethernet vis_366807592 " href="bi bi-ethernet">
+<li  id="List_X7MBA4-genk" class="lay_AAqfn3 vis_6QsRw2 intr_RlB5D3 "">
+<button  id="CtxB_xYiuk2-genk" class="lay_IvyKF mapa_3Qb5v vis_8H90T4 ">
+<i  id="Icon_AVMIp1-genk" class="bi bi-tools vis_gm3id2 " href="bi bi-tools">
 </i>
-<p  id="Text_1805616843-genk" class="vis_4143872434 ">Performance</p>
+<p  id="Text_BjiUy2-genk" class="vis_MfoiW1 ">Kit</p>
 </button>
 </li>
-<li  id="List_647977997-genk" class="lay_3482410926 vis_1091182311 intr_1664040927 "">
-<button  id="CtxB_2921066821-genk" class="lay_226645792 mapa_843586635 vis_4269074653 ">
-<i  id="Icon_1036025581-genk" class="bi bi-award vis_366807592 " href="bi bi-award">
+<li  id="List_Uvq9N2-genk" class="lay_AAqfn3 vis_6QsRw2 intr_RlB5D3 "">
+<button  id="CtxB_dbZYF4-genk" class="lay_IvyKF mapa_3Qb5v vis_8H90T4 ">
+<i  id="Icon_1VGJj2-genk" class="bi bi-cursor vis_gm3id2 " href="bi bi-cursor">
 </i>
-<p  id="Text_1337092794-genk" class="vis_4143872434 ">Tutorials</p>
+<p  id="Text_2jcVs3-genk" class="vis_MfoiW1 ">Events & Handlers</p>
 </button>
 </li>
-<li  id="List_3302413758-genk" class="lay_3482410926 vis_1091182311 intr_1664040927 "">
-<button  id="CtxB_3040541160-genk" class="lay_226645792 mapa_843586635 vis_4269074653 ">
-<i  id="Icon_1332389296-genk" class="bi bi-motherboard vis_366807592 " href="bi bi-motherboard">
+<li  id="List_RjL8a-genk" class="lay_AAqfn3 vis_6QsRw2 intr_RlB5D3 "">
+<button  id="CtxB_7hnyG-genk" class="lay_IvyKF mapa_3Qb5v vis_8H90T4 ">
+<i  id="Icon_FdXEW2-genk" class="bi bi-hourglass-split vis_gm3id2 " href="bi bi-hourglass-split">
 </i>
-<p  id="Text_1633456509-genk" class="vis_4143872434 ">Metal</p>
+<p  id="Text_wqYVw3-genk" class="vis_MfoiW1 ">Lifecycle Hooks</p>
+</button>
+</li>
+<li  id="List_Sj5mT3-genk" class="lay_AAqfn3 vis_6QsRw2 intr_RlB5D3 "">
+<button  id="CtxB_8T9pX1-genk" class="lay_IvyKF mapa_3Qb5v vis_8H90T4 ">
+<i  id="Icon_EKExT2-genk" class="bi bi-motherboard vis_gm3id2 " href="bi bi-motherboard">
+</i>
+<p  id="Text_FYa9d3-genk" class="vis_MfoiW1 ">Codex Engine</p>
+</button>
+</li>
+<li  id="List_PXakg1-genk" class="lay_AAqfn3 vis_6QsRw2 intr_RlB5D3 "">
+<button  id="CtxB_C4NEC1-genk" class="lay_IvyKF mapa_3Qb5v vis_8H90T4 ">
+<i  id="Icon_mRV6N4-genk" class="bi bi-ethernet vis_gm3id2 " href="bi bi-ethernet">
+</i>
+<p  id="Text_jTcdp-genk" class="vis_MfoiW1 ">Performance</p>
+</button>
+</li>
+<li  id="List_QXKOa4-genk" class="lay_AAqfn3 vis_6QsRw2 intr_RlB5D3 "">
+<button  id="CtxB_c3zDb-genk" class="lay_IvyKF mapa_3Qb5v vis_8H90T4 ">
+<i  id="Icon_mboKk3-genk" class="bi bi-award vis_gm3id2 " href="bi bi-award">
+</i>
+<p  id="Text_PdawT-genk" class="vis_MfoiW1 ">Tutorials</p>
+</button>
+</li>
+<li  id="List_NLpMn2-genk" class="lay_AAqfn3 vis_6QsRw2 intr_RlB5D3 "">
+<button  id="CtxB_jf2DX3-genk" class="lay_IvyKF mapa_3Qb5v vis_8H90T4 ">
+<i  id="Icon_LkKEc2-genk" class="bi bi-screwdriver vis_gm3id2 " href="bi bi-screwdriver">
+</i>
+<p  id="Text_MygQl3-genk" class="vis_MfoiW1 ">Metal</p>
 </button>
 </li>
 </ul>
 </div>
-<div  id="Flex_316812929-genk" class="lay_1301285207 pos_2354560430 ">
-<div  id="Flex_1146162571-genk" class="lay_912259808 ">
-<i  id="Icon_2130489846-genk" class="bi bi-view-list vis_1436215770 " href="bi bi-view-list">
+<div  id="Flex_auYNi3-genk" class="lay_5j34Q1 pos_8jULZ2 ">
+<div  id="Flex_FWnvo2-genk" class="lay_sRkjz ">
+<i  id="Icon_GbeME4-genk" class="bi bi-view-list vis_hOuFU " href="bi bi-view-list">
 </i>
-<p  id="Text_2431557059-genk" class="vis_768169809 ">On this page</p>
+<p  id="Text_Ddltg-genk" class="vis_iaakP ">On this page</p>
 </div>
-<ul  id="List_448016576-genk" class="lay_1877045488 mapa_1848794511 vis_75664072 ">
+<ul  id="List_0c5ny1-genk" class="lay_EHt132 mapa_JuL712 vis_0iRpV4 ">
+<li  id="List_Jw3ZQ4-genk" class="lay_AAqfn3 "">
+<a  id="Link_UCTCe3-genk" class="lay_Du4fK mapa_5cfTW4 vis_YoqZT4 " aria-label="What is Vapor?" href="#what-is-vapor">
+<p  id="Text_OQdXA2-genk" class="vis_1JqMW2 ">What is Vapor?</p>
+</a>
+</li>
+<li  id="List_GkYXd2-genk" class="lay_AAqfn3 "">
+<a  id="Link_QZ9P1-genk" class="lay_Du4fK mapa_5cfTW4 vis_YoqZT4 " aria-label="Quickstart" href="#quickstart">
+<p  id="Text_Mkpcs2-genk" class="vis_1JqMW2 ">Quickstart</p>
+</a>
+</li>
+<li  id="List_DY3Wq-genk" class="lay_AAqfn3 "">
+<a  id="Link_bVOXD2-genk" class="lay_Du4fK mapa_5cfTW4 vis_YoqZT4 " aria-label="Vapor is simple" href="#vapor-is-simple">
+<p  id="Text_mppO14-genk" class="vis_1JqMW2 ">Vapor is simple</p>
+</a>
+</li>
+<li  id="List_EYn9k3-genk" class="lay_AAqfn3 "">
+<a  id="Link_eluw34-genk" class="lay_Du4fK mapa_5cfTW4 vis_YoqZT4 " aria-label="How it works" href="#how-it-works">
+<p  id="Text_Rdo0d1-genk" class="vis_1JqMW2 ">How it works</p>
+</a>
+</li>
+<li  id="List_BMI8x1-genk" class="lay_AAqfn3 "">
+<a  id="Link_a8dkY2-genk" class="lay_Du4fK mapa_5cfTW4 vis_YoqZT4 " aria-label="Why Zig?" href="#why-zig">
+<p  id="Text_splDq3-genk" class="vis_1JqMW2 ">Why Zig?</p>
+</a>
+</li>
+<li  id="List_8An6A-genk" class="lay_AAqfn3 "">
+<a  id="Link_pBI66-genk" class="lay_Du4fK mapa_5cfTW4 vis_YoqZT4 " aria-label="Making a Button" href="#making-a-button">
+<p  id="Text_Ybw5i2-genk" class="vis_1JqMW2 ">Making a Button</p>
+</a>
+</li>
+<li  id="List_9AXk33-genk" class="lay_AAqfn3 "">
+<a  id="Link_c8fOL4-genk" class="lay_Du4fK mapa_5cfTW4 vis_YoqZT4 " aria-label="Builder Pattern" href="#builder">
+<p  id="Text_3p7ld1-genk" class="vis_1JqMW2 ">Builder Pattern</p>
+</a>
+</li>
 </ul>
 </div>
 
 
 
 </div>
-<div  id="Flex_270002262-genk" class="lay_4233858163 mapa_4066845637 ">
-<div  id="Flex_1338996629-genk" class="lay_1660124298 ">
-<div  id="Flex_3326794889-genk" class="lay_179358966 mapa_911696742 ">
-<div  id="Flex_692804397-genk" class="lay_1659905475 mapa_3646923428 ">
-<div  id="Flex_3712983539-genk" class="lay_1846049402 mapa_3646923428 ">
-<div  id="Flex_1450298070-genk" class="lay_3291660741 ">
-<p  id="Text_4226506582-genk" class="lay_1524187505 mapa_1451626367 vis_1048922247 ">Metal</p>
-<p  id="Html_698425452-genk" class="vis_1466172412 "><strong>Vapor, Reverb, Canopy</strong> all run on Metal, there 
+<div  id="Flex_CvtGI-genk" class="lay_tupWc4 mapa_TK4ER4 ">
+<div  id="Flex_htcnO-genk" class="lay_MAiLo1 ">
+<div  id="Flex_3PTZS2-genk" class="lay_YSZ8C mapa_AyNhz ">
+<div  id="Flex_8QHiG4-genk" class="lay_xEnKo1 mapa_cN7oy3 ">
+<div  id="Flex_2dZ1Q2-genk" class="lay_Mmpv02 mapa_cN7oy3 ">
+<div  id="Flex_kzvQO2-genk" class="lay_HKTla3 ">
+<p  id="Text_3uvR52-genk" class="lay_RnK9f1 mapa_VKsEa1 vis_jFxPT1 ">Metal</p>
+<p  id="Html_j0sim3-genk" class="vis_LvvM04 "><strong>Vapor, Reverb, Canopy</strong> all run on Metal, there 
 is no need for Docker Containers or
 Runtimes.</p>
 
 </div>
 </div>
-<p  id="Text_3806752417-genk" class="vis_846913500 ">It runs on my Machine!</p>
-<p  id="Text_2166220882-genk" class="vis_3553003164 ">As we all know, switching machines, or having to reinstall megabytes of dependencies is a pain,
+<div  id="Flex_zQ40d-genk" class="lay_28EIQ2 mapa_WshOF ">
+<button  id="CtxB_eTvHI-genk" class="lay_oAEsI1 pos_DwdZw1 mapa_rPfvm1 vis_xoDWI2 intr_qCoSH2 ">
+<p  id="Text_GQWBz3-genk" class="lay_iKMqA2 vis_QjDof1 ">curl -sSL https://raw.githubusercontent.com/tether-labs/metal/main/install.sh | bash</p>
+<div  id="Flex_y2YJA1-genk" class="lay_Qz8uf vis_1CLzF ">
+<i  id="Icon_XNVJB2-genk" class="bi bi-clipboard vis_ZtdGV1 " href="bi bi-clipboard">
+</i>
+</div>
+</button>
+<button  id="CtxB_fTfvB3-genk" class="lay_oAEsI1 pos_DwdZw1 mapa_rPfvm1 vis_xoDWI2 intr_qCoSH2 ">
+<p  id="Text_HDSdi2-genk" class="lay_iKMqA2 vis_QjDof1 ">metal create myapp</p>
+<div  id="Flex_laN0S4-genk" class="lay_Qz8uf vis_1CLzF ">
+<i  id="Icon_fUzFN1-genk" class="bi bi-clipboard vis_ZtdGV1 " href="bi bi-clipboard">
+</i>
+</div>
+</button>
+<button  id="CtxB_cHAuO1-genk" class="lay_oAEsI1 pos_DwdZw1 mapa_rPfvm1 vis_xoDWI2 intr_qCoSH2 ">
+<p  id="Text_DaARD1-genk" class="lay_iKMqA2 vis_QjDof1 ">my-app && metal run web</p>
+<div  id="Flex_hx5ow2-genk" class="lay_Qz8uf vis_1CLzF ">
+<i  id="Icon_cRNPE4-genk" class="bi bi-clipboard vis_ZtdGV1 " href="bi bi-clipboard">
+</i>
+</div>
+</button>
+</div>
+<p  id="Text_TrNF-genk" class="vis_9Lj9q1 ">It runs on my Machine!</p>
+<p  id="Html_9yJWh1-genk" class="vis_ZtdGV1 ">As we all know, switching machines, or having to reinstall megabytes of dependencies is a pain,
 and eventually leads to the dreaded "It works on my machine" problem. 
 Running a static blog shouldn’t require an entire runtime environment, build chain, and container stack. Nor should a full-stack app.</p>
-<p  id="Text_525689347-genk" class="vis_3553003164 ">The framework that is installed on one machine should run deterministically on another.
+
+<p  id="Html_Ay3Ab4-genk" class="vis_ZtdGV1 ">The framework that is installed on one machine should run deterministically on another.
 Every current JS framework or other framework currently ships dependencies. And there is no way to avoid them.</p>
-<p  id="Text_3180125108-genk" class="vis_846913500 ">Binary</p>
-<p  id="Html_3174351914-genk" class="vis_1950349343 ">Metal is how Vapor, Reverb and Canopy, compile and build the binaries. Depending on persmissions,
+
+<p  id="Text_SfMV04-genk" class="vis_9Lj9q1 ">Binary</p>
+<p  id="Html_4a3711-genk" class="vis_ZtdGV1 ">Metal is how Vapor, Reverb and Canopy, compile and build the binaries. Depending on persmissions,
 Vapor will use wasm-opt and brotli, to compress the WASM binaries, this will reduce the total bundle size. For example, the raw
 WASM binary of this site it 7MB, after compressing using Metal, we result in 180kb total. While other frameworks may ship 100kb-200kb by default.
 Remember Vapor, is running WASM, so the browser not only parses this <a href="https://webassembly.org/docs/faq/">10x-20x</a> 
 faster, but also runs <a href="https://hacks.mozilla.org/2018/01/oxidizing-source-maps-with-rust-and-webassembly/">1.5x-2x</a> faster.
 And again, we only have one binary file running the Vapor server, and one vapor.wasm file which contains our UI, and client side functionality.</p>
 
-<div  id="Flex_2459728921-genk" class="lay_1473920705 ">
-<p  id="Text_1804057090-genk" class="vis_846913500 ">Total file count</p>
-<ul  id="List_4095105818-genk" class="">
-<li  id="List_3927122254-genk" class=""">
-<p  id="Text_2059691509-genk" class="vis_3553003164 ">Vapor: server.exe, vapor.wasm, bundle.min.js</p>
+<div  id="Flex_tqmqw3-genk" class="lay_b6Qkb1 ">
+<p  id="Text_YU8lT-genk" class="vis_9Lj9q1 ">Total file count</p>
+<ul  id="List_q9r0A3-genk">
+<li  id="List_PmliQ-genk"">
+<p  id="Text_ZWofx3-genk" class="vis_ZtdGV1 ">Vapor: server.exe, vapor.wasm, bundle.min.js</p>
 </li>
-<li  id="List_2286590719-genk" class=""">
-<p  id="Text_584221985-genk" class="vis_3553003164 ">Reverb: server.exe</p>
+<li  id="List_QmVMK3-genk"">
+<p  id="Text_dyuA33-genk" class="vis_ZtdGV1 ">Reverb: server.exe</p>
 </li>
-<li  id="List_646059184-genk" class=""">
-<p  id="Text_4110057419-genk" class="vis_3553003164 ">Canopy: server.exe</p>
+<li  id="List_Na0LX1-genk"">
+<p  id="Text_uUcI91-genk" class="vis_ZtdGV1 ">Canopy: server.exe</p>
 </li>
 </ul>
 </div>
-<p  id="Text_2553497799-genk" class="vis_846913500 ">Caveat</p>
-<p  id="Text_912966264-genk" class="vis_3553003164 ">Alot of people are going to tell you that, Yes WASM is faster, but the overhead, between JS bridging to WASM, kills
+<p  id="Text_NH66K3-genk" class="vis_9Lj9q1 ">Caveat</p>
+<p  id="Html_Gtgo92-genk" class="vis_ZtdGV1 ">Alot of people are going to tell you that, Yes WASM is faster, but the overhead, between JS bridging to WASM, kills
 your performace. This claim is valid, however the amount of time to bridge between WASM and JS is 10ns
 so you would need to perform over 10,000,000 operations to hit and overhead of 1 second. Moving string around costs anywhere from 
 hundreds of nanoseconds up to a few milliseconds, because of size. You pay for the linear encoding, due UTF-8 and UTF-16 differences. 
 However, WASM is contionously being improved and changed, in the next year or so, a new model will be release, where no copying will be needed.
 And you will be able to interact with JS string and object without the need of crossing a 'bridge' ie negligible cost.
 One very simple way to not cross this boundary a ton, is just batch. Vapor does this by default. </p>
+
+</div>
+<div  id="Flex_5EmgT2-genk" class="lay_b6Qkb1 ">
+<h  id="Head_BqRKb-genk" class="vis_cWxqK4 ">Commands
+</h>
+<p  id="Html_Im8tW3-genk" class="vis_ZtdGV1 ">Metal is a CLI tool, and it has a lot of commands. 
+You can run <code>metal --help</code> to see all the commands.</p>
+
+<p  id="Html_Fadrj1-genk" class="vis_ZtdGV1 ">Every command is run within the current directory. You can specify a output path with the <code>-o</code> flag.</p>
+
+<button  id="CtxB_7zqKc4-genk" class="lay_oAEsI1 pos_DwdZw1 mapa_rPfvm1 vis_xoDWI2 intr_qCoSH2 ">
+<p  id="Text_xUU4N-genk" class="lay_iKMqA2 vis_QjDof1 ">metal -v gen Grid -o /components/MyGrid.zig</p>
+<div  id="Flex_RsPR62-genk" class="lay_Qz8uf vis_1CLzF ">
+<i  id="Icon_n2yZj2-genk" class="bi bi-clipboard vis_ZtdGV1 " href="bi bi-clipboard">
+</i>
+</div>
+</button>
+<button  id="CtxB_4nLJp2-genk" class="lay_oAEsI1 pos_DwdZw1 mapa_rPfvm1 vis_xoDWI2 intr_qCoSH2 ">
+<p  id="Text_x3SXY3-genk" class="lay_iKMqA2 vis_QjDof1 ">metal -r gen Crud -o /routes/about/MyCrud.zig</p>
+<div  id="Flex_NF8Fb-genk" class="lay_Qz8uf vis_1CLzF ">
+<i  id="Icon_iPCUz2-genk" class="bi bi-clipboard vis_ZtdGV1 " href="bi bi-clipboard">
+</i>
+</div>
+</button>
+<p  id="Html_ACNS31-genk" class="vis_ZtdGV1 ">Metal differentiates between Vapor, Reverb, and Canopy, with -v, -r, and -c flags.
+After this, you can run various generation commands, like <code>metal -v create my-app</code> or <code>metal -v gen DataTable</code>.</p>
+
+<h  id="Head_5GABv3-genk" class="vis_ONgT02 ">Vapor Gen Command
+</h>
+<p  id="Html_80c4A2-genk" class="vis_ZtdGV1 ">When passing the <cod>gen</code> command, we can generate various component types, like <code>DataTable</code>.
+We can also generate Form components, based on a struct argument. For example, Vaporize can be used to generate the base Form UI, and then
+one can mutate the styles, or add custom logic. This is useful for rapid prototyping.</p>
+
+<button  id="CtxB_wCasL-genk" class="lay_oAEsI1 pos_DwdZw1 mapa_rPfvm1 vis_xoDWI2 intr_qCoSH2 ">
+<p  id="Text_ldZQ82-genk" class="lay_iKMqA2 vis_QjDof1 ">metal -v gen Select</p>
+<div  id="Flex_XSqD04-genk" class="lay_Qz8uf vis_1CLzF ">
+<i  id="Icon_GNwwo1-genk" class="bi bi-clipboard vis_ZtdGV1 " href="bi bi-clipboard">
+</i>
+</div>
+</button>
+<button  id="CtxB_uVMPd4-genk" class="lay_oAEsI1 pos_DwdZw1 mapa_rPfvm1 vis_xoDWI2 intr_qCoSH2 ">
+<p  id="Text_DZNqu1-genk" class="lay_iKMqA2 vis_QjDof1 ">metal -v gen DragandDrop</p>
+<div  id="Flex_hwIDe3-genk" class="lay_Qz8uf vis_1CLzF ">
+<i  id="Icon_SDSvF2-genk" class="bi bi-clipboard vis_ZtdGV1 " href="bi bi-clipboard">
+</i>
+</div>
+</button>
+<button  id="CtxB_rJrNq2-genk" class="lay_oAEsI1 pos_DwdZw1 mapa_rPfvm1 vis_xoDWI2 intr_qCoSH2 ">
+<p  id="Text_GzBAA-genk" class="lay_iKMqA2 vis_QjDof1 ">metal -v gen ui [path-to-zon-file]</p>
+<div  id="Flex_kM7Xt1-genk" class="lay_Qz8uf vis_1CLzF ">
+<i  id="Icon_mRYK6-genk" class="bi bi-clipboard vis_ZtdGV1 " href="bi bi-clipboard">
+</i>
+</div>
+</button>
+<h  id="Head_PyKee-genk" class="vis_ONgT02 ">Reverb Gen Command
+</h>
+<p  id="Html_ctRbZ4-genk" class="vis_ZtdGV1 ">We follow the same pattern as Vapor, with Reverb, we can generate cruds, routes, auth, and more.</p>
+
+<button  id="CtxB_mvay92-genk" class="lay_oAEsI1 pos_DwdZw1 mapa_rPfvm1 vis_xoDWI2 intr_qCoSH2 ">
+<p  id="Text_ZSQL84-genk" class="lay_iKMqA2 vis_QjDof1 ">metal -r gen Crud</p>
+<div  id="Flex_zd63B1-genk" class="lay_Qz8uf vis_1CLzF ">
+<i  id="Icon_o3Xum-genk" class="bi bi-clipboard vis_ZtdGV1 " href="bi bi-clipboard">
+</i>
+</div>
+</button>
+<button  id="CtxB_jj5xM-genk" class="lay_oAEsI1 pos_DwdZw1 mapa_rPfvm1 vis_xoDWI2 intr_qCoSH2 ">
+<p  id="Text_XyONC4-genk" class="lay_iKMqA2 vis_QjDof1 ">metal -r gen Auth -o /routes/auth/MyAuth.zig</p>
+<div  id="Flex_FbQVN1-genk" class="lay_Qz8uf vis_1CLzF ">
+<i  id="Icon_uA8aC4-genk" class="bi bi-clipboard vis_ZtdGV1 " href="bi bi-clipboard">
+</i>
+</div>
+</button>
+<h  id="Head_Laosr2-genk" class="vis_ONgT02 ">Release & Deployment Commands
+</h>
+<p  id="Html_UJgA62-genk" class="vis_ZtdGV1 ">We can release with Metal, via:</p>
+
+<button  id="CtxB_iX4DN4-genk" class="lay_oAEsI1 pos_DwdZw1 mapa_rPfvm1 vis_xoDWI2 intr_qCoSH2 ">
+<p  id="Text_O98hq3-genk" class="lay_iKMqA2 vis_QjDof1 ">metal -v release-mode={debug|fast|small}</p>
+<div  id="Flex_oKoOt-genk" class="lay_Qz8uf vis_1CLzF ">
+<i  id="Icon_Qu6GK2-genk" class="bi bi-clipboard vis_ZtdGV1 " href="bi bi-clipboard">
+</i>
+</div>
+</button>
+<button  id="CtxB_fLZBa2-genk" class="lay_oAEsI1 pos_DwdZw1 mapa_rPfvm1 vis_xoDWI2 intr_qCoSH2 ">
+<p  id="Text_KWotD-genk" class="lay_iKMqA2 vis_QjDof1 ">metal -r release-mode={debug|fast|small}</p>
+<div  id="Flex_otjGx1-genk" class="lay_Qz8uf vis_1CLzF ">
+<i  id="Icon_pcjhU3-genk" class="bi bi-clipboard vis_ZtdGV1 " href="bi bi-clipboard">
+</i>
+</div>
+</button>
+<button  id="CtxB_5Rhan1-genk" class="lay_oAEsI1 pos_DwdZw1 mapa_rPfvm1 vis_xoDWI2 intr_qCoSH2 ">
+<p  id="Text_QGsIO1-genk" class="lay_iKMqA2 vis_QjDof1 ">metal -c release-mode={debug|fast|small}</p>
+<div  id="Flex_udnf73-genk" class="lay_Qz8uf vis_1CLzF ">
+<i  id="Icon_H4pHb-genk" class="bi bi-clipboard vis_ZtdGV1 " href="bi bi-clipboard">
+</i>
+</div>
+</button>
+<p  id="Html_p0YAd-genk" class="vis_ZtdGV1 ">This will generate various types of files, based on the mode. For Vapor specifically, release-mode small and fast, will run the wasm-opt and brotli commands.
+This will further compress the WASM binary, reaching an average 40x reduction in size.</p>
+
+<p  id="Html_q0IoW3-genk" class="vis_ZtdGV1 ">Vapor's server runs on Reverb, and so we get all the performance benefits of Reverb, by default.</p>
+
+<p  id="Html_nommj1-genk" class="vis_ZtdGV1 ">Vapor also takes the <code>pre-gen</code> command, which at build time, will generate a static HTML files, and serve them on initial request, 
+then following up with the WASM binary, this improves the first paint time, and reduces the time to first byte.</p>
+
+<button  id="CtxB_13Bp04-genk" class="lay_oAEsI1 pos_DwdZw1 mapa_rPfvm1 vis_xoDWI2 intr_qCoSH2 ">
+<p  id="Text_fEIhY4-genk" class="lay_iKMqA2 vis_QjDof1 ">metal -v release-mode=small pre-gen</p>
+<div  id="Flex_5QyOb1-genk" class="lay_Qz8uf vis_1CLzF ">
+<i  id="Icon_Rs2Qo2-genk" class="bi bi-clipboard vis_ZtdGV1 " href="bi bi-clipboard">
+</i>
+</div>
+</button>
 </div>
 </div>
 </div>

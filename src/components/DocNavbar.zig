@@ -20,7 +20,7 @@ const CtxButton = Static.CtxButton;
 const ListItem = Static.ListItem;
 const RedirectLink = Static.RedirectLink;
 const Theme = @import("theme");
-const IconTokens = @import("user_config").IconTokens;
+const IconTokens = Vapor.IconTokens;
 const Hooks = Static.Hooks;
 const Observer = Vapor.Kit.Observer;
 const Stack = Static.Stack;
@@ -57,8 +57,6 @@ pub const menu_items: []const MenuItem = &.{
             &.{ .title = "Why Zig?", .link = "why-zig" },
             &.{ .title = "Making a Button", .link = "making-a-button" },
             &.{ .title = "Builder Pattern", .link = "builder" },
-            // &.{ .title = "Memory is not scary", .link = "memory-is-not-scary" },
-            // &.{ .title = "Engine", .link = "engine" },
         },
         .icon = .house, // Keep as is - perfect for home
         .tags = &.{
@@ -212,8 +210,6 @@ pub const menu_items: []const MenuItem = &.{
         .link = "/docs/vapor/concepts/styling",
         .sections = &.{
             &.{ .title = "Styling", .link = "styling" },
-            &.{ .title = "Quick little rant", .link = "quick-little-rant" },
-            &.{ .title = "End of little rant", .link = "end-of-little-rant" },
             &.{ .title = "New Approach", .link = "new-approach" },
             &.{ .title = "Layout", .link = "layout" },
             &.{ .title = "Two types of styling", .link = "two-types-of-styling" },
@@ -234,6 +230,37 @@ pub const menu_items: []const MenuItem = &.{
             &.{ .title = "Vaporize", .link = "vaporize" },
         },
         .icon = .device_hdd_fill,
+    },
+    MenuItem{
+        .id = "animation",
+        .title = "Animation",
+        .link = "/docs/vapor/concepts/animation",
+        .sections = &.{
+            &.{ .title = "Animation", .link = "animation" },
+            &.{ .title = "Quick Start", .link = "quick-start" },
+            &.{ .title = "Core Concepts", .link = "core-concepts" },
+            &.{ .title = "Property Types", .link = "property-types" },
+            &.{ .title = "Basic Animations", .link = "basic-animations" },
+            &.{ .title = "Timing Controls", .link = "timing-controls" },
+            &.{ .title = "Easing Functions", .link = "easing-functions" },
+            &.{ .title = "Key Frames", .link = "keyframe-animations" },
+            &.{ .title = "Units", .link = "units" },
+            &.{ .title = "Presets", .link = "presets" },
+            &.{ .title = "Exit Animations", .link = "exit-animations" },
+            &.{ .title = "Transitions", .link = "transitions" },
+            &.{ .title = "Complete Example", .link = "complete-example" },
+            &.{ .title = "API Reference", .link = "api-reference" },
+            &.{ .title = "Best Practices", .link = "best-practices" },
+        },
+        .icon = .film, // Keep as is - perfect for home
+        .tags = &.{
+            Tag{
+                .keywords = &.{"animation"},
+                .sub_title = "Animation Docs",
+                .url = "/docs/vapor/concepts/animation",
+                .description = "Animation documentation...",
+            },
+        },
     },
 
     MenuItem{ // Memory
@@ -346,7 +373,20 @@ pub const menu_items: []const MenuItem = &.{
         .link = "/docs/vapor/concepts/tutorials",
         .icon = .award,
     },
-
+    MenuItem{
+        .id = "react-to-vapor",
+        .title = "React to Vapor",
+        .link = "/react-to-vapor",
+        .icon = .react,
+        .tags = &.{
+            Tag{
+                .keywords = &.{ "react", "vapor", "ui", "javascript", "typescript", "react-to-vapor", "react-ui" },
+                .sub_title = "React to Vapor",
+                .url = "/react-to-vapor",
+                .description = "React to Vapor",
+            },
+        },
+    },
     MenuItem{
         .id = "metal",
         .title = "Metal",
@@ -381,7 +421,7 @@ fn toggleTheme() void {
     Theme.toggleTheme();
 }
 
-fn goto(url: []const u8) void {
+pub fn goto(url: []const u8) void {
     sections.clearRetainingCapacity();
     for (menu_items) |item| {
         if (std.mem.eql(u8, url, item.link)) {
@@ -413,17 +453,19 @@ fn handleSection(target: Observer.Target) void {
 }
 
 pub fn reinit() void {
+    Vapor.print("reinit", .{});
     observer.disconnect();
     Content.reinitBoxes(); // This creates the boxes after the page is mounted
     Vapor.cycle();
-    Vapor.onEnd(reinitObserver); // This will triger at the end of the current cycle
+    reinitObserver(); // This will triger at the end of the current cycle
 
 }
 var mounted: bool = false;
 
 var observer: Observer = undefined;
 fn createObserver() void {
-    Vapor.println("createObserver", .{});
+    Vapor.print("createObserver", .{});
+    Content.reinitBoxes(); // This creates the boxes after the page is mounted
     observer = Observer.new("menu-bar", handleSection, .{
         .threshold = 0.4,
     });
@@ -448,6 +490,7 @@ fn createTimeout(_: void) void {
 }
 
 fn mount() void {
+    Vapor.print("MOUNT", .{});
     // this runs after the vaporize is mounter
     const current_path = Vapor.Kit.getWindowPath() orelse "/docs/vapor";
     current_menu_item = null;
@@ -461,13 +504,12 @@ fn mount() void {
         }
     }
 
-    Content.reinitBoxes();
     Vapor.onEnd(createObserver);
 }
 
 fn list() void {
     const current_path = Vapor.Kit.getWindowPath() orelse "/docs/vapor";
-    Hooks(.{ .mounted = mount })({
+    Vapor.Static.HooksCtx(.mounted, mount, .{})({
         Box().style(&.{
             .layout = .x_between_center,
             .child_gap = 8,

@@ -1,5 +1,7 @@
 import { readWasmString, wasmInstance } from "./wasi_obj.js";
-import { env } from "./wasi.js";
+import { env, requireWasm } from "./wasi.js";
+import { fileBindings } from "./additionals.js";
+import { cacheEnv } from "./cachebindings.js";
 
 export const importObject = {
   wasi_snapshot_preview1: {
@@ -61,31 +63,32 @@ export const importObject = {
       return 0;
     },
     fd_write: (fd, iovs_ptr, iovs_len, nwritten_ptr) => {
-      const memory = new Uint8Array(wasmInstance.memory.buffer);
-      let written = 0;
-
-      for (let i = 0; i < iovs_len; i++) {
-        const iov = new Uint32Array(memory.buffer, iovs_ptr + i * 8, 2);
-        const ptr = iov[0];
-        const len = iov[1];
-        const str = readWasmString(ptr, len);
-
-        if (fd === 1) {
-          // stdout
-          console.log("[Zig stdout]", str);
-        } else if (fd === 2) {
-          // stderr
-          console.log(str);
-        } else {
-          console.warn(`[Zig fd ${fd}]`, str);
-        }
-
-        written += len;
-      }
-
-      // Write the total bytes written back to memory
-      new Uint32Array(memory.buffer)[nwritten_ptr / 4] = written;
-      return 0; // Success
+      // if (requireWasm() === false) return;
+      // const memory = new Uint8Array(wasmInstance.memory.buffer);
+      // let written = 0;
+      //
+      // for (let i = 0; i < iovs_len; i++) {
+      //   const iov = new Uint32Array(memory.buffer, iovs_ptr + i * 8, 2);
+      //   const ptr = iov[0];
+      //   const len = iov[1];
+      //   const str = readWasmString(ptr, len);
+      //
+      //   if (fd === 1) {
+      //     // stdout
+      //     console.log("[Zig stdout]", str);
+      //   } else if (fd === 2) {
+      //     // stderr
+      //     console.log(str);
+      //   } else {
+      //     console.warn(`[Zig fd ${fd}]`, str);
+      //   }
+      //
+      //   written += len;
+      // }
+      //
+      // // Write the total bytes written back to memory
+      // new Uint32Array(memory.buffer)[nwritten_ptr / 4] = written;
+      // return 0; // Success
     }, // ADD THIS: Missing fd_filestat_get function
     fd_filestat_get: (fd, buf_ptr) => {
       return 0; // Success
@@ -100,5 +103,9 @@ export const importObject = {
     environ_sizes_get: () => 0,
     environ_get: () => 0,
   }, // Link WASI stubs
-  env: env,
+  env: {
+    ...env,
+    ...fileBindings,
+    ...cacheEnv,
+  },
 };

@@ -12,6 +12,8 @@ Traditional frameworks parse templates and manage heavy Javascript runtimes.
 **Vapor** compiles native Zig functions into a compact binary of render commands.
 Despite compiling to binary instructions, Vapor is fully inspectable.
 
+_"Vapor isn't trying to be React in Zig. It's showing what's possible when your framework disappears at compile time."_
+
 This is because the engine maps instructions directly to native browser APIs
 like `createElement` or `setAttribute` for Web, and UIKit for iOS.
 
@@ -90,7 +92,11 @@ function Counter() {
   // ✅ useState preserves this between renders
   const [count, setCount] = useState(0);
 
-  return <button onClick={() => setCount(count + 1)}>{count};
+  return (
+    <button onClick={() => setCount(count + 1)}>
+        <p>{count}</p>
+    </button>;
+  );
 }
 ```
 

@@ -133,7 +133,8 @@ pub fn render() void {
                 .direction = .row,
             })({
                 // Static.Box().bind(&background).style(&.{
-                Static.Button(.{ .on_press = close }).style(&.{
+                Static.Button(.{ .on_press = close })
+                .style(&.{
                     .position = .{
                         .type = .fixed,
                         .top = .px(0),

@@ -1,9 +1,11 @@
 const LoginForm = struct {
     email: []const u8 = "",
     password: []const u8 = "",
+    confirm_password: []const u8 = "",
     const __validations = .{
         .email = Validation{ .field_type = .email },
         .password = Validation{ .field_type = .password },
+        .confirm_password = Validation{ .field_type = .password, .match = true, .target_field = "password" },
     };
 };
 

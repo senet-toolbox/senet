@@ -63,6 +63,8 @@ pub const ElementType = enum(u8) {
     Heading,
     Video,
     Noop,
+    TableHead,
+    Anchor,
 };
 
 pub const ThemeTokens = enum(u8) {
@@ -146,6 +148,7 @@ pub const IconTokens = struct {
     pub const hourglass_split = &IconTokens{ .web = "bi bi-hourglass-split", .svg = "\u{f0e8}" };
     pub const ethernet = &IconTokens{ .web = "bi bi-ethernet", .svg = "\u{f0e8}" };
     pub const filetype_js = &IconTokens{ .web = "bi bi-filetype-js", .svg = "\u{f0e8}" };
+    pub const filetype_json = &IconTokens{ .web = "bi bi-filetype-json", .svg = "\u{f0e8}" };
     pub const exclamation_triangle = &IconTokens{ .web = "bi bi-exclamation-triangle", .svg = "\u{f0e8}" };
     pub const award = &IconTokens{ .web = "bi bi-award", .svg = "\u{f0e8}" };
     pub const motherboard = &IconTokens{ .web = "bi bi-motherboard", .svg = "\u{f0e8}" };
@@ -156,4 +159,34 @@ pub const IconTokens = struct {
     pub const heart_balloon = &IconTokens{ .web = "bi bi-balloon-heart", .svg = "\u{f0e8}" };
     pub const screw_driver = &IconTokens{ .web = "bi bi-screwdriver", .svg = "\u{f0e8}" };
     pub const memory = &IconTokens{ .web = "bi bi-memory", .svg = "\u{f0e8}" };
+    pub const grip_horizontal = &IconTokens{ .web = "bi bi-grip-horizontal", .svg = "\u{f0e8}" };
+    pub const bug = &IconTokens{ .web = "bi bi-bug", .svg = "\u{f0e8}" };
+    pub const check_circle = &IconTokens{ .web = "bi bi-check-circle", .svg = "\u{f0e8}" };
+    pub const exclamation_circle = &IconTokens{ .web = "bi bi-exclamation-circle", .svg = "\u{f0e8}" };
+    pub const info_circle = &IconTokens{ .web = "bi bi-info-circle", .svg = "\u{f0e8}" };
+    pub const chevron_down = &IconTokens{ .web = "bi bi-chevron-down", .svg = "\u{f0e8}" };
+    pub const chevron_up = &IconTokens{ .web = "bi bi-chevron-up", .svg = "\u{f0e8}" };
+    pub const chevron_left = &IconTokens{ .web = "bi bi-chevron-left", .svg = "\u{f0e8}" };
+    pub const chevron_right = &IconTokens{ .web = "bi bi-chevron-right", .svg = "\u{f0e8}" };
+    pub const three_dots = &IconTokens{ .web = "bi bi-three-dots", .svg = "\u{f0e8}" };
+    pub const sort_alpha_down = &IconTokens{ .web = "bi bi-sort-alpha-down", .svg = "\u{f0e8}" };
+    pub const sort_alpha_up = &IconTokens{ .web = "bi bi-sort-alpha-up-alt", .svg = "\u{f0e8}" };
+    pub const box_arrow_down = &IconTokens{ .web = "bi bi-box-arrow-down", .svg = "\u{f0e8}" };
+    pub const filetype_csv = &IconTokens{ .web = "bi bi-filetype-csv", .svg = "\u{f0e8}" };
+    pub const funnel = &IconTokens{ .web = "bi bi-funnel", .svg = "\u{f0e8}" };
+    pub const trash = &IconTokens{ .web = "bi bi-trash", .svg = "\u{f0e8}" };
+    pub const pencil = &IconTokens{ .web = "bi bi-pencil", .svg = "\u{f0e8}" };
+    pub const lucide_search = &IconTokens{ .web = "lucide-search", .svg = 
+        \\<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-search-icon lucide-search"><path d="m21 21-4.34-4.34"/><circle cx="11" cy="11" r="8"/></svg> 
+    };
+    pub const soundwave = &IconTokens{ .web = "bi bi-soundwave", .svg = "\u{f0e8}" };
+    pub const send = &IconTokens{ .web = "bi bi-send", .svg = "\u{f0e8}" };
+    pub const upload = &IconTokens{ .web = "bi bi-upload", .svg = "\u{f0e8}" };
+    pub const account = &IconTokens{ .web = "bi bi-person-circle", .svg = "\u{f0e8}" };
+    pub const check2_all = &IconTokens{ .web = "bi bi-check2-all", .svg = "\u{f0e8}" };
+    pub const google = &IconTokens{ .web = "bi bi-google", .svg = "\u{f0e8}" };
+    pub const apple = &IconTokens{ .web = "bi bi-apple", .svg = "\u{f0e8}" };
+    pub const person_rolodex = &IconTokens{ .web = "bi bi-person-rolodex", .svg = "\u{f0e8}" };
+    pub const film = &IconTokens{ .web = "bi bi-film", .svg = "\u{f0e8}" };
+    pub const react = &IconTokens{ .web = "fa-brands fa-react", .svg = "\u{f0e8}" };
 };

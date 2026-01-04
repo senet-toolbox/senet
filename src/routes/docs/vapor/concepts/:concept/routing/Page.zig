@@ -25,7 +25,7 @@ const Custom = @import("../../../../../../components/Custom.zig");
 const HtmlText = Custom.Chain.HtmlText;
 
 const Content = @import("../../../../../../components/Content.zig");
-var content: Content.new(@embedFile("routing_page.md")) = .{};
+var content: Content.new("") = undefined;
 
 var page_sample: CodeEditor = undefined;
 var dyanmic_code_editor: CodeEditor = undefined;
@@ -40,40 +40,29 @@ const items: []const []const u8 = &.{
     "Only Zig no html, js, ts, tsx, rsx, jsx",
 };
 var markdown: Compiler.vaporize.MarkDown(.{}) = .{};
+var page: []const u8 = "";
+var markdown_loaded: bool = false;
+
 pub fn init() void {
-    markdown.compile(@embedFile("routing_page.md")) catch unreachable;
+    Vapor.Kit.fetch("/src/routes/docs/vapor/concepts/:concept/routing/routing_page.md", handlePage, .{ .method = .GET });
 }
 
-// Deinitialization
-pub fn deinit() void {}
-
-const styles = struct {
-    pub const heading = &Vapor.Style{
-        .font_family = "IBM Plex Sans",
-        .visual = .font(24, 700, .palette(.text_color)),
-    };
-    pub const mini_heading = &Vapor.Style{
-        .font_family = "IBM Plex Sans",
-        .visual = .font(20, 700, .palette(.text_color)),
-        .margin = .t(12),
-    };
-    pub const body_text = &Vapor.Style{
-        .visual = .font(18, null, null),
-    };
-};
-
-const BoxCode = Box.margin(.tb(8, 24)).size(.hw(.fit, .percent(100)));
-
-var copied: bool = false;
-fn copy() void {
-    Vapor.Clipboard.copy(@embedFile("routing_page.md"));
-    copied = true;
-    Vapor.cycle();
-    Vapor.registerCtxTimeout(500, toggleIcon, .{});
-}
-
-fn toggleIcon() void {
-    copied = false;
+fn handlePage(resp: Vapor.Kit.Response) void {
+    switch (resp) {
+        .ok => |data| {
+            content.content_text = data.body;
+            page = data.body;
+            markdown.compile(page) catch |err| {
+                Vapor.printErr("Failed to compile markdown: {any}", .{err});
+                return;
+            };
+            markdown_loaded = true;
+        },
+        .err => |err| {
+            Vapor.printErr("Failed to fetch: {s}", .{err.message});
+            return;
+        },
+    }
     Vapor.cycle();
 }
 
@@ -83,122 +72,6 @@ fn component() void {
 
 // Render
 pub fn render() void {
+    if (!markdown_loaded) return;
     content.content(component);
-    // Page Header
-    // Box.style(&.{
-    //     .child_gap = 4,
-    //     .direction = .column,
-    //     .margin = .{ .bottom = 32 },
-    //     .size = .w(.percent(100)),
-    // })({
-    //     Button(.{ .on_press = copy }).style(&.{
-    //         .visual = .{ .background = .transparent, .cursor = .pointer },
-    //         .size = .w(.percent(100)),
-    //         .child_gap = 12,
-    //         .padding = .tb(8, 8),
-    //         .layout = .right_center,
-    //     })({
-    //         if (copied) {
-    //             Icon(.check).style(&.{
-    //                 .visual = .{ .font_size = 16 },
-    //             });
-    //         } else {
-    //             Icon(.clipboard).style(&.{
-    //                 .visual = .{ .font_size = 16 },
-    //             });
-    //         }
-    //     });
-    //     Custom.Virtualize(&.{
-    //         .size = .hw(.percent(100), .percent(100)),
-    //         .child_gap = 32,
-    //         .layout = .{},
-    //         .direction = .column,
-    //     })({
-    //         Box.style(&.{
-    //             .child_gap = 4,
-    //             .direction = .column,
-    //             .size = .hw(.percent(100), .percent(100)),
-    //             .layout = .{},
-    //         })({
-    //             Text("Getting Started").style(&.{
-    //                 .visual = .font(16, 600, null),
-    //                 .font_family = "IBM Plex Sans",
-    //             });
-    //             Vaporize.traverse(routing_page, .{
-    //                 .code_color = .palette(.tint),
-    //                 .text_color = .palette(.text_color),
-    //                 .heading_color = .palette(.text_color),
-    //             }, *anyopaque, &[_]Vaporize.TaggedFunction(*anyopaque){
-    //                 // Vaporize.TaggedFunction(*anyopaque){ .tag = "global_sample.zig", .function = global.render, .args = undefined },
-    //                 // Vaporize.TaggedFunction(*anyopaque){ .tag = "instance_sample.zig", .function = Counter.render, .args = @ptrCast(&counter) },
-    //                 // Vaporize.TaggedFunction(*anyopaque){ .tag = "instance_sample2.zig", .function = Counter.render, .args = @ptrCast(&counter2) },
-    //             }) catch unreachable;
-    //         });
-    //     });
-    // });
-
-    // Box.style(&.{
-    //     .child_gap = 24,
-    //     .direction = .column,
-    //     .margin = .{ .bottom = 32 },
-    //     .size = .w(.percent(100)),
-    // })({
-    //     Text("Routing").style(&.{
-    //         .font_family = "IBM Plex Sans",
-    //         .visual = .font(32, 700, .palette(.text_color)),
-    //     });
-    //     HtmlText(
-    //         \\Routing in Vapor works off of the directory structure of your project. You have access to <code style="color: rgb(var(--tint))">:slug</code> and <code style="color: rgb(var(--tint))">static</code> routes.
-    //     ).style(styles.body_text);
-    //
-    //     Graphic(.{ .src = "/src/assets/routes.svg" }).size(.square_percent(60)).close();
-    //
-    //     Text("Using Page()").style(styles.mini_heading);
-    //     HtmlText(
-    //         \\Every Route is declared in the <code style="color: rgb(var(--tint))">init()</code>
-    //         \\function of the <code style="color: rgb(var(--tint))">.zig</code> file.
-    //         \\By using the <code style="color: rgb(var(--tint))">Page</code> function, you can easily define your routes.
-    //     ).style(styles.body_text);
-    //
-    //     BoxCode.body()({
-    //         page_sample.render(0);
-    //     });
-    //     HtmlText(
-    //         \\The <code style="color: rgb(var(--tint))">Page</code> function, adds the render function to the routes tree.
-    //         \\The <code style="color: rgb(var(--tint))">render()</code> function is called during rendering, and rerendering.
-    //     ).style(styles.body_text);
-    //
-    //     HtmlText(
-    //         \\<code style="color: rgb(var(--danger))">The Page(...) should only be called once per route.</code>
-    //     ).style(&.{ .visual = .font(20, 500, .palette(.danger)), .layout = .center });
-    //
-    //     HtmlText(
-    //         \\Typically, in Vapor applications, we initialize all our routes in the App.zig file, located in the root of the project.
-    //     ).style(styles.body_text);
-    //
-    //     HtmlText(
-    //         \\<code style="color: rgb(var(--tint))">Page()</code> is the entry point for your application.
-    //         \\It takes 3 arguments,
-    //     ).style(styles.body_text);
-    //
-    //     List.direction(.column).childGap(8).body()({
-    //         ListItem.body()({
-    //             HtmlText("<code style=\"color: rgb(var(--tint))\">src: SourceLocation</code>").style(styles.body_text);
-    //         });
-    //         ListItem.body()({
-    //             HtmlText("<code style=\"color: rgb(var(--tint))\">render_fn: RenderFn</code>").style(styles.body_text);
-    //         });
-    //         ListItem.body()({
-    //             HtmlText("<code style=\"color: rgb(var(--tint))\">deinit_fn: DeinitFn</code>").style(styles.body_text);
-    //         });
-    //     });
-    //     HtmlText(
-    //         \\<code style="color: rgb(var(--tint))">SourceLocation</code> is a struct that contains the path to the file, and the line number.
-    //         \\<code style="color: rgb(var(--tint))">@src()</code> is a builtin function that returns the current source location.
-    //     ).style(styles.body_text);
-    //
-    //     BoxCode.body()({
-    //         app_example.render(0);
-    //     });
-    // });
 }
