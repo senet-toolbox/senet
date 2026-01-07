@@ -611,7 +611,7 @@ export const env = {
     id = id >>> 0;
     const event = eventStorage[id];
     const value = event.target.value;
-    return allocStringFrame(value);
+    return allocString(value);
   },
 
   getEventDataNumberWasm: (onid, ptr, len) => {
@@ -1276,6 +1276,7 @@ export const env = {
   navigateWasm: (pathPtr, pathLen) => {
     const path = readWasmString(pathPtr, pathLen);
     const currentPath = window.location.pathname;
+    window.history.pushState({}, "", path);
     requestAnimationFrame(() => {
       if (currentPath !== path) {
         rerenderRoute(path);

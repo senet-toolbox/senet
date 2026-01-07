@@ -116,21 +116,32 @@ pub const menu_items: []const MenuItem = &.{
     },
 
     MenuItem{ // New to Zig
-        .id = "new-to-zig",
-        .title = "New to Zig",
-        .link = "/docs/vapor/concepts/new-to-zig",
+        .id = "dont-know-zig",
+        .title = "From JS to Zig",
+        .link = "/docs/vapor/concepts/dont-know-zig",
         .icon = .filetype_js,
         .tags = &.{
             Tag{
-                .keywords = &.{ "new to zig", "zig", "installation", "getting started" },
+                .keywords = &.{ "dont know zig", "zig", "installation", "getting started" },
                 .sub_title = "New to Zig",
-                .url = "/docs/vapor/concepts/new-to-zig/#new-to-zig",
-                .description = "New to Zig...",
+                .url = "/docs/vapor/concepts/dont-know-zig/#thats-ok",
+                .description = "Don't worry, you can still use Vapor!",
             },
         },
         .sections = &.{
-            &.{ .title = "New to Zig", .link = "new-to-zig" },
-            &.{ .title = "Memory", .link = "memory" },
+            &.{ .title = "That's ok", .link = "thats-ok" },
+            &.{ .title = "Basic Variables", .link = "the-basics-variables" },
+            &.{ .title = "Functions", .link = "functions" },
+            &.{ .title = "The One Weird Type: Strings", .link = "the-one-weird-type-strings" },
+            &.{ .title = "If Statements", .link = "if-statements" },
+            &.{ .title = "Loops", .link = "loops" },
+            &.{ .title = "Structs (Like Objects)", .link = "structs" },
+            &.{ .title = "The Dot-Brace Pattern", .link = "the-dot-brace-pattern" },
+            &.{ .title = "Printing / Debugging", .link = "printing-debugging" },
+            &.{ .title = "You Can Ignore (For Now)", .link = "what-you-can-ignore" },
+            &.{ .title = "A Complete Example", .link = "a-complete-example" },
+            &.{ .title = "Quick Reference Card", .link = "quick-reference-card" },
+            &.{ .title = "Next Steps", .link = "next-steps" },
         },
     },
 
@@ -263,6 +274,25 @@ pub const menu_items: []const MenuItem = &.{
         },
     },
 
+    MenuItem{ // New to Zig
+        .id = "new-to-zig",
+        .title = "Deep Dive",
+        .link = "/docs/vapor/concepts/new-to-zig",
+        .icon = .microscope,
+        .tags = &.{
+            Tag{
+                .keywords = &.{ "new to zig", "zig", "installation", "getting started" },
+                .sub_title = "New to Zig",
+                .url = "/docs/vapor/concepts/new-to-zig/#new-to-zig",
+                .description = "New to Zig...",
+            },
+        },
+        .sections = &.{
+            &.{ .title = "New to Zig", .link = "new-to-zig" },
+            &.{ .title = "Memory", .link = "memory" },
+        },
+    },
+
     MenuItem{ // Memory
         .id = "memory",
         .title = "Memory",
@@ -340,6 +370,20 @@ pub const menu_items: []const MenuItem = &.{
         .icon = .hourglass_split,
     },
     MenuItem{
+        .id = "react-to-vapor",
+        .title = "React to Vapor",
+        .link = "/react-to-vapor",
+        .icon = .react,
+        .tags = &.{
+            Tag{
+                .keywords = &.{ "react", "vapor", "ui", "javascript", "typescript", "react-to-vapor", "react-ui" },
+                .sub_title = "React to Vapor",
+                .url = "/react-to-vapor",
+                .description = "React to Vapor",
+            },
+        },
+    },
+    MenuItem{
         .id = "Codex Engine",
         .title = "Codex Engine",
         .link = "/docs/vapor/concepts/codex-engine",
@@ -366,24 +410,54 @@ pub const menu_items: []const MenuItem = &.{
                 .description = "How to sign up and login with Oauth...",
             },
         },
+        .sections = &.{
+            &.{ .title = "Performance", .link = "performance" },
+            &.{ .title = "Memory", .link = "memory" },
+            &.{ .title = "Speed", .link = "speed-and-runtime" },
+        },
     },
     MenuItem{
         .id = "tutorials",
         .title = "Tutorials",
         .link = "/docs/vapor/concepts/tutorials",
         .icon = .award,
-    },
-    MenuItem{
-        .id = "react-to-vapor",
-        .title = "React to Vapor",
-        .link = "/react-to-vapor",
-        .icon = .react,
         .tags = &.{
             Tag{
-                .keywords = &.{ "react", "vapor", "ui", "javascript", "typescript", "react-to-vapor", "react-ui" },
-                .sub_title = "React to Vapor",
-                .url = "/react-to-vapor",
-                .description = "React to Vapor",
+                .keywords = &.{ "tutorials", "tic-tac-toe", "react-to-vapor", "dont-know-zig", "vapor-tictactoe-tutorial" },
+                .sub_title = "Tic-Tac-Toe Tutorial",
+                .url = "/docs/vapor/concepts/tutorials/#vapor-tictactoe-tutorial",
+                .description = "Build a Tic-Tac-Toe game with Vapor.",
+            },
+        },
+        .sections = &.{
+            &.{ .title = "Tic-Tac-Toe Tutorial", .link = "vapor-tictactoe-tutorial" },
+            &.{ .title = "Prerequisites", .link = "prerequisites" },
+            &.{ .title = "Project Setup", .link = "project-setup" },
+            &.{ .title = "Game State", .link = "game-state" },
+            &.{ .title = "Render the Game Board", .link = "render-board" },
+            &.{ .title = "Create the Board Grid", .link = "board-grid" },
+            &.{ .title = "Game Logic", .link = "game-logic" },
+            &.{ .title = "Display the winner & reset button", .link = "status-display" },
+            &.{ .title = "Styling", .link = "styling" },
+            &.{ .title = "Winning Animation", .link = "winning-animation" },
+            &.{ .title = "Complete Source", .link = "complete-code" },
+            &.{ .title = "What's Next", .link = "whats-next" },
+            &.{ .title = "Api Quick Reference", .link = "api-quick-reference" },
+            &.{ .title = "Challenges", .link = "challenges" },  
+            &.{ .title = "Key Takeaway", .link = "key-takeaways" },
+        },
+    },
+    MenuItem{
+        .id = "ui-components",
+        .title = "UI Components",
+        .link = "/docs/vapor/concepts/opaque",
+        .icon = .paint_bucket,
+        .tags = &.{
+            Tag{
+                .keywords = &.{ "ui", "components", "vaporize", "vapor", "ui-components" },
+                .sub_title = "UI Components",
+                .url = "/docs/vapor/concepts/opaque",
+                .description = "UI Components",
             },
         },
     },
@@ -434,6 +508,21 @@ pub fn goto(url: []const u8) void {
     Vapor.Kit.navigate(url);
     Kit.scrollTo(0, 0);
     Vapor.onEnd(reinit); // This will triger at the end of the current cycle
+}
+
+fn handlePopState() void {
+    const url = Vapor.Kit.getWindowPath() orelse "/";
+    sections.clearRetainingCapacity();
+    for (menu_items) |item| {
+        if (std.mem.eql(u8, url, item.link)) {
+            current_menu_item = item;
+            for (item.sections) |section| {
+                sections.put(section.link, false) catch unreachable;
+            }
+        }
+    }
+    Kit.scrollTo(0, 0);
+    reinit(); // This will triger at the end of the current cycle
 }
 
 fn handleSection(target: Observer.Target) void {
@@ -505,6 +594,7 @@ fn mount() void {
     }
 
     Vapor.onEnd(createObserver);
+    Vapor.onPopState(handlePopState);
 }
 
 fn list() void {

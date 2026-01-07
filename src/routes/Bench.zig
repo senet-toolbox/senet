@@ -234,9 +234,8 @@ fn RowView(row: *Row) void {
         ButtonCtx(selectRow, .{row.id})
             .padding(.tblr(4, 4, 8, 8))
             .children({
-            Text("Select").font(12, 400, .vapor_blue).end();
+            Text("Select").font(12, 400, text_color).end();
         });
-
         // Delete
         ButtonCtx(removeRow, .{row.id})
             .padding(.tblr(4, 4, 8, 8))

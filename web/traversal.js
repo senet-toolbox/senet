@@ -563,6 +563,7 @@ function createLinkElement(element, uinode) {
     const urlObj = new URL(clickedHref);
     const path = urlObj.pathname;
     const currentPath = window.location.pathname;
+    window.history.pushState({}, "", path);
     // we push the state and renderCycle the new path
     requestAnimationFrame(() => {
       if (currentPath !== path) {
@@ -1287,14 +1288,16 @@ export function createElementByType(uinode) {
   return element;
 }
 
+export let tStyle = 0,
+  tRegistry = 0;
+
 /**
  * Setup element with common properties and register it
  * @param {HTMLElement} element - The element to set up
  * @param {Object} renderCmd - The render command
  */
 export function setupElement(element, uinode) {
-  element.id = uinode.id;
-
+  // let s = performance.now();
   if (state.initial_render && uinode.styleId.length > 0) {
     const inlineStylePtr = wasmInstance.getInlineStyle(uinode.offset);
     const inlineStyleLen = wasmInstance.getInlineStyleLen(uinode.offset);
@@ -1315,6 +1318,8 @@ export function setupElement(element, uinode) {
     updateComponentStyle(uinode.offset, uinode.styleId, "", element);
   }
 
+  // tStyle += performance.now() - s;
+
   // Register the element
 
   if (uinode.elemType === COMPONENT_TYPES.ICON) {
@@ -1322,13 +1327,16 @@ export function setupElement(element, uinode) {
     element.className = iconName + " " + uinode.styleId;
   }
 
+  // s = performance.now();
   domNodeRegistry.set(uinode.id, {
     elementType: uinode.elemType,
     node_ptr: uinode.offset,
     domNode: element,
     exitAnimationId: uinode.exitAnimationId,
     destroyId: uinode.hooks.destroyId > 0 ? uinode.hooks.destroyId : null,
+    hash: uinode.hash,
   });
+  // tRegistry += performance.now() - s;
 }
 
 /**
@@ -1401,14 +1409,14 @@ export function updateElement(element, uinode) {
 
   // This means that the style hash has changed and we need to update
   if (uinode.changedStyle > 0) {
-    let css = "";
-    const cssStylePtr = wasmInstance.getStyle(uinode.offset);
-    if (cssStylePtr !== 0) {
-      const cssStyleLen = wasmInstance.getStyleLen();
-      css = readWasmString(cssStylePtr, cssStyleLen);
-    }
+    // let css = "";
+    // const cssStylePtr = wasmInstance.getStyle(uinode.offset);
+    // if (cssStylePtr !== 0) {
+    //   const cssStyleLen = wasmInstance.getStyleLen();
+    //   css = readWasmString(cssStylePtr, cssStyleLen);
+    // }
     // Update styling
-    updateComponentStyle(uinode.offset, uinode.styleId, css, element);
+    updateComponentStyle(uinode.offset, uinode.styleId, "", element);
 
     const inlineStylePtr = wasmInstance.getInlineStyle(uinode.offset);
     const inlineStyleLen = wasmInstance.getInlineStyleLen(uinode.offset);
@@ -1503,6 +1511,8 @@ export function resetTimers() {
   t6 = 0;
   t7 = 0;
   t8 = 0;
+  tStyle = 0;
+  tRegistry = 0;
 }
 
 /**
@@ -1516,23 +1526,23 @@ export function traverseUINodes(parent, parentUINode) {
 
   // const children_count = wasmInstance.getUINodeChildrenCount(parentUINode);
   const uinodes = [];
-  let s = performance.now();
+  // let s = performance.now();
 
   // Collect children by walking the linked list - O(n)
   let childPtr = wasmInstance.getUINodeFirstChild(parentUINode);
 
   while (childPtr) {
-    s = performance.now();
+    // s = performance.now();
     const uiNode = readUINode(childPtr);
-    t1 += performance.now() - s;
+    // t1 += performance.now() - s;
 
-    s = performance.now();
+    // s = performance.now();
     uinodes.push([uiNode, childPtr]);
-    t7 += performance.now() - s;
+    // t7 += performance.now() - s;
 
-    s = performance.now();
+    // s = performance.now();
     childPtr = wasmInstance.getUINodeNextSibling(childPtr);
-    t2 += performance.now() - s;
+    // t2 += performance.now() - s;
   }
 
   for (let i = uinodes.length - 1; i >= 0; i--) {
@@ -1541,25 +1551,25 @@ export function traverseUINodes(parent, parentUINode) {
     activeNodeIds.add(uinode.id);
     let element = null;
     if (uinode.isDirty) {
-      s = performance.now();
-      element = domNodeRegistry.get(uinode.id)?.domNode;
-      // element = document.getElementById(uinode.id);
-      t3 += performance.now() - s;
+      // s = performance.now();
+      // element = domNodeRegistry.get(uinode.id)?.domNode;
+      element = document.getElementById(uinode.id);
+      // t3 += performance.now() - s;
       if (element && state.initial_render) {
         attachElementListeners(element, uinode);
         traverseUINodes(element, child_ptr);
       } else if (!element || state.initial_render) {
         // Create new element
-        s = performance.now();
+        // s = performance.now();
         element = createElementByType(uinode);
-        t6 += performance.now() - s;
+        // t6 += performance.now() - s;
 
         if (!element) continue; // Skip if element creation failed
 
         // Set up the element
-        s = performance.now();
+        // s = performance.now();
         setupElement(element, uinode);
-        t5 += performance.now() - s;
+        // t5 += performance.now() - s;
 
         // Append to parent
         const next = uinodes[i + 1];
@@ -1569,22 +1579,22 @@ export function traverseUINodes(parent, parentUINode) {
           anchor = nextId ? document.getElementById(nextId) : null;
         }
 
-        s = performance.now();
+        // s = performance.now();
         parent.insertBefore(element, anchor);
-        t4 += performance.now() - s;
+        // t4 += performance.now() - s;
         traverseUINodes(element, child_ptr);
 
         if (uinode.elemType === COMPONENT_TYPES.HOOKS_CTX) {
           const hooks_type = wasmInstance.getHooksType(uinode.offset);
           switch (hooks_type) {
             case 0:
-              hooksMountedCtx.set(uinode.id, true);
+              hooksMountedCtx.set(uinode.hash, true);
               break;
             case 1:
-              hooksDestroyCtx.set(uinode.id, true);
+              hooksDestroyCtx.set(uinode.hash, true);
               break;
             case 2:
-              hooksCtxCreated.set(uinode.id, true);
+              hooksCtxCreated.set(uinode.hash, true);
               break;
           }
           element.className = "";
@@ -1613,6 +1623,8 @@ export function traverseUINodes(parent, parentUINode) {
         if (next) {
           const nextId = next[0]?.id;
           anchor = nextId ? document.getElementById(nextId) : null;
+          // anchor = nextId ? domNodeRegistry.get(nextId)?.domNode : null;
+          // element = domNodeRegistry.get(uinode.id)?.domNode;
         }
         // In traverseUINodes, when checking siblings:
         let actualNextSibling = element.nextSibling;

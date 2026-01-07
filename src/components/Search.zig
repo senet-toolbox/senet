@@ -6,6 +6,7 @@ const Dynamic = Vapor.Dynamic;
 const HtmlElement = Vapor.Binded;
 const menu_items = @import("../components/DocNavbar.zig").menu_items;
 const MenuItem = @import("../components/DocNavbar.zig").MenuItem;
+const goto = @import("../components/DocNavbar.zig").goto;
 const Theme = @import("theme");
 const TextFmt = Vapor.TextFmt;
 const TextField = Vapor.TextField;
@@ -113,7 +114,8 @@ fn onLeave(_: *Vapor.Event) void {
 }
 
 fn navigate(url: []const u8) void {
-    Vapor.Kit.navigate(url);
+    goto(url);
+    // Vapor.Kit.navigate(url);
     close();
 }
 
@@ -134,7 +136,7 @@ pub fn render() void {
             })({
                 // Static.Box().bind(&background).style(&.{
                 Static.Button(.{ .on_press = close })
-                .style(&.{
+                    .style(&.{
                     .position = .{
                         .type = .fixed,
                         .top = .px(0),

@@ -179,6 +179,7 @@ pub const IconTokens = struct {
     pub const lucide_search = &IconTokens{ .web = "lucide-search", .svg = 
         \\<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-search-icon lucide-search"><path d="m21 21-4.34-4.34"/><circle cx="11" cy="11" r="8"/></svg> 
     };
+    pub const microscope = &IconTokens{ .web = "fa-solid fa-microscope", .svg = "\u{f0e8}" };
     pub const soundwave = &IconTokens{ .web = "bi bi-soundwave", .svg = "\u{f0e8}" };
     pub const send = &IconTokens{ .web = "bi bi-send", .svg = "\u{f0e8}" };
     pub const upload = &IconTokens{ .web = "bi bi-upload", .svg = "\u{f0e8}" };

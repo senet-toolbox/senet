@@ -36,9 +36,16 @@ import {
   t6,
   t7,
   resetTimers,
+  tStyle,
+  tRegistry,
 } from "./traversal.js";
 import { state } from "./state.js";
-import { cacheHits, styleRuleCache, cacheMisses } from "./wasi_styling.js";
+import {
+  cacheHits,
+  styleRuleCache,
+  cacheMisses,
+  styleClassCache,
+} from "./wasi_styling.js";
 import { initCacheModule } from "./cachebindings.js";
 
 export let wasmInstance;
@@ -203,10 +210,11 @@ let layoutInfoPtr;
 let uiNodeLayoutInfoPtr;
 
 window.addEventListener("popstate", async function(event) {
-  event.preventDefault();
   const path = window.location.pathname;
-
   rerenderRoute(path);
+  requestAnimationFrame(() => {
+    wasmInstance.onPopStateCallback();
+  });
 });
 
 window.addEventListener("load", async () => {
@@ -216,19 +224,7 @@ window.addEventListener("load", async () => {
     if (url.pathname === "/docs") {
       console.log("fkjasldfkjas;lfkjasf;l");
     }
-    // handler();
   }
-  // const fontLink = document.createElement("link");
-  // fontLink.href =
-  //   "https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap";
-  // fontLink.rel = "stylesheet";
-  // document.head.appendChild(fontLink);
-  //
-  // const iconLink = document.createElement("link");
-  // iconLink.href =
-  //   "https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css";
-  // iconLink.rel = "stylesheet";
-  // document.head.appendChild(iconLink);
 });
 
 async function loadWasm(path, imports = {}) {
@@ -236,39 +232,6 @@ async function loadWasm(path, imports = {}) {
   const bytes = await response.arrayBuffer();
   const { instance } = await WebAssembly.instantiate(bytes, imports);
   return instance;
-}
-
-export async function hotSwapWasmWithState(newPath) {
-  console.log("🔄 Swapping WASM with state preservation:", newPath);
-
-  // Grab old memory (if exists)
-  let oldMemory;
-  if (wasmInstance) {
-    oldMemory = wasmInstance.memory;
-    // oldMemory = new Uint8Array(wasmInstance.memory.buffer).slice();
-  }
-
-  // Load new instance
-  const newInstance = await loadWasm(
-    `/zig-out/bin/${pathname}.wasm`,
-    importObject,
-  );
-
-  // If memory layouts match, restore old memory into new instance
-  if (oldMemory) {
-    const newMem = new Uint8Array(newInstance.exports.memory.buffer);
-    // console.log("oldMemory", oldMemory.buffer.byteLength);
-    // console.log("oldMemory", newInstance.exports.memory.buffer.byteLength);
-    // console.log("newMemory", newMem.length);
-    newMem.set(oldMemory.subarray(0, oldMemory.length));
-  }
-
-  newInstance.exports.memory.buffer = oldMemory.buffer;
-  wasmInstance = newInstance.exports;
-  window.myWasmAPI = wasmInstance;
-
-  console.log("✅ Hot swap complete (state copied if compatible)");
-  init();
 }
 
 let pathname;
@@ -353,7 +316,6 @@ export const rerenderRoute = (navigatedPath) => {
   const route = navigatedPath === "/" ? "/root" : `/root${navigatedPath}`;
 
   currentPath = window.location.pathname;
-  window.history.pushState({}, "", navigatedPath);
 
   for (const [key, handler] of afterHooksHandlers.entries()) {
     const pathEnd = key.indexOf("-");
@@ -461,26 +423,30 @@ export const rerenderRoute = (navigatedPath) => {
       // });
     }
 
-    hooksMounted.forEach((value, key) => {
-      const idPtr = allocString(key);
-      wasmInstance.hooksMountedCallback(idPtr);
-      hooksMounted.delete(key);
-    });
     hooksCtxCreated.forEach((value, key) => {
       const idPtr = allocString(key);
       wasmInstance.callOnCreateNode(idPtr);
       hooksCtxCreated.delete(key);
     });
+
+    hooksMounted.forEach((value, key) => {
+      const idPtr = allocString(key);
+      wasmInstance.hooksMountedCallback(idPtr);
+      hooksMounted.delete(key);
+    });
+
     hooksMountedCtx.forEach((value, key) => {
       const idPtr = allocString(key);
-      wasmInstance.hooksMountedCallbackCtx(idPtr);
+      wasmInstance.hooksMountedCtxCallback(idPtr);
       hooksMountedCtx.delete(key);
     });
+
     // wasmInstance.callAllMountedCallbacks();
     // console.log(pureNodeRegistry);
   } else {
     wasmInstance.resetRerender();
   }
+
   requestAnimationFrame(wasmInstance.onEndCallback);
   // wasmInstance.onEndCallback();
   // wasmInstance.onEndCtxCallback();
@@ -602,142 +568,147 @@ function setupLayoutInfo() {
       uiNodeLayoutInfoPtr + 44,
       4,
     ).getUint32(0, true),
-  };
-
-  layoutInfo = {
-    // Corresponds directly to the corrected Zig struct order
-    renderCommandSize: new DataView(
+    styleHashOffset: new DataView(
       wasmInstance.memory.buffer,
-      layoutInfoPtr + 0,
-      4,
-    ).getUint32(0, true),
-
-    // --- Direct offsets in RenderCommand ---
-    elemTypeOffset: new DataView(
-      wasmInstance.memory.buffer,
-      layoutInfoPtr + 4,
-      4,
-    ).getUint32(0, true),
-    textPtrOffset: new DataView(
-      wasmInstance.memory.buffer,
-      layoutInfoPtr + 8,
-      4,
-    ).getUint32(0, true),
-    hrefPtrOffset: new DataView(
-      wasmInstance.memory.buffer,
-      layoutInfoPtr + 12,
-      4,
-    ).getUint32(0, true),
-    idPtrOffset: new DataView(
-      wasmInstance.memory.buffer,
-      layoutInfoPtr + 16,
-      4,
-    ).getUint32(0, true),
-    indexOffset: new DataView(
-      wasmInstance.memory.buffer,
-      layoutInfoPtr + 20,
-      4,
-    ).getUint32(0, true),
-    hooksOffset: new DataView(
-      wasmInstance.memory.buffer,
-      layoutInfoPtr + 24,
-      4,
-    ).getUint32(0, true),
-    nodePtrOffset: new DataView(
-      wasmInstance.memory.buffer,
-      layoutInfoPtr + 28,
-      4,
-    ).getUint32(0, true),
-    classnamePtrOffset: new DataView(
-      wasmInstance.memory.buffer,
-      layoutInfoPtr + 32,
-      4,
-    ).getUint32(0, true),
-
-    // --- Absolute offsets for fields within the nested 'style' struct ---
-    styleBtnIdOffset: new DataView(
-      wasmInstance.memory.buffer,
-      layoutInfoPtr + 36,
-      4,
-    ).getUint32(0, true),
-    styleDialogIdPtrOffset: new DataView(
-      wasmInstance.memory.buffer,
-      layoutInfoPtr + 40,
-      4,
-    ).getUint32(0, true),
-    styleExitAnimationPtrOffset: new DataView(
-      wasmInstance.memory.buffer,
-      layoutInfoPtr + 44,
-      4,
-    ).getUint32(0, true),
-
-    // --- Nested struct sizes and offsets ---
-    hoverSize: new DataView(
-      wasmInstance.memory.buffer,
-      layoutInfoPtr + 48,
-      4,
-    ).getUint32(0, true),
-    hoverOffset: new DataView(
-      wasmInstance.memory.buffer,
-      layoutInfoPtr + 52,
-      4,
-    ).getUint32(0, true),
-    focusSize: new DataView(
-      wasmInstance.memory.buffer,
-      layoutInfoPtr + 56,
-      4,
-    ).getUint32(0, true),
-    focusOffset: new DataView(
-      wasmInstance.memory.buffer,
-      layoutInfoPtr + 60,
-      4,
-    ).getUint32(0, true),
-    focusWithinSize: new DataView(
-      wasmInstance.memory.buffer,
-      layoutInfoPtr + 64,
-      4,
-    ).getUint32(0, true),
-    focusWithinOffset: new DataView(
-      wasmInstance.memory.buffer,
-      layoutInfoPtr + 68,
-      4,
-    ).getUint32(0, true),
-    renderTypeOffset: new DataView(
-      wasmInstance.memory.buffer,
-      layoutInfoPtr + 72,
-      4,
-    ).getUint32(0, true),
-    tooltipSize: new DataView(
-      wasmInstance.memory.buffer,
-      layoutInfoPtr + 76,
-      4,
-    ).getUint32(0, true),
-    tooltipOffset: new DataView(
-      wasmInstance.memory.buffer,
-      layoutInfoPtr + 80,
-      4,
-    ).getUint32(0, true),
-    hasChildrenOffset: new DataView(
-      wasmInstance.memory.buffer,
-      layoutInfoPtr + 84,
-      4,
-    ).getUint32(0, true),
-    hashOffset: new DataView(
-      wasmInstance.memory.buffer,
-      layoutInfoPtr + 88,
-      4,
-    ).getUint32(0, true),
-    styleChangedOffset: new DataView(
-      wasmInstance.memory.buffer,
-      layoutInfoPtr + 92,
-      4,
-    ).getUint32(0, true),
-    propsChangedOffset: new DataView(
-      wasmInstance.memory.buffer,
-      layoutInfoPtr + 96,
+      uiNodeLayoutInfoPtr + 48,
       4,
     ).getUint32(0, true),
   };
+
+  // layoutInfo = {
+  //   // Corresponds directly to the corrected Zig struct order
+  //   renderCommandSize: new DataView(
+  //     wasmInstance.memory.buffer,
+  //     layoutInfoPtr + 0,
+  //     4,
+  //   ).getUint32(0, true),
+  //
+  //   // --- Direct offsets in RenderCommand ---
+  //   elemTypeOffset: new DataView(
+  //     wasmInstance.memory.buffer,
+  //     layoutInfoPtr + 4,
+  //     4,
+  //   ).getUint32(0, true),
+  //   textPtrOffset: new DataView(
+  //     wasmInstance.memory.buffer,
+  //     layoutInfoPtr + 8,
+  //     4,
+  //   ).getUint32(0, true),
+  //   hrefPtrOffset: new DataView(
+  //     wasmInstance.memory.buffer,
+  //     layoutInfoPtr + 12,
+  //     4,
+  //   ).getUint32(0, true),
+  //   idPtrOffset: new DataView(
+  //     wasmInstance.memory.buffer,
+  //     layoutInfoPtr + 16,
+  //     4,
+  //   ).getUint32(0, true),
+  //   indexOffset: new DataView(
+  //     wasmInstance.memory.buffer,
+  //     layoutInfoPtr + 20,
+  //     4,
+  //   ).getUint32(0, true),
+  //   hooksOffset: new DataView(
+  //     wasmInstance.memory.buffer,
+  //     layoutInfoPtr + 24,
+  //     4,
+  //   ).getUint32(0, true),
+  //   nodePtrOffset: new DataView(
+  //     wasmInstance.memory.buffer,
+  //     layoutInfoPtr + 28,
+  //     4,
+  //   ).getUint32(0, true),
+  //   classnamePtrOffset: new DataView(
+  //     wasmInstance.memory.buffer,
+  //     layoutInfoPtr + 32,
+  //     4,
+  //   ).getUint32(0, true),
+  //
+  //   // --- Absolute offsets for fields within the nested 'style' struct ---
+  //   styleBtnIdOffset: new DataView(
+  //     wasmInstance.memory.buffer,
+  //     layoutInfoPtr + 36,
+  //     4,
+  //   ).getUint32(0, true),
+  //   styleDialogIdPtrOffset: new DataView(
+  //     wasmInstance.memory.buffer,
+  //     layoutInfoPtr + 40,
+  //     4,
+  //   ).getUint32(0, true),
+  //   styleExitAnimationPtrOffset: new DataView(
+  //     wasmInstance.memory.buffer,
+  //     layoutInfoPtr + 44,
+  //     4,
+  //   ).getUint32(0, true),
+  //
+  //   // --- Nested struct sizes and offsets ---
+  //   hoverSize: new DataView(
+  //     wasmInstance.memory.buffer,
+  //     layoutInfoPtr + 48,
+  //     4,
+  //   ).getUint32(0, true),
+  //   hoverOffset: new DataView(
+  //     wasmInstance.memory.buffer,
+  //     layoutInfoPtr + 52,
+  //     4,
+  //   ).getUint32(0, true),
+  //   focusSize: new DataView(
+  //     wasmInstance.memory.buffer,
+  //     layoutInfoPtr + 56,
+  //     4,
+  //   ).getUint32(0, true),
+  //   focusOffset: new DataView(
+  //     wasmInstance.memory.buffer,
+  //     layoutInfoPtr + 60,
+  //     4,
+  //   ).getUint32(0, true),
+  //   focusWithinSize: new DataView(
+  //     wasmInstance.memory.buffer,
+  //     layoutInfoPtr + 64,
+  //     4,
+  //   ).getUint32(0, true),
+  //   focusWithinOffset: new DataView(
+  //     wasmInstance.memory.buffer,
+  //     layoutInfoPtr + 68,
+  //     4,
+  //   ).getUint32(0, true),
+  //   renderTypeOffset: new DataView(
+  //     wasmInstance.memory.buffer,
+  //     layoutInfoPtr + 72,
+  //     4,
+  //   ).getUint32(0, true),
+  //   tooltipSize: new DataView(
+  //     wasmInstance.memory.buffer,
+  //     layoutInfoPtr + 76,
+  //     4,
+  //   ).getUint32(0, true),
+  //   tooltipOffset: new DataView(
+  //     wasmInstance.memory.buffer,
+  //     layoutInfoPtr + 80,
+  //     4,
+  //   ).getUint32(0, true),
+  //   hasChildrenOffset: new DataView(
+  //     wasmInstance.memory.buffer,
+  //     layoutInfoPtr + 84,
+  //     4,
+  //   ).getUint32(0, true),
+  //   hashOffset: new DataView(
+  //     wasmInstance.memory.buffer,
+  //     layoutInfoPtr + 88,
+  //     4,
+  //   ).getUint32(0, true),
+  //   styleChangedOffset: new DataView(
+  //     wasmInstance.memory.buffer,
+  //     layoutInfoPtr + 92,
+  //     4,
+  //   ).getUint32(0, true),
+  //   propsChangedOffset: new DataView(
+  //     wasmInstance.memory.buffer,
+  //     layoutInfoPtr + 96,
+  //     4,
+  //   ).getUint32(0, true),
+  // };
 }
 
 function getSystemTheme() {
@@ -886,19 +857,16 @@ function setupWasiInstance() {
 
   document.fonts.ready.then(() => {
     hooksMounted.forEach((value, key) => {
-      const idPtr = allocString(key);
-      wasmInstance.hooksMountedCallback(idPtr);
+      wasmInstance.hooksMountedCallback(key);
       hooksMounted.delete(key);
     });
     hooksMountedCtx.forEach((value, key) => {
-      const idPtr = allocString(key);
-      wasmInstance.hooksMountedCallbackCtx(idPtr);
+      wasmInstance.hooksMountedCallbackCtx(key);
       hooksMountedCtx.delete(key);
     });
     // wasmInstance.onMountCtxCallback();
     hooksCtxCreated.forEach((value, key) => {
-      const idPtr = allocString(key);
-      wasmInstance.callOnCreateNode(idPtr);
+      wasmInstance.callOnCreateNode(key);
       hooksCtxCreated.delete(key);
     });
   });
@@ -1149,7 +1117,9 @@ export function requestRerender() {
 let dirty_count = 0;
 let readtime = 0;
 export async function render() {
+  let start = performance.now();
   dirty_count = 0;
+  resetTimers();
   // Reset the flag since the scheduled render is now running.
   state.isRenderScheduled = false;
 
@@ -1170,11 +1140,11 @@ export async function render() {
         currentPath === "/" ? "/root" : `/root${currentPath}`,
       );
 
-      let start = performance.now();
+      const wasmstart = performance.now();
       wasmInstance.renderUI(route_ptr);
       const wasmend = performance.now();
       const wasmrenderTimeElement = document.getElementById("renderTime");
-      const wasmrenderTime = Math.round((wasmend - start) * 100) / 100;
+      const wasmrenderTime = Math.round((wasmend - wasmstart) * 100) / 100;
       wasmrenderTimeElement.textContent = wasmrenderTime;
 
       const has_dirty = wasmInstance.hasDirty();
@@ -1229,8 +1199,8 @@ export async function render() {
 
       if (has_dirty) {
         // const start = performance.now();
-        const dirtyCount = wasmInstance.getDirtyNodeCount();
-        console.log("dirtyCount:", dirtyCount);
+        // const dirtyCount = wasmInstance.getDirtyNodeCount();
+        // console.log("dirtyCount:", dirtyCount);
         // activeNodeIds = new Set();
         // const baseOffset = wasmInstance.getDirtyNode();
         // const dirtyRenderCmds = readAllRenderCommands(baseOffset, dirtyCount); // 6ms
@@ -1379,29 +1349,26 @@ export async function render() {
         activeNodeIds = new Set();
 
         // const fragment = document.createDocumentFragment();
-        start = performance.now();
+        const traversesstart = performance.now();
         root = document.getElementById("contents");
         traverseUINodes(root, rootUINode);
-        const traverseTime = performance.now() - start;
+        const traverseTime = performance.now() - traversesstart;
         // After traversal
 
-        console.log("traverseUINodes:", traverseTime);
-        console.log("readUINode:", t1);
-        console.log("getUINodeNextSibling:", t2);
-        console.log("getElementById:", t3);
-        console.log("insertBefore:", t4);
-        console.log("setupElement:", t5);
-        console.log("createElementByType:", t6);
-        console.log("push:", t7);
-        console.log("cacheHits:", cacheHits);
-        console.log("cacheMisses:", cacheMisses);
-        console.log("dirty_count:", dirty_count);
-        console.log("readtime:", readtime);
-
-        const end = performance.now();
-        const renderTimeElement = document.getElementById("totalRenderTime");
-        const renderTime = Math.round((end - start) * 100) / 100;
-        renderTimeElement.textContent = renderTime;
+        // console.log("traverseUINodes:", traverseTime);
+        // console.log("readUINode:", t1);
+        // console.log("getUINodeNextSibling:", t2);
+        // console.log("getElementById:", t3);
+        // console.log("insertBefore:", t4);
+        // console.log("setupElement:", t5);
+        // console.log("createElementByType:", t6);
+        // console.log("push:", t7);
+        // console.log("cacheHits:", cacheHits);
+        // console.log("cacheMisses:", cacheMisses);
+        // console.log("dirty_count:", dirty_count);
+        // console.log("readtime:", readtime);
+        // console.log("tStyle:", tStyle);
+        // console.log("tRegistry:", tRegistry);
 
         state.initial_render = false;
         callDestroyFncs();
@@ -1457,16 +1424,19 @@ export async function render() {
       console.log("Grain Rerender");
     }
     requestAnimationFrame(() => {
-      wasmInstance.onEndCallback();
-      wasmInstance.onEndCtxCallback();
+      requestAnimationFrame(() => {
+        const end = performance.now();
+        const renderTimeElement = document.getElementById("totalRenderTime");
+        const renderTime = Math.round((end - start) * 100) / 100;
+        renderTimeElement.textContent = renderTime;
+
+        wasmInstance.onEndCallback();
+        wasmInstance.onEndCtxCallback();
+      });
     });
   } catch (error) {
     console.error("An error occurred during the render cycle:", error);
   }
-
-  // wasmInstance.onEndCallback();
-  // wasmInstance.onEndCtxCallback();
-  requestAnimationFrame(resetTimers);
 }
 
 // function renderLoop() {
@@ -1849,12 +1819,19 @@ export function readUINode(offset) {
 
   // Fast path for non-dirty nodes
   if (!isDirty) {
+    const hash = Number(
+      view.getUint32(offset + UINodelayoutInfo.hashOffset, true),
+    );
     const idPtr = view.getUint32(offset + UINodelayoutInfo.idPtrOffset, true);
     const idLen = view.getUint32(
       offset + UINodelayoutInfo.idPtrOffset + 4,
       true,
     );
     const id = idPtr ? readWasmString(idPtr, idLen) : "";
+    // const id = Number(
+    //   view.getUint32(offset + UINodelayoutInfo.hashOffset, true),
+    // );
+    // const hash = id;
     return {
       id,
       isDirty: false,
@@ -1870,6 +1847,7 @@ export function readUINode(offset) {
       changedStyle: 0,
       changedProps: 0,
       hooks: {},
+      hash,
     };
   }
 
@@ -1881,6 +1859,11 @@ export function readUINode(offset) {
   const idPtr = view.getUint32(offset + UINodelayoutInfo.idPtrOffset, true);
   const idLen = view.getUint32(offset + UINodelayoutInfo.idPtrOffset + 4, true);
   const id = idPtr ? readWasmString(idPtr, idLen) : "";
+  const hash = Number(
+    view.getUint32(offset + UINodelayoutInfo.hashOffset, true),
+  );
+  // const hash = id;
+  // readtime += performance.now() - start;
 
   let textPtr = 0,
     textLen = 0;
@@ -1888,7 +1871,18 @@ export function readUINode(offset) {
     hrefLen = 0;
   let hooks = {};
 
-  if (elemType === COMPONENT_TYPES.TEXT) {
+  if (
+    elemType === COMPONENT_TYPES.TEXT ||
+    elemType === COMPONENT_TYPES.LABEL ||
+    elemType === COMPONENT_TYPES.HEADING ||
+    elemType === COMPONENT_TYPES.ALLOC_TEXT ||
+    elemType === COMPONENT_TYPES.HEADER ||
+    elemType === COMPONENT_TYPES.TEXT_AREA ||
+    elemType === COMPONENT_TYPES.TEXT_FIELD ||
+    elemType === COMPONENT_TYPES.CODE ||
+    elemType === COMPONENT_TYPES.SVG ||
+    elemType === COMPONENT_TYPES.HTML_TEXT
+  ) {
     textPtr = view.getUint32(offset + UINodelayoutInfo.textPtrOffset, true);
     textLen = view.getUint32(offset + UINodelayoutInfo.textPtrOffset + 4, true);
   }
@@ -1897,9 +1891,9 @@ export function readUINode(offset) {
     elemType === COMPONENT_TYPES.LINK ||
     elemType === COMPONENT_TYPES.EMBEDLINK ||
     elemType === COMPONENT_TYPES.EMBEDICON ||
-    elemType === COMPONENT_TYPES.SVG ||
     elemType === COMPONENT_TYPES.IMAGE ||
-    elemType === COMPONENT_TYPES.GRAPHIC
+    elemType === COMPONENT_TYPES.GRAPHIC ||
+    elemType === COMPONENT_TYPES.ICON
   ) {
     hrefPtr = view.getUint32(offset + UINodelayoutInfo.hrefPtrOffset, true);
     hrefLen = view.getUint32(offset + UINodelayoutInfo.hrefPtrOffset + 4, true);
@@ -1926,17 +1920,29 @@ export function readUINode(offset) {
     };
   }
 
-  const classnamePtr = view.getUint32(
-    offset + UINodelayoutInfo.classnamePtrOffset,
+  const style_hash = view.getUint32(
+    offset + UINodelayoutInfo.styleHashOffset,
     true,
   );
+
+  // In hot path
   let styleId = "";
-  if (classnamePtr) {
-    const classnameLen = view.getUint32(
-      offset + UINodelayoutInfo.classnamePtrOffset + 4,
-      true,
-    );
-    styleId = readWasmString(classnamePtr, classnameLen);
+  if (style_hash) {
+    styleId = styleClassCache[style_hash]; // Direct property access
+    if (styleId === undefined) {
+      const classnamePtr = view.getUint32(
+        offset + UINodelayoutInfo.classnamePtrOffset,
+        true,
+      );
+      if (classnamePtr) {
+        const classnameLen = view.getUint32(
+          offset + UINodelayoutInfo.classnamePtrOffset + 4,
+          true,
+        );
+        styleId = readWasmString(classnamePtr, classnameLen);
+        styleClassCache[style_hash] = styleId;
+      }
+    }
   }
 
   return {
@@ -1953,6 +1959,7 @@ export function readUINode(offset) {
     changedStyle: view.getUint8(offset + UINodelayoutInfo.styleChangedOffset),
     changedProps: view.getUint8(offset + UINodelayoutInfo.propsChangedOffset),
     hooks,
+    hash,
   };
 }
 // ✅ Faster: Reuse decoder (2-3x faster)

@@ -642,15 +642,15 @@ fn onAuthChange(resp: Vapor.Kit.Response) void {
 }
 
 fn initPages() void {
-    // Opaque.new();
-    // Opaque.init();
-    // KeyStone.init(.{ .google = .{ .client_id = "868061436260-4irmgvghqm8107i21iodr88r8uu10g5u.apps.googleusercontent.com" } });
-    // KeyStone.onAuthChange(onAuthChange);
-    // Login.init();
+    Opaque.new();
+    Opaque.init();
+    KeyStone.init(.{ .google = .{ .client_id = "868061436260-4irmgvghqm8107i21iodr88r8uu10g5u.apps.googleusercontent.com" } });
+    KeyStone.onAuthChange(onAuthChange);
+    Login.init();
 
     // SyncEngine.init();
     // TestPage.init();
-    Bench.init();
+    // Bench.init();
     // JsonEditor.init();
     // FilePage.init();
     // RootPage.init();
@@ -660,15 +660,15 @@ fn initPages() void {
     // // // Vapor.Page(.{ .route = "/error" }, ErrorPage, null); // Weird bug where if you put any route before the "/" it loads that route instead of the root
     // VaporDocs.init();
     // VaporDocsConcepts.init();
-    // // //
+    // // // //
     // MetalDocs.init();
     // Huh.init();
-    // //
+    // // // //
     // Install.init();
 
     // Vapor.Page(.{ .route = "/login" }, Login.render, null);
     // Vapor.Page(.{ .route = "/auth" }, Profile.render, null);
-    // Vapor.Page(.{ .route = "/vapor-ui" }, Opaque.View, null);
+    Vapor.Page(.{ .route = "/vapor-ui" }, Opaque.View, null);
 }
 //
 // export fn immediateMode() void {
@@ -1025,6 +1025,26 @@ const style_config = Vaporize.StyleConfig{
         .child_gap = 8,
         .font_family = "IBM Plex Sans,monospace",
     },
+    .table_header_style = Vapor.Types.Style{
+        .size = .w(.percent(100)),
+        .direction = .row,
+        .layout = .left_center,
+        .visual = .{
+            .background = .palette(.tint),
+            .border = .bottom(.palette(.border_color)),
+            .text_color = .palette(.alternate_text_color),
+        },
+    },
+    .table_row_style = Vapor.Types.Style{
+        .size = .w(.percent(100)),
+        .direction = .row,
+        .layout = .left_center,
+        .visual = .{
+            .background = .transparent,
+            .border = .bottom(.palette(.border_color)),
+            .text_color = .palette(.text_color),
+        },
+    },
 };
 //
 // var new_form2: vaporize.comptimeForm(Form2) = undefined;
@@ -1037,21 +1057,21 @@ pub export fn init() void {
         .page_node_count = 10_240,
     });
 
-    // vaporize = Vaporize.init(Vapor.arena(.persist), style_config) catch unreachable; // this causes issues
-    // // initHooks();
-    // //
-    // // Global style variables
-    // Vapor.setGlobalStyleVariables(.{ // Adds 11kb
-    //     .themes = &[_]Vapor.ThemeDefinition{
-    //         Vapor.ThemeDefinition{ .name = "light", .theme = Theme.Light, .default = true },
-    //         Vapor.ThemeDefinition{ .name = "dark", .theme = Theme.Dark },
-    //     },
-    // });
+    vaporize = Vaporize.init(Vapor.arena(.persist), style_config) catch unreachable; // this causes issues
+    // initHooks();
     //
-    // // Initialize your root component or app
-    // registerLayouts() catch |err| {
-    //     Vapor.lib.printlnSrcErr("Failed to register layout {any}", .{err}, @src());
-    // };
+    // Global style variables
+    Vapor.setGlobalStyleVariables(.{ // Adds 11kb
+        .themes = &[_]Vapor.ThemeDefinition{
+            Vapor.ThemeDefinition{ .name = "light", .theme = Theme.Light, .default = true },
+            Vapor.ThemeDefinition{ .name = "dark", .theme = Theme.Dark },
+        },
+    });
+
+    // Initialize your root component or app
+    registerLayouts() catch |err| {
+        Vapor.lib.printlnSrcErr("Failed to register layout {any}", .{err}, @src());
+    };
     initPages();
     // Vapor.Page(.{ .route = "/fjlskfj" }, App2, null);
 }

@@ -34,6 +34,8 @@ const Box = Static.Box;
 const Center = Static.Center;
 const Todo = @import("todo/Page.zig");
 const ReactToVapor = @import("react-to-vapor/Page.zig");
+const DontKnowZig = @import("dont-know-zig/Page.zig");
+const Opaque = @import("opaque/Page.zig");
 
 var sheet: Sheet(void, Menu.render) = undefined;
 
@@ -45,7 +47,8 @@ const Routes = enum {
     layout,
     reactivity,
     animation,
-    // performance,
+    performance,
+    @"opaque",
     // // authentication,
     // // introduction,
     kit,
@@ -58,10 +61,11 @@ const Routes = enum {
     hooks,
     memory,
     // // // keystone,
-    // // tutorials,
+    tutorials,
     // csr_vs_ssr,
     // @"ui-inversion",
     @"codex-engine",
+    @"dont-know-zig",
     todo,
 };
 
@@ -75,6 +79,7 @@ pub fn init() void {
     Reactivity.init();
     Kit.init();
     NewToZig.init();
+    Opaque.init();
     // // // Gotchas.init();
     // // // JSLibs.init();
     Events.init();
@@ -83,7 +88,8 @@ pub fn init() void {
     Just.init();
     Styling.init();
     Hooks.init();
-    // // Performance.init();
+    Performance.init();
+    Tutorials.init();
     // // Tutorials.init();
     // // CsrVsSsr.init();
     CodexEngine.init();
@@ -91,6 +97,7 @@ pub fn init() void {
     // Todo.init();
     // sheet.init(&Vapor.lib.allocator_global);
     ReactToVapor.init();
+    DontKnowZig.init();
     Page(.{ .route = "/docs/vapor/concepts/:concept/" }, render, null);
 }
 
@@ -120,6 +127,12 @@ fn getRender(path: []const u8) ?*const fn () void {
                 },
                 .@"new-to-zig" => {
                     return NewToZig.render;
+                },
+                .@"dont-know-zig" => {
+                    return DontKnowZig.render;
+                },
+                .@"opaque" => {
+                    return Opaque.render;
                 },
                 // // .introduction => {
                 // //     return Introduction.render;
@@ -151,12 +164,12 @@ fn getRender(path: []const u8) ?*const fn () void {
                 .hooks => {
                     return Hooks.render;
                 },
-                // .performance => {
-                //     return Performance.render;
-                // },
-                // .tutorials => {
-                //     return Tutorials.render;
-                // },
+                .performance => {
+                    return Performance.render;
+                },
+                .tutorials => {
+                    return Tutorials.render;
+                },
                 // .csr_vs_ssr => {
                 //     return CsrVsSsr.render;
                 // },

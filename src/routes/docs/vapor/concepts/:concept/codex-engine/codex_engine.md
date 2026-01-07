@@ -4,6 +4,17 @@
 
 The Codex Engine refers to Vapor's core rendering engine, and is responsible for generating the render commands.
 
+**Vapor is a compiled instruction engine for the web.**
+
+Traditional frameworks parse templates and manage heavy Javascript runtimes.
+**Vapor** compiles native Zig functions into a compact binary of render commands.
+Despite compiling to binary instructions, Vapor is fully inspectable.
+
+Vapor treats the browser like a graphics driver, you create the UI with simple functions, and then
+Vapor & Zig work together to compile your UI into a compact, optimized set of instructions.
+These instructions are sent to the DOM only when necessary.
+No strings, no parsing, just direct-to-metal UI performance.
+
 This gives Vapor the unique capability, of writing standard declarative UI code,
 that compiles down to a high-performance runtime with a dramatically reduced memory footprint.
 

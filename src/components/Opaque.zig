@@ -362,18 +362,18 @@ fn sample(_: *Sheet) void {
                 .fontFamily("Montserrat")
                 .end();
         });
-        // Box()
-        //     .children({
-        //     chart.render();
-        // });
-        // Button(Sheet.open, .{&sheet})
-        //     .width(.px(800 / 3))
-        //     .children({
-        //     Text("Close")
-        //         .font(14, 300, .palette(.text_color))
-        //         .fontFamily("Montserrat")
-        //         .end();
-        // });
+        Box()
+            .children({
+            chart.render();
+        });
+        Button(Sheet.open, .{&sheet})
+            .width(.px(800 / 3))
+            .children({
+            Text("Close")
+                .font(14, 300, .palette(.text_color))
+                .fontFamily("Montserrat")
+                .end();
+        });
     });
 }
 
@@ -586,12 +586,12 @@ pub fn View() void {
                 .spacing(16)
                 .layer(.grid(14, 1, .palette(.grid_color)))
                 .children({
-                // Vapor.Box()
-                //     .width(.percent(100))
-                //     .height(.fit)
-                //     .children({
-                //     table.render();
-                // });
+                Vapor.Box()
+                    .width(.percent(100))
+                    .height(.fit)
+                    .children({
+                    table.render();
+                });
                 Group.render(.{ .label = "https://example.com", .value = .{ .string = &text }, .icon_left = .plus, .icon_right = .soundwave });
 
                 Box()
@@ -607,351 +607,351 @@ pub fn View() void {
                         Tabs.render();
                     });
                 });
-                // Box()
-                //     .width(.percent(100))
-                //     .spacing(8)
-                //     .children({
-                //     Box()
-                //         .width(.percent(90))
-                //         .border(.round(.palette(.border_color_light), .all(12)))
-                //         .padding(.all(16))
-                //         .direction(.column)
-                //         .spacing(16)
-                //         .background(.palette(.background))
-                //         .children({
-                //         Stack().children({
-                //             Box()
-                //                 .width(.percent(100))
-                //                 .layout(.x_between_center)
-                //                 .children({
-                //                 Text("Billing Information")
-                //                     .font(18, 300, .palette(.text_color))
-                //                     .end();
-                //                 Switch.render("file-switch");
-                //             });
-                //             Text("Billing information is required to process your payment. Use the following information to complete your purchase.")
-                //                 .font(12, 300, .palette(.text_color))
-                //                 .end();
-                //         });
-                //         Box()
-                //             .width(.percent(100))
-                //             .layout(.x_between_center)
-                //             .children({
-                //             Button(Vapor.print, .{ "{s}", .{"hello"} })
-                //                 .width(.px(36))
-                //                 .height(.px(36))
-                //                 .border(.round(.palette(.border_color_light), .all(99)))
-                //                 .layout(.center)
-                //                 .children({
-                //                 Vapor.Icon(.plus)
-                //                     .font(24, 300, .palette(.text_color))
-                //                     .end();
-                //             });
-                //             Vapor.Stack()
-                //                 .width(.percent(90))
-                //                 .children({
-                //                 Field.render(.{ .label = "Add File", .value = .{ .string = &file_text } });
-                //             });
-                //         });
-                //         Stack()
-                //             .width(.percent(100))
-                //             .spacing(8)
-                //             .children({
-                //             Text("Payment Method")
-                //                 .font(18, 300, .palette(.text_color))
-                //                 .end();
-                //             Field.render(.{ .label = "Card Number", .value = .{ .string = &card_number } });
-                //         });
-                //         Box()
-                //             .width(.percent(100))
-                //             .layout(.x_between_center)
-                //             .spacing(16)
-                //             .children({
-                //             Stack()
-                //                 .width(.percent(60))
-                //                 .spacing(4)
-                //                 .children({
-                //                 Text("Month")
-                //                     .font(16, 300, .palette(.text_color))
-                //                     .end();
-                //                 months_select.render();
-                //             });
-                //             Stack()
-                //                 .width(.percent(30))
-                //                 .spacing(4)
-                //                 .children({
-                //                 Text("Year")
-                //                     .font(16, 300, .palette(.text_color))
-                //                     .end();
-                //                 years_select.render();
-                //             });
-                //         });
-                //         Box()
-                //             .width(.percent(100))
-                //             .height(.fit)
-                //             .layout(.right_center)
-                //             .children({
-                //             Button(addSuccessToast, .{})
-                //                 .background(.transparentizeHex(.palette(.tint), 0.7))
-                //                 .border(.round(.palette(.tint), .all(12)))
-                //                 .children({
-                //                 Text("Success")
-                //                     .font(14, 300, .palette(.alternate_text_color))
-                //                     .fontFamily("IBM Plex Sans,monospace")
-                //                     .end();
-                //                 Vapor.Icon(.send)
-                //                     .font(16, 700, .palette(.alternate_text_color))
-                //                     .end();
-                //             });
-                //         });
-                //     });
-                //     Vapor.Stack()
-                //         .width(.percent(8))
-                //         .layout(.top_center)
-                //         .padding(.tb(8, 8))
-                //         .border(.round(.palette(.border_color_light), .all(12)))
-                //         .background(.palette(.background))
-                //         .spacing(8)
-                //         .children({
-                //         Button(Vapor.print, .{ "{s}", .{"hello"} })
-                //             .width(.px(32))
-                //             .height(.px(32))
-                //             .border(.round(.palette(.border_color_light), .all(99)))
-                //             .layout(.center)
-                //             .hover(.{
-                //                 .transform = .scaleDecimal(1.1),
-                //                 .text_color = .palette(.tint),
-                //                 .border = .round(.palette(.tint), .all(99)),
-                //             })
-                //             .children({
-                //             Vapor.Icon(.cloud)
-                //                 .font(16, 300, null)
-                //                 .end();
-                //         });
-                //         Button(Vapor.print, .{ "{s}", .{"hello"} })
-                //             .width(.px(32))
-                //             .height(.px(32))
-                //             .border(.round(.palette(.border_color_light), .all(99)))
-                //             .layout(.center)
-                //             .hover(.{
-                //                 .transform = .scaleDecimal(1.1),
-                //                 .text_color = .palette(.tint),
-                //                 .border = .round(.palette(.tint), .all(99)),
-                //             })
-                //             .children({
-                //             Vapor.Icon(.motherboard)
-                //                 .font(16, 300, null)
-                //                 .end();
-                //         });
-                //         Button(Vapor.print, .{ "{s}", .{"hello"} })
-                //             .width(.px(32))
-                //             .height(.px(32))
-                //             .border(.round(.palette(.border_color_light), .all(99)))
-                //             .layout(.center)
-                //             .hover(.{
-                //                 .transform = .scaleDecimal(1.1),
-                //                 .text_color = .palette(.tint),
-                //                 .border = .round(.palette(.tint), .all(99)),
-                //             })
-                //             .children({
-                //             Vapor.Icon(.github)
-                //                 .font(16, 300, null)
-                //                 .end();
-                //         });
-                //         Button(Vapor.print, .{ "{s}", .{"hello"} })
-                //             .width(.px(32))
-                //             .height(.px(32))
-                //             .border(.round(.palette(.border_color_light), .all(99)))
-                //             .layout(.center)
-                //             .hover(.{
-                //                 .transform = .scaleDecimal(1.1),
-                //                 .text_color = .palette(.tint),
-                //                 .border = .round(.palette(.tint), .all(99)),
-                //             })
-                //             .children({
-                //             Vapor.Icon(.heart_balloon)
-                //                 .font(16, 300, null)
-                //                 .end();
-                //         });
-                //     });
-                // });
+                Box()
+                    .width(.percent(100))
+                    .spacing(8)
+                    .children({
+                    Box()
+                        .width(.percent(90))
+                        .border(.round(.palette(.border_color_light), .all(12)))
+                        .padding(.all(16))
+                        .direction(.column)
+                        .spacing(16)
+                        .background(.palette(.background))
+                        .children({
+                        Stack().children({
+                            Box()
+                                .width(.percent(100))
+                                .layout(.x_between_center)
+                                .children({
+                                Text("Billing Information")
+                                    .font(18, 300, .palette(.text_color))
+                                    .end();
+                                Switch.render("file-switch");
+                            });
+                            Text("Billing information is required to process your payment. Use the following information to complete your purchase.")
+                                .font(12, 300, .palette(.text_color))
+                                .end();
+                        });
+                        Box()
+                            .width(.percent(100))
+                            .layout(.x_between_center)
+                            .children({
+                            Button(Vapor.print, .{ "{s}", .{"hello"} })
+                                .width(.px(36))
+                                .height(.px(36))
+                                .border(.round(.palette(.border_color_light), .all(99)))
+                                .layout(.center)
+                                .children({
+                                Vapor.Icon(.plus)
+                                    .font(24, 300, .palette(.text_color))
+                                    .end();
+                            });
+                            Vapor.Stack()
+                                .width(.percent(90))
+                                .children({
+                                Field.render(.{ .label = "Add File", .value = .{ .string = &file_text } });
+                            });
+                        });
+                        Stack()
+                            .width(.percent(100))
+                            .spacing(8)
+                            .children({
+                            Text("Payment Method")
+                                .font(18, 300, .palette(.text_color))
+                                .end();
+                            Field.render(.{ .label = "Card Number", .value = .{ .string = &card_number } });
+                        });
+                        Box()
+                            .width(.percent(100))
+                            .layout(.x_between_center)
+                            .spacing(16)
+                            .children({
+                            Stack()
+                                .width(.percent(60))
+                                .spacing(4)
+                                .children({
+                                Text("Month")
+                                    .font(16, 300, .palette(.text_color))
+                                    .end();
+                                months_select.render();
+                            });
+                            Stack()
+                                .width(.percent(30))
+                                .spacing(4)
+                                .children({
+                                Text("Year")
+                                    .font(16, 300, .palette(.text_color))
+                                    .end();
+                                years_select.render();
+                            });
+                        });
+                        Box()
+                            .width(.percent(100))
+                            .height(.fit)
+                            .layout(.right_center)
+                            .children({
+                            Button(addSuccessToast, .{})
+                                .background(.transparentizeHex(.palette(.tint), 0.7))
+                                .border(.round(.palette(.tint), .all(12)))
+                                .children({
+                                Text("Success")
+                                    .font(14, 300, .palette(.alternate_text_color))
+                                    .fontFamily("IBM Plex Sans,monospace")
+                                    .end();
+                                Vapor.Icon(.send)
+                                    .font(16, 700, .palette(.alternate_text_color))
+                                    .end();
+                            });
+                        });
+                    });
+                    Vapor.Stack()
+                        .width(.percent(8))
+                        .layout(.top_center)
+                        .padding(.tb(8, 8))
+                        .border(.round(.palette(.border_color_light), .all(12)))
+                        .background(.palette(.background))
+                        .spacing(8)
+                        .children({
+                        Button(Vapor.print, .{ "{s}", .{"hello"} })
+                            .width(.px(32))
+                            .height(.px(32))
+                            .border(.round(.palette(.border_color_light), .all(99)))
+                            .layout(.center)
+                            .hover(.{
+                                .transform = .scaleDecimal(1.1),
+                                .text_color = .palette(.tint),
+                                .border = .round(.palette(.tint), .all(99)),
+                            })
+                            .children({
+                            Vapor.Icon(.cloud)
+                                .font(16, 300, null)
+                                .end();
+                        });
+                        Button(Vapor.print, .{ "{s}", .{"hello"} })
+                            .width(.px(32))
+                            .height(.px(32))
+                            .border(.round(.palette(.border_color_light), .all(99)))
+                            .layout(.center)
+                            .hover(.{
+                                .transform = .scaleDecimal(1.1),
+                                .text_color = .palette(.tint),
+                                .border = .round(.palette(.tint), .all(99)),
+                            })
+                            .children({
+                            Vapor.Icon(.motherboard)
+                                .font(16, 300, null)
+                                .end();
+                        });
+                        Button(Vapor.print, .{ "{s}", .{"hello"} })
+                            .width(.px(32))
+                            .height(.px(32))
+                            .border(.round(.palette(.border_color_light), .all(99)))
+                            .layout(.center)
+                            .hover(.{
+                                .transform = .scaleDecimal(1.1),
+                                .text_color = .palette(.tint),
+                                .border = .round(.palette(.tint), .all(99)),
+                            })
+                            .children({
+                            Vapor.Icon(.github)
+                                .font(16, 300, null)
+                                .end();
+                        });
+                        Button(Vapor.print, .{ "{s}", .{"hello"} })
+                            .width(.px(32))
+                            .height(.px(32))
+                            .border(.round(.palette(.border_color_light), .all(99)))
+                            .layout(.center)
+                            .hover(.{
+                                .transform = .scaleDecimal(1.1),
+                                .text_color = .palette(.tint),
+                                .border = .round(.palette(.tint), .all(99)),
+                            })
+                            .children({
+                            Vapor.Icon(.heart_balloon)
+                                .font(16, 300, null)
+                                .end();
+                        });
+                    });
+                });
             });
-            // Vapor.Stack()
-            //     .width(.percent(60))
-            //     .spacing(16)
-            //     .children({
-            //     chart.render();
-            //     Box()
-            //         .width(.percent(100))
-            //         .height(.px(72))
-            //         .layout(.center)
-            //         .spacing(16)
-            //         // .baseStyle(&.{
-            //         //     .visual = .{
-            //         //         .layers = &.{
-            //         //             .gradient(.linear, .to_bottom, &.{ .transparent, .transparentizeHex(.palette(.tint), 0.1), .palette(.background) }),
-            //         //             .grid(14, 1, .transparentizeHex(.palette(.tint), 0.05)),
-            //         //             // .dot(0.5, 6, .transparentizeHex(.palette(.tint), 0.4)),
-            //         //         },
-            //         //     },
-            //         // })
-            //         .children({
-            //         Button(Sheet.open, .{&sheet})
-            //             .width(.px(200))
-            //             .background(.transparentizeHex(.palette(.tint), 0.7))
-            //             .border(.round(.palette(.tint), .all(12)))
-            //             .children({
-            //             Text("Open Drawer")
-            //                 .font(16, 300, .palette(.alternate_text_color))
-            //                 .fontFamily("IBM Plex Sans,monospace")
-            //                 .end();
-            //             Vapor.Icon(.arrow_right)
-            //                 .font(16, 700, .palette(.alternate_text_color))
-            //                 .end();
-            //         });
-            //         combobox.render();
-            //     });
-            //     accordion.render();
-            //     Box()
-            //         .width(.percent(100))
-            //         .height(.px(128))
-            //         .border(.round(.palette(.border_color_light), .all(12)))
-            //         .padding(.all(16))
-            //         .direction(.column)
-            //         .spacing(8)
-            //         .children({
-            //         Box()
-            //             .width(.percent(100))
-            //             .layout(.x_between_center)
-            //             .children({
-            //             Text("Enable Developer Mode")
-            //                 .font(18, 300, .palette(.text_color))
-            //                 .end();
-            //             Switch.render("test-switch");
-            //         });
-            //         Text("Switch to developer mode to see developer tools, and debug your application.")
-            //             .font(12, 300, .palette(.text_color))
-            //             .end();
-            //     });
-            //     command_palette.render();
-            //
-            //     Box()
-            //         .width(.percent(100))
-            //         .height(.px(256))
-            //         .border(.round(.palette(.border_color_light), .all(12)))
-            //         .padding(.all(16))
-            //         .direction(.column)
-            //         .spacing(8)
-            //         .children({
-            //         Text("Bug Fixes")
-            //             .font(24, 300, .palette(.text_color))
-            //             .end();
-            //
-            //         Text("Record any bugs you find, and we will fix them ASAP!")
-            //             .font(14, 300, .palette(.text_color))
-            //             .end();
-            //
-            //         TextArea()
-            //             .width(.percent(100))
-            //             .height(.percent(100))
-            //             .outline(.none)
-            //             .border(.solid(.tblr(1, 3, 1, 1), .palette(.border_color_light), .all(6)))
-            //             .padding(.all(8))
-            //             .font(16, 300, .palette(.text_color))
-            //             .fontFamily("IBM Plex Sans,monospace")
-            //             .resize(.none)
-            //             .end();
-            //
-            //         Box()
-            //             .width(.percent(100))
-            //             .height(.fit)
-            //             .layout(.right_center)
-            //             .children({
-            //             Button(addSuccessToast, .{})
-            //                 .hover(.{ .background = .yellow, .animation = &glitch })
-            //                 .border(.round(.palette(.text_color), .all(12)))
-            //                 .onHover(onHover)
-            //                 .spacing(16)
-            //                 .children({
-            //                 Text("//")
-            //                     .font(16, 300, .palette(.text_color))
-            //                     .fontFamily("IBM Plex Sans,monospace")
-            //                     .end();
-            //                 Text("Glitch")
-            //                     .font(16, 300, .palette(.text_color))
-            //                     .fontFamily("IBM Plex Sans,monospace")
-            //                     .end();
-            //                 Text("_ ⇒")
-            //                     .animation(if (hovered) &blink else null)
-            //                     .font(16, 300, .palette(.text_color))
-            //                     .fontFamily("IBM Plex Sans,monospace")
-            //                     .end();
-            //             });
-            //         });
-            //     });
-            //     Button(ComboBoxDialog(MenuItem).open, .{&combobox_dialog})
-            //         .children({
-            //         Text("Open Dialog")
-            //             .font(14, 300, .palette(.text_color))
-            //             .fontFamily("IBM Plex Sans,monospace")
-            //             .end();
-            //     });
-            //
-            //     Box()
-            //         .width(.percent(70))
-            //         // .height(.px(256))
-            //         .border(.round(.palette(.border_color_light), .all(12)))
-            //         .padding(.all(16))
-            //         .direction(.column)
-            //         .spacing(16)
-            //         .children({
-            //         Stack()
-            //             .width(.percent(100))
-            //             .layout(.top_left)
-            //             .spacing(8)
-            //             .children({
-            //             Text("Profile")
-            //                 .font(18, 300, .palette(.text_color))
-            //                 .end();
-            //             Text("Upload your profile picture")
-            //                 .font(12, 300, .palette(.text_color))
-            //                 .end();
-            //         });
-            //
-            //         Stack()
-            //             .layout(.center)
-            //             .width(.percent(100))
-            //             .children({
-            //             Box()
-            //                 .pos(.relative)
-            //                 .width(.px(256))
-            //                 .height(.px(256))
-            //                 .children({
-            //                 if (file_upload.image_src.len > 0) {
-            //                     Vapor.Image(.{ .src = file_upload.image_src })
-            //                         .pos(.absolute)
-            //                         .width(.px(256))
-            //                         .height(.px(256))
-            //                         // .newShadow(Vapor.Types.NewShadow.init()
-            //                         // .drop(0, 1, 3, .transparentizeHex(.black, 0.1)))
-            //                         .border(.round(.transparent, .all(12)))
-            //                         .outline(.none)
-            //                         .end();
-            //                 }
-            //                 Box()
-            //                     .pos(.absolute)
-            //                     .width(.px(256))
-            //                     .height(.px(256))
-            //                     .children({
-            //                     file_upload.render();
-            //                 });
-            //             });
-            //         });
-            //         Field.render(.{ .label = "Email", .value = .{ .string = &text }, .trans_label = true });
-            //         Field.render(.{ .label = "Password", .value = .{ .password = &password }, .trans_label = true });
-            //         Slider.render(.{});
-            //     });
-            // });
+            Vapor.Stack()
+                .width(.percent(60))
+                .spacing(16)
+                .children({
+                chart.render();
+                Box()
+                    .width(.percent(100))
+                    .height(.px(72))
+                    .layout(.center)
+                    .spacing(16)
+                    // .baseStyle(&.{
+                    //     .visual = .{
+                    //         .layers = &.{
+                    //             .gradient(.linear, .to_bottom, &.{ .transparent, .transparentizeHex(.palette(.tint), 0.1), .palette(.background) }),
+                    //             .grid(14, 1, .transparentizeHex(.palette(.tint), 0.05)),
+                    //             // .dot(0.5, 6, .transparentizeHex(.palette(.tint), 0.4)),
+                    //         },
+                    //     },
+                    // })
+                    .children({
+                    Button(Sheet.open, .{&sheet})
+                        .width(.px(200))
+                        .background(.transparentizeHex(.palette(.tint), 0.7))
+                        .border(.round(.palette(.tint), .all(12)))
+                        .children({
+                        Text("Open Drawer")
+                            .font(16, 300, .palette(.alternate_text_color))
+                            .fontFamily("IBM Plex Sans,monospace")
+                            .end();
+                        Vapor.Icon(.arrow_right)
+                            .font(16, 700, .palette(.alternate_text_color))
+                            .end();
+                    });
+                    combobox.render();
+                });
+                accordion.render();
+                Box()
+                    .width(.percent(100))
+                    .height(.px(128))
+                    .border(.round(.palette(.border_color_light), .all(12)))
+                    .padding(.all(16))
+                    .direction(.column)
+                    .spacing(8)
+                    .children({
+                    Box()
+                        .width(.percent(100))
+                        .layout(.x_between_center)
+                        .children({
+                        Text("Enable Developer Mode")
+                            .font(18, 300, .palette(.text_color))
+                            .end();
+                        Switch.render("test-switch");
+                    });
+                    Text("Switch to developer mode to see developer tools, and debug your application.")
+                        .font(12, 300, .palette(.text_color))
+                        .end();
+                });
+                command_palette.render();
+
+                Box()
+                    .width(.percent(100))
+                    .height(.px(256))
+                    .border(.round(.palette(.border_color_light), .all(12)))
+                    .padding(.all(16))
+                    .direction(.column)
+                    .spacing(8)
+                    .children({
+                    Text("Bug Fixes")
+                        .font(24, 300, .palette(.text_color))
+                        .end();
+
+                    Text("Record any bugs you find, and we will fix them ASAP!")
+                        .font(14, 300, .palette(.text_color))
+                        .end();
+
+                    TextArea()
+                        .width(.percent(100))
+                        .height(.percent(100))
+                        .outline(.none)
+                        .border(.solid(.tblr(1, 3, 1, 1), .palette(.border_color_light), .all(6)))
+                        .padding(.all(8))
+                        .font(16, 300, .palette(.text_color))
+                        .fontFamily("IBM Plex Sans,monospace")
+                        .resize(.none)
+                        .end();
+
+                    Box()
+                        .width(.percent(100))
+                        .height(.fit)
+                        .layout(.right_center)
+                        .children({
+                        Button(addSuccessToast, .{})
+                            .hover(.{ .background = .yellow, .animation = &glitch })
+                            .border(.round(.palette(.text_color), .all(12)))
+                            .onHover(onHover)
+                            .spacing(16)
+                            .children({
+                            Text("//")
+                                .font(16, 300, .palette(.text_color))
+                                .fontFamily("IBM Plex Sans,monospace")
+                                .end();
+                            Text("Glitch")
+                                .font(16, 300, .palette(.text_color))
+                                .fontFamily("IBM Plex Sans,monospace")
+                                .end();
+                            Text("_ ⇒")
+                                .animation(if (hovered) &blink else null)
+                                .font(16, 300, .palette(.text_color))
+                                .fontFamily("IBM Plex Sans,monospace")
+                                .end();
+                        });
+                    });
+                });
+                Button(ComboBoxDialog(MenuItem).open, .{&combobox_dialog})
+                    .children({
+                    Text("Open Dialog")
+                        .font(14, 300, .palette(.text_color))
+                        .fontFamily("IBM Plex Sans,monospace")
+                        .end();
+                });
+
+                Box()
+                    .width(.percent(70))
+                    // .height(.px(256))
+                    .border(.round(.palette(.border_color_light), .all(12)))
+                    .padding(.all(16))
+                    .direction(.column)
+                    .spacing(16)
+                    .children({
+                    Stack()
+                        .width(.percent(100))
+                        .layout(.top_left)
+                        .spacing(8)
+                        .children({
+                        Text("Profile")
+                            .font(18, 300, .palette(.text_color))
+                            .end();
+                        Text("Upload your profile picture")
+                            .font(12, 300, .palette(.text_color))
+                            .end();
+                    });
+
+                    Stack()
+                        .layout(.center)
+                        .width(.percent(100))
+                        .children({
+                        Box()
+                            .pos(.relative)
+                            .width(.px(256))
+                            .height(.px(256))
+                            .children({
+                            if (file_upload.image_src.len > 0) {
+                                Vapor.Image(.{ .src = file_upload.image_src })
+                                    .pos(.absolute)
+                                    .width(.px(256))
+                                    .height(.px(256))
+                                    // .newShadow(Vapor.Types.NewShadow.init()
+                                    // .drop(0, 1, 3, .transparentizeHex(.black, 0.1)))
+                                    .border(.round(.transparent, .all(12)))
+                                    .outline(.none)
+                                    .end();
+                            }
+                            Box()
+                                .pos(.absolute)
+                                .width(.px(256))
+                                .height(.px(256))
+                                .children({
+                                file_upload.render();
+                            });
+                        });
+                    });
+                    Field.render(.{ .label = "Email", .value = .{ .string = &text }, .trans_label = true });
+                    Field.render(.{ .label = "Password", .value = .{ .password = &password }, .trans_label = true });
+                    Slider.render(.{});
+                });
+            });
         });
         sheet.render();
         alert.render();

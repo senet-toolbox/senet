@@ -28,8 +28,14 @@ pub fn initBoxes() void {
 
 pub fn reinitBoxes() void {
     const ids = Vapor.queryComponentIds(.Intersection) catch unreachable;
-    boxes = Vapor.arena(.view).alloc(BoxNumber, ids.len) catch unreachable;
+    var count: usize = 0;
+    for (ids) |id| {
+        if (std.mem.startsWith(u8, id, "Inte_")) continue;
+        count += 1;
+    }
+    boxes = Vapor.arena(.view).alloc(BoxNumber, count) catch unreachable;
     for (ids, 0..) |id, i| {
+        if (std.mem.startsWith(u8, id, "Inte_")) continue;
         const bounds = Vapor.getComponentBounds(id) orelse unreachable;
         const box_id = std.fmt.allocPrint(Vapor.arena(.view), "box-{d}", .{i}) catch unreachable;
         boxes[i] = .{ .id = box_id, .number = i, .bounds = bounds };
@@ -72,7 +78,7 @@ pub fn new(default_text: []const u8) type {
             Vapor.Clipboard.copy(self.content_text);
             copied = true;
             // Vapor.cycle();
-            // Vapor.registerCtxTimeout("markdown_copy", 1000, toggleIcon, .{{}});
+            Vapor.registerCtxTimeout("markdown_copy", 1000, toggleIcon, .{{}});
         }
 
         pub fn content(self: *Self, render: *const fn () void) void {

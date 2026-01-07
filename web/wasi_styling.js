@@ -10,6 +10,7 @@ import {
 // document.head.appendChild(document.createElement("style")).sheet;
 
 export const styleRuleCache = new Map(); // Track rule indices for fast updates
+export const styleClassCache = {}; // Track rule indices for fast updates
 export function addKeyframesToStylesheet(keyframesCSS) {
   // // Get or create stylesheet
   // const styleSheet =
@@ -141,12 +142,18 @@ export function updateComponentStyle(
       } else if (element.localName !== "i" && specified_className.length > 0) {
         const ruleIndex = styleRuleCache.get(`.${className}`);
         if (ruleIndex === undefined) {
+          const cssStylePtr = wasmInstance.getStyle(nodePtr);
+          if (cssStylePtr !== 0) {
+            const cssStyleLen = wasmInstance.getStyleLen();
+            styleString = readWasmString(cssStylePtr, cssStyleLen);
+          }
+
           const newIndex = styleSheet.cssRules.length;
           styleSheet.insertRule(`.${className} { ${styleString} }`, newIndex);
           styleRuleCache.set(`.${className}`, newIndex);
         } else {
-          styleSheet.deleteRule(ruleIndex);
-          styleSheet.insertRule(`.${className} { ${styleString} }`, ruleIndex);
+          // styleSheet.deleteRule(ruleIndex);
+          // styleSheet.insertRule(`.${className} { ${styleString} }`, ruleIndex);
         }
 
         const intr_ptr = wasmInstance.getVisualStyle(nodePtr, 0);
@@ -187,6 +194,12 @@ export function updateComponentStyle(
       // This means we have named class set by the user
       if (!hasAny) {
         const ruleIndex = styleRuleCache.get(`.${className}`);
+        const cssStylePtr = wasmInstance.getStyle(nodePtr);
+
+        if (cssStylePtr !== 0) {
+          const cssStyleLen = wasmInstance.getStyleLen();
+          styleString = readWasmString(cssStylePtr, cssStyleLen);
+        }
         if (ruleIndex === undefined) {
           const newIndex = styleSheet.cssRules.length;
           styleSheet.insertRule(`.${className} { ${styleString} }`, newIndex);

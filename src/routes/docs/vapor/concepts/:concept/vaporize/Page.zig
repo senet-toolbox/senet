@@ -4,11 +4,13 @@ const Content = @import("../../../../../../components/Content.zig");
 const Vaporize = @import("vaporize");
 const Stack = Vapor.Stack;
 const Text = Vapor.Text;
+const ComplexForm = @import("../../../../../VaporizeComplexForm.zig");
 
 var markdown: Compiler.vaporize.MarkDown(.{
     .{ .tag = "form", .function = form },
     .{ .tag = "text_area", .function = text_area },
     .{ .tag = "realtime_markdown", .function = RealtimeMarkdown },
+    .{ .tag = "complex_form", .function = complex_form },
 }) = .{};
 
 var page: []const u8 = "";
@@ -46,6 +48,7 @@ pub fn init() void {
         Vapor.printErr("Failed to compile markdown: {any} invalid input", .{err});
         return;
     };
+    ComplexForm.init();
     new_form.compile() catch unreachable;
 }
 
@@ -97,21 +100,20 @@ var table: []const u8 =
     \\| cell 4   | cell 5   | cell 6   |
 ;
 
-
 fn text_area() void {
-        Vapor.TextArea()
-            .val(&table)
-            .height(.px(128))
-            .shadow(.card(.transparentizeHex(.palette(.tint), 0.3)))
-            .border(.simple(.transparentizeHex(.palette(.tint), 0.1)))
-            .outline(.none)
-            .layer(.grid(4, 1, .palette(.grid_color)))
-            .spacing(4)
-            .fontFamily("IBM Plex Mono,monospace")
-            .font(14, null, .palette(.text_color))
-            .padding(.all(8))
-            .onChange(onChange)
-            .end();
+    Vapor.TextArea()
+        .val(&table)
+        .height(.px(128))
+        .shadow(.card(.transparentizeHex(.palette(.tint), 0.3)))
+        .border(.simple(.transparentizeHex(.palette(.tint), 0.1)))
+        .outline(.none)
+        .layer(.grid(4, 1, .palette(.grid_color)))
+        .spacing(4)
+        .fontFamily("IBM Plex Mono,monospace")
+        .font(14, null, .palette(.text_color))
+        .padding(.all(8))
+        .onChange(onChange)
+        .end();
 }
 
 pub fn form() void {
@@ -136,6 +138,29 @@ pub fn form() void {
                     .width(.percent(100)).layout(.center).spacing(16).padding(.all(20))
                     .children({
                     new_form.render();
+                });
+            });
+        });
+    });
+}
+
+fn complex_form() void {
+    Stack()
+        .direction(.column).layout(.top_center).width(.full).height(.percent(50)).children({
+        Stack()
+            .width(.percent(80)).layout(.center).padding(.all(16))
+            .children({
+            Stack()
+                .width(.percent(100))
+                .children({
+                Text("Checkout").font(32, 900, .palette(.text_color))
+                    .padding(.horizontal(12))
+                    .width(.percent(100))
+                    .end();
+                Stack()
+                    .width(.percent(100)).layout(.center).spacing(16).padding(.horizontal(20))
+                    .children({
+                    ComplexForm.LoginComponent();
                 });
             });
         });

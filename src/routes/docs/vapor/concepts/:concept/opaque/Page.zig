@@ -1,24 +1,19 @@
-const std = @import("std");
 const Vapor = @import("vapor");
-const Signal = Vapor.Signal;
-const Style = Vapor.Style;
-const Static = Vapor.Static;
-const Pure = Vapor.Pure;
-const Page = Vapor.Page;
-const Custom = @import("../../../../../../components/Custom.zig");
-const Kit = Vapor.Kit;
-const CodeEditor = @import("../CodeEditor.zig");
 const Content = @import("../../../../../../components/Content.zig");
-const Vaporize = @import("vaporize");
 const Compiler = @import("../../../../../../main.zig");
 
-// Initialization
 var content: Content.new("") = undefined;
 var markdown: Compiler.vaporize.MarkDown(.{}) = .{};
-var page: []const u8 = "";
 var markdown_loaded: bool = false;
+var page: []const u8 = "";
+
 pub fn init() void {
-    Vapor.Kit.fetch("/src/routes/docs/vapor/concepts/:concept/tutorials/tutorial_page.md", handlePage, .{ .method = .GET });
+    var items = [_]i32{ 1, 2, 3, 4 };
+    items = .{ 1, 2, 3, 4 };
+    for (items) |item| {
+        Vapor.print("{d}\n", .{item});
+    }
+    Vapor.Kit.fetch("/src/routes/docs/vapor/concepts/:concept/opaque/opaque_page.md", handlePage, .{ .method = .GET });
 }
 
 fn handlePage(resp: Vapor.Kit.Response) void {
@@ -40,12 +35,11 @@ fn handlePage(resp: Vapor.Kit.Response) void {
     Vapor.cycle();
 }
 
+pub fn render() void {
+    content.content(component);
+}
+
 fn component() void {
     if (!markdown_loaded) return;
     markdown.render() catch unreachable;
-}
-
-pub fn render() void {
-    if (!markdown_loaded) return;
-    content.content(component);
 }
