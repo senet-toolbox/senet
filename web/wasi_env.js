@@ -1,7 +1,7 @@
 import { readWasmString, wasmInstance } from "./wasi_obj.js";
 import { env, requireWasm } from "./wasi.js";
 import { fileBindings } from "./additionals.js";
-import { cacheEnv } from "./cachebindings.js";
+// import { cacheEnv } from "./cachebindings.js";
 
 export const importObject = {
   wasi_snapshot_preview1: {
@@ -106,6 +106,6 @@ export const importObject = {
   env: {
     ...env,
     ...fileBindings,
-    ...cacheEnv,
+    // ...cacheEnv,
   },
 };

@@ -8,11 +8,6 @@ var markdown_loaded: bool = false;
 var page: []const u8 = "";
 
 pub fn init() void {
-    var items = [_]i32{ 1, 2, 3, 4 };
-    items = .{ 1, 2, 3, 4 };
-    for (items) |item| {
-        Vapor.print("{d}\n", .{item});
-    }
     Vapor.Kit.fetch("/src/routes/docs/vapor/concepts/:concept/opaque/opaque_page.md", handlePage, .{ .method = .GET });
 }
 

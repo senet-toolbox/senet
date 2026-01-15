@@ -10,6 +10,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="icon" href="/assets/icon.svg" type="image/svg+xml" />
   <link rel="preload" href="/zig-out/bin/vapor.wasm" as="fetch" type="application/wasm" crossorigin />
+  <!-- <script src="https://unpkg.com/lucide@latest"></script> -->
 
   <!-- Preconnect stays the same -->
   <link href="https://fonts.googleapis.com" />
@@ -26,11 +27,24 @@
 
   <link rel="preload" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" as="style"
     onload="this.rel='stylesheet'" />
+
+  <!-- Font Awesome - non-blocking -->
+  <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" as="style"
+    onload="this.rel='stylesheet'" />
+  <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/brands.min.css" as="style"
+    onload="this.rel='stylesheet'" />
+
+  <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/fontawesome.min.css"
+    as="style" onload="this.rel='stylesheet'" />
+
+  <!-- Fallback for no-JS -->
   <noscript>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/brands.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/fontawesome.min.css" />
   </noscript>
 
   <script type="module" src="/web/wasi_obj.js"></script>
+  <!-- <script type="module" src="/web/bundle.min.js"></script> -->
 
   <style>
     body {
@@ -65,7 +79,6 @@
       margin: 0;
     }
 
-
     p,
     h1,
     h2,
@@ -85,6 +98,19 @@
     table {
       border-collapse: separate;
       border-spacing: 0;
+    }
+
+    input[type="file"]::file-selector-button {
+      background: transparent;
+      color: transparent;
+      border: none;
+    }
+
+    input:-webkit-autofill {
+      -webkit-box-shadow: 0 0 0 1000px transparent inset;
+      -webkit-text-fill-color: inherit;
+      caret-color: inherit;
+      transition: background-color 5000s ease-in-out 0s;
     }
 
     /* Basic sidebar styling */
@@ -120,8 +146,44 @@
       text-decoration: none;
       color: rgb(var(--text_color));
     }
+
+    .reload-indicator {
+      position: fixed;
+      top: 16px;
+      right: 16px;
+      background: #1a1a1a;
+      color: #fff;
+      padding: 10px 16px;
+      border-radius: 6px;
+      display: none;
+      align-items: center;
+      gap: 10px;
+      font-family: system-ui, sans-serif;
+      font-size: 14px;
+      z-index: 99999;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    }
+
+    .reload-indicator.visible {
+      display: flex;
+    }
+
+    .reload-spinner {
+      width: 14px;
+      height: 14px;
+      border: 2px solid #333;
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
   </style>
-  <link rel="stylesheet" href="/static/style_variables.css" />
+  <!-- <link rel="stylesheet" href="/static/style_variables.css" /> -->
   <link rel="stylesheet" href="/static/docs/vapor/style.css" />
 </head></head>
 
@@ -130,218 +192,225 @@
     FPS: <span id="fps">0</span><br />
     Frame Time: <span id="frameTime">0</span>ms<br />
     Render Time: <span id="renderTime">0</span>ms<br />
+    Total Render Time: <span id="totalRenderTime">0</span>ms<br />
   </div>
-  <div id="contents" style="display: contents"><div  id="Flex_F7PI52-genk" class="lay_fcXl83 pos_7BU3c4 mapa_c1Pmw ">
+  <div id="reload-indicator" class="reload-indicator">
+    <div class="reload-spinner"></div>
+    <span>Reloading... <span id="reload-timer">0.0</span>s</span>
+  </div>
+  <div id="contents" style="display: contents"><div  id="Flex_wvMYu2-gk" class="lay_fcXl83 pos_4TxA5 mapa_c1Pmw vis_l45j63 ">
 
-<div  id="Flex_c6Klb2-genk" class="lay_FjeHV pos_pfYov2 mapa_GjRnP2 vis_MMutl ">
-<div  id="Flex_EQhAH-genk" class="lay_LKxiW1 ">
-<a  id="Link_MDFfj2-genk" class="vis_Ou2Cm1 " aria-label="home page of tether" href="/">
-<img  id="Imag_3a76D3-genk" class="lay_yNQAV4 " src="/assets/circlelogo.webp">
+<div  id="Flex_8Oim53-gk" class="lay_FjeHV pos_f6i3U3 mapa_GjRnP2 vis_wksQx3 ">
+<div  id="Flex_LOZq61-gk" class="lay_LKxiW1 pos_PNZMO3 mapa_CrkEb2 vis_l45j63 ">
+<a  id="Link_et8SI4-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_HdnOR3 " aria-label="home page of tether" href="/">
+<img  id="Imag_gJY5d4-gk" class="lay_yNQAV4 pos_PNZMO3 mapa_CrkEb2 vis_l45j63 " src="/assets/circlelogo.webp">
 </img>
 </a>
-<p  id="Text_ETdnT4-genk" class="vis_BBCjf4 ">Tether</p>
-<div  id="Flex_w5fve1-genk" class="lay_VhOU93 vis_WPwxh ">
+<p  id="Text_eD7KV2-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_uE0ZP1 ">Tether</p>
+<div  id="Flex_R20am1-gk" class="lay_VhOU93 pos_PNZMO3 mapa_CrkEb2 vis_xZvpo ">
 </div>
-<p  id="Text_85dkt-genk" class="vis_qoatr3 ">Docs</p>
+<p  id="Text_YdegE-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_fRhKx1 ">Docs</p>
 </div>
-<button  id="Butt_jJ7LO1-genk" class="lay_vNJoO2 mapa_4hFg71 vis_A7Qpx3 intr_xtuuh1 " aria-label="search-dialog">
-<div  id="Flex_aVpng2-genk" class="lay_cC6BZ2 ">
-<i  id="Icon_zd1wL1-genk" class="bi bi-search vis_exlBf4 " href="bi bi-search">
+<button  id="Butt_5nIsL3-gk" class="lay_vNJoO2 pos_PNZMO3 mapa_4hFg71 vis_dXrHv intr_Lkq7v2 " aria-label="search-dialog">
+<div  id="Flex_Zdbzh3-gk" class="lay_cC6BZ2 pos_PNZMO3 mapa_CrkEb2 vis_l45j63 ">
+<i  id="Flex_dhMmD3-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_8D1Uq2 " href="bi bi-search">
 </i>
-<p  id="Text_0sN8V2-genk" class="vis_om8yd3 ">Search...</p>
+<p  id="Text_Rfvgt3-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_I2OGp1 ">Search...</p>
 </div>
-<i  id="Icon_4iWUo3-genk" class="bi bi-command vis_exlBf4 " href="bi bi-command">
+<i  id="Flex_PhE1W4-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_8D1Uq2 " href="bi bi-command">
 </i>
 </button>
-<div  id="Flex_CEwmN1-genk" class="lay_aRjFA2 mapa_TK4ER4 ">
-<button  id="Butt_kUst22-genk" class="vis_8H90T4 " aria-label="toggle theme">
-<i  id="Icon_0aSVe-genk" class="bi bi-cloud-moon vis_3JgbB2 intr_HNOBs3 " href="bi bi-cloud-moon">
+<div  id="Flex_9VsTj-gk" class="lay_aRjFA2 pos_PNZMO3 mapa_TK4ER4 vis_l45j63 ">
+<button  id="Butt_Q0VvK-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_gec173 " aria-label="toggle theme">
+<i  id="Flex_fCF7g4-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_HLq704 intr_gziX93 " href="bi bi-cloud-moon">
 </i>
 </button>
 </div>
 </div>
-<div  id="Flex_Zuojo-genk" class="lay_fcXl83 pos_FWJ613 ">
-<ul  id="List_t7l7o1-genk" class="lay_k7bGB4 mapa_bnttp vis_0iRpV4 ">
-<li  id="List_VrvNq1-genk" class="lay_AAqfn3 vis_m3Gxp2 intr_1axpu "">
-<button  id="CtxB_q9oZu1-genk" class="lay_IvyKF mapa_3Qb5v vis_8H90T4 ">
-<i  id="Icon_3Zhb22-genk" class="bi bi-house vis_i6tu9 " href="bi bi-house">
+<div  id="Flex_OFxeK-gk" class="lay_fcXl83 pos_R7qmy1 mapa_CrkEb2 vis_l45j63 ">
+<ul  id="List_sR5kF-gk" class="lay_k7bGB4 pos_PNZMO3 mapa_bnttp vis_RgdvV1 ">
+<li  id="menu-/docs/vapor" class="lay_AAqfn3 pos_PNZMO3 mapa_CrkEb2 vis_3Tn9F1 intr_HVsCu1 "">
+<button  id="CtxB_hEudX2-gk" class="lay_IvyKF pos_PNZMO3 mapa_3Qb5v vis_gec173 ">
+<i  id="Flex_pag2v1-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_GNNsl3 " href="bi bi-house">
 </i>
-<p  id="Text_4n3oB3-genk" class="vis_fKNC34 ">Overview</p>
+<p  id="Text_Whhn02-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_WnFl03 ">Overview</p>
 </button>
 </li>
-<li  id="List_SfQM3-genk" class="lay_AAqfn3 vis_6QsRw2 intr_RlB5D3 "">
-<button  id="CtxB_A661i1-genk" class="lay_IvyKF mapa_3Qb5v vis_8H90T4 ">
-<i  id="Icon_crTQB2-genk" class="bi bi-fire vis_gm3id2 " href="bi bi-fire">
+<li  id="menu-/docs/vapor/concepts/justletmebuild" class="lay_AAqfn3 pos_PNZMO3 mapa_CrkEb2 vis_0B5BG1 intr_0CiBa2 "">
+<button  id="CtxB_aDNeY2-gk" class="lay_IvyKF pos_PNZMO3 mapa_3Qb5v vis_gec173 ">
+<i  id="Flex_CPdAm2-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_t5Tw8 " href="bi bi-fire">
 </i>
-<p  id="Text_d5qcK3-genk" class="vis_MfoiW1 ">Just let me build!!!!</p>
+<p  id="Text_tMg7N3-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_0k2d81 ">Just let me build!!!!</p>
 </button>
 </li>
-<li  id="List_TfA0x2-genk" class="lay_AAqfn3 vis_6QsRw2 intr_RlB5D3 "">
-<button  id="CtxB_jylnc-genk" class="lay_IvyKF mapa_3Qb5v vis_8H90T4 ">
-<i  id="Icon_KQQiX1-genk" class="bi bi-mortarboard vis_gm3id2 " href="bi bi-mortarboard">
+<li  id="menu-/docs/vapor/concepts/basics" class="lay_AAqfn3 pos_PNZMO3 mapa_CrkEb2 vis_0B5BG1 intr_0CiBa2 "">
+<button  id="CtxB_jObSx3-gk" class="lay_IvyKF pos_PNZMO3 mapa_3Qb5v vis_gec173 ">
+<i  id="Flex_MTbcn-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_t5Tw8 " href="bi bi-mortarboard">
 </i>
-<p  id="Text_1eRzx2-genk" class="vis_MfoiW1 ">Basics</p>
+<p  id="Text_1JJa4-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_0k2d81 ">Basics</p>
 </button>
 </li>
-<li  id="List_QTfy91-genk" class="lay_AAqfn3 vis_6QsRw2 intr_RlB5D3 "">
-<button  id="CtxB_EO5g3-genk" class="lay_IvyKF mapa_3Qb5v vis_8H90T4 ">
-<i  id="Icon_1bHgi2-genk" class="bi bi-filetype-js vis_gm3id2 " href="bi bi-filetype-js">
+<li  id="menu-/docs/vapor/concepts/dont-know-zig" class="lay_AAqfn3 pos_PNZMO3 mapa_CrkEb2 vis_0B5BG1 intr_0CiBa2 "">
+<button  id="CtxB_o6vaE-gk" class="lay_IvyKF pos_PNZMO3 mapa_3Qb5v vis_gec173 ">
+<i  id="Flex_oPfVH3-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_t5Tw8 " href="bi bi-filetype-js">
 </i>
-<p  id="Text_ioIx84-genk" class="vis_MfoiW1 ">New to Zig</p>
+<p  id="Text_yYwoF-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_0k2d81 ">From JS to Zig</p>
 </button>
 </li>
-<li  id="List_RTPc34-genk" class="lay_AAqfn3 vis_6QsRw2 intr_RlB5D3 "">
-<button  id="CtxB_C08pD4-genk" class="lay_IvyKF mapa_3Qb5v vis_8H90T4 ">
-<i  id="Icon_n5jiY3-genk" class="bi bi-diagram-3 vis_gm3id2 " href="bi bi-diagram-3">
+<li  id="menu-/docs/vapor/concepts/project" class="lay_AAqfn3 pos_PNZMO3 mapa_CrkEb2 vis_0B5BG1 intr_0CiBa2 "">
+<button  id="CtxB_01F2n3-gk" class="lay_IvyKF pos_PNZMO3 mapa_3Qb5v vis_gec173 ">
+<i  id="Flex_yFLLS4-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_t5Tw8 " href="bi bi-diagram-3">
 </i>
-<p  id="Text_k7qF1-genk" class="vis_MfoiW1 ">Project Structure</p>
+<p  id="Text_C778O4-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_0k2d81 ">Project Structure</p>
 </button>
 </li>
-<li  id="List_OHuaG2-genk" class="lay_AAqfn3 vis_6QsRw2 intr_RlB5D3 "">
-<button  id="CtxB_CR1mN1-genk" class="lay_IvyKF mapa_3Qb5v vis_8H90T4 ">
-<i  id="Icon_M8xDS3-genk" class="bi bi-signpost vis_gm3id2 " href="bi bi-signpost">
+<li  id="menu-/docs/vapor/concepts/routing" class="lay_AAqfn3 pos_PNZMO3 mapa_CrkEb2 vis_0B5BG1 intr_0CiBa2 "">
+<button  id="CtxB_X5QL72-gk" class="lay_IvyKF pos_PNZMO3 mapa_3Qb5v vis_gec173 ">
+<i  id="Flex_CgTjh2-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_t5Tw8 " href="bi bi-signpost">
 </i>
-<p  id="Text_NMJQb4-genk" class="vis_MfoiW1 ">Routing</p>
+<p  id="Text_3Mpw2-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_0k2d81 ">Routing</p>
 </button>
 </li>
-<li  id="List_L5PZT-genk" class="lay_AAqfn3 vis_6QsRw2 intr_RlB5D3 "">
-<button  id="CtxB_5X6Xi3-genk" class="lay_IvyKF mapa_3Qb5v vis_8H90T4 ">
-<i  id="Icon_lWojF2-genk" class="bi bi-arrow-repeat vis_gm3id2 " href="bi bi-arrow-repeat">
+<li  id="menu-/docs/vapor/concepts/reactivity" class="lay_AAqfn3 pos_PNZMO3 mapa_CrkEb2 vis_0B5BG1 intr_0CiBa2 "">
+<button  id="CtxB_w0czu1-gk" class="lay_IvyKF pos_PNZMO3 mapa_3Qb5v vis_gec173 ">
+<i  id="Flex_OKqAK4-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_t5Tw8 " href="bi bi-arrow-repeat">
 </i>
-<p  id="Text_mkAwO3-genk" class="vis_MfoiW1 ">Reactivity</p>
+<p  id="Text_1fcrf3-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_0k2d81 ">Reactivity</p>
 </button>
 </li>
-<li  id="List_M59DN3-genk" class="lay_AAqfn3 vis_6QsRw2 intr_RlB5D3 "">
-<button  id="CtxB_Qd4fh-genk" class="lay_IvyKF mapa_3Qb5v vis_8H90T4 ">
-<i  id="Icon_V6Lp3-genk" class="bi bi-paint-bucket vis_gm3id2 " href="bi bi-paint-bucket">
+<li  id="menu-/docs/vapor/concepts/styling" class="lay_AAqfn3 pos_PNZMO3 mapa_CrkEb2 vis_0B5BG1 intr_0CiBa2 "">
+<button  id="CtxB_Kd9ig3-gk" class="lay_IvyKF pos_PNZMO3 mapa_3Qb5v vis_gec173 ">
+<i  id="Flex_aN4Qa1-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_t5Tw8 " href="bi bi-paint-bucket">
 </i>
-<p  id="Text_CKM6U1-genk" class="vis_MfoiW1 ">Styling</p>
+<p  id="Text_2WhlD-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_0k2d81 ">Styling</p>
 </button>
 </li>
-<li  id="List_JtdBa1-genk" class="lay_AAqfn3 vis_6QsRw2 intr_RlB5D3 "">
-<button  id="CtxB_smVNM4-genk" class="lay_IvyKF mapa_3Qb5v vis_8H90T4 ">
-<i  id="Icon_b2rTc4-genk" class="bi bi-device-hdd-fill vis_gm3id2 " href="bi bi-device-hdd-fill">
+<li  id="menu-/docs/vapor/concepts/vaporize" class="lay_AAqfn3 pos_PNZMO3 mapa_CrkEb2 vis_0B5BG1 intr_0CiBa2 "">
+<button  id="CtxB_E6RhB4-gk" class="lay_IvyKF pos_PNZMO3 mapa_3Qb5v vis_gec173 ">
+<i  id="Flex_um08K2-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_t5Tw8 " href="bi bi-device-hdd-fill">
 </i>
-<p  id="Text_Y4y051-genk" class="vis_MfoiW1 ">Vaporize</p>
+<p  id="Text_sNVvv-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_0k2d81 ">Vaporize</p>
 </button>
 </li>
-<li  id="List_ZJ7Z33-genk" class="lay_AAqfn3 vis_6QsRw2 intr_RlB5D3 "">
-<button  id="CtxB_t4CyV1-genk" class="lay_IvyKF mapa_3Qb5v vis_8H90T4 ">
-<i  id="Icon_NKF913-genk" class="bi bi-memory vis_gm3id2 " href="bi bi-memory">
+<li  id="menu-/docs/vapor/concepts/animation" class="lay_AAqfn3 pos_PNZMO3 mapa_CrkEb2 vis_0B5BG1 intr_0CiBa2 "">
+<button  id="CtxB_2YwAc3-gk" class="lay_IvyKF pos_PNZMO3 mapa_3Qb5v vis_gec173 ">
+<i  id="Flex_PY03T4-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_t5Tw8 " href="bi bi-film">
 </i>
-<p  id="Text_OYbLA4-genk" class="vis_MfoiW1 ">Memory</p>
+<p  id="Text_hjrZb4-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_0k2d81 ">Animation</p>
 </button>
 </li>
-<li  id="List_W7cXG1-genk" class="lay_AAqfn3 vis_6QsRw2 intr_RlB5D3 "">
-<button  id="CtxB_39vQH3-genk" class="lay_IvyKF mapa_3Qb5v vis_8H90T4 ">
-<i  id="Icon_AICq92-genk" class="bi bi-columns vis_gm3id2 " href="bi bi-columns">
+<li  id="menu-/docs/vapor/concepts/new-to-zig" class="lay_AAqfn3 pos_PNZMO3 mapa_CrkEb2 vis_0B5BG1 intr_0CiBa2 "">
+<button  id="CtxB_doy223-gk" class="lay_IvyKF pos_PNZMO3 mapa_3Qb5v vis_gec173 ">
+<i  id="Flex_WqwDs2-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_t5Tw8 " href="fa-solid fa-microscope">
 </i>
-<p  id="Text_BWY2J3-genk" class="vis_MfoiW1 ">Layout</p>
+<p  id="Text_5MWGR1-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_0k2d81 ">Deep Dive</p>
 </button>
 </li>
-<li  id="List_X7MBA4-genk" class="lay_AAqfn3 vis_6QsRw2 intr_RlB5D3 "">
-<button  id="CtxB_xYiuk2-genk" class="lay_IvyKF mapa_3Qb5v vis_8H90T4 ">
-<i  id="Icon_AVMIp1-genk" class="bi bi-tools vis_gm3id2 " href="bi bi-tools">
+<li  id="menu-/docs/vapor/concepts/memory" class="lay_AAqfn3 pos_PNZMO3 mapa_CrkEb2 vis_0B5BG1 intr_0CiBa2 "">
+<button  id="CtxB_PKZzR2-gk" class="lay_IvyKF pos_PNZMO3 mapa_3Qb5v vis_gec173 ">
+<i  id="Flex_32HyD-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_t5Tw8 " href="bi bi-memory">
 </i>
-<p  id="Text_BjiUy2-genk" class="vis_MfoiW1 ">Kit</p>
+<p  id="Text_P1JbX1-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_0k2d81 ">Memory</p>
 </button>
 </li>
-<li  id="List_Uvq9N2-genk" class="lay_AAqfn3 vis_6QsRw2 intr_RlB5D3 "">
-<button  id="CtxB_dbZYF4-genk" class="lay_IvyKF mapa_3Qb5v vis_8H90T4 ">
-<i  id="Icon_1VGJj2-genk" class="bi bi-cursor vis_gm3id2 " href="bi bi-cursor">
+<li  id="menu-/docs/vapor/concepts/layout" class="lay_AAqfn3 pos_PNZMO3 mapa_CrkEb2 vis_0B5BG1 intr_0CiBa2 "">
+<button  id="CtxB_0Y0Y02-gk" class="lay_IvyKF pos_PNZMO3 mapa_3Qb5v vis_gec173 ">
+<i  id="Flex_bnQH3-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_t5Tw8 " href="bi bi-columns">
 </i>
-<p  id="Text_2jcVs3-genk" class="vis_MfoiW1 ">Events & Handlers</p>
+<p  id="Text_guKVc-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_0k2d81 ">Layout</p>
 </button>
 </li>
-<li  id="List_RjL8a-genk" class="lay_AAqfn3 vis_6QsRw2 intr_RlB5D3 "">
-<button  id="CtxB_7hnyG-genk" class="lay_IvyKF mapa_3Qb5v vis_8H90T4 ">
-<i  id="Icon_FdXEW2-genk" class="bi bi-hourglass-split vis_gm3id2 " href="bi bi-hourglass-split">
+<li  id="menu-/docs/vapor/concepts/kit" class="lay_AAqfn3 pos_PNZMO3 mapa_CrkEb2 vis_0B5BG1 intr_0CiBa2 "">
+<button  id="CtxB_zbBws-gk" class="lay_IvyKF pos_PNZMO3 mapa_3Qb5v vis_gec173 ">
+<i  id="Flex_eqwDt-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_t5Tw8 " href="bi bi-tools">
 </i>
-<p  id="Text_wqYVw3-genk" class="vis_MfoiW1 ">Lifecycle Hooks</p>
+<p  id="Text_VjSA7-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_0k2d81 ">Kit</p>
 </button>
 </li>
-<li  id="List_Sj5mT3-genk" class="lay_AAqfn3 vis_6QsRw2 intr_RlB5D3 "">
-<button  id="CtxB_8T9pX1-genk" class="lay_IvyKF mapa_3Qb5v vis_8H90T4 ">
-<i  id="Icon_EKExT2-genk" class="bi bi-motherboard vis_gm3id2 " href="bi bi-motherboard">
+<li  id="menu-/docs/vapor/concepts/events" class="lay_AAqfn3 pos_PNZMO3 mapa_CrkEb2 vis_0B5BG1 intr_0CiBa2 "">
+<button  id="CtxB_PWN2N4-gk" class="lay_IvyKF pos_PNZMO3 mapa_3Qb5v vis_gec173 ">
+<i  id="Flex_EiP922-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_t5Tw8 " href="bi bi-cursor">
 </i>
-<p  id="Text_FYa9d3-genk" class="vis_MfoiW1 ">Codex Engine</p>
+<p  id="Text_wqJv6-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_0k2d81 ">Events & Handlers</p>
 </button>
 </li>
-<li  id="List_PXakg1-genk" class="lay_AAqfn3 vis_6QsRw2 intr_RlB5D3 "">
-<button  id="CtxB_C4NEC1-genk" class="lay_IvyKF mapa_3Qb5v vis_8H90T4 ">
-<i  id="Icon_mRV6N4-genk" class="bi bi-ethernet vis_gm3id2 " href="bi bi-ethernet">
+<li  id="menu-/docs/vapor/concepts/hooks" class="lay_AAqfn3 pos_PNZMO3 mapa_CrkEb2 vis_0B5BG1 intr_0CiBa2 "">
+<button  id="CtxB_s9Yjd3-gk" class="lay_IvyKF pos_PNZMO3 mapa_3Qb5v vis_gec173 ">
+<i  id="Flex_GI2Fc3-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_t5Tw8 " href="bi bi-hourglass-split">
 </i>
-<p  id="Text_jTcdp-genk" class="vis_MfoiW1 ">Performance</p>
+<p  id="Text_aEHz82-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_0k2d81 ">Lifecycle Hooks</p>
 </button>
 </li>
-<li  id="List_QXKOa4-genk" class="lay_AAqfn3 vis_6QsRw2 intr_RlB5D3 "">
-<button  id="CtxB_c3zDb-genk" class="lay_IvyKF mapa_3Qb5v vis_8H90T4 ">
-<i  id="Icon_mboKk3-genk" class="bi bi-award vis_gm3id2 " href="bi bi-award">
+<li  id="menu-/docs/vapor/concepts/theme-and-icons" class="lay_AAqfn3 pos_PNZMO3 mapa_CrkEb2 vis_0B5BG1 intr_0CiBa2 "">
+<button  id="CtxB_36fEW2-gk" class="lay_IvyKF pos_PNZMO3 mapa_3Qb5v vis_gec173 ">
+<i  id="Flex_T2FNb1-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_t5Tw8 " href="bi bi-palette2">
 </i>
-<p  id="Text_PdawT-genk" class="vis_MfoiW1 ">Tutorials</p>
+<p  id="Text_1xTdd1-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_0k2d81 ">Theme and Icons</p>
 </button>
 </li>
-<li  id="List_NLpMn2-genk" class="lay_AAqfn3 vis_6QsRw2 intr_RlB5D3 "">
-<button  id="CtxB_jf2DX3-genk" class="lay_IvyKF mapa_3Qb5v vis_8H90T4 ">
-<i  id="Icon_LkKEc2-genk" class="bi bi-screwdriver vis_gm3id2 " href="bi bi-screwdriver">
+<li  id="menu-/react-to-vapor" class="lay_AAqfn3 pos_PNZMO3 mapa_CrkEb2 vis_0B5BG1 intr_0CiBa2 "">
+<button  id="CtxB_BtrnR-gk" class="lay_IvyKF pos_PNZMO3 mapa_3Qb5v vis_gec173 ">
+<i  id="Flex_e2VB14-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_t5Tw8 " href="fa-brands fa-react">
 </i>
-<p  id="Text_MygQl3-genk" class="vis_MfoiW1 ">Metal</p>
+<p  id="Text_EhXps3-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_0k2d81 ">React to Vapor</p>
+</button>
+</li>
+<li  id="menu-/docs/vapor/concepts/codex-engine" class="lay_AAqfn3 pos_PNZMO3 mapa_CrkEb2 vis_0B5BG1 intr_0CiBa2 "">
+<button  id="CtxB_u4ZE73-gk" class="lay_IvyKF pos_PNZMO3 mapa_3Qb5v vis_gec173 ">
+<i  id="Flex_dA4oE3-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_t5Tw8 " href="bi bi-motherboard">
+</i>
+<p  id="Text_91hdM3-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_0k2d81 ">Codex Engine</p>
+</button>
+</li>
+<li  id="menu-/docs/vapor/concepts/performance" class="lay_AAqfn3 pos_PNZMO3 mapa_CrkEb2 vis_0B5BG1 intr_0CiBa2 "">
+<button  id="CtxB_3ltGL3-gk" class="lay_IvyKF pos_PNZMO3 mapa_3Qb5v vis_gec173 ">
+<i  id="Flex_NkGif3-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_t5Tw8 " href="bi bi-ethernet">
+</i>
+<p  id="Text_dr6qa4-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_0k2d81 ">Performance</p>
+</button>
+</li>
+<li  id="menu-/docs/vapor/concepts/tutorials" class="lay_AAqfn3 pos_PNZMO3 mapa_CrkEb2 vis_0B5BG1 intr_0CiBa2 "">
+<button  id="CtxB_GQbFw2-gk" class="lay_IvyKF pos_PNZMO3 mapa_3Qb5v vis_gec173 ">
+<i  id="Flex_iiG5F3-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_t5Tw8 " href="bi bi-bar-chart-steps">
+</i>
+<p  id="Text_cG8HJ4-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_0k2d81 ">Tutorials</p>
+</button>
+</li>
+<li  id="menu-/docs/vapor/concepts/opaque" class="lay_AAqfn3 pos_PNZMO3 mapa_CrkEb2 vis_0B5BG1 intr_0CiBa2 "">
+<button  id="CtxB_g3BpZ4-gk" class="lay_IvyKF pos_PNZMO3 mapa_3Qb5v vis_gec173 ">
+<i  id="Flex_fghVk-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_t5Tw8 " href="fa-solid fa-cubes-stacked">
+</i>
+<p  id="Text_FLTcK4-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_0k2d81 ">UI Components</p>
+</button>
+</li>
+<li  id="menu-/docs/metal" class="lay_AAqfn3 pos_PNZMO3 mapa_CrkEb2 vis_0B5BG1 intr_0CiBa2 "">
+<button  id="CtxB_UcIlO3-gk" class="lay_IvyKF pos_PNZMO3 mapa_3Qb5v vis_gec173 ">
+<i  id="Flex_za4Tp3-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_t5Tw8 " href="bi bi-screwdriver">
+</i>
+<p  id="Text_3iVMp3-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_0k2d81 ">Metal</p>
 </button>
 </li>
 </ul>
 </div>
-<div  id="Flex_auYNi3-genk" class="lay_5j34Q1 pos_8jULZ2 ">
-<div  id="Flex_FWnvo2-genk" class="lay_sRkjz ">
-<i  id="Icon_GbeME4-genk" class="bi bi-view-list vis_hOuFU " href="bi bi-view-list">
+<div  id="Flex_NguTC-gk" class="lay_5j34Q1 pos_QAzmD2 mapa_CrkEb2 vis_l45j63 ">
+<div  id="Flex_Szrt5-gk" class="lay_sRkjz pos_PNZMO3 mapa_CrkEb2 vis_l45j63 ">
+<i  id="Flex_doXF22-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_m9RmS2 " href="bi bi-view-list">
 </i>
-<p  id="Text_Ddltg-genk" class="vis_iaakP ">On this page</p>
+<p  id="Text_YPefb4-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_7hDjA1 ">On this page</p>
 </div>
-<ul  id="List_0c5ny1-genk" class="lay_EHt132 mapa_JuL712 vis_0iRpV4 ">
-<li  id="List_Jw3ZQ4-genk" class="lay_AAqfn3 "">
-<a  id="Link_UCTCe3-genk" class="lay_Du4fK mapa_5cfTW4 vis_YoqZT4 " aria-label="What is Vapor?" href="#what-is-vapor">
-<p  id="Text_OQdXA2-genk" class="vis_1JqMW2 ">What is Vapor?</p>
-</a>
-</li>
-<li  id="List_GkYXd2-genk" class="lay_AAqfn3 "">
-<a  id="Link_QZ9P1-genk" class="lay_Du4fK mapa_5cfTW4 vis_YoqZT4 " aria-label="Quickstart" href="#quickstart">
-<p  id="Text_Mkpcs2-genk" class="vis_1JqMW2 ">Quickstart</p>
-</a>
-</li>
-<li  id="List_DY3Wq-genk" class="lay_AAqfn3 "">
-<a  id="Link_bVOXD2-genk" class="lay_Du4fK mapa_5cfTW4 vis_YoqZT4 " aria-label="Vapor is simple" href="#vapor-is-simple">
-<p  id="Text_mppO14-genk" class="vis_1JqMW2 ">Vapor is simple</p>
-</a>
-</li>
-<li  id="List_EYn9k3-genk" class="lay_AAqfn3 "">
-<a  id="Link_eluw34-genk" class="lay_Du4fK mapa_5cfTW4 vis_YoqZT4 " aria-label="How it works" href="#how-it-works">
-<p  id="Text_Rdo0d1-genk" class="vis_1JqMW2 ">How it works</p>
-</a>
-</li>
-<li  id="List_BMI8x1-genk" class="lay_AAqfn3 "">
-<a  id="Link_a8dkY2-genk" class="lay_Du4fK mapa_5cfTW4 vis_YoqZT4 " aria-label="Why Zig?" href="#why-zig">
-<p  id="Text_splDq3-genk" class="vis_1JqMW2 ">Why Zig?</p>
-</a>
-</li>
-<li  id="List_8An6A-genk" class="lay_AAqfn3 "">
-<a  id="Link_pBI66-genk" class="lay_Du4fK mapa_5cfTW4 vis_YoqZT4 " aria-label="Making a Button" href="#making-a-button">
-<p  id="Text_Ybw5i2-genk" class="vis_1JqMW2 ">Making a Button</p>
-</a>
-</li>
-<li  id="List_9AXk33-genk" class="lay_AAqfn3 "">
-<a  id="Link_c8fOL4-genk" class="lay_Du4fK mapa_5cfTW4 vis_YoqZT4 " aria-label="Builder Pattern" href="#builder">
-<p  id="Text_3p7ld1-genk" class="vis_1JqMW2 ">Builder Pattern</p>
-</a>
-</li>
+<ul  id="List_T7AsT4-gk" class="lay_EHt132 pos_PNZMO3 mapa_JuL712 vis_RgdvV1 ">
 </ul>
 </div>
 
 
 
 </div>
-<div  id="Flex_CvtGI-genk" class="lay_H4jKI3 ">
-<div  id="Flex_htcnO-genk" class="lay_AEgkh1 mapa_TK4ER4 ">
-<div  id="Flex_3PTZS2-genk" class="lay_ph40P4 mapa_hSM7v2 ">
-<div  id="Flex_8QHiG4-genk" class="lay_kXoFu2 mapa_w3PCd3 ">
+<div  id="Flex_h1Yvd-gk" class="lay_H4jKI3 pos_PNZMO3 mapa_CrkEb2 vis_l45j63 ">
+<div  id="Flex_kyz5B-gk" class="lay_AEgkh1 pos_PNZMO3 mapa_TK4ER4 vis_l45j63 ">
+<div  id="Flex_4nh21-gk" class="lay_ph40P4 pos_PNZMO3 mapa_hSM7v2 vis_l45j63 ">
+<div  id="Flex_BFWuY1-gk" class="lay_kXoFu2 pos_PNZMO3 mapa_w3PCd3 vis_l45j63 ">
+
+
 </div>
 </div>
 </div>

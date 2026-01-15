@@ -12,25 +12,30 @@ var background: Vapor.Types.Background = .palette(.background);
 
 const CommandPalette = @This();
 text: []const u8 = "",
+key_press: []const u8 = "k",
 on_click: ?*const fn () void = null,
+on_escape: ?*const fn () void = null,
 clicked: bool = false,
 
 fn mount(command_palette: *CommandPalette) void {
-    OverlayManager.register(.keydown, clickEvent, command_palette);
+    // OverlayManager.register(.keydown, clickEvent, command_palette);
+    _ = Vapor.addGlobalListenerCtx(.keydown, clickEvent, command_palette);
 }
 
 pub fn clickEvent(command_palette: *CommandPalette, evt: *Vapor.Event) void {
     const key = evt.key();
-    if (std.mem.eql(u8, key, "k") and evt.metaKey()) {
-        Vapor.print("Clicked", .{});
+    if (std.mem.eql(u8, command_palette.key_press, key) and evt.metaKey()) {
         command_palette.clicked = !command_palette.clicked;
         if (command_palette.on_click) |callback| {
             @call(.auto, callback, .{});
         }
     }
-    if (std.mem.eql(u8, key, "Escape")) {
-        Vapor.print("Clicked", .{});
+
+    if (std.mem.eql(u8, "Escape", key)) {
         command_palette.clicked = false;
+        if (command_palette.on_escape) |callback| {
+            @call(.auto, callback, .{});
+        }
     }
 }
 
@@ -46,12 +51,12 @@ pub fn render(command_palette: *CommandPalette) void {
     const scale: f32 = if (command_palette.clicked) 0.9 else 1;
     const left: f32 = if (command_palette.clicked) 42 else 36;
     const text_color: Vapor.Types.Color = if (command_palette.clicked) .palette(.border_color) else .transparentizeHex(.palette(.text_color), 0.5);
-    // const shadow: Vapor.Types.Shadow = if (!command_palette.clicked) .{ .top = 2, .blur = 2, .color = .transparentizeHex(.black, 0.1) } else .{ .spread = 2, .blur = 0, .color = .transparentizeHex(.black, 0.1) };
-    Vapor.Static.HooksCtx(.mounted, mount, .{command_palette})({
-        Stack()
-            .width(.percent(100))
-            .children({
+    Stack()
+        .width(.percent(100))
+        .children({
+        Vapor.Static.HooksCtx(.mounted, mount, .{command_palette})({
             ButtonCtx(toggle, .{command_palette})
+                .background(background)
                 .width(.percent(100))
                 .cursor(.pointer)
                 .duration(100)
@@ -85,8 +90,8 @@ pub fn render(command_palette: *CommandPalette) void {
                         })
                         .inlineStyle("transform: translateY({d}%) scale({d});", .{ trans, scale })
                         .padding(.horizontal(2))
-                        .fontFamily("Montserrat")
                         .background(background)
+                        .fontFamily("Montserrat")
                         .font(16, 300, text_color)
                         .end();
                     Box()
@@ -97,7 +102,7 @@ pub fn render(command_palette: *CommandPalette) void {
                         Icon(.command)
                             .font(12, 300, .palette(.text_color))
                             .end();
-                        Text("K")
+                        Text(Vapor.utils.firstLetterToUpper(command_palette.key_press, .frame))
                             .font(12, 300, .palette(.text_color))
                             .end();
                     });

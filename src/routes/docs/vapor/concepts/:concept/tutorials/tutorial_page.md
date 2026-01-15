@@ -89,34 +89,24 @@ Now let's create the visual board. We'll use a grid of 9 cells:
 
 ```zig
 fn render() void {
-    Center()
-        .height(.percent(100))
-        .background(.hex("#ecf0f1"))
-        .children({
-            Box()
-                .direction(.column)
-                .layout(.center)
-                .spacing(16)
-                .children({
-                    // Title
-                    Text("Tic-Tac-Toe")
-                        .style(&title_style);
+    Center().height(.percent(100)).background(.hex("#ecf0f1")).children({
+        Box().direction(.column).layout(.center).spacing(16).children({
+            // Title
+            Text("Tic-Tac-Toe").style(&title_style);
 
-                    // Status message
-                    renderStatus();
+            // Status message
+            renderStatus();
 
-                    // Game board
-                    Box()
-                        .style(&board_container_style)({
-                            renderBoard();
-                    });
-
-                    // Reset button
-                    Button(.{ .on_press = resetGame })
-                        .style(&reset_button_style)({
-                            Text("New Game").end();
-                    });
+            // Game board
+            Box().style(&board_container_style)({
+                renderBoard();
             });
+
+            // Reset button
+            Button(.{ .on_press = resetGame }).style(&reset_button_style)({
+                Text("New Game").end();
+            });
+        });
     });
 }
 ```
@@ -133,13 +123,10 @@ The board is a 3x3 grid. We'll use Vapor's `Box` component with a `wrap` modifie
 
 ```zig
 fn renderBoard() void {
-    Box()
-        .width(.px(306))
-        .wrap(.wrap)
-        .children({
-            for (0..9) |i| {
-                renderCell(i);
-            }
+    Box().width(.px(306)).wrap(.wrap).children({
+        for (0..9) |i| {
+            renderCell(i);
+        }
     });
 }
 
@@ -507,34 +494,24 @@ pub fn init() void {
 // RENDER FUNCTIONS
 // ============================================
 fn render() void {
-    Center()
-        .height(.percent(100))
-        .background(.hex("#ecf0f1"))
-        .children({
-            Box()
-                .direction(.column)
-                .layout(.center)
-                .spacing(16)
-                .children({
-                    // Title
-                    Text("Tic-Tac-Toe")
-                        .style(&title_style);
+    Center().height(.percent(100)).background(.hex("#ecf0f1")).children({
+        Box().direction(.column).layout(.center).spacing(16).children({
+            // Title
+            Text("Tic-Tac-Toe").style(&title_style);
 
-                    // Status
-                    renderStatus();
+            // Status message
+            renderStatus();
 
-                    // Board
-                    Box()
-                        .style(&board_container_style)({
-                            renderBoard();
-                    });
-
-                    // Reset Button
-                    Button(.{ .on_press = resetGame })
-                        .style(&reset_button_style)({
-                            Text("New Game").end();
-                    });
+            // Game board
+            Box().style(&board_container_style)({
+                renderBoard();
             });
+
+            // Reset button
+            Button(.{ .on_press = resetGame }).style(&reset_button_style)({
+                Text("New Game").end();
+            });
+        });
     });
 }
 
@@ -561,13 +538,10 @@ fn renderStatus() void {
 }
 
 fn renderBoard() void {
-    Box()
-        .width(.px(306))
-        .wrap(.wrap)
-        .children({
-            for (0..9) |i| {
-                renderCell(i);
-            }
+    Box().width(.px(306)).wrap(.wrap).children({
+        for (0..9) |i| {
+            renderCell(i);
+        }
     });
 }
 
@@ -679,6 +653,177 @@ fn resetGame() void {
     winner = null;
     winning_line = null;
 }
+```
+
+```tsx
+import React, { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+
+// ============================================
+// ANIMATION VARIANTS
+// ============================================
+const winPulse = {
+  scale: [1, 1.05, 1],
+  transition: { duration: 0.4, repeat: Infinity, ease: "easeInOut" },
+};
+
+const placeEffect = {
+  initial: { scale: 0.5, opacity: 0 },
+  animate: { scale: 1, opacity: 1 },
+  transition: { type: "spring", stiffness: 300, damping: 15 },
+};
+
+const TicTacToe = () => {
+  // ============================================
+  // GAME STATE
+  // ============================================
+  const [board, setBoard] = useState(Array(9).fill(null));
+  const [isXTurn, setIsXTurn] = useState(true);
+  const [gameState, setGameState] = useState({
+    gameOver: false,
+    winner: null,
+    winningLine: null,
+  });
+
+  // ============================================
+  // GAME LOGIC
+  // ============================================
+  const checkWinner = (squares) => {
+    const lines = [
+      [0, 1, 2],
+      [3, 4, 5],
+      [6, 7, 8], // Rows
+      [0, 3, 6],
+      [1, 4, 7],
+      [2, 5, 8], // Cols
+      [0, 4, 8],
+      [2, 4, 6], // Diagonals
+    ];
+
+    for (let i = 0; i < lines.length; i++) {
+      const [a, b, c] = lines[i];
+      if (
+        squares[a] !== null &&
+        squares[a] === squares[b] &&
+        squares[a] === squares[c]
+      ) {
+        return { winner: squares[a], line: lines[i] };
+      }
+    }
+    return null;
+  };
+
+  const makeMove = (index) => {
+    if (gameState.gameOver || board[index] !== null) return;
+
+    const newBoard = [...board];
+    newBoard[index] = isXTurn; // true for X, false for O
+    setBoard(newBoard);
+
+    const winResult = checkWinner(newBoard);
+    if (winResult) {
+      setGameState({
+        gameOver: true,
+        winner: winResult.winner,
+        winningLine: winResult.line,
+      });
+    } else if (newBoard.every((cell) => cell !== null)) {
+      setGameState({ gameOver: true, winner: null, winningLine: null });
+    } else {
+      setIsXTurn(!isXTurn);
+    }
+  };
+
+  const resetGame = () => {
+    setBoard(Array(9).fill(null));
+    setIsXTurn(true);
+    setGameState({ gameOver: false, winner: null, winningLine: null });
+  };
+
+  // ============================================
+  // RENDER HELPERS
+  // ============================================
+  const getStatusMessage = () => {
+    const { gameOver, winner } = gameState;
+    if (gameOver) {
+      if (winner === null) return "🤝 It's a Draw!";
+      return winner ? "🎉 X Wins!" : "🎉 O Wins!";
+    }
+    return isXTurn ? "X's Turn" : "O's Turn";
+  };
+
+  const statusColor =
+    gameState.gameOver && gameState.winner !== null
+      ? gameState.winner
+        ? "text-[#e74c3c]"
+        : "text-[#3498db]"
+      : "text-[#7f8c8d]";
+
+  return (
+    <div className="flex flex-col items-center justify-center min-h-screen bg-[#ecf0f1] font-sans">
+      {/* Title */}
+      <h1 className="text-[42px] font-bold text-[#2c3e50] mb-2">Tic-Tac-Toe</h1>
+
+      {/* Status */}
+      <div className={`text-[22px] font-semibold mb-4 ${statusColor}`}>
+        {getStatusMessage()}
+      </div>
+
+      {/* Board Container */}
+      <div className="bg-[#34495e] p-2 rounded-xl shadow-lg">
+        <div className="grid grid-cols-3 gap-2 w-[306px]">
+          {board.map((cell, i) => {
+            const isWinning = gameState.winningLine?.includes(i);
+            const isClickable = !gameState.gameOver && cell === null;
+
+            // Dynamic cell background
+            const bgColor = isWinning
+              ? gameState.winner
+                ? "bg-[#fadbd8]"
+                : "bg-[#d4e6f1]"
+              : isClickable
+                ? "bg-white hover:bg-[#e8e8e8]"
+                : "bg-[#f5f5f5]";
+
+            return (
+              <button
+                key={i}
+                onClick={() => makeMove(i)}
+                disabled={!isClickable}
+                className={`w-[90px] h-[90px] rounded flex items-center justify-center transition-colors duration-100 border border-[#ecf0f1] ${bgColor} ${isClickable ? "cursor-pointer" : ""}`}
+              >
+                <motion.div animate={isWinning ? winPulse : {}}>
+                  <AnimatePresence>
+                    {cell !== null && (
+                      <motion.span
+                        variants={placeEffect}
+                        initial="initial"
+                        animate="animate"
+                        className={`text-[44px] font-bold ${cell ? "text-[#e74c3c]" : "text-[#3498db]"}`}
+                      >
+                        {cell ? "X" : "O"}
+                      </motion.span>
+                    )}
+                  </AnimatePresence>
+                </motion.div>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Reset Button */}
+      <button
+        onClick={resetGame}
+        className="mt-5 px-7 py-3.5 bg-[#27ae60] text-white font-semibold rounded-lg hover:scale-105 active:scale-95 transition-transform"
+      >
+        New Game
+      </button>
+    </div>
+  );
+};
+
+export default TicTacToe;
 ```
 
 {#whats-next}

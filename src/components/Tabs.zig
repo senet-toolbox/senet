@@ -7,13 +7,13 @@ const Text = Vapor.Text;
 const Field = Opaque.Field;
 const Stack = Vapor.Stack;
 const Toast = Opaque.Toast;
-const glitch = Opaque.glitch;
 const Tooltip = Opaque.Tooltip;
 
 var peristant_tabs: std.StringHashMap(*Tabs) = undefined;
 
 const Tabs = @This();
 active_tab: ?[]const u8 = null,
+names: []const []const u8,
 // tabs: std.array_list.Managed(Tab),
 
 pub fn new() void {
@@ -82,11 +82,23 @@ pub fn Content(tag: []const u8) *const fn (void) void {
     return closeTabs;
 }
 
+pub fn switchToTab(tag: []const u8, index: usize) void {
+    const tabs = peristant_tabs.get(tag) orelse blk: {
+        const t = Vapor.arena(.persist).create(Tabs) catch unreachable;
+        t.* = .{}; // Initialize list
+        peristant_tabs.put(tag, t) catch unreachable;
+        break :blk t;
+    };
+    tabs.active_tab = tabs.names[index];
+}
+
 pub fn NavBar(tag: []const u8, names: []const []const u8) usize {
     // 1. Retrieve or Create State
     const tabs = peristant_tabs.get(tag) orelse blk: {
         const t = Vapor.arena(.persist).create(Tabs) catch unreachable;
-        t.* = .{}; // Initialize list
+        t.* = .{
+            .names = names,
+        }; // Initialize list
         peristant_tabs.put(tag, t) catch unreachable;
         break :blk t;
     };
@@ -131,7 +143,7 @@ fn NavBtn(ctx: ?*anyopaque) void {
         .children({
         Text(name)
             .fontFamily("IBM Plex Sans,monospace")
-            .font(14, 300, if (active_idx == i) .palette(.alternate_text_color) else .palette(.text_color))
+            .font(14, 300, if (active_idx == i) .white else .palette(.text_color))
             .end();
     });
 }
@@ -191,18 +203,18 @@ fn Btn(title: []const u8, description: []const u8, icon: *const Vapor.IconTokens
     const icon_id = Vapor.fmtln("icon-{d}", .{hash});
     Button(Toast.success, .{Toast.Options{ .title = title, .description = description }})
         .id(id)
-        .animation(&glitch)
+        .animation("glitch")
         .background(.transparentizeHex(.black, 0.8))
         .border(.round(.black, .all(8)))
         .padding(.all(6))
         .children({
         Text(title)
-            .font(14, 300, .palette(.alternate_text_color))
+            .font(14, 300, .white)
             .fontFamily("IBM Plex Sans,monospace")
             .end();
         Vapor.Icon(icon)
             .id(icon_id)
-            .font(16, 700, .palette(.alternate_text_color))
+            .font(16, 700, .white)
             .end();
     });
 }
@@ -251,17 +263,17 @@ pub fn render() void {
                             .children({
                             // Btn("Login", "Logged in successfully", .send);
                             Button(Toast.success, .{Toast.Options{ .title = "Login", .description = "Logged in successfully" }})
-                                .animation(&glitch)
+                                .animation("glitch")
                                 .background(.transparentizeHex(.black, 0.8))
                                 .border(.round(.black, .all(8)))
                                 .padding(.all(6))
                                 .children({
                                 Text("Login")
-                                    .font(14, 300, .palette(.alternate_text_color))
+                                    .font(14, 300, .white)
                                     .fontFamily("IBM Plex Sans,monospace")
                                     .end();
                                 Vapor.Icon(.send)
-                                    .font(16, 700, .palette(.alternate_text_color))
+                                    .font(16, 700, .white)
                                     .end();
                             });
                             // Button(Toast.err, .{Toast.Options{ .title = "Error Login", .description = "Error Logging In" }})
@@ -271,11 +283,11 @@ pub fn render() void {
                             //     .padding(.all(6))
                             //     .children({
                             //     Text("Error")
-                            //         .font(14, 300, .palette(.alternate_text_color))
+                            //         .font(14, 300, .white)
                             //         .fontFamily("IBM Plex Sans,monospace")
                             //         .end();
                             //     Vapor.Icon(.bug)
-                            //         .font(16, 700, .palette(.alternate_text_color))
+                            //         .font(16, 700, .white)
                             //         .end();
                             // });
                         });

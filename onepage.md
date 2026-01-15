@@ -5,7 +5,7 @@
 #### A framework without all the ceremony.
 
 ```jsx
-// JS Frameworks - what you may know
+// JSX Frameworks
 function Counter() {
   const [count, setCount] = useState(0);
 
@@ -18,9 +18,8 @@ function Counter() {
 ```
 
 ```zig
-// Vapor - almost the same, but simpler
+// Vapor
 var count: i32 = 0;
-
 fn increment() void { count += 1; }
 
 fn render() void {
@@ -35,6 +34,51 @@ fn render() void {
 - `.end()` closes leaf elements (no children)
 - `.children({})` wraps elements that contain others
 - The `{}` block runs first, adding children before the parent closes
+
+#### The Two Endings: `.end()` vs `.children({})`
+
+**Simple rule:** Does this element have children inside it?
+
+| Element has children? | Use             |
+| --------------------- | --------------- |
+| No (leaf node)        | `.end()`        |
+| Yes (container)       | `.children({})` |
+
+```zig
+// ❌ Text never has children - it IS the content
+Text("Hello").children({});  // Wrong!
+
+// ✅ Text is a leaf - close it
+Text("Hello").end();
+
+// ❌ Box needs to wrap something
+Box().end();  // Wrong! (unless intentionally empty)
+
+// ✅ Box contains children
+Box().children({
+    Text("I'm inside").end();
+});
+```
+
+**The `{}` block is just Zig code.** It runs first, building children, then the parent closes:
+
+```zig
+Box().padding(.all(16)).children({
+    // This code executes BEFORE Box closes
+    Text("First").end();
+    Text("Second").end();
+
+    // You can use normal Zig here
+    if (showThird) {
+        Text("Third").end();
+    }
+
+    for (items) |item| {
+        Text(item.name).end();
+    }
+});
+// Box closes here, after all children are added
+```
 
 ### The Difference
 
@@ -390,6 +434,7 @@ const text_style = Vapor.Style{
   </span>
 </div>
 ```
+
 {#basics}
 
 # Basics
@@ -2369,6 +2414,7 @@ pub fn LoginComponent() void {
     login_form.render();
 }
 ```
+
 {#animation}
 
 # Animation
@@ -3059,6 +3105,7 @@ fn render() void {
     Box().animation("fade").children({ ... });
 }
 ```
+
 {#new-to-zig}
 
 # New to Zig
@@ -3338,219 +3385,172 @@ std.debug.print("Hello {s}!\n", .{"world"});
 
 # Memory
 
-Memory, is a popular topic in programming, some argue it should be compiled away, completely avoided, handled by the programmer, or handled by the program.
-
-In Zig, memory is typically handled with Arenas.
-
-### What is an Arena?
-
-Imagine, you work at a construction site. If you want to build a house, you need to first have a plot of land. This is where the arena comes in.
-
-The arena is like a large piece of land, that is used for building the house. First we add the plumbing, and electrical wiring, this is like allocating memory for an array.
-The we add the foundations, and walls, this is like allocating memory for a string.
-
-Then we finally put the roof on, together all of these pieces make up the house. Just how the struct below is made up of the strings, and the arrays we allocated.
-
-```zig
-const House = struct {
-    plumbing: [16]u32,
-    electrical_wiring: [16]u32,
-    foundations: []const u8,
-    walls: []const u8,
-    roof: bool,
-};
-
-pub fn init() void {
-    const arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
-    var allocator = arena.allocator();
-    const plumbing = allocator.alloc(u32, 16) catch {};
-    const electrical_wiring = allocator.alloc(u32, 16) catch {};
-    const foundations = "foundations";
-    const walls = "walls";
-    const roof = true;
-
-    const house = House{
-        .plumbing = plumbing,
-        .electrical_wiring = electrical_wiring,
-        .foundations = foundations,
-        .walls = walls,
-        .roof = roof,
-    };
-}
-```
-
-The arena, is a large piece of memory, that we can use slices of. Just like how a large piece of land can be used to build multiple houses.
-
-The usefulness of the arena, is that we can grab various slices of memory, and use them as we please, then when we are done with all of them, we just call `deinit` on the arena.
-This will automatically free all the memory that was allocated. We do not need to track what memory we allocated, or how we used it, or when we freed it.
-
-Vapor makes use of this arena pattern, by allocating memory for each render cycle, creating all the UI, and reconciling it. Then finally when we have made all the DOM changes, we call `deinit` on the arena.
-
-This means that internally, Vapor never needs to be concerned with memory tracking, or deallocation.
-
-### alloc and dynamic arrays
-
-In the above example, we use the `alloc` memory to allocate memory for our arrays. This means that the arrays now live on the heap, and will live forever.
-The `alloc` method returns an array of type `T` ie `[]T`. For example:
-
-```zig
-pub fn init() void {
-    const arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
-    var allocator = arena.allocator();
-    var numbers: []i32 = allocator.alloc(i32, 4) catch {}; // Allocate 4 numbers []i32
-    for (0..4) |i| {
-        numbers[i] = i;
-    }
-}
-```
-
-We can also create dynamic arrays, by using the standard library's `std.array_list.Managed`
-
-```zig
-const std = @import("std");
-const Vapor = @import("vapor");
-
-pub fn init() void {
-    const arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
-    var allocator = arena.allocator();
-    var numbers = std.array_list.Managed(i32).init(allocator);
-    for (0..4) |i| {
-        try numbers.append(i);
-    }
-
-    for (4..20) |i| {
-        try numbers.append(i);
-    }
-    numbers.append(100) catch {};
-    numbers.append(200) catch {};
-
-    for (numbers.items) |item| {
-        std.debug.print("{d}\n", .{item});
-    }
-}
-```
-
-### \* is a pointer
-
-````zig
-const House = struct {
-    plumbing: [16]u32,
-    electrical_wiring: [16]u32,
-    foundations: []const u8,
-    walls: []const u8,
-    roof: bool,
-};
-
-pub fn init() void {
-    const arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
-    var allocator = arena.allocator();
-    const plumbing = allocator.alloc(u32, 16) catch {};
-    const electrical_wiring = allocator.alloc(u32, 16) catch {};
-    const foundations = "foundations";
-    const walls = "walls";
-    const roof = true;
-
-    const house = allocator.create(House) catch {};
-    house.* = House{
-        .plumbing = plumbing,
-        .electrical_wiring = electrical_wiring,
-        .foundations = foundations,
-        .walls = walls,
-        .roof = roof,
-    };
-}```
-
-In the above example, we use the `*` to refer to the actual memory that is allocated. This is called a pointer, just like how in real life, we have an address to a house, we have
-an address to our memory slices. In the case above, we have an address to a slice memory, that is a string ([]const u8), and a bool (\*bool).
-
-The reason, that the arena returns a pointer, is the same reason we use adresses in real life. If we wanted to go over to our friend's birthday party, it would be strange to ask her
-to move her entire house to our place, so we can attend it. Imagine, if multiple people were attending the party, she would have to move the entire house contstantly.
-
-Instead, she gives us an adress to the party, so that we can attend it.
-
-Similarly, the arena returns a pointer, so that we don't copy all the memory over to our structure, we just take an adress to the memory, and we "go to it", with `.*`.
-
-### .\* is a dereference
-
-`.*` is a dereference operator, it takes a pointer, and returns the actual memory that is allocated. This is the same as and address in real life, we take an address to a
-house, and we go to it, by car or by foot. In Zig, we can do the same thing, by using `.*`.
-
-```zig
-pub fn init() void {
-    const address: *House = Vapor.arena(.persist).create(House) catch {};
-    const house = address.*;
-}
-````
-
-### Error Handling
-
-In the above examples, we have used the `catch` keyword to handle errors. In Zig, errors are values, meaning they can be returned, and they can be handled.
-
-#### Catching Errors
-
-```zig
-const result = someFunction() catch |err| {
-    std.debug.print("Error: {s}\n", .{err});
-    // Handle the error
-    return err;
-};
-
-// Or ignore the error (not recommended in real code)
-const result = someFunction() catch {};
-
-// Or use `try` to propagate the error up
-const result = try someFunction();
-```
-
-#### Optionals
-
-Values can be optional (might be null):
-
-```zig
-var maybe_house: ?House = null;
-
-// Check if it exists
-if (maybe_house) |house| {
-    // Use house here
-}
-
-// Or provide a default
-const house = maybe_house orelse default_house;
-```
-
-### Basic Control Flow
-
-#### If statements
-
-```zig
-if (house.number > 100) {
-    std.debug.print("High number!\n", .{});
-} else {
-    std.debug.print("Low number!\n", .{});
-}
-```
-
-#### For loops
-
-```zig
-for (numbers, 0..) |num, i| {
-    std.debug.print("{d}\n", .{num});
-}
-```
-
-#### While loops
-
-```zig
-var i: i32 = 0;
-while (i < 10) : (i += 1) {
-    std.debug.print("{d}\n", .{i});
-}
-```
 {#memory}
 
 # Memory
 
-In Vapor, the majority of memory is handled by the Vapor's engine _Codex_. If you haven't been exposed to memory management yet, it is recommended to read through the 
+### You Probably Don't Need This Section
+
+**Seriously.** Look at the Tic-Tac-Toe tutorial—150 lines, zero memory management. For most Vapor apps:
+
+```zig
+// This is all you need
+var counter: i32 = 0;
+var items: [10]Item = undefined;
+var text: []const u8 = "Hello";
+```
+
+Module-level variables live forever. Event handlers mutate them. Vapor re-renders. Done.
+
+**When DO you need memory management?**
+
+| Scenario                                         | Do you need arenas? |
+| ------------------------------------------------ | ------------------- |
+| Fixed-size state (counters, flags, small arrays) | ❌ No               |
+| Strings known at compile time                    | ❌ No               |
+| Dynamic lists that grow/shrink                   | ✅ Yes              |
+| Formatted strings with runtime values            | ✅ Yes              |
+| Data fetched from an API                         | ✅ Yes              |
+| User-generated content                           | ✅ Yes              |
+
+If your app is mostly static UI with simple state, skip to the next section.
+
+---
+
+### When You Need Dynamic Memory
+
+Let's say you're building a todo app where users can add items:
+
+```zig
+// ❌ This won't work - can't grow a fixed array
+var todos: [100]Todo = undefined;
+var todo_count: usize = 0;
+
+fn addTodo(text: []const u8) void {
+    if (todo_count >= 100) return; // Stuck at 100!
+    todos[todo_count] = .{ .text = text };
+    todo_count += 1;
+}
+```
+
+You need a dynamic array. This is where arenas come in.
+
+---
+
+### The Four Arenas (Mental Model)
+
+Think of arenas as **buckets with different lifetimes**:
+
+| Arena      | Lifetime       | Use Case             | Analogy                                   |
+| ---------- | -------------- | -------------------- | ----------------------------------------- |
+| `.frame`   | Single render  | Temporary formatting | Whiteboard (erased after meeting)         |
+| `.view`    | Current page   | Page-specific data   | Notebook (thrown out when you leave room) |
+| `.persist` | Entire session | App-wide state       | Filing cabinet (permanent)                |
+| `.scratch` | You decide     | Manual control       | Sticky notes (you throw away)             |
+
+```zig
+┌─────────────────────────────────────────────────────┐
+│ App Start                                           │
+│  ┌─────────────────────────────────────────────┐    │
+│  │ .persist (lives forever)                    │    │
+│  │  - User settings                            │    │
+│  │  - Auth state                               │    │
+│  │  ┌─────────────────────────────────────┐    │    │
+│  │  │ .view (cleared on navigation)       │    │    │
+│  │  │  - Page-specific lists              │    │    │
+│  │  │  - Form data                        │    │    │
+│  │  │  ┌─────────────────────────────┐    │    │    │
+│  │  │  │ .frame (cleared each render)│    │    │    │
+│  │  │  │  - Formatted strings        │    │    │    │
+│  │  │  │  - Temporary calculations   │    │    │    │
+│  │  │  └─────────────────────────────┘    │    │    │
+│  │  └─────────────────────────────────────┘    │    │
+│  └─────────────────────────────────────────────┘    │
+└─────────────────────────────────────────────────────┘
+```
+
+---
+
+### Practical Examples
+
+**Example 1: Formatted text in UI**
+
+```zig
+var score: i32 = 0;
+
+fn render() void {
+    // ✅ fmtln uses .frame automatically - freed after render
+    const label = Vapor.fmtln("Score: {d} points", .{score});
+    Text(label).end();
+}
+```
+
+**Example 2: Page-specific list**
+
+Useful within `mount()` functions
+
+```zig
+// This list only matters on this page
+var todos: std.ArrayList(Todo) = undefined;
+
+pub fn init() void {
+    // ✅ .view - freed when user navigates away
+    todos = std.ArrayList(Todo).init(Vapor.arena(.view));
+    Vapor.Page(.{ .route = "/todos" }, render, null);
+}
+
+fn addTodo(text: []const u8) void {
+    todos.append(.{ .text = text }) catch return;
+}
+```
+
+**Example 3: App-wide state**
+
+```zig
+// User stays logged in across all pages
+var current_user: ?User = null;
+var auth_token: []const u8 = "";
+
+pub fn init() void {
+    // ✅ .persist - lives until app closes
+    const alloc = Vapor.arena(.persist);
+    // ... fetch and store user data
+}
+```
+
+---
+
+### The Simple Rule
+
+```zig
+// Ask yourself: "When should this data disappear?"
+
+// "After this render" → .frame (or just use Vapor.fmtln)
+const temp = Vapor.fmtln("{d}", .{x});
+
+// "When leaving this page" → .view
+var page_data = Vapor.arena(.view).alloc(T, n);
+
+// "Never (until refresh)" → .persist
+var app_state = Vapor.arena(.persist).create(T);
+
+// "When I say so" → .scratch
+var manual = Vapor.arena(.scratch).alloc(T, n);
+// Later: Vapor.arena(.scratch).free(manual);
+```
+
+---
+
+### You Can Ignore This If...
+
+- Your state is simple types (integers, bools, enums)
+- Your strings are literals (`"hello"`) not runtime-generated
+- Your arrays have fixed, known sizes
+- You're not fetching data from APIs
+
+The Tic-Tac-Toe game uses **zero** arena calls. Start simple, add memory management only when you need dynamic data.
+
+In Vapor, the majority of memory is handled by the Vapor's engine _Codex_. If you haven't been exposed to memory management yet, it is recommended to read through the
 New to Zig section first, and then come back here.
 
 {#memory-is-not-scary}
@@ -3733,6 +3733,7 @@ pub fn SectionList() void {
     });
 }
 ```
+
 {#layouts}
 
 # Layouts
@@ -3900,6 +3901,7 @@ component. Vapor will return an error if this occurs.
 
 Similarly, Vapor will disallow specific fields from being set, or retrieved from the element. The `key` field is not allowed on a Box component,
 or a Text component, ect.
+
 {#hooks-overview}
 
 # Hooks
@@ -4084,30 +4086,316 @@ There are 4 stages of Vapor's lifecycle.
 - Applying
 
 During the commiting stage, the onCommit callbacks will be called in the order they were registered.
+
+{#theme-and-icons}
+
+# Theme and Icons
+
+Vapor includes its own theming and icon system. Instead of relying on HTML classes or external libraries like Lucide or Font Awesome, you define your own icon set that is passed during compilation, giving you auto-completion and type-safety benefits.
+
+Each Vapor application comes with a `config.zig` file and a `Theme.zig` file.
+
+---
+
+## Theme System
+
+The theme system provides type-safe color tokens that can be referenced throughout your application. Colors are defined once and accessed via the `.palette()` function, ensuring consistency and making theme changes trivial.
+
+### Defining Theme Colors
+
+```zig
+// Theme.zig
+const std = @import("std");
+const Vapor = @import("vapor");
+const Color = Vapor.Types.Color;
+
+pub const Mode = enum(u8) {
+    light,
+    dark,
+};
+
+pub const ThemeTokens = enum(u8) {
+    tint,
+    border_color,
+    text_color,
+    background,
+    primary,
+    secondary,
+};
+
+pub const Colors = struct {
+    tint: Color,
+    border_color: Color,
+    text_color: Color,
+    background: Color,
+    primary: Color,
+    secondary: Color,
+};
+
+pub const Light = Colors{
+    .tint = .hex("#002bff"),
+    .border_color = .hex("#262626"),
+    .text_color = .hex("#212121"),
+    .background = .white,
+    .primary = .rgba(255, 255, 255, 255),
+    .secondary = .rgba(0, 0, 0, 255),
+};
+
+pub const Dark = Colors{
+    .tint = .hex("#F2FF00"),
+    .border_color = .hex("#27272a"),
+    .text_color = .hex("#EAEAEA"),
+    .background = .hex("#0F0F0F"),
+    .primary = .rgba(0, 0, 0, 255),
+    .secondary = .rgba(255, 255, 255, 1),
+};
+
+pub var mode: Mode = .light;
+
+pub export fn setTheme(new_mode: Mode) void {
+    mode = new_mode;
+}
+
+pub fn toggleTheme() void {
+    mode = switch (mode) {
+        .dark => .light,
+        .light => .dark,
+    };
+    Vapor.lib.store("theme", @tagName(mode));
+    Vapor.lib.toggleTheme();
+}
+```
+
+### Using Theme Colors
+
+Reference theme colors in your styles using `.palette()`:
+
+```zig
+pub fn render() void {
+    Box()
+        .background(.palette(.background))
+        .border(.simple(.palette(.border_color)))
+        .font(16, 500, .palette(.text_color))
+        .children({
+        //...
+    });
+}
+```
+
+When the theme mode changes, all components using `.palette()` automatically update to reflect the new colors.
+
+### Registering Themes
+
+Before using theme colors, you must register your themes globally using `Vapor.setGlobalStyleVariables()`. This is typically done in your application's entry point:
+
+```zig
+const Vapor = @import("vapor");
+const Theme = @import("Theme.zig");
+
+pub fn main() void {
+    // Global style variables
+    Vapor.setGlobalStyleVariables(.{
+        .themes = &[_]Vapor.ThemeDefinition{
+            Vapor.ThemeDefinition{ .name = "light", .theme = Theme.Light, .default = true },
+            Vapor.ThemeDefinition{ .name = "dark", .theme = Theme.Dark },
+        },
+    });
+
+    // ... rest of your application
+}
+```
+
+The `ThemeDefinition` struct takes:
+
+- **`name`**: A string identifier for the theme (used for persistence and toggling)
+- **`theme`**: The `Colors` struct containing your color definitions
+- **`default`**: Set to `true` for the theme that should be active on first load
+
+You can register as many themes as you need:
+
+```zig
+Vapor.setGlobalStyleVariables(.{
+    .themes = &[_]Vapor.ThemeDefinition{
+        Vapor.ThemeDefinition{ .name = "light", .theme = Theme.Light, .default = true },
+        Vapor.ThemeDefinition{ .name = "dark", .theme = Theme.Dark },
+        Vapor.ThemeDefinition{ .name = "midnight", .theme = Theme.Midnight },
+        Vapor.ThemeDefinition{ .name = "forest", .theme = Theme.Forest },
+    },
+});
+```
+
+> **Note:** Registering themes adds approximately 11kb to your bundle size.
+
+### Color Formats
+
+Vapor supports multiple color formats:
+
+```zig
+.hex("#FF5733")           // Hex string
+.rgba(255, 87, 51, 255)   // RGBA values (0-255)
+.white                    // Named colors
+.transparent              // Transparent
+.palette(.text_color)     // Theme token reference
+```
+
+---
+
+## Icon System
+
+The icon system maps semantic names to both web font classes and SVG unicode points, allowing the same icon definitions to work across different rendering contexts.
+
+### Defining Icons
+
+```zig
+// config.zig
+pub const IconTokens = struct {
+    web: ?[]const u8 = null,
+    svg: ?[]const u8 = null,
+
+    pub const list_task = &IconTokens{ .web = "bi bi-view-list", .svg = "\u{f0e1}" };
+    pub const cloud_download_fill = &IconTokens{ .web = "bi bi-cloud-download-fill", .svg = "\u{f0e2}" };
+    pub const plus = &IconTokens{ .web = "bi bi-plus", .svg = "\u{f0fe}" };
+    pub const arrow_right = &IconTokens{ .web = "bi bi-arrow-right", .svg = "\u{f0e9}" };
+    pub const clipboard = &IconTokens{ .web = "bi bi-clipboard", .svg = "\u{f0ea}" };
+    pub const check = &IconTokens{ .web = "bi bi-check", .svg = "\u{f0e7}" };
+    pub const home = &IconTokens{ .web = "bi bi-house", .svg = "\u{f0e3}" };
+    pub const cloud_moon = &IconTokens{ .web = "bi bi-cloud-moon", .svg = "\u{f0e6}" };
+    pub const search = &IconTokens{ .web = "bi bi-search", .svg = "\u{f0e8}" };
+    pub const command = &IconTokens{ .web = "bi bi-command", .svg = "\u{f0eb}" };
+};
+```
+
+Each icon token has two representations:
+
+- **`web`**: CSS class names for web font rendering (e.g., Bootstrap Icons)
+- **`svg`**: Unicode code point for SVG/native rendering
+
+### Using Icons
+
+Display icons with `Icon()`:
+
+```zig
+Icon(.search).end();
+
+Icon(.home).style(&.{
+    .visual = .{ .font_size = 24 },
+})
+```
+
+### Styling Icons
+
+Icons accept the same styling system as other components:
+
+```zig
+Icon(.check).style(&.{
+    .visual = .{
+        .font_size = 16,
+        .text_color = .palette(.tint),
+    },
+    .margin = .all(8),
+})
+```
+
+---
+
+## Complete Example
+
+Here's a example App combining theme colors and icons:
+
+```zig
+const Vapor = @import("vapor");
+const Theme = @import("Theme.zig");
+const Box = Vapor.Box;
+const Text = Vapor.Text;
+const Button = Vapor.Button;
+const Icon = Vapor.Icon;
+
+pub fn main() void {
+    Vapor.init(.{});
+    // Register themes
+    Vapor.setGlobalStyleVariables(.{
+        .themes = &[_]Vapor.ThemeDefinition{
+            Vapor.ThemeDefinition{ .name = "light", .theme = Theme.Light, .default = true },
+            Vapor.ThemeDefinition{ .name = "dark", .theme = Theme.Dark },
+        },
+    });
+
+    Vapor.Page(.{ .route = "/" }, App, null);
+}
+
+fn App() void {
+    Box()
+        .width(.percent(100))
+        .height(.px(60))
+        .padding(.all(16))
+        .background(.palette(.background))
+        .border(.round(.palette(.border_color), .all(8)))
+        .layout(.x_between_center)
+        .children({
+
+        // Left side with icon and text
+        Box()
+            .layout(.left_center)
+            .spacing(12)
+            .children({
+            Icon(.home)
+                .font(20, 400, .palette(.tint))
+                .end();
+            Text("Welcome to Vapor")
+                .font(18, 500, .palette(.text_color))
+                .end();
+        });
+
+        // Theme toggle button
+        Button(Theme.toggleTheme)
+            .padding(.tblr(8, 8, 12, 12))
+            .background(.palette(.primary))
+            .border(.round(.palette(.border_color), .all(6)))
+            .pointer()
+            .children({
+            Icon(.cloud_moon)
+                .font(16, 400, .palette(.text_color))
+                .end();
+        });
+    });
+}
+```
+
+---
+
+## Benefits Over External Libraries
+
+| Feature         | External Libraries | Vapor Icons             |
+| --------------- | ------------------ | ----------------------- |
+| Type safety     | ❌ String-based    | ✅ Compile-time checked |
+| Auto-completion | ❌ None            | ✅ Full IDE support     |
+| Bundle size     | ❌ Full icon font  | ✅ Only used icons      |
+| Typo protection | ❌ Silent failures | ✅ Compile errors       |
+| Cross-platform  | ❌ Web-only        | ✅ Web + Native SVG     |
+
 # Web-Dev to Vapor Cheat Sheet
 
 This guide helps developers transition from **React**, **Vue**, or **Svelte** to the high-performance world of **Vapor**. While traditional frameworks manage heavy JavaScript runtimes, Vapor acts as a compiled instruction engine that treats the browser like a graphics driver.
 
 ## 1. Conceptual Mapping
 
-| Feature | React / Vue / Svelte Habit | Vapor Paradigm | Mental Shift |
-| :--- | :--- | :--- | :--- |
-| **Component Body** | Re-runs on every change (React) or uses Observers (Vue/Svelte). | The `render()` function runs as a native instruction pass. | From "Component Instance" to "Render Loop Instruction". |
-| **State Persistence** | `useState`, `ref`, or `$state`. | normal variables living **outside** `render()`. | Data and UI are separate; no "rescuing" variables is needed. |
-| **Side Effects** | `useEffect`, `watch`, or `$effect`. | Procedural logic within Event Handlers or functional triggers. | Move away from implicit subscriptions to explicit Zig logic. |
-| **Conditional UI** | `{cond && <UI />}`, `v-if`, or `{#if}`. | Standard Zig `if` or `switch` statements. | Use native programming control flow instead of template syntax. |
-| **List Rendering** | `.map()`, `v-for`, or `{#each}`. | Standard Zig `for` and `while` loops iterating over arrays or slices. | Direct iteration over memory-contiguous data. |
-
+| Feature               | React / Vue / Svelte Habit                                      | Vapor Paradigm                                                        | Mental Shift                                                    |
+| :-------------------- | :-------------------------------------------------------------- | :-------------------------------------------------------------------- | :-------------------------------------------------------------- |
+| **Component Body**    | Re-runs on every change (React) or uses Observers (Vue/Svelte). | The `render()` function runs as a native instruction pass.            | From "Component Instance" to "Render Loop Instruction".         |
+| **State Persistence** | `useState`, `ref`, or `$state`.                                 | normal variables living **outside** `render()`.                       | Data and UI are separate; no "rescuing" variables is needed.    |
+| **Side Effects**      | `useEffect`, `watch`, or `$effect`.                             | Procedural logic within Event Handlers or functional triggers.        | Move away from implicit subscriptions to explicit Zig logic.    |
+| **Conditional UI**    | `{cond && <UI />}`, `v-if`, or `{#if}`.                         | Standard Zig `if` or `switch` statements.                             | Use native programming control flow instead of template syntax. |
+| **List Rendering**    | `.map()`, `v-for`, or `{#each}`.                                | Standard Zig `for` and `while` loops iterating over arrays or slices. | Direct iteration over memory-contiguous data.                   |
 
 ## 2. Reactivity & State Logic
 
 In JavaScript frameworks, state is often "reactive" via proxies or setters. In Vapor, the **UI is reactive**, not the variables.
 
-| Task | React (useState) | Vue (ref) | Svelte ($state) | **Vapor (Zig)** |
-| :--- | :--- | :--- | :--- | :--- |
-| **Declare State** | `const [val, setVal] = useState(0);` | `const val = ref(0);` | `let val = $state(0);` | `var val: u32 = 0;` |
-| **Update State** | `setVal(v => v + 1);` | `val.value++;` | `val += 1;` | `val += 1;` |
-| **Derived State** | `useMemo(() => val * 2, [val])` | `computed(() => val.value * 2)` | `let double = $derived(val * 2)` | Zig function or variable. |
+| Task              | React (useState)                     | Vue (ref)                       | Svelte ($state)                  | **Vapor (Zig)**           |
+| :---------------- | :----------------------------------- | :------------------------------ | :------------------------------- | :------------------------ |
+| **Declare State** | `const [val, setVal] = useState(0);` | `const val = ref(0);`           | `let val = $state(0);`           | `var val: u32 = 0;`       |
+| **Update State**  | `setVal(v => v + 1);`                | `val.value++;`                  | `val += 1;`                      | `val += 1;`               |
+| **Derived State** | `useMemo(() => val * 2, [val])`      | `computed(() => val.value * 2)` | `let double = $derived(val * 2)` | Zig function or variable. |
 
 > **Note:** Vapor's **Atomic Mode** detects these direct mutations during events and performs fine-grained updates to the DOM only where necessary.
 
@@ -4115,26 +4403,25 @@ In JavaScript frameworks, state is often "reactive" via proxies or setters. In V
 
 Vapor replaces the complex hook system with predictable Zig entry points.
 
-| Lifecycle Event | React Hook | **Vapor Lifecycle / Hook** |
-| :--- | :--- | :--- |
-| **Initial Load** | `useEffect(fn, [])` | `pub fn init() { ... }` (Global) or `.mounted` (Component). |
-| **Component Mount**| `useLayoutEffect` | `Hooks(.{ .mounted = func })`. |
-| **Data Cleanup** | `return () => cleanup` | `.destroyed` hook or `deinit` function in Routing. |
-| **Route Navigation**| `useNavigate` | `Vapor.Kit.navigate("/url")`. |
+| Lifecycle Event      | React Hook             | **Vapor Lifecycle / Hook**                                  |
+| :------------------- | :--------------------- | :---------------------------------------------------------- |
+| **Initial Load**     | `useEffect(fn, [])`    | `pub fn init() { ... }` (Global) or `.mounted` (Component). |
+| **Component Mount**  | `useLayoutEffect`      | `Hooks(.{ .mounted = func })`.                              |
+| **Data Cleanup**     | `return () => cleanup` | `.destroyed` hook or `deinit` function in Routing.          |
+| **Route Navigation** | `useNavigate`          | `Vapor.Kit.navigate("/url")`.                               |
 
 ## 4. Memory Management: The "Web Dev Hack"
 
 Because WASM has a fixed memory linear buffer, you must manage it. Vapor simplifies this using **Arenas**.
 
-| Arena Type | Equivalent JS Concept | When to use it in Vapor |
-| :--- | :--- | :--- |
-| **`.frame`** | Local variables in a function. | Temporary data used only for the current render frame (e.g., formatting strings). |
-| **`.view`** | Data scoped to a specific URL/Page. | Large datasets or lists specific to the current page (automatically freed on navigate). |
-| **`.persist`** | Global variables / Redux store. | Core application state that must exist for the entire session. |
+| Arena Type     | Equivalent JS Concept               | When to use it in Vapor                                                                 |
+| :------------- | :---------------------------------- | :-------------------------------------------------------------------------------------- |
+| **`.frame`**   | Local variables in a function.      | Temporary data used only for the current render frame (e.g., formatting strings).       |
+| **`.view`**    | Data scoped to a specific URL/Page. | Large datasets or lists specific to the current page (automatically freed on navigate). |
+| **`.persist`** | Global variables / Redux store.     | Core application state that must exist for the entire session.                          |
 
-
-A good rule of thumb is to use `.persist` in anything within the `init()` function. `.view` for anything within the `mount` or `navigation functions`, 
-and `.frame` for anything within the `render`. Feel free to create your own arenas if you need to, for example a `.scratch` arena for temporary data, 
+A good rule of thumb is to use `.persist` in anything within the `init()` function. `.view` for anything within the `mount` or `navigation functions`,
+and `.frame` for anything within the `render`. Feel free to create your own arenas if you need to, for example a `.scratch` arena for temporary data,
 that is tied to the Component itself, then call `destroy()` hook, and deinitialize the arena or reset its memory.
 
 You can take a look at Opaque UI lib at [vapor-ui](https://vapor-ui) for examples of how to use arenas, that are tied to the Component itself.
@@ -4142,6 +4429,7 @@ You can take a look at Opaque UI lib at [vapor-ui](https://vapor-ui) for example
 ## 5. Quick Syntax Reference
 
 ### Styling & Layout
+
 If you are coming from a framework that requires wrapping everything in `<div>` or `<span>`, Vapor's builder pattern will feel much cleaner.
 
 **React (Tailwind):**
@@ -5311,107 +5599,2421 @@ Ready to level up? Try these extensions:
 **Remember:** In Vapor, the UI is reactive, not the variables. Just mutate your state directly, and Vapor handles the rest.
 
 Happy coding with Vapor! 🚀
-{#ui-components}
-
-## UI Components
-
-Vapor includes a comprehensive component library for building production applications.
-
-@ui_showcase_image
-
-### Available Components
-
-| Component     | Description                                             |
-| ------------- | ------------------------------------------------------- |
-| **DataTable** | Sortable, filterable, paginated tables with JSON export |
-| **Chart**     | Bar, line, and combo charts                             |
-| **Calendar**  | Date picker with month/year navigation                  |
-| **Select**    | Searchable dropdowns with type-safe options             |
-| **Tabs**      | Tabbed content navigation                               |
-| **Dialog**    | Modal dialogs with animations                           |
-| **Drawer**    | Slide-in panels                                         |
-| **Toast**     | Stackable notifications                                 |
-| **Command**   | Command palette (⌘K) with search                        |
-| **Form**      | Auto-generated forms from structs                       |
-| **Upload**    | File upload with drag-and-drop                          |
-| **Slider**    | Range input controls                                    |
-
-### Usage
-
-Components are available via the Opaque UI library:
-
-%metal add opaque-ui
-
-```zig
-const Opaque = @import("opaque");
-const Select = Opaque.Select;
-const DataTable = Opaque.DataTable;
-const Calendar = Opaque.Calendar;
-```
-
-For full documentation, see [Opaque UI Docs](https://opaque.vapor.dev).
-
-{#form-generation}
-
-### Form Generation
-
-Define a struct, get a complete form with validation:
-
-```zig
-const CheckoutForm = struct {
-    account: struct {
-        email: []const u8 = "",
-        password: []const u8 = "",
-    } = .{},
-
-    pub const __validations = .{
-        .email = Validation{ .field_type = .email },
-        .password = Validation{ .field_type = .password },
-    };
-};
-
-var form = Vaporize.Form(CheckoutForm){};
-form.compile();
-```
-
-@checkout_form_image
-
-Nested structs become form sections. Validation errors display inline. Custom components can override any field via `__components`.
-
----
-
-## Quick Observations
-
-### Strengths of the UI
-
-| Aspect | Assessment |
-|--------|------------|
-| Visual consistency | Excellent - cohesive design language |
-| Spacing/typography | Professional - proper hierarchy |
-| Interactive states | Visible hover/focus states |
-| Error handling | Clear inline validation |
-| Accessibility | Appears to have proper labels |
-| Dark mode ready | The chart suggests dark theme support |
-
-### The Form Generation is the Killer Feature
-
-Image 3 shows the exact struct from your code rendered as a real form:
-
-```zig
-Account
-├── Email | Password (side-by-side)
-├── Confirm password
-└── Contact
-    └── Phone
-
-Payment
-├── Payment Method (custom Select)
-├── Expiry | CVV (side-by-side)
-└── Billing address | Card number
-
-Shipping details
-└── Shipping same as billing [toggle]
-
-[Submit]
-````
-
+<!---->
+<!-- {#opaque-ui-guide} -->
+<!---->
+<!-- # Opaque UI Component Library -->
+<!---->
+<!-- #### A comprehensive guide to using and building components with Vapor's Opaque UI library. -->
+<!---->
+<!-- --- -->
+<!---->
+<!-- {#getting-started} -->
+<!---->
+<!-- ## Getting Started -->
+<!---->
+<!-- ### Installation -->
+<!---->
+<!-- ```bash -->
+<!-- metal add opaque-ui -->
+<!-- ``` -->
+<!---->
+<!-- ### Imports -->
+<!---->
+<!-- ```zig -->
+<!-- const Opaque = @import("opaque"); -->
+<!---->
+<!-- // Components -->
+<!-- const Select = Opaque.Select; -->
+<!-- const Table = Opaque.Table; -->
+<!-- const Column = Opaque.Column; -->
+<!-- const Action = Opaque.Action; -->
+<!-- const Chart = Opaque.Chart; -->
+<!-- const Field = Opaque.Field; -->
+<!-- const Accordion = Opaque.Accordion; -->
+<!-- const Alert = Opaque.Alert; -->
+<!-- const Sheet = Opaque.Sheet; -->
+<!-- const Toast = Opaque.Toast; -->
+<!-- const Tooltip = Opaque.Tooltip; -->
+<!-- const ComboBox = Opaque.ComboBox; -->
+<!-- const ComboBoxDialog = Opaque.ComboBoxDialog; -->
+<!-- const CommandPalette = Opaque.CommandPalette; -->
+<!-- const Switch = Opaque.Switch; -->
+<!-- const Group = Opaque.Group; -->
+<!-- const Tabs = Opaque.Tabs; -->
+<!-- const Button = Opaque.Button; -->
+<!-- ``` -->
+<!---->
+<!-- ### Initialization -->
+<!---->
+<!-- ```zig -->
+<!-- pub fn init() void { -->
+<!--     // Initialize all Opaque components -->
+<!--     Opaque.new(); -->
+<!---->
+<!--     // Or initialize specific components -->
+<!--     Select.new(); -->
+<!--     Field.new(); -->
+<!--     // etc. -->
+<!-- } -->
+<!-- ``` -->
+<!---->
+<!-- --- -->
+<!---->
+<!-- {#select-component} -->
+<!---->
+<!-- ## Select Component -->
+<!---->
+<!-- Type-safe dropdown with search support. -->
+<!---->
+<!-- ### Basic Usage -->
+<!---->
+<!-- ```zig -->
+<!-- const Status = enum { pending, success, err }; -->
+<!---->
+<!-- var status_select: Select(Status) = undefined; -->
+<!---->
+<!-- var options = [_]Select(Status).Item{ -->
+<!--     .{ .value = Status.pending, .label = "Pending" }, -->
+<!--     .{ .value = Status.success, .label = "Success" }, -->
+<!--     .{ .value = Status.err, .label = "Error" }, -->
+<!-- }; -->
+<!---->
+<!-- fn init() void { -->
+<!--     Select.new(); -->
+<!--     status_select = .fromItems(&options); -->
+<!--     status_select.trigger = "Select Status"; -->
+<!--     status_select.on_select = onStatusSelect; -->
+<!-- } -->
+<!---->
+<!-- fn onStatusSelect(_: *Select(Status), item: *Select(Status).Item) void { -->
+<!--     Vapor.print("Selected: {s}", .{item.label}); -->
+<!-- } -->
+<!---->
+<!-- fn render() void { -->
+<!--     status_select.render(); -->
+<!-- } -->
+<!-- ``` -->
+<!---->
+<!-- ### With Default Value -->
+<!---->
+<!-- ```zig -->
+<!-- fn init() void { -->
+<!--     status_select = .fromItems(&options); -->
+<!--     status_select.default(.{ .value = Status.pending, .label = "Pending" }); -->
+<!-- } -->
+<!-- ``` -->
+<!---->
+<!-- ### Select Item Structure -->
+<!---->
+<!-- ```zig -->
+<!-- pub const Item = struct { -->
+<!--     value: T,                              // The actual value -->
+<!--     label: []const u8,                     // Display text -->
+<!--     icon: ?*const Vapor.IconTokens = null, // Optional icon -->
+<!--     is_selected: bool = false,             // Selection state -->
+<!--     _is_shown: bool = true,                // Visibility (for search) -->
+<!-- }; -->
+<!-- ``` -->
+<!---->
+<!-- ### Select Methods -->
+<!---->
+<!-- | Method              | Description            | -->
+<!-- | ------------------- | ---------------------- | -->
+<!-- | `.fromItems(items)` | Create from item array | -->
+<!-- | `.render()`         | Render the select      | -->
+<!-- | `.toggle()`         | Toggle dropdown        | -->
+<!-- | `.open()`           | Open dropdown          | -->
+<!-- | `.close()`          | Close dropdown         | -->
+<!-- | `.default(item)`    | Set default selection  | -->
+<!---->
+<!-- --- -->
+<!---->
+<!-- {#table-component} -->
+<!---->
+<!-- ## Table Component -->
+<!---->
+<!-- Data table with sorting, filtering, pagination, and actions. -->
+<!---->
+<!-- ### Basic Table -->
+<!---->
+<!-- ```zig -->
+<!-- const Data = struct { -->
+<!--     id: usize,              // REQUIRED: Table needs an 'id' field -->
+<!--     status: Status, -->
+<!--     email: []const u8, -->
+<!--     amount: i32, -->
+<!-- }; -->
+<!---->
+<!-- const Status = enum { pending, success, err }; -->
+<!---->
+<!-- const columns = [_]Column(Data){ -->
+<!--     Column(Data){ -->
+<!--         .title = "Status", -->
+<!--         .key = "status", -->
+<!--         .width = 100, -->
+<!--         .filter = true,     // Enable enum filtering -->
+<!--     }, -->
+<!--     Column(Data){ -->
+<!--         .title = "Email", -->
+<!--         .key = "email", -->
+<!--         .width = 100, -->
+<!--         .sort = .asc,       // Enable sorting -->
+<!--         .search = true,     // Enable text search -->
+<!--     }, -->
+<!--     Column(Data){ -->
+<!--         .title = "Amount", -->
+<!--         .key = "amount", -->
+<!--         .width = 100, -->
+<!--     }, -->
+<!-- }; -->
+<!---->
+<!-- fn handleDelete(item: *Data) void { -->
+<!--     Vapor.print("Delete: {s}", .{item.email}); -->
+<!-- } -->
+<!---->
+<!-- fn handleEdit(item: *Data) void { -->
+<!--     Vapor.print("Edit: {s}", .{item.email}); -->
+<!-- } -->
+<!---->
+<!-- const MyTable = Table(Data, &columns, .{ -->
+<!--     .actions = &[_]Action(Data){ -->
+<!--         .{ .label = "Delete", .on_action = handleDelete, .icon = .trash }, -->
+<!--         .{ .label = "Edit", .on_action = handleEdit, .icon = .pencil }, -->
+<!--     }, -->
+<!-- }); -->
+<!---->
+<!-- var table: MyTable = undefined; -->
+<!-- var data: []Data = // your data array -->
+<!---->
+<!-- fn init() void { -->
+<!--     table.init(&data); -->
+<!--     table.on_select = onRowSelect; -->
+<!-- } -->
+<!---->
+<!-- fn onRowSelect(item: *Data) void { -->
+<!--     Vapor.print("Selected row: {d}", .{item.id}); -->
+<!-- } -->
+<!---->
+<!-- fn render() void { -->
+<!--     table.render(); -->
+<!-- } -->
+<!-- ``` -->
+<!---->
+<!-- ### Column Configuration -->
+<!---->
+<!-- ```zig -->
+<!-- pub const Column = struct { -->
+<!--     title: []const u8,                     // Column header -->
+<!--     key: []const u8,                       // Field name in struct -->
+<!--     width: f32 = 0,                        // Column width -->
+<!--     alignment: ?Align = .none,             // Text alignment -->
+<!--     sort: ?Sort = null,                    // .asc, .desc, or null -->
+<!--     render: ?*const fn (*Row(T)) void = null, // Custom cell renderer -->
+<!--     search: bool = false,                  // Enable text search -->
+<!--     filter: bool = false,                  // Enable enum filtering -->
+<!-- }; -->
+<!-- ``` -->
+<!---->
+<!-- ### Table Methods -->
+<!---->
+<!-- | Method         | Description               | -->
+<!-- | -------------- | ------------------------- | -->
+<!-- | `.init(&data)` | Initialize with data      | -->
+<!-- | `.render()`    | Render the table          | -->
+<!-- | `.refresh()`   | Refresh after data change | -->
+<!---->
+<!-- --- -->
+<!---->
+<!-- {#chart-component} -->
+<!---->
+<!-- ## Chart Component -->
+<!---->
+<!-- Bar and line charts with animations. -->
+<!---->
+<!-- ### Basic Chart -->
+<!---->
+<!-- ```zig -->
+<!-- var chart: Chart = undefined; -->
+<!---->
+<!-- fn init() void { -->
+<!--     chart = Chart.init(Vapor.arena(.persist), .{ -->
+<!--         .height = 300, -->
+<!--         .width = 600, -->
+<!--         .palette = .{ .colors = &.{ "#3b82f6", "#ef4444" } }, -->
+<!--     }); -->
+<!---->
+<!--     const sales = [_]Chart.Point{ -->
+<!--         .{ .x = 1, .y = 90 }, -->
+<!--         .{ .x = 2, .y = 70 }, -->
+<!--         .{ .x = 3, .y = 45 }, -->
+<!--         .{ .x = 4, .y = 50 }, -->
+<!--         .{ .x = 5, .y = 65 }, -->
+<!--     }; -->
+<!---->
+<!--     const costs = [_]Chart.Point{ -->
+<!--         .{ .x = 1, .y = 20 }, -->
+<!--         .{ .x = 2, .y = 35 }, -->
+<!--         .{ .x = 3, .y = 30 }, -->
+<!--         .{ .x = 4, .y = 50 }, -->
+<!--         .{ .x = 5, .y = 45 }, -->
+<!--     }; -->
+<!---->
+<!--     chart.addSeries(.bar, "Sales", &sales, .{ .color = .palette(.chart_bar_color) }) catch unreachable; -->
+<!--     chart.addSeries(.line_smooth, "Costs", &costs, .{ .color = .palette(.tint) }) catch unreachable; -->
+<!---->
+<!--     chart.xAxis(.{ .label = "Month", .tick_count = 6 }); -->
+<!--     chart.yAxis(.{ .label = "USD ($)", .tick_count = 5 }); -->
+<!--     chart.legend(.{ .position = .top_left }); -->
+<!--     chart.build() catch unreachable; -->
+<!-- } -->
+<!---->
+<!-- fn render() void { -->
+<!--     chart.render(); -->
+<!-- } -->
+<!-- ``` -->
+<!---->
+<!-- ### Update Chart Data -->
+<!---->
+<!-- ```zig -->
+<!-- fn updateData() void { -->
+<!--     const new_sales = [_]Chart.Point{ -->
+<!--         .{ .x = 1, .y = 40 }, -->
+<!--         .{ .x = 2, .y = 95 }, -->
+<!--         // ... -->
+<!--     }; -->
+<!---->
+<!--     const new_costs = [_]Chart.Point{ -->
+<!--         .{ .x = 1, .y = 80 }, -->
+<!--         .{ .x = 2, .y = 20 }, -->
+<!--         // ... -->
+<!--     }; -->
+<!---->
+<!--     chart.updateSeries(&.{ -->
+<!--         Chart.SeriesData{ .name = "Sales", .data = &new_sales }, -->
+<!--         Chart.SeriesData{ .name = "Costs", .data = &new_costs }, -->
+<!--     }); -->
+<!-- } -->
+<!-- ``` -->
+<!---->
+<!-- ### Series Types -->
+<!---->
+<!-- | Type           | Description       | -->
+<!-- | -------------- | ----------------- | -->
+<!-- | `.bar`         | Bar chart         | -->
+<!-- | `.line`        | Line chart        | -->
+<!-- | `.line_smooth` | Smooth line chart | -->
+<!---->
+<!-- --- -->
+<!---->
+<!-- {#field-component} -->
+<!---->
+<!-- ## Field Component -->
+<!---->
+<!-- Form input field with floating labels and validation. -->
+<!---->
+<!-- ### Basic Usage -->
+<!---->
+<!-- ```zig -->
+<!-- var email: []const u8 = ""; -->
+<!-- var password: []const u8 = ""; -->
+<!-- var age: i32 = 0; -->
+<!---->
+<!-- fn init() void { -->
+<!--     Field.new(); -->
+<!-- } -->
+<!---->
+<!-- fn render() void { -->
+<!--     Stack().spacing(16).children({ -->
+<!--         Field.render(.{ -->
+<!--             .label = "Email", -->
+<!--             .value = .{ .email = &email }, -->
+<!--         }); -->
+<!---->
+<!--         Field.render(.{ -->
+<!--             .label = "Password", -->
+<!--             .value = .{ .password = &password }, -->
+<!--         }); -->
+<!---->
+<!--         Field.render(.{ -->
+<!--             .label = "Age", -->
+<!--             .value = .{ .number = &age }, -->
+<!--         }); -->
+<!--     }); -->
+<!-- } -->
+<!-- ``` -->
+<!---->
+<!-- ### Field Types -->
+<!---->
+<!-- ```zig -->
+<!-- pub const FieldValue = union(enum) { -->
+<!--     string: *[]const u8, -->
+<!--     password: *[]const u8, -->
+<!--     number: *i32, -->
+<!--     bool: *bool, -->
+<!--     email: *[]const u8, -->
+<!--     credit_card: *[]const u8, -->
+<!--     telephone: *[]const u8, -->
+<!-- }; -->
+<!-- ``` -->
+<!---->
+<!-- ### Field Options -->
+<!---->
+<!-- ```zig -->
+<!-- Field.render(.{ -->
+<!--     .label = "Card Number", -->
+<!--     .value = .{ .credit_card = &card_number }, -->
+<!--     .trans_label = true,           // Always show label above -->
+<!--     .placeholder = .{ .string = "1234 5678 9012 3456" }, -->
+<!--     .on_change = handleChange, -->
+<!--     .id = "unique-id",             // Custom stable ID -->
+<!-- }); -->
+<!-- ``` -->
+<!---->
+<!-- ### Auto-Formatting -->
+<!---->
+<!-- The Field component automatically formats: -->
+<!---->
+<!-- - **Credit cards**: `1234567890123456` → `1234 5678 9012 3456` -->
+<!-- - **Phone numbers**: `1234567890` → `(123) 456-7890` -->
+<!---->
+<!-- --- -->
+<!---->
+<!-- {#accordion-component} -->
+<!---->
+<!-- ## Accordion Component -->
+<!---->
+<!-- Expandable content sections. -->
+<!---->
+<!-- ```zig -->
+<!-- var accordion: Accordion = undefined; -->
+<!---->
+<!-- var items = [_]Accordion.AccordionItem{ -->
+<!--     .{ -->
+<!--         .title = "Section 1", -->
+<!--         .description = "Content for section 1...", -->
+<!--         .trigger = AccordionTrigger, -->
+<!--         .content = AccordionContent, -->
+<!--     }, -->
+<!--     .{ -->
+<!--         .title = "Section 2", -->
+<!--         .description = "Content for section 2...", -->
+<!--         .trigger = AccordionTrigger, -->
+<!--         .content = AccordionContent, -->
+<!--     }, -->
+<!-- }; -->
+<!---->
+<!-- fn AccordionTrigger(item: *Accordion.AccordionItem) void { -->
+<!--     Text(item.title).font(16, 700, .palette(.text_color)).end(); -->
+<!-- } -->
+<!---->
+<!-- fn AccordionContent(item: *Accordion.AccordionItem) void { -->
+<!--     Text(item.description).font(14, 400, .palette(.text_color)).end(); -->
+<!-- } -->
+<!---->
+<!-- fn init() void { -->
+<!--     accordion = Accordion.init(&items); -->
+<!-- } -->
+<!---->
+<!-- fn render() void { -->
+<!--     accordion.render(); -->
+<!-- } -->
+<!-- ``` -->
+<!---->
+<!-- --- -->
+<!---->
+<!-- {#sheet-drawer} -->
+<!---->
+<!-- ## Sheet (Drawer) Component -->
+<!---->
+<!-- Slide-in panel from any edge. -->
+<!---->
+<!-- ```zig -->
+<!-- var sheet: Sheet = undefined; -->
+<!---->
+<!-- fn sheetContent(_: *Sheet) void { -->
+<!--     Stack().padding(.all(24)).children({ -->
+<!--         Text("Sheet Content").font(24, 700, .palette(.text_color)).end(); -->
+<!--         Button(.{ .on_press = closeSheet }).children({ -->
+<!--             Text("Close").end(); -->
+<!--         }); -->
+<!--     }); -->
+<!-- } -->
+<!---->
+<!-- fn closeSheet() void { -->
+<!--     sheet.close(); -->
+<!-- } -->
+<!---->
+<!-- fn openSheet() void { -->
+<!--     sheet.open(); -->
+<!-- } -->
+<!---->
+<!-- fn init() void { -->
+<!--     sheet = Sheet.init(.bottom);  // .top, .left, .right, .bottom -->
+<!--     sheet.content = sheetContent; -->
+<!-- } -->
+<!---->
+<!-- fn render() void { -->
+<!--     Button(.{ .on_press = openSheet }).children({ -->
+<!--         Text("Open Drawer").end(); -->
+<!--     }); -->
+<!--     sheet.render(); -->
+<!-- } -->
+<!-- ``` -->
+<!---->
+<!-- --- -->
+<!---->
+<!-- {#toast-component} -->
+<!---->
+<!-- ## Toast Component -->
+<!---->
+<!-- Notification messages. -->
+<!---->
+<!-- ```zig -->
+<!-- fn init() void { -->
+<!--     Toast.new(); -->
+<!-- } -->
+<!---->
+<!-- fn showToasts() void { -->
+<!--     Toast.success(.{ .title = "Success", .description = "Operation completed" }); -->
+<!--     Toast.err(.{ .title = "Error", .description = "Something went wrong" }); -->
+<!--     Toast.warning(.{ .title = "Warning", .description = "Please check input" }); -->
+<!--     Toast.info(.{ .title = "Info", .description = "New update available" }); -->
+<!-- } -->
+<!---->
+<!-- fn render() void { -->
+<!--     Button(.{ .on_press = showToasts }).children({ -->
+<!--         Text("Show Toast").end(); -->
+<!--     }); -->
+<!---->
+<!--     // Render toast stack (usually at root level) -->
+<!--     Toast.renderStack(); -->
+<!-- } -->
+<!-- ``` -->
+<!---->
+<!-- --- -->
+<!---->
+<!-- {#alert-dialog} -->
+<!---->
+<!-- ## Alert Component -->
+<!---->
+<!-- Modal dialog for confirmations. -->
+<!---->
+<!-- ```zig -->
+<!-- var alert: Alert = undefined; -->
+<!---->
+<!-- fn alertContent(_: *Alert) void { -->
+<!--     Stack().spacing(16).children({ -->
+<!--         Text("Are you sure?").font(22, 700, .palette(.text_color)).end(); -->
+<!--         Text("This action cannot be undone.").font(14, 400, .palette(.text_color)).end(); -->
+<!---->
+<!--         Box().layout(.right_center).spacing(16).children({ -->
+<!--             ButtonCtx(Alert.close, .{&alert}).children({ -->
+<!--                 Text("Cancel").end(); -->
+<!--             }); -->
+<!--             Button(.{ .on_press = confirmAction }).children({ -->
+<!--                 Text("Confirm").end(); -->
+<!--             }); -->
+<!--         }); -->
+<!--     }); -->
+<!-- } -->
+<!---->
+<!-- fn confirmAction() void { -->
+<!--     // Do action -->
+<!--     alert.close(); -->
+<!-- } -->
+<!---->
+<!-- fn init() void { -->
+<!--     alert = Alert.init(alertContent); -->
+<!-- } -->
+<!---->
+<!-- fn render() void { -->
+<!--     Button(.{ .on_press = alert.open }).children({ -->
+<!--         Text("Delete Item").end(); -->
+<!--     }); -->
+<!--     alert.render(); -->
+<!-- } -->
+<!-- ``` -->
+<!---->
+<!-- --- -->
+<!---->
+<!-- {#combobox-component} -->
+<!---->
+<!-- ## ComboBox Component -->
+<!---->
+<!-- Searchable select with keyboard navigation. -->
+<!---->
+<!-- ```zig -->
+<!-- const Status = enum { pending, success, err }; -->
+<!---->
+<!-- var combobox: ComboBox(Status) = undefined; -->
+<!---->
+<!-- var options = [_]ComboBox(Status).Item{ -->
+<!--     .{ .value = Status.pending, .label = "Pending" }, -->
+<!--     .{ .value = Status.success, .label = "Success" }, -->
+<!--     .{ .value = Status.err, .label = "Error" }, -->
+<!-- }; -->
+<!---->
+<!-- fn init() void { -->
+<!--     ComboBox.new(); -->
+<!--     combobox = .fromItems(&options); -->
+<!-- } -->
+<!---->
+<!-- fn render() void { -->
+<!--     combobox.render(); -->
+<!-- } -->
+<!-- ``` -->
+<!---->
+<!-- --- -->
+<!---->
+<!-- {#combobox-dialog} -->
+<!---->
+<!-- ## ComboBox Dialog Component -->
+<!---->
+<!-- Full-screen searchable command palette. -->
+<!---->
+<!-- ```zig -->
+<!-- const MenuItem = struct { -->
+<!--     label: []const u8, -->
+<!--     icon: ?*const Vapor.IconTokens = null, -->
+<!--     value: []const u8 = "", -->
+<!-- }; -->
+<!---->
+<!-- var dialog: ComboBoxDialog(MenuItem) = undefined; -->
+<!---->
+<!-- var menu_items = [_]MenuItem{ -->
+<!--     .{ .label = "Home", .value = "/", .icon = Vapor.IconTokens.house }, -->
+<!--     .{ .label = "Settings", .value = "/settings", .icon = Vapor.IconTokens.gear }, -->
+<!--     .{ .label = "Profile", .value = "/profile", .icon = Vapor.IconTokens.person }, -->
+<!-- }; -->
+<!---->
+<!-- fn onSelect(item: *ComboBoxDialog(MenuItem).Item) void { -->
+<!--     Vapor.Kit.navigate(item.value.value); -->
+<!--     dialog.close(); -->
+<!-- } -->
+<!---->
+<!-- fn init() void { -->
+<!--     dialog = .fromItems(&menu_items); -->
+<!--     dialog.on_select = onSelect; -->
+<!--     dialog.on_mount = onDialogMount; -->
+<!--     dialog.on_close = onDialogClose; -->
+<!-- } -->
+<!---->
+<!-- fn openDialog() void { -->
+<!--     dialog.clearAll(); -->
+<!--     dialog.clearText(); -->
+<!--     dialog.open(); -->
+<!-- } -->
+<!---->
+<!-- fn render() void { -->
+<!--     Button(.{ .on_press = openDialog }).children({ -->
+<!--         Text("Open Command Palette").end(); -->
+<!--     }); -->
+<!--     dialog.render(); -->
+<!-- } -->
+<!-- ``` -->
+<!---->
+<!-- --- -->
+<!---->
+<!-- {#switch-component} -->
+<!---->
+<!-- ## Switch Component -->
+<!---->
+<!-- Toggle switch control. -->
+<!---->
+<!-- ```zig -->
+<!-- fn init() void { -->
+<!--     Switch.new(); -->
+<!-- } -->
+<!---->
+<!-- fn render() void { -->
+<!--     Box().layout(.x_between_center).children({ -->
+<!--         Text("Enable Feature").end(); -->
+<!--         Switch.render("feature-switch"); -->
+<!--     }); -->
+<!-- } -->
+<!-- ``` -->
+<!---->
+<!-- --- -->
+<!---->
+<!-- {#tabs-component} -->
+<!---->
+<!-- ## Tabs Component -->
+<!---->
+<!-- Tabbed content navigation. -->
+<!---->
+<!-- ```zig -->
+<!-- fn init() void { -->
+<!--     Tabs.new(); -->
+<!-- } -->
+<!---->
+<!-- fn render() void { -->
+<!--     Tabs.render(); -->
+<!-- } -->
+<!-- ``` -->
+<!---->
+<!-- --- -->
+<!---->
+<!-- {#vaporize-forms} -->
+<!---->
+<!-- ## Vaporize Form Generation -->
+<!---->
+<!-- Generate forms automatically from Zig structs. -->
+<!---->
+<!-- ### Basic Form -->
+<!---->
+<!-- ```zig -->
+<!-- const Vaporize = @import("vaporize"); -->
+<!-- const Validation = Vaporize.Validation; -->
+<!---->
+<!-- const LoginForm = struct { -->
+<!--     email: []const u8 = "", -->
+<!--     password: []const u8 = "", -->
+<!---->
+<!--     pub const __validations = .{ -->
+<!--         .email = Validation{ .field_type = .email }, -->
+<!--         .password = Validation{ .field_type = .password }, -->
+<!--     }; -->
+<!-- }; -->
+<!---->
+<!-- var vaporizer: Vaporize.Compiler = undefined; -->
+<!-- var login_form: vaporizer.Form(LoginForm) = undefined; -->
+<!---->
+<!-- fn init() void { -->
+<!--     vaporizer = Vaporize.init(Vapor.arena(.persist), .{}) catch unreachable; -->
+<!--     login_form.compile() catch unreachable; -->
+<!--     login_form.inner_form.on_submit = onSubmit; -->
+<!-- } -->
+<!---->
+<!-- fn onSubmit(form: LoginForm) void { -->
+<!--     Vapor.print("Email: {s}", .{form.email}); -->
+<!-- } -->
+<!---->
+<!-- fn render() void { -->
+<!--     login_form.render(); -->
+<!-- } -->
+<!-- ``` -->
+<!---->
+<!-- ### Complex Nested Form -->
+<!---->
+<!-- ```zig -->
+<!-- const CheckoutForm = struct { -->
+<!--     account: struct { -->
+<!--         email: []const u8 = "", -->
+<!--         password: []const u8 = "", -->
+<!--         confirm_password: []const u8 = "", -->
+<!--         contact: struct { -->
+<!--             phone: []const u8 = "", -->
+<!--         } = .{}, -->
+<!--     } = .{}, -->
+<!---->
+<!--     payment: struct { -->
+<!--         method: []const u8 = "", -->
+<!--         card_number: []const u8 = "", -->
+<!--         expiry: []const u8 = "", -->
+<!--         cvv: []const u8 = "", -->
+<!--     } = .{}, -->
+<!---->
+<!--     shipping: struct { -->
+<!--         address: []const u8 = "", -->
+<!--         city: []const u8 = "", -->
+<!--         country: []const u8 = "", -->
+<!--     } = .{}, -->
+<!---->
+<!--     pub const __validations = .{ -->
+<!--         .email = Validation{ .field_type = .email }, -->
+<!--         .password = Validation{ .field_type = .password }, -->
+<!--         .confirm_password = Validation{ -->
+<!--             .field_type = .password, -->
+<!--             .target_field = "password", -->
+<!--             .match = true, -->
+<!--         }, -->
+<!--         .phone = Validation{ -->
+<!--             .field_type = .telephone, -->
+<!--             .depends_on = "country", -->
+<!--         }, -->
+<!--         .card_number = Validation{ .field_type = .credit_card }, -->
+<!--         .expiry = Validation{ -->
+<!--             .field_type = .expiry, -->
+<!--             .placeholder = "MM/YY", -->
+<!--         }, -->
+<!--         .cvv = Validation{ -->
+<!--             .field_type = .cvv, -->
+<!--             .placeholder = "123", -->
+<!--             .err = "CVV is required", -->
+<!--         }, -->
+<!--         .address = Validation{ .field_type = .string, .required = true }, -->
+<!--         .city = Validation{ .field_type = .string, .required = true }, -->
+<!--     }; -->
+<!---->
+<!--     // Custom components for specific fields -->
+<!--     pub const __components = .{ -->
+<!--         .method = PaymentMethodComponent, -->
+<!--         .country = CountryComponent, -->
+<!--     }; -->
+<!-- }; -->
+<!---->
+<!-- fn PaymentMethodComponent(_: *CheckoutForm, _: ?Vaporize.ValidationError) void { -->
+<!--     payment_method_select.render(); -->
+<!-- } -->
+<!---->
+<!-- fn CountryComponent(_: *CheckoutForm, _: ?Vaporize.ValidationError) void { -->
+<!--     country_select.render(); -->
+<!-- } -->
+<!-- ``` -->
+<!---->
+<!-- ### Validation Options -->
+<!---->
+<!-- ```zig -->
+<!-- pub const Validation = struct { -->
+<!--     field_type: FieldType = .string,   // Field input type -->
+<!--     min: ?usize = null,                 // Min string length -->
+<!--     max: ?usize = null,                 // Max string length -->
+<!--     min_value: ?i32 = null,             // Min numeric value -->
+<!--     max_value: ?i32 = null,             // Max numeric value -->
+<!--     required: bool = false,             // Required field -->
+<!--     err: ?[]const u8 = null,            // Custom error message -->
+<!--     placeholder: ?[]const u8 = null,    // Placeholder text -->
+<!--     target_field: ?[]const u8 = null,   // Field to match against -->
+<!--     match: bool = false,                // Must match target field -->
+<!--     depends_on: ?[]const u8 = null,     // Dependent field -->
+<!-- }; -->
+<!-- ``` -->
+<!---->
+<!-- ### Conditional Fields -->
+<!---->
+<!-- ```zig -->
+<!-- const Form = struct { -->
+<!--     shipping_details: struct { -->
+<!--         same_as_billing: Vaporize.Condition(Form) = .{ -->
+<!--             .callback = handleCondition, -->
+<!--             .target_field = "shipping",  // Controls visibility of shipping section -->
+<!--         }, -->
+<!--     } = .{}, -->
+<!---->
+<!--     shipping: struct { -->
+<!--         address: []const u8 = "", -->
+<!--     } = .{}, -->
+<!-- }; -->
+<!---->
+<!-- fn handleCondition(form: *Form) void { -->
+<!--     // Toggle based on condition value -->
+<!--     const show_shipping = !form.shipping_details.same_as_billing.value; -->
+<!--     // Logic to show/hide shipping section -->
+<!-- } -->
+<!-- ``` -->
+<!---->
+<!-- --- -->
+<!---->
+<!-- {#building-custom-components} -->
+<!---->
+<!-- ## Building Custom Opaque Components -->
+<!---->
+<!-- ### Component Structure Pattern -->
+<!---->
+<!-- ```zig -->
+<!-- const std = @import("std"); -->
+<!-- const Vapor = @import("vapor"); -->
+<!-- const Box = Vapor.Box; -->
+<!-- const Text = Vapor.Text; -->
+<!-- const Button = Vapor.Button; -->
+<!-- const ButtonCtx = Vapor.CtxButton; -->
+<!-- const Stack = Vapor.Stack; -->
+<!---->
+<!-- // Animation definitions -->
+<!-- pub const animEnter = Vapor.Animation.init("mycomponent-enter") -->
+<!--     .prop(.opacity, 0, 1) -->
+<!--     .prop(.scale, 0.9, 1) -->
+<!--     .duration(100) -->
+<!--     .easing(.easeInOut); -->
+<!---->
+<!-- pub const animExit = Vapor.Animation.init("mycomponent-exit") -->
+<!--     .prop(.opacity, 1, 0) -->
+<!--     .prop(.scale, 1, 0.9) -->
+<!--     .duration(100) -->
+<!--     .easing(.easeInOut); -->
+<!---->
+<!-- // Initialize function (call from main init) -->
+<!-- pub fn new() void { -->
+<!--     animEnter.build(); -->
+<!--     animExit.build(); -->
+<!-- } -->
+<!---->
+<!-- // Generic component with type parameter -->
+<!-- pub fn MySelect(comptime T: type) type { -->
+<!--     // Compile-time validation -->
+<!--     comptime { -->
+<!--         if (!@hasField(T, "value")) { -->
+<!--             @compileError("MySelect requires a field named 'value'"); -->
+<!--         } -->
+<!--         if (!@hasField(T, "label")) { -->
+<!--             @compileError("MySelect requires a field named 'label'"); -->
+<!--         } -->
+<!--     } -->
+<!---->
+<!--     return struct { -->
+<!--         const Self = @This(); -->
+<!---->
+<!--         // Item structure -->
+<!--         pub const Item = struct { -->
+<!--             value: T, -->
+<!--             label: []const u8, -->
+<!--             icon: ?*const Vapor.IconTokens = null, -->
+<!--             is_selected: bool = false, -->
+<!--         }; -->
+<!---->
+<!--         // Component state -->
+<!--         items: []Item, -->
+<!--         _selected_item: ?*Item = null, -->
+<!--         _is_open: bool = false, -->
+<!--         trigger: []const u8 = "Select", -->
+<!---->
+<!--         // Callbacks -->
+<!--         on_select: ?*const fn (*Self, *Item) void = null, -->
+<!---->
+<!--         // Binded elements -->
+<!--         _binded: Vapor.Binded = .{}, -->
+<!---->
+<!--         // Factory method -->
+<!--         pub fn fromItems(items: []Item) Self { -->
+<!--             return Self{ .items = items }; -->
+<!--         } -->
+<!---->
+<!--         // Toggle method -->
+<!--         pub fn toggle(self: *Self) void { -->
+<!--             self._is_open = !self._is_open; -->
+<!--         } -->
+<!---->
+<!--         pub fn open(self: *Self) void { -->
+<!--             self._is_open = true; -->
+<!--         } -->
+<!---->
+<!--         pub fn close(self: *Self) void { -->
+<!--             self._is_open = false; -->
+<!--         } -->
+<!---->
+<!--         // Select handler -->
+<!--         fn selectItem(self: *Self, item: *Item) void { -->
+<!--             // Deselect all -->
+<!--             for (self.items) |*i| { -->
+<!--                 i.is_selected = false; -->
+<!--             } -->
+<!--             // Select this item -->
+<!--             item.is_selected = true; -->
+<!--             self._selected_item = item; -->
+<!--             self.close(); -->
+<!---->
+<!--             // Call callback -->
+<!--             if (self.on_select) |callback| { -->
+<!--                 callback(self, item); -->
+<!--             } -->
+<!--         } -->
+<!---->
+<!--         // Render trigger button -->
+<!--         fn renderTrigger(self: *Self) void { -->
+<!--             ButtonCtx(toggle, .{self}) -->
+<!--                 .padding(.tblr(12, 12, 16, 16)) -->
+<!--                 .border(.round(.palette(.border_color), .all(8))) -->
+<!--                 .layout(.x_between_center) -->
+<!--                 .cursor(.pointer) -->
+<!--                 .children({ -->
+<!--                     const label = if (self._selected_item) |item| -->
+<!--                         item.label -->
+<!--                     else -->
+<!--                         self.trigger; -->
+<!--                     Text(label).font(14, 400, .palette(.text_color)).end(); -->
+<!--                     Vapor.Icon(.chevron_down) -->
+<!--                         .font(12, 400, .palette(.text_color)) -->
+<!--                         .end(); -->
+<!--                 }); -->
+<!--         } -->
+<!---->
+<!--         // Render dropdown -->
+<!--         fn renderDropdown(self: *Self) void { -->
+<!--             if (!self._is_open) return; -->
+<!---->
+<!--             Stack() -->
+<!--                 .pos(.tl(.px(0), .percent(100), .absolute)) -->
+<!--                 .width(.percent(100)) -->
+<!--                 .background(.palette(.background)) -->
+<!--                 .border(.round(.palette(.border_color), .all(8))) -->
+<!--                 .shadow(.card(.transparentizeHex(.black, 0.1))) -->
+<!--                 .animationEnter(&animEnter) -->
+<!--                 .animationExit(&animExit) -->
+<!--                 .zIndex(100) -->
+<!--                 .children({ -->
+<!--                     for (self.items) |*item| { -->
+<!--                         ButtonCtx(selectItem, .{ self, item }) -->
+<!--                             .width(.percent(100)) -->
+<!--                             .padding(.tblr(10, 10, 16, 16)) -->
+<!--                             .background(if (item.is_selected) -->
+<!--                                 .palette(.tint) -->
+<!--                             else -->
+<!--                                 .transparent) -->
+<!--                             .cursor(.pointer) -->
+<!--                             .hover(.{ -->
+<!--                                 .background = .transparentizeHex(.palette(.tint), 0.1), -->
+<!--                             }) -->
+<!--                             .children({ -->
+<!--                                 if (item.icon) |icon| { -->
+<!--                                     Vapor.Icon(icon) -->
+<!--                                         .font(14, 400, .palette(.text_color)) -->
+<!--                                         .end(); -->
+<!--                                 } -->
+<!--                                 Text(item.label) -->
+<!--                                     .font(14, 400, if (item.is_selected) -->
+<!--                                         .white -->
+<!--                                     else -->
+<!--                                         .palette(.text_color)) -->
+<!--                                     .end(); -->
+<!--                             }); -->
+<!--                     } -->
+<!--                 }); -->
+<!--         } -->
+<!---->
+<!--         // Main render -->
+<!--         pub fn render(self: *Self) void { -->
+<!--             Box() -->
+<!--                 .pos(.relative) -->
+<!--                 .width(.px(200)) -->
+<!--                 .ref(&self._binded) -->
+<!--                 .children({ -->
+<!--                     self.renderTrigger(); -->
+<!--                     self.renderDropdown(); -->
+<!--                 }); -->
+<!--         } -->
+<!--     }; -->
+<!-- } -->
+<!-- ``` -->
+<!---->
+<!-- ### Using Custom Component -->
+<!---->
+<!-- ```zig -->
+<!-- const MyComponent = @import("MyComponent.zig"); -->
+<!---->
+<!-- const Status = struct { -->
+<!--     value: u32, -->
+<!--     label: []const u8, -->
+<!-- }; -->
+<!---->
+<!-- var my_select: MyComponent.MySelect(Status) = undefined; -->
+<!---->
+<!-- fn init() void { -->
+<!--     MyComponent.new(); -->
+<!---->
+<!--     my_select = .fromItems(&.{ -->
+<!--         .{ .value = 1, .label = "Option 1" }, -->
+<!--         .{ .value = 2, .label = "Option 2" }, -->
+<!--         .{ .value = 3, .label = "Option 3" }, -->
+<!--     }); -->
+<!--     my_select.trigger = "Choose Option"; -->
+<!--     my_select.on_select = onSelect; -->
+<!-- } -->
+<!---->
+<!-- fn onSelect(_: *MyComponent.MySelect(Status), item: *MyComponent.MySelect(Status).Item) void { -->
+<!--     Vapor.print("Selected: {s}", .{item.label}); -->
+<!-- } -->
+<!---->
+<!-- fn render() void { -->
+<!--     my_select.render(); -->
+<!-- } -->
+<!-- ``` -->
+<!---->
+<!-- --- -->
+<!---->
+<!-- {#overlay-management} -->
+<!---->
+<!-- ## Overlay Management -->
+<!---->
+<!-- Pattern for managing keyboard events across overlays. -->
+<!---->
+<!-- ```zig -->
+<!-- const OverlayManager = @import("OverlayManager.zig"); -->
+<!---->
+<!-- var my_dialog_binded: Vapor.Binded = .{}; -->
+<!---->
+<!-- fn mount() void { -->
+<!--     OverlayManager.register(.keydown, handleKeyPress, &my_dialog_binded); -->
+<!-- } -->
+<!---->
+<!-- fn destroy() void { -->
+<!--     OverlayManager.unregister(.keydown, &my_dialog_binded); -->
+<!-- } -->
+<!---->
+<!-- fn handleKeyPress(_: *Vapor.Binded, evt: *Vapor.Event) void { -->
+<!--     evt.preventDefault(); -->
+<!--     const key = evt.key(); -->
+<!---->
+<!--     if (std.mem.eql(u8, key, "Escape")) { -->
+<!--         close(); -->
+<!--     } -->
+<!---->
+<!--     if (std.mem.eql(u8, key, "ArrowDown")) { -->
+<!--         navigateDown(); -->
+<!--     } -->
+<!---->
+<!--     if (std.mem.eql(u8, key, "ArrowUp")) { -->
+<!--         navigateUp(); -->
+<!--     } -->
+<!---->
+<!--     if (std.mem.eql(u8, key, "Enter")) { -->
+<!--         selectCurrent(); -->
+<!--     } -->
+<!-- } -->
+<!---->
+<!-- fn render() void { -->
+<!--     if (is_open) { -->
+<!--         Vapor.Static.HooksCtx(.mounted, mount, .{})({ -->
+<!--             Vapor.Static.HooksCtx(.destroy, destroy, .{})({ -->
+<!--                 // Dialog content -->
+<!--             }); -->
+<!--         }); -->
+<!--     } -->
+<!-- } -->
+<!-- ``` -->
+<!---->
+<!-- --- -->
+<!---->
+<!-- {#styling-conventions} -->
+<!---->
+<!-- ## Styling Conventions -->
+<!---->
+<!-- ### Common Style Variables -->
+<!---->
+<!-- ```zig -->
+<!-- // Define at module level for consistency -->
+<!-- var background: Vapor.Types.Background = .palette(.background); -->
+<!-- var border: Vapor.Types.BorderGrouped = .round(.palette(.border_color_light), .all(6)); -->
+<!-- var border_color: Vapor.Types.Color = .palette(.border_color_light); -->
+<!-- var text_color: Vapor.Types.Color = .palette(.text_color); -->
+<!-- var tint: Vapor.Types.Background = .transparentizeHex(.palette(.tint), 0.8); -->
+<!-- var font_family: []const u8 = "IBM Plex Sans,monospace"; -->
+<!-- ``` -->
+<!---->
+<!-- ### Reusable Button Styles -->
+<!---->
+<!-- ```zig -->
+<!-- fn CommonButton(func: anytype, args: anytype) Vapor.ButtonBuilder(.pure) { -->
+<!--     return ButtonCtx(func, args) -->
+<!--         .cursor(.pointer) -->
+<!--         .border(.round(.transparent, .all(4))) -->
+<!--         .padding(.all(4)) -->
+<!--         .duration(100) -->
+<!--         .hover(.{ -->
+<!--             .background = tint, -->
+<!--             .text_color = .white, -->
+<!--         }); -->
+<!-- } -->
+<!---->
+<!-- fn CheckBox(func: anytype, args: anytype) Vapor.ButtonBuilder(.pure) { -->
+<!--     return ButtonCtx(func, args) -->
+<!--         .width(.px(20)) -->
+<!--         .height(.px(20)) -->
+<!--         .cursor(.pointer) -->
+<!--         .duration(100) -->
+<!--         .hoverScale(); -->
+<!-- } -->
+<!-- ``` -->
+<!---->
+<!-- --- -->
+<!---->
+<!-- {#best-practices} -->
+<!---->
+<!-- ## Best Practices -->
+<!---->
+<!-- ### 1. Initialize in `new()` Function -->
+<!---->
+<!-- ```zig -->
+<!-- pub fn new() void { -->
+<!--     // Build animations -->
+<!--     animEnter.build(); -->
+<!--     animExit.build(); -->
+<!---->
+<!--     // Initialize state maps -->
+<!--     focus_states = std.StringHashMap(bool).init(Vapor.arena(.scratch)); -->
+<!-- } -->
+<!-- ``` -->
+<!---->
+<!-- ### 2. Use Appropriate Memory Arenas -->
+<!---->
+<!-- ```zig -->
+<!-- // Component items - persist -->
+<!-- items = Vapor.arena(.persist).alloc(Item, count) catch unreachable; -->
+<!---->
+<!-- // Temporary formatting - frame -->
+<!-- const label = Vapor.fmtln("{d} items", .{count}); -->
+<!---->
+<!-- // Page-specific state - view -->
+<!-- page_data = Vapor.arena(.view).create(PageData) catch unreachable; -->
+<!---->
+<!-- // Manually managed - scratch -->
+<!-- temp_buffer = Vapor.arena(.scratch).alloc(u8, 1024) catch unreachable; -->
+<!-- ``` -->
+<!---->
+<!-- ### 3. Compile-Time Validation -->
+<!---->
+<!-- ```zig -->
+<!-- pub fn Component(comptime T: type) type { -->
+<!--     comptime { -->
+<!--         if (!@hasField(T, "id")) { -->
+<!--             @compileError("Component requires a field named 'id'"); -->
+<!--         } -->
+<!--         if (!@hasField(T, "label")) { -->
+<!--             @compileError("Component requires a field named 'label'"); -->
+<!--         } -->
+<!--     } -->
+<!---->
+<!--     return struct { -->
+<!--         // ... -->
+<!--     }; -->
+<!-- } -->
+<!-- ``` -->
+<!---->
+<!-- ### 4. Clean Lifecycle Management -->
+<!---->
+<!-- ```zig -->
+<!-- fn mount() void { -->
+<!--     // Register listeners -->
+<!--     OverlayManager.register(.keydown, handleKeys, &binded); -->
+<!--     // Focus input -->
+<!--     search_box.focus(); -->
+<!-- } -->
+<!---->
+<!-- fn destroy() void { -->
+<!--     // Unregister listeners -->
+<!--     OverlayManager.unregister(.keydown, &binded); -->
+<!--     // Clean up state -->
+<!--     clearSelections(); -->
+<!-- } -->
+<!-- ``` -->
+<!---->
+<!-- ### 5. Callback Patterns -->
+<!---->
+<!-- ```zig -->
+<!-- // Allow optional callbacks -->
+<!-- on_select: ?*const fn (*Self, *Item) void = null, -->
+<!-- on_close: ?*const fn () void = null, -->
+<!---->
+<!-- // Safe callback invocation -->
+<!-- if (self.on_select) |callback| { -->
+<!--     callback(self, item); -->
+<!-- } -->
+<!-- ``` -->
+<!---->
+<!-- --- -->
+<!---->
+<!-- {#animation-reference} -->
+<!---->
+<!-- ## Animation Reference -->
+<!---->
+<!-- ### Standard Animations -->
+<!---->
+<!-- ```zig -->
+<!-- // Enter animation -->
+<!-- pub const animEnter = Vapor.Animation.init("component-enter") -->
+<!--     .prop(.opacity, 0, 1) -->
+<!--     .prop(.scale, 0.9, 1) -->
+<!--     .duration(100) -->
+<!--     .easing(.easeInOut); -->
+<!---->
+<!-- // Exit animation -->
+<!-- pub const animExit = Vapor.Animation.init("component-exit") -->
+<!--     .prop(.opacity, 1, 0) -->
+<!--     .prop(.scale, 1, 0.9) -->
+<!--     .duration(100) -->
+<!--     .easing(.easeInOut); -->
+<!---->
+<!-- // Glitch effect -->
+<!-- pub const glitch = Vapor.Animation.init("glitch") -->
+<!--     .duration(200) -->
+<!--     .at(25).set(.translateX, -10).setColor(.backgroundColor, .red) -->
+<!--     .at(35).set(.translateX, 10).setColor(.backgroundColor, .green) -->
+<!--     .at(60).set(.opacity, 1).set(.translateX, -10).set(.blur, 5) -->
+<!--     .at(100).set(.blur, 5).setColor(.backgroundColor, .yellow); -->
+<!---->
+<!-- // Blink effect -->
+<!-- pub const blink = Vapor.Animation.init("blink") -->
+<!--     .duration(100) -->
+<!--     .infinite() -->
+<!--     .at(50).set(.opacity, 0); -->
+<!-- ``` -->
+<!---->
+<!-- ### Applying Animations -->
+<!---->
+<!-- ```zig -->
+<!-- Box() -->
+<!--     .animationEnter(&animEnter) -->
+<!--     .animationExit(&animExit) -->
+<!--     .children({ /* ... */ }); -->
+<!---->
+<!-- // Conditional animation -->
+<!-- Text("Status") -->
+<!--     .animation(if (loading) &blink else null) -->
+<!--     .end(); -->
+<!---->
+<!-- // Hover animation -->
+<!-- Button(.{ .on_press = action }) -->
+<!--     .hover(.{ .animation = &glitch }) -->
+<!--     .children({ /* ... */ }); -->
+<!-- ``` -->
+<!---->
+<!-- {#vapor-api-cheatsheet} -->
+<!---->
+<!-- # Vapor API Cheat Sheet -->
+<!---->
+<!-- #### Quick reference for building UIs with Vapor's Zig-powered WebAssembly framework. -->
+<!---->
+<!-- --- -->
+<!---->
+<!-- {#imports-and-setup} -->
+<!---->
+<!-- ## Imports & Setup -->
+<!---->
+<!-- ```zig -->
+<!-- const std = @import("std"); -->
+<!-- const Vapor = @import("vapor"); -->
+<!---->
+<!-- // Core Components -->
+<!-- const Box = Vapor.Box; -->
+<!-- const Text = Vapor.Text; -->
+<!-- const Button = Vapor.Button; -->
+<!-- const Stack = Vapor.Stack; -->
+<!-- const Center = Vapor.Center; -->
+<!-- const Icon = Vapor.Icon; -->
+<!-- const TextField = Vapor.TextField; -->
+<!-- const TextArea = Vapor.TextArea; -->
+<!-- const Label = Vapor.Label; -->
+<!-- const Link = Vapor.Link; -->
+<!-- const Image = Vapor.Image; -->
+<!-- const List = Vapor.List; -->
+<!-- const ListItem = Vapor.ListItem; -->
+<!---->
+<!-- // Context Components -->
+<!-- const ButtonCtx = Vapor.CtxButton; -->
+<!-- const TextFmt = Vapor.TextFmt; -->
+<!---->
+<!-- // Static Components (never update) -->
+<!-- const Static = Vapor.Static; -->
+<!---->
+<!-- // Hooks -->
+<!-- const HooksCtx = Vapor.Static.HooksCtx; -->
+<!---->
+<!-- // Utilities -->
+<!-- const Binded = Vapor.Binded; -->
+<!-- const Animation = Vapor.Animation; -->
+<!-- ``` -->
+<!---->
+<!-- --- -->
+<!---->
+<!-- {#application-initialization} -->
+<!---->
+<!-- ## Application Initialization -->
+<!---->
+<!-- ```zig -->
+<!-- // main.zig -->
+<!-- export fn init() void { -->
+<!--     Vapor.init(.{}); -->
+<!---->
+<!--     // Register routes -->
+<!--     Vapor.Page(.{ .route = "/" }, Home, null); -->
+<!--     Vapor.Page(.{ .route = "/about" }, About, deinit); -->
+<!---->
+<!--     // Or use @src() for file-based routing -->
+<!--     Vapor.Page(.{ .src = @src() }, render, null); -->
+<!-- } -->
+<!---->
+<!-- fn Home() void { -->
+<!--     Text("Hello Vapor!").end(); -->
+<!-- } -->
+<!---->
+<!-- fn About() void { -->
+<!--     Text("About Page").end(); -->
+<!-- } -->
+<!---->
+<!-- fn deinit() void { -->
+<!--     // Called when navigating away -->
+<!-- } -->
+<!-- ``` -->
+<!---->
+<!-- --- -->
+<!---->
+<!-- {#state-management} -->
+<!---->
+<!-- ## State Management -->
+<!---->
+<!-- ### Basic State (Outside Render) -->
+<!---->
+<!-- ```zig -->
+<!-- // State lives OUTSIDE render function -->
+<!-- var counter: i32 = 0; -->
+<!-- var text: []const u8 = "Hello"; -->
+<!-- var items: []Item = &.{}; -->
+<!---->
+<!-- fn increment() void { -->
+<!--     counter += 1; -->
+<!-- } -->
+<!---->
+<!-- fn render() void { -->
+<!--     // UI declaration runs every update -->
+<!--     Text(counter).end(); -->
+<!--     Button(.{ .on_press = increment }).children({ -->
+<!--         Text("Click").end(); -->
+<!--     }); -->
+<!-- } -->
+<!-- ``` -->
+<!---->
+<!-- ### Signal-Based State (Explicit Reactivity) -->
+<!---->
+<!-- ```zig -->
+<!-- const Signal = Vapor.Signal; -->
+<!---->
+<!-- var counter: Signal(u32) = undefined; -->
+<!---->
+<!-- fn init() void { -->
+<!--     counter.init(0); -->
+<!-- } -->
+<!---->
+<!-- fn increment() void { -->
+<!--     counter.increment();  // Auto-triggers UI update -->
+<!-- } -->
+<!---->
+<!-- fn render() void { -->
+<!--     Text(counter.get()).end(); -->
+<!-- } -->
+<!-- ``` -->
+<!---->
+<!-- ### Signal Methods -->
+<!---->
+<!-- | Method          | Description             | -->
+<!-- | --------------- | ----------------------- | -->
+<!-- | `.init(value)`  | Initialize with value   | -->
+<!-- | `.get()`        | Get current value       | -->
+<!-- | `.set(value)`   | Set new value           | -->
+<!-- | `.increment()`  | Increment numeric value | -->
+<!-- | `.decrement()`  | Decrement numeric value | -->
+<!-- | `.toggle()`     | Toggle boolean value    | -->
+<!-- | `.append(item)` | Append to array         | -->
+<!---->
+<!-- --- -->
+<!---->
+<!-- {#component-patterns} -->
+<!---->
+<!-- ## Component Patterns -->
+<!---->
+<!-- ### Global Component (Shared State) -->
+<!---->
+<!-- ```zig -->
+<!-- // components/Counter.zig -->
+<!-- const Vapor = @import("vapor"); -->
+<!-- const Box = Vapor.Box; -->
+<!-- const Text = Vapor.Text; -->
+<!-- const Button = Vapor.Button; -->
+<!---->
+<!-- var count: i32 = 0; -->
+<!---->
+<!-- fn increment() void { count += 1; } -->
+<!-- fn decrement() void { count -= 1; } -->
+<!---->
+<!-- pub fn render() void { -->
+<!--     Box().layout(.center).spacing(16).children({ -->
+<!--         Button(.{ .on_press = decrement }).children({ Text("-").end(); }); -->
+<!--         Text(count).font(24, 700, .palette(.text_color)).end(); -->
+<!--         Button(.{ .on_press = increment }).children({ Text("+").end(); }); -->
+<!--     }); -->
+<!-- } -->
+<!-- ``` -->
+<!---->
+<!-- ### Instance Component (Independent State) -->
+<!---->
+<!-- ```zig -->
+<!-- // components/Counter.zig -->
+<!-- const Counter = @This(); -->
+<!-- count: i32 = 0, -->
+<!---->
+<!-- fn increment(counter: *Counter) void { -->
+<!--     counter.count += 1; -->
+<!-- } -->
+<!---->
+<!-- fn decrement(counter: *Counter) void { -->
+<!--     counter.count -= 1; -->
+<!-- } -->
+<!---->
+<!-- pub fn render(counter: *Counter) void { -->
+<!--     Box().layout(.center).spacing(16).children({ -->
+<!--         ButtonCtx(decrement, .{counter}).children({ Text("-").end(); }); -->
+<!--         Text(counter.count).font(24, 700, .palette(.text_color)).end(); -->
+<!--         ButtonCtx(increment, .{counter}).children({ Text("+").end(); }); -->
+<!--     }); -->
+<!-- } -->
+<!---->
+<!-- // Usage -->
+<!-- var my_counter: Counter = .{}; -->
+<!-- fn render() void { -->
+<!--     my_counter.render(); -->
+<!-- } -->
+<!-- ``` -->
+<!---->
+<!-- ### Function Component (Generic/Comptime) -->
+<!---->
+<!-- ```zig -->
+<!-- pub fn Counter(comptime T: type, initial_value: T) type { -->
+<!--     return struct { -->
+<!--         var count: T = initial_value; -->
+<!---->
+<!--         fn increment() void { count += 1; } -->
+<!--         fn decrement() void { count -= 1; } -->
+<!---->
+<!--         pub fn render() void { -->
+<!--             Box().layout(.center).spacing(16).children({ -->
+<!--                 Button(.{ .on_press = decrement }).children({ Text("-").end(); }); -->
+<!--                 Text(count).font(24, 700, .palette(.text_color)).end(); -->
+<!--                 Button(.{ .on_press = increment }).children({ Text("+").end(); }); -->
+<!--             }); -->
+<!--         } -->
+<!--     }; -->
+<!-- } -->
+<!---->
+<!-- // Usage -->
+<!-- const i32_counter = Counter(i32, 0); -->
+<!-- const u64_counter = Counter(u64, 100); -->
+<!-- ``` -->
+<!---->
+<!-- --- -->
+<!---->
+<!-- {#core-components} -->
+<!---->
+<!-- ## Core Components -->
+<!---->
+<!-- ### Text -->
+<!---->
+<!-- ```zig -->
+<!-- Text("Hello World").end(); -->
+<!-- Text(counter).end();                           // Numbers -->
+<!-- Text(enum_value).end();                        // Enums -->
+<!-- Text(text_variable).end();                     // Strings -->
+<!---->
+<!-- // Styled -->
+<!-- Text("Styled") -->
+<!--     .font(18, 700, .palette(.text_color))      // size, weight, color -->
+<!--     .fontFamily("Montserrat") -->
+<!--     .ellipsis(.dot)                            // Truncation -->
+<!--     .end(); -->
+<!-- ``` -->
+<!---->
+<!-- ### TextFmt (Formatted Text) -->
+<!---->
+<!-- ```zig -->
+<!-- TextFmt("Count: {d}", .{counter}).end(); -->
+<!-- TextFmt("Hello {s}!", .{name}).end(); -->
+<!-- TextFmt("Page {d}/{d}", .{current, total}).end(); -->
+<!-- ``` -->
+<!---->
+<!-- ### Box (Container) -->
+<!---->
+<!-- ```zig -->
+<!-- Box().children({ -->
+<!--     Text("Child 1").end(); -->
+<!--     Text("Child 2").end(); -->
+<!-- }); -->
+<!---->
+<!-- // Styled Box -->
+<!-- Box() -->
+<!--     .layout(.center) -->
+<!--     .direction(.column) -->
+<!--     .spacing(16) -->
+<!--     .padding(.all(20)) -->
+<!--     .background(.palette(.background)) -->
+<!--     .border(.round(.palette(.border_color), .all(8))) -->
+<!--     .children({ /* children */ }); -->
+<!-- ``` -->
+<!---->
+<!-- ### Stack (Vertical Container) -->
+<!---->
+<!-- ```zig -->
+<!-- Stack() -->
+<!--     .spacing(8) -->
+<!--     .width(.percent(100)) -->
+<!--     .children({ -->
+<!--         Text("Item 1").end(); -->
+<!--         Text("Item 2").end(); -->
+<!--     }); -->
+<!-- ``` -->
+<!---->
+<!-- ### Center -->
+<!---->
+<!-- ```zig -->
+<!-- Center() -->
+<!--     .height(.percent(100)) -->
+<!--     .children({ -->
+<!--         Text("Centered Content").end(); -->
+<!--     }); -->
+<!-- ``` -->
+<!---->
+<!-- ### Button -->
+<!---->
+<!-- ```zig -->
+<!-- // Simple button -->
+<!-- Button(.{ .on_press = handleClick }).children({ -->
+<!--     Text("Click Me").end(); -->
+<!-- }); -->
+<!---->
+<!-- // Button with context (pass data to handler) -->
+<!-- ButtonCtx(handleAction, .{ item, index }).children({ -->
+<!--     Text("Action").end(); -->
+<!-- }); -->
+<!---->
+<!-- // Styled button -->
+<!-- Button(.{ .on_press = submit }) -->
+<!--     .padding(.tblr(12, 12, 24, 24)) -->
+<!--     .background(.palette(.tint)) -->
+<!--     .border(.round(.transparent, .all(8))) -->
+<!--     .cursor(.pointer) -->
+<!--     .hoverScale() -->
+<!--     .children({ -->
+<!--         Text("Submit").font(16, 600, .white).end(); -->
+<!--     }); -->
+<!-- ``` -->
+<!---->
+<!-- ### TextField -->
+<!---->
+<!-- ```zig -->
+<!-- var input_text: []const u8 = ""; -->
+<!---->
+<!-- TextField(.string) -->
+<!--     .bind(&input_text) -->
+<!--     .placeholder("Enter text...") -->
+<!--     .width(.percent(100)) -->
+<!--     .padding(.all(12)) -->
+<!--     .border(.round(.palette(.border_color), .all(8))) -->
+<!--     .end(); -->
+<!---->
+<!-- // Input types -->
+<!-- TextField(.string)     // Text -->
+<!-- TextField(.int)        // Numbers -->
+<!-- TextField(.password)   // Password -->
+<!-- TextField(.email)      // Email -->
+<!-- ``` -->
+<!---->
+<!-- ### TextArea -->
+<!---->
+<!-- ```zig -->
+<!-- TextArea() -->
+<!--     .width(.percent(100)) -->
+<!--     .height(.px(200)) -->
+<!--     .padding(.all(12)) -->
+<!--     .border(.round(.palette(.border_color), .all(8))) -->
+<!--     .resize(.none) -->
+<!--     .end(); -->
+<!-- ``` -->
+<!---->
+<!-- ### Link -->
+<!---->
+<!-- ```zig -->
+<!-- Link(.{ .url = "/about", .aria_label = "About Page" }).children({ -->
+<!--     Text("Go to About").end(); -->
+<!-- }); -->
+<!---->
+<!-- // External link -->
+<!-- Link(.{ .url = "https://vapor.dev", .aria_label = "Vapor Website" }) -->
+<!--     .textDecoration(.none) -->
+<!--     .children({ -->
+<!--         Text("Visit Vapor").end(); -->
+<!--     }); -->
+<!-- ``` -->
+<!---->
+<!-- ### Image -->
+<!---->
+<!-- ```zig -->
+<!-- Image(.{ .src = "/images/logo.png" }) -->
+<!--     .width(.px(200)) -->
+<!--     .height(.px(100)) -->
+<!--     .border(.round(.transparent, .all(8))) -->
+<!--     .end(); -->
+<!-- ``` -->
+<!---->
+<!-- ### Icon -->
+<!---->
+<!-- ```zig -->
+<!-- Icon(.search).end(); -->
+<!-- Icon(.plus).font(24, 300, .palette(.tint)).end(); -->
+<!-- Icon(.chevron_right).font(16, 700, .white).end(); -->
+<!-- ``` -->
+<!---->
+<!-- ### List & ListItem -->
+<!---->
+<!-- ```zig -->
+<!-- List() -->
+<!--     .direction(.column) -->
+<!--     .spacing(8) -->
+<!--     .children({ -->
+<!--         for (items) |item| { -->
+<!--             ListItem().children({ -->
+<!--                 Text(item.name).end(); -->
+<!--             }); -->
+<!--         } -->
+<!--     }); -->
+<!-- ``` -->
+<!---->
+<!-- --- -->
+<!---->
+<!-- {#styling-reference} -->
+<!---->
+<!-- ## Styling Reference -->
+<!---->
+<!-- ### Layout -->
+<!---->
+<!-- ```zig -->
+<!-- .layout(.center)              // Center both axes -->
+<!-- .layout(.left_center)         // Left horizontal, center vertical -->
+<!-- .layout(.right_center)        // Right horizontal, center vertical -->
+<!-- .layout(.top_left)            // Top left corner -->
+<!-- .layout(.top_right)           // Top right corner -->
+<!-- .layout(.top_center)          // Top center -->
+<!-- .layout(.bottom_left)         // Bottom left corner -->
+<!-- .layout(.bottom_right)        // Bottom right corner -->
+<!-- .layout(.bottom_center)       // Bottom center -->
+<!-- .layout(.x_between_center)    // Space between, center vertical -->
+<!-- .layout(.x_even_center)       // Space evenly, center vertical -->
+<!-- .layout(.y_between)           // Vertical space between -->
+<!-- ``` -->
+<!---->
+<!-- ### Sizing -->
+<!---->
+<!-- ```zig -->
+<!-- .width(.px(200))              // Fixed pixels -->
+<!-- .width(.percent(100))         // Percentage -->
+<!-- .width(.fit)                  // Fit content -->
+<!-- .width(.grow)                 // Flex grow -->
+<!-- .width(.full)                 // 100% -->
+<!-- .height(.px(100)) -->
+<!-- .height(.percent(50)) -->
+<!-- .height(.auto) -->
+<!---->
+<!-- // Shorthand -->
+<!-- .hw(.px(100), .px(200))       // height, width -->
+<!-- .size(.full)                  // width & height 100% -->
+<!-- .size(.square_px(100))        // Square 100x100 -->
+<!-- ``` -->
+<!---->
+<!-- ### Spacing & Padding -->
+<!---->
+<!-- ```zig -->
+<!-- .spacing(16)                  // Gap between children -->
+<!-- .padding(.all(20))            // All sides -->
+<!-- .padding(.horizontal(16))     // Left & right -->
+<!-- .padding(.vertical(12))       // Top & bottom -->
+<!-- .padding(.tblr(10, 10, 20, 20)) // top, bottom, left, right -->
+<!-- .padding(.tb(12, 12))         // top, bottom -->
+<!-- .margin(.all(8)) -->
+<!-- .margin(.b(16))               // Bottom only -->
+<!-- .margin(.t(16))               // Top only -->
+<!-- .margin(.l(8))                // Left only -->
+<!-- .margin(.r(8))                // Right only -->
+<!-- ``` -->
+<!---->
+<!-- ### Direction & Wrapping -->
+<!---->
+<!-- ```zig -->
+<!-- .direction(.row)              // Horizontal (default) -->
+<!-- .direction(.column)           // Vertical -->
+<!-- .wrap(.wrap)                  // Allow wrapping -->
+<!-- .wrap(.nowrap)                // No wrapping -->
+<!-- ``` -->
+<!---->
+<!-- ### Colors & Backgrounds -->
+<!---->
+<!-- ```zig -->
+<!-- // Colors -->
+<!-- .palette(.text_color)         // Theme color -->
+<!-- .palette(.tint) -->
+<!-- .palette(.background) -->
+<!-- .palette(.border_color) -->
+<!-- .hex("#FF5733")               // Hex color -->
+<!-- .rgba(255, 87, 51, 255)       // RGBA -->
+<!-- .white -->
+<!-- .black -->
+<!-- .transparent -->
+<!-- .transparentizeHex(.palette(.tint), 0.5)  // Semi-transparent -->
+<!---->
+<!-- // Backgrounds -->
+<!-- .background(.palette(.background)) -->
+<!-- .background(.hex("#F5F5F5")) -->
+<!-- .background(.transparent) -->
+<!-- .layer(.grid(14, 1, .palette(.grid_color))) -->
+<!-- .layer(.dot(0.5, 20, .white)) -->
+<!-- ``` -->
+<!---->
+<!-- ### Borders -->
+<!---->
+<!-- ```zig -->
+<!-- .border(.none) -->
+<!-- .border(.simple(.palette(.border_color))) -->
+<!-- .border(.round(.palette(.border_color), .all(8))) -->
+<!-- .border(.solid(.all(2), .palette(.tint), .all(12))) -->
+<!-- .border(.bottom(.palette(.border_color))) -->
+<!-- .border(.top(.palette(.border_color))) -->
+<!-- ``` -->
+<!---->
+<!-- ### Shadows -->
+<!---->
+<!-- ```zig -->
+<!-- .shadow(.card(.hex("#00000033"))) -->
+<!-- .shadow(.glow(30, .transparentizeHex(.black, 0.1))) -->
+<!-- .shadow(.{ -->
+<!--     .top = 4, -->
+<!--     .spread = 2, -->
+<!--     .blur = 6, -->
+<!--     .color = .transparentizeHex(.black, 0.05), -->
+<!-- }) -->
+<!-- ``` -->
+<!---->
+<!-- ### Typography -->
+<!---->
+<!-- ```zig -->
+<!-- .font(16, 400, .palette(.text_color))  // size, weight, color -->
+<!-- .font(24, 700, null)                   // Inherit color -->
+<!-- .fontSize(18) -->
+<!-- .fontWeight(700) -->
+<!-- .fontFamily("Montserrat") -->
+<!-- .textDecoration(.none) -->
+<!-- .textDecoration(.underline) -->
+<!-- ``` -->
+<!---->
+<!-- ### Positioning -->
+<!---->
+<!-- ```zig -->
+<!-- .pos(.relative) -->
+<!-- .pos(.absolute) -->
+<!-- .pos(.fixed) -->
+<!-- .pos(.tl(.px(0), .px(0), .absolute))   // top, left, position -->
+<!-- .pos(.tr(.px(0), .px(0), .absolute))   // top, right, position -->
+<!-- .zIndex(100) -->
+<!-- ``` -->
+<!---->
+<!-- ### Interactivity -->
+<!---->
+<!-- ```zig -->
+<!-- .cursor(.pointer) -->
+<!-- .cursor(.default) -->
+<!-- .hoverScale() -->
+<!-- .hoverBackground(.palette(.tint)) -->
+<!-- .hoverText(.white) -->
+<!-- .hover(.{ -->
+<!--     .background = .palette(.tint), -->
+<!--     .text_color = .white, -->
+<!--     .transform = .scaleDecimal(1.1), -->
+<!-- }) -->
+<!-- .duration(200)                         // Transition duration (ms) -->
+<!-- ``` -->
+<!---->
+<!-- ### Scroll -->
+<!---->
+<!-- ```zig -->
+<!-- .scroll(.scroll_y())                   // Vertical scroll -->
+<!-- .scroll(.scroll_x())                   // Horizontal scroll -->
+<!-- ``` -->
+<!---->
+<!-- --- -->
+<!---->
+<!-- {#style-structs} -->
+<!---->
+<!-- ## Style Structs -->
+<!---->
+<!-- ```zig -->
+<!-- const button_style = Vapor.Style{ -->
+<!--     .layout = .center, -->
+<!--     .size = .hw(.px(48), .px(160)), -->
+<!--     .padding = .tblr(12, 12, 24, 24), -->
+<!--     .visual = .{ -->
+<!--         .background = .palette(.tint), -->
+<!--         .border = .round(.transparent, .all(8)), -->
+<!--         .font_size = 16, -->
+<!--         .font_weight = 600, -->
+<!--         .text_color = .white, -->
+<!--     }, -->
+<!--     .transition = .{ .duration = 200 }, -->
+<!--     .interactive = .hover_scale(), -->
+<!-- }; -->
+<!---->
+<!-- // Apply with .style() -->
+<!-- Button(.{ .on_press = action }).style(&button_style)({ -->
+<!--     Text("Click").end(); -->
+<!-- }); -->
+<!---->
+<!-- // Or with .baseStyle() to allow overrides -->
+<!-- Box().baseStyle(&card_style).padding(.all(32)).children({ -->
+<!--     // children -->
+<!-- }); -->
+<!---->
+<!-- // Merge styles -->
+<!-- fn mergedStyle() Vapor.Style { -->
+<!--     var base = button_style; -->
+<!--     return base.merge(Vapor.Style{ -->
+<!--         .visual = .{ .background = .hex("#FF0000") }, -->
+<!--     }); -->
+<!-- } -->
+<!-- ``` -->
+<!---->
+<!-- --- -->
+<!---->
+<!-- {#events-and-handlers} -->
+<!---->
+<!-- ## Events & Handlers -->
+<!---->
+<!-- ### Element Events -->
+<!---->
+<!-- ```zig -->
+<!-- // On change (TextField) -->
+<!-- TextField(.string) -->
+<!--     .onChange(handleChange) -->
+<!--     .end(); -->
+<!---->
+<!-- fn handleChange(evt: *Vapor.Event) void { -->
+<!--     const text = evt.text(); -->
+<!--     // Handle text change -->
+<!-- } -->
+<!---->
+<!-- // Hover events -->
+<!-- Box() -->
+<!--     .onHover(handleHover) -->
+<!--     .onLeave(handleLeave) -->
+<!--     .children({ /* ... */ }); -->
+<!---->
+<!-- fn handleHover(_: *Vapor.Event) void { -->
+<!--     hovered = true; -->
+<!-- } -->
+<!---->
+<!-- fn handleLeave(_: *Vapor.Event) void { -->
+<!--     hovered = false; -->
+<!-- } -->
+<!---->
+<!-- // Context events -->
+<!-- Box() -->
+<!--     .onHoverCtx(handleHoverItem, item) -->
+<!--     .children({ /* ... */ }); -->
+<!---->
+<!-- fn handleHoverItem(item: *Item, _: *Vapor.Event) void { -->
+<!--     current_item = item; -->
+<!-- } -->
+<!---->
+<!-- // Focus/Blur -->
+<!-- TextField(.string) -->
+<!--     .onEventCtx(.focus, handleFocus, id) -->
+<!--     .onEventCtx(.blur, handleBlur, id) -->
+<!--     .end(); -->
+<!-- ``` -->
+<!---->
+<!-- ### Global Events -->
+<!---->
+<!-- ```zig -->
+<!-- fn mount() void { -->
+<!--     Vapor.eventListener(.keydown, handleKeyPress); -->
+<!-- } -->
+<!---->
+<!-- fn handleKeyPress(evt: *Vapor.Event) void { -->
+<!--     const key = evt.key(); -->
+<!---->
+<!--     if (std.mem.eql(u8, key, "Escape")) { -->
+<!--         evt.preventDefault(); -->
+<!--         close(); -->
+<!--     } -->
+<!---->
+<!--     if (std.mem.eql(u8, key, "k") and evt.metaKey()) { -->
+<!--         evt.preventDefault(); -->
+<!--         openSearch(); -->
+<!--     } -->
+<!-- } -->
+<!-- ``` -->
+<!---->
+<!-- ### Event Methods -->
+<!---->
+<!-- | Method                 | Description               | -->
+<!-- | ---------------------- | ------------------------- | -->
+<!-- | `evt.key()`            | Get pressed key name      | -->
+<!-- | `evt.text()`           | Get input text value      | -->
+<!-- | `evt.number()`         | Get numeric input value   | -->
+<!-- | `evt.metaKey()`        | Check if meta/cmd pressed | -->
+<!-- | `evt.shiftKey()`       | Check if shift pressed    | -->
+<!-- | `evt.ctrlKey()`        | Check if ctrl pressed     | -->
+<!-- | `evt.preventDefault()` | Prevent default action    | -->
+<!---->
+<!-- --- -->
+<!---->
+<!-- {#lifecycle-hooks} -->
+<!---->
+<!-- ## Lifecycle Hooks -->
+<!---->
+<!-- ### Component Hooks -->
+<!---->
+<!-- ```zig -->
+<!-- fn mount() void { -->
+<!--     // Called after component is mounted -->
+<!--     Vapor.print("Mounted", .{}); -->
+<!-- } -->
+<!---->
+<!-- fn destroy() void { -->
+<!--     // Called when component is removed -->
+<!--     Vapor.print("Destroyed", .{}); -->
+<!-- } -->
+<!---->
+<!-- fn render() void { -->
+<!--     Vapor.Static.HooksCtx(.mounted, mount, .{})({ -->
+<!--         Vapor.Static.HooksCtx(.destroy, destroy, .{})({ -->
+<!--             // Component content -->
+<!--             Text("Hello").end(); -->
+<!--         }); -->
+<!--     }); -->
+<!-- } -->
+<!-- ``` -->
+<!---->
+<!-- ### Tree Hooks -->
+<!---->
+<!-- ```zig -->
+<!-- // Called after entire tree is rendered -->
+<!-- Vapor.onEnd(callback); -->
+<!---->
+<!-- // Called after virtual DOM is generated -->
+<!-- Vapor.onCommit(callback); -->
+<!---->
+<!-- // Manual update cycle -->
+<!-- Vapor.cycle(); -->
+<!-- ``` -->
+<!---->
+<!-- --- -->
+<!---->
+<!-- {#memory-arenas} -->
+<!---->
+<!-- ## Memory Arenas -->
+<!---->
+<!-- ```zig -->
+<!-- // Frame arena - freed each render cycle -->
+<!-- const frame_alloc = Vapor.arena(.frame); -->
+<!-- const temp_string = Vapor.fmtln("Count: {d}", .{counter}); -->
+<!---->
+<!-- // View arena - freed on route change -->
+<!-- const view_alloc = Vapor.arena(.view); -->
+<!-- var page_items = view_alloc.alloc(Item, 100) catch unreachable; -->
+<!---->
+<!-- // Persist arena - lives entire session -->
+<!-- const persist_alloc = Vapor.arena(.persist); -->
+<!-- var app_state = persist_alloc.create(AppState) catch unreachable; -->
+<!---->
+<!-- // Scratch arena - manually managed -->
+<!-- const scratch_alloc = Vapor.arena(.scratch); -->
+<!-- // Free when done: scratch_alloc.free(ptr); -->
+<!---->
+<!-- // Dynamic arrays -->
+<!-- var items = Vapor.array(Item, .persist); -->
+<!-- items.append(item) catch unreachable; -->
+<!-- items.clearRetainingCapacity(); -->
+<!-- ``` -->
+<!---->
+<!-- --- -->
+<!---->
+<!-- {#routing} -->
+<!---->
+<!-- ## Routing -->
+<!---->
+<!-- ### Route Registration -->
+<!---->
+<!-- ```zig -->
+<!-- export fn init() void { -->
+<!--     Vapor.init(.{}); -->
+<!---->
+<!--     // Static routes -->
+<!--     Vapor.Page(.{ .route = "/" }, Home, null); -->
+<!--     Vapor.Page(.{ .route = "/about" }, About, aboutDeinit); -->
+<!---->
+<!--     // Dynamic routes -->
+<!--     Vapor.Page(.{ .route = "/user/:id" }, UserPage, null); -->
+<!---->
+<!--     // File-based routing -->
+<!--     Vapor.Page(.{ .src = @src() }, render, deinit); -->
+<!-- } -->
+<!-- ``` -->
+<!---->
+<!-- ### Navigation -->
+<!---->
+<!-- ```zig -->
+<!-- fn navigate(url: []const u8) void { -->
+<!--     Vapor.Kit.navigate(url); -->
+<!-- } -->
+<!---->
+<!-- // Usage -->
+<!-- Button(.{ .on_press = goHome }).children({ Text("Home").end(); }); -->
+<!---->
+<!-- fn goHome() void { -->
+<!--     Vapor.Kit.navigate("/"); -->
+<!-- } -->
+<!-- ``` -->
+<!---->
+<!-- ### Layouts -->
+<!---->
+<!-- ```zig -->
+<!-- fn registerLayouts() !void { -->
+<!--     try Vapor.registerLayout("/app", appLayout, .{}); -->
+<!--     try Vapor.registerLayout("/docs", docsLayout, .{ .reset = true }); -->
+<!-- } -->
+<!---->
+<!-- fn appLayout(page: Vapor.PageFn) void { -->
+<!--     Navbar.render(); -->
+<!--     page(); -->
+<!--     Footer.render(); -->
+<!-- } -->
+<!-- ``` -->
+<!---->
+<!-- --- -->
+<!---->
+<!-- {#animations} -->
+<!---->
+<!-- ## Animations -->
+<!---->
+<!-- ### Define Animation -->
+<!---->
+<!-- ```zig -->
+<!-- const Animation = Vapor.Animation; -->
+<!---->
+<!-- const fadeIn = Animation.init("fadeIn") -->
+<!--     .prop(.opacity, 0, 1) -->
+<!--     .duration(300) -->
+<!--     .easing(.easeOut) -->
+<!--     .fill(.forwards); -->
+<!---->
+<!-- const slideIn = Animation.init("slideIn") -->
+<!--     .prop(.translateY, -20, 0) -->
+<!--     .prop(.opacity, 0, 1) -->
+<!--     .duration(200) -->
+<!--     .easing(.easeOutBack); -->
+<!---->
+<!-- const spin = Animation.init("spin") -->
+<!--     .prop(.rotate, 0, 360) -->
+<!--     .duration(1000) -->
+<!--     .easing(.linear) -->
+<!--     .infinite(); -->
+<!---->
+<!-- // Build in init -->
+<!-- fn init() void { -->
+<!--     fadeIn.build(); -->
+<!--     slideIn.build(); -->
+<!--     spin.build(); -->
+<!-- } -->
+<!-- ``` -->
+<!---->
+<!-- ### Apply Animation -->
+<!---->
+<!-- ```zig -->
+<!-- Box() -->
+<!--     .animationEnter(&fadeIn) -->
+<!--     .animationExit(&slideOut) -->
+<!--     .children({ /* ... */ }); -->
+<!---->
+<!-- // Hover animation -->
+<!-- Button(.{ .on_press = action }) -->
+<!--     .hover(.{ .animation = &pulse }) -->
+<!--     .children({ /* ... */ }); -->
+<!---->
+<!-- // Conditional -->
+<!-- Text("Loading") -->
+<!--     .animation(if (loading) &spin else null) -->
+<!--     .end(); -->
+<!-- ``` -->
+<!---->
+<!-- ### Animation Properties -->
+<!---->
+<!-- | Property                       | Description  | -->
+<!-- | ------------------------------ | ------------ | -->
+<!-- | `.translateX`, `.translateY`   | Position     | -->
+<!-- | `.scale`, `.scaleX`, `.scaleY` | Scaling      | -->
+<!-- | `.rotate`                      | Rotation     | -->
+<!-- | `.opacity`                     | Transparency | -->
+<!-- | `.blur`                        | Blur filter  | -->
+<!-- | `.backgroundColor`             | Color        | -->
+<!---->
+<!-- ### Easing Functions -->
+<!---->
+<!-- | Function         | Description        | -->
+<!-- | ---------------- | ------------------ | -->
+<!-- | `.linear`        | Constant speed     | -->
+<!-- | `.ease`          | Default            | -->
+<!-- | `.easeIn`        | Start slow         | -->
+<!-- | `.easeOut`       | End slow           | -->
+<!-- | `.easeInOut`     | Slow start and end | -->
+<!-- | `.easeOutBack`   | Overshoot          | -->
+<!-- | `.easeOutBounce` | Bounce             | -->
+<!---->
+<!-- --- -->
+<!---->
+<!-- {#binded-elements} -->
+<!---->
+<!-- ## Binded Elements -->
+<!---->
+<!-- ```zig -->
+<!-- var binded_box: Vapor.Binded = .{}; -->
+<!-- var search_box: Vapor.Binded = .{}; -->
+<!---->
+<!-- fn mount() void { -->
+<!--     search_box.focus(); -->
+<!-- } -->
+<!---->
+<!-- fn render() void { -->
+<!--     Box() -->
+<!--         .ref(&binded_box) -->
+<!--         .children({ /* ... */ }); -->
+<!---->
+<!--     TextField(.string) -->
+<!--         .ref(&search_box) -->
+<!--         .val(&search_box.text) -->
+<!--         .end(); -->
+<!-- } -->
+<!---->
+<!-- // Get bounds -->
+<!-- fn getPosition() void { -->
+<!--     if (binded_box.getBoundingClientRect()) |bounds| { -->
+<!--         const x = bounds.left; -->
+<!--         const y = bounds.top; -->
+<!--         const w = bounds.width; -->
+<!--         const h = bounds.height; -->
+<!--     } -->
+<!-- } -->
+<!---->
+<!-- // Scroll -->
+<!-- binded_box.scrollToTop(100); -->
+<!-- binded_box.scrollIntoView(.{ .block = .nearest }); -->
+<!-- ``` -->
+<!---->
+<!-- --- -->
+<!---->
+<!-- {#conditionals-and-loops} -->
+<!---->
+<!-- ## Conditionals & Loops -->
+<!---->
+<!-- ### Conditionals -->
+<!---->
+<!-- ```zig -->
+<!-- fn render() void { -->
+<!--     if (show_modal) { -->
+<!--         Modal.render(); -->
+<!--     } -->
+<!---->
+<!--     // Ternary in styles -->
+<!--     Text("Status") -->
+<!--         .font(16, 400, if (active) .palette(.tint) else .palette(.text_color)) -->
+<!--         .end(); -->
+<!---->
+<!--     // Conditional rendering -->
+<!--     Box() -->
+<!--         .background(if (hovered) .palette(.tint) else .transparent) -->
+<!--         .children({ -->
+<!--             if (loading) { -->
+<!--                 Spinner.render(); -->
+<!--             } else { -->
+<!--                 Text("Content").end(); -->
+<!--             } -->
+<!--         }); -->
+<!-- } -->
+<!-- ``` -->
+<!---->
+<!-- ### Loops -->
+<!---->
+<!-- ```zig -->
+<!-- fn render() void { -->
+<!--     Stack().children({ -->
+<!--         for (items) |item| { -->
+<!--             Text(item.name).end(); -->
+<!--         } -->
+<!--     }); -->
+<!---->
+<!--     // With index -->
+<!--     List().children({ -->
+<!--         for (items, 0..) |item, i| { -->
+<!--             ListItem().children({ -->
+<!--                 TextFmt("{d}. {s}", .{i + 1, item.name}).end(); -->
+<!--             }); -->
+<!--         } -->
+<!--     }); -->
+<!---->
+<!--     // Range -->
+<!--     Box().children({ -->
+<!--         for (0..5) |i| { -->
+<!--             Text(i).end(); -->
+<!--         } -->
+<!--     }); -->
+<!-- } -->
+<!-- ``` -->
+<!---->
+<!-- --- -->
+<!---->
+<!-- {#utility-functions} -->
+<!---->
+<!-- ## Utility Functions -->
+<!---->
+<!-- ### Formatting -->
+<!---->
+<!-- ```zig -->
+<!-- // Frame-scoped formatted string -->
+<!-- const text = Vapor.fmtln("Count: {d}", .{counter}); -->
+<!---->
+<!-- // Print to console -->
+<!-- Vapor.print("Debug: {s}", .{message}); -->
+<!-- Vapor.printErr("Error: {any}", .{err}); -->
+<!-- ``` -->
+<!---->
+<!-- ### DOM Utilities -->
+<!---->
+<!-- ```zig -->
+<!-- // Alert -->
+<!-- Vapor.alert("Message"); -->
+<!---->
+<!-- // Scroll into view -->
+<!-- Vapor.scrollIntoView(element_id, .{ .block = .nearest }); -->
+<!---->
+<!-- // Get bounds -->
+<!-- if (Vapor.getBoundingClientRect(element_id)) |bounds| { -->
+<!--     // Use bounds -->
+<!-- } -->
+<!---->
+<!-- // Query components -->
+<!-- const heading_ids = Vapor.queryComponentIds(.Heading) catch &.{}; -->
+<!-- ``` -->
+<!---->
+<!-- ### File Operations -->
+<!---->
+<!-- ```zig -->
+<!-- const File = Vapor.FileReader; -->
+<!---->
+<!-- // Download file -->
+<!-- File.downloadFile("data.json", json_content, .@"application/json"); -->
+<!-- ``` -->
+<!---->
+<!-- --- -->
+<!---->
+<!-- {#quick-syntax-reference} -->
+<!---->
+<!-- ## Quick Syntax Reference -->
+<!---->
+<!-- | Pattern                                              | Description                      | -->
+<!-- | ---------------------------------------------------- | -------------------------------- | -->
+<!-- | `Component().children({ ... });`                     | Container with children          | -->
+<!-- | `Component().end();`                                 | Leaf element (no children)       | -->
+<!-- | `Component().style(&style)({ ... });`                | Apply style struct with children | -->
+<!-- | `.children({ ... })`                                 | Block for child elements         | -->
+<!-- | `ButtonCtx(fn, .{args})`                             | Button with context arguments    | -->
+<!-- | `.onEventCtx(.event, fn, ctx)`                       | Event handler with context       | -->
+<!-- | `Vapor.Static.HooksCtx(.mounted, fn, .{})({ ... });` | Lifecycle hook                   | -->
+<!-- | `for (items) \|item\| { ... }`                       | Loop over items                  | -->
+<!-- | `if (cond) { ... }`                                  | Conditional render               | -->
+<!---->
+<!-- --- -->
+<!---->
+<!-- {#common-patterns} -->
+<!---->
+<!-- ## Common Patterns -->
+<!---->
+<!-- ### Modal/Overlay -->
+<!---->
+<!-- ```zig -->
+<!-- if (show_modal) { -->
+<!--     // Backdrop -->
+<!--     Box() -->
+<!--         .pos(.full(.fixed)) -->
+<!--         .zIndex(999) -->
+<!--         .background(.transparentizeHex(.black, 0.5)) -->
+<!--         .children({ -->
+<!--             Button(.{ .on_press = closeModal }).size(.full).end(); -->
+<!--         }); -->
+<!---->
+<!--     // Modal content -->
+<!--     Center() -->
+<!--         .pos(.full(.fixed)) -->
+<!--         .zIndex(1000) -->
+<!--         .children({ -->
+<!--             Box() -->
+<!--                 .width(.px(400)) -->
+<!--                 .padding(.all(24)) -->
+<!--                 .background(.palette(.background)) -->
+<!--                 .border(.round(.palette(.border_color), .all(12))) -->
+<!--                 .children({ -->
+<!--                     Text("Modal Content").end(); -->
+<!--                 }); -->
+<!--         }); -->
+<!-- } -->
+<!-- ``` -->
+<!---->
+<!-- ### Dropdown/Select -->
+<!---->
+<!-- ```zig -->
+<!-- var show_dropdown: bool = false; -->
+<!---->
+<!-- fn toggleDropdown() void { -->
+<!--     show_dropdown = !show_dropdown; -->
+<!-- } -->
+<!---->
+<!-- fn render() void { -->
+<!--     Box().pos(.relative).children({ -->
+<!--         Button(.{ .on_press = toggleDropdown }).children({ -->
+<!--             Text("Select Option").end(); -->
+<!--         }); -->
+<!---->
+<!--         if (show_dropdown) { -->
+<!--             Stack() -->
+<!--                 .pos(.tl(.px(0), .percent(100), .absolute)) -->
+<!--                 .zIndex(100) -->
+<!--                 .background(.palette(.background)) -->
+<!--                 .border(.round(.palette(.border_color), .all(8))) -->
+<!--                 .shadow(.card(.transparentizeHex(.black, 0.1))) -->
+<!--                 .children({ -->
+<!--                     for (options) |option| { -->
+<!--                         ButtonCtx(selectOption, .{option}).children({ -->
+<!--                             Text(option.label).end(); -->
+<!--                         }); -->
+<!--                     } -->
+<!--                 }); -->
+<!--         } -->
+<!--     }); -->
+<!-- } -->
+<!-- ``` -->
+<!---->
+<!-- ### Form with Validation -->
+<!---->
+<!-- ```zig -->
+<!-- var email: []const u8 = ""; -->
+<!-- var error_message: ?[]const u8 = null; -->
+<!---->
+<!-- fn validateEmail() bool { -->
+<!--     if (email.len == 0) { -->
+<!--         error_message = "Email is required"; -->
+<!--         return false; -->
+<!--     } -->
+<!--     if (std.mem.indexOf(u8, email, "@") == null) { -->
+<!--         error_message = "Invalid email format"; -->
+<!--         return false; -->
+<!--     } -->
+<!--     error_message = null; -->
+<!--     return true; -->
+<!-- } -->
+<!---->
+<!-- fn submit() void { -->
+<!--     if (validateEmail()) { -->
+<!--         // Submit form -->
+<!--     } -->
+<!-- } -->
+<!---->
+<!-- fn render() void { -->
+<!--     Stack().spacing(8).children({ -->
+<!--         Label("Email").end(); -->
+<!--         TextField(.email) -->
+<!--             .bind(&email) -->
+<!--             .border(.round( -->
+<!--                 if (error_message != null) .hex("#FF0000") else .palette(.border_color), -->
+<!--                 .all(8) -->
+<!--             )) -->
+<!--             .end(); -->
+<!--         if (error_message) |err| { -->
+<!--             Text(err).font(12, 400, .hex("#FF0000")).end(); -->
+<!--         } -->
+<!--         Button(.{ .on_press = submit }).children({ -->
+<!--             Text("Submit").end(); -->
+<!--         }); -->
+<!--     }); -->
+<!-- } -->
+<!-- ``` -->

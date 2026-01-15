@@ -134,7 +134,9 @@ pub fn new(default_text: []const u8) type {
                             .font_family = "IBM Plex Sans",
                             .size = .w(.grow),
                         });
-                        CtxButton(copy, .{self}).style(&.{
+                        CtxButton(copy, .{self})
+                            .ariaLabel("copy-markdown")
+                            .style(&.{
                             .visual = .{ .background = .transparent, .cursor = .pointer },
                             .size = .w(.fit),
                             .child_gap = 12,

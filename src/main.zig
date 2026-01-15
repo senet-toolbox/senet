@@ -3,6 +3,7 @@ const Vapor = @import("vapor");
 const RootPage = @import("routes/Page.zig");
 const Navbar = @import("components/Navbar.zig");
 const DocsNavbar = @import("components/DocNavbar.zig");
+const VaporUILayout = @import("routes/vapor-ui/VaporUINav.zig");
 // const AcornNavbar = @import("components/AcornNavbar.zig");
 const VaporDocs = @import("routes/docs/vapor/Page.zig");
 const VaporDocsConcepts = @import("routes/docs/vapor/concepts/:concept/Page.zig");
@@ -37,9 +38,14 @@ const ComboBoxDialog = Opaque.ComboBoxDialog;
 const CommandPalette = Opaque.CommandPalette;
 const Switch = Opaque.Switch;
 const Login = @import("components/templates/Login.zig");
+const Payment = @import("components/templates/Payment.zig");
 const Profile = @import("components/templates/Profile.zig");
+const Dashboard = @import("components/templates/Dashboard.zig");
+const VaporUI = @import("routes/vapor-ui/Page.zig");
+// const Payment = @import("components/templates/Payments.zig");
 const KeyStone = Vapor.KeyStone;
 const Bench = @import("routes/Bench.zig");
+const OverlayManager = @import("components/OverlayManager.zig");
 // const Content = @import("components/Content.zig");
 // const Draggable = Vapor.Draggable;
 //
@@ -55,8 +61,10 @@ const Label = Vapor.Label;
 //
 fn registerLayouts() !void {
     initLayouts();
-    try Vapor.lib.registerLayout("/", layout, .{});
-    try Vapor.lib.registerLayout("/docs", layoutDocs, .{ .reset = true });
+    // try Vapor.lib.registerLayout("/", layout, .{});
+    // try Vapor.lib.registerLayout("/docs", layoutDocs, .{ .reset = true });
+    try Vapor.lib.registerLayout("/vapor-ui", vaporUILayout, .{ .reset = true });
+    // try Vapor.lib.registerLayout("/ui", vaporUILayout, .{ .reset = true });
 }
 
 //
@@ -75,6 +83,12 @@ fn initLayouts() void {
 
 pub fn layout(page: *const fn () void) void {
     Navbar.render();
+    page();
+}
+
+pub fn vaporUILayout(page: *const fn () void) void {
+    VaporUILayout.render();
+    Vapor.Spacer(60).end();
     page();
 }
 
@@ -641,12 +655,58 @@ fn onAuthChange(resp: Vapor.Kit.Response) void {
     }
 }
 
+var login: Login = .{
+    .login_title = "Login into Acorn",
+    .login_subtitle = "Login into your Acorn account.",
+    .create_account_title = "Create Acorn Account",
+    .create_account_subtitle = "Create an Acorn account to login",
+};
+
+// var payment: Payment = .{
+//     // .title = "Payment",
+//     // .subtitle = "Payment to your account",
+// };
+
+fn PaymentPage() void {
+    Box()
+        .layout(.center)
+        .size(.full)
+        .spacing(128)
+        .children({
+        Box()
+            .width(.percent(40))
+            .height(.percent(40))
+            .direction(.column)
+            .layout(.top_left)
+            .spacing(16)
+            .children({
+            // payment.render();
+        });
+    });
+}
+
+fn LoginPage() void {
+    Box()
+        .layout(.center)
+        .size(.full)
+        .spacing(128)
+        .children({
+        Box()
+            .width(.percent(40))
+            .height(.percent(40))
+            .direction(.column)
+            .layout(.top_left)
+            .spacing(16)
+            .children({
+            login.render();
+        });
+    });
+}
+
 fn initPages() void {
-    Opaque.new();
-    Opaque.init();
-    KeyStone.init(.{ .google = .{ .client_id = "868061436260-4irmgvghqm8107i21iodr88r8uu10g5u.apps.googleusercontent.com" } });
-    KeyStone.onAuthChange(onAuthChange);
-    Login.init();
+    VaporUI.init();
+    // KeyStone.init(.{ .google = .{ .client_id = "868061436260-4irmgvghqm8107i21iodr88r8uu10g5u.apps.googleusercontent.com" } });
+    // KeyStone.onAuthChange(onAuthChange);
 
     // SyncEngine.init();
     // TestPage.init();
@@ -655,20 +715,24 @@ fn initPages() void {
     // FilePage.init();
     // RootPage.init();
     // Vapor.Page(.{ .route = "/" }, RootPage.render, null);
-    // // // LegoCity.init();
-    // // // Vapor.Page(.{ .route = "/lego-city" }, LegoCity.render, null);
-    // // // Vapor.Page(.{ .route = "/error" }, ErrorPage, null); // Weird bug where if you put any route before the "/" it loads that route instead of the root
     // VaporDocs.init();
     // VaporDocsConcepts.init();
-    // // // //
+    // // // // LegoCity.init();
+    // // // // Vapor.Page(.{ .route = "/lego-city" }, LegoCity.render, null);
+    // // // // Vapor.Page(.{ .route = "/error" }, ErrorPage, null); // Weird bug where if you put any route before the "/" it loads that route instead of the root
     // MetalDocs.init();
     // Huh.init();
-    // // // //
     // Install.init();
 
-    // Vapor.Page(.{ .route = "/login" }, Login.render, null);
+    // Vapor.Page(.{ .route = "/login" }, LoginPage, null);
+    // // payment.init();
+    // Vapor.Page(.{ .route = "/payment" }, Payment.render, null);
     // Vapor.Page(.{ .route = "/auth" }, Profile.render, null);
-    Vapor.Page(.{ .route = "/vapor-ui" }, Opaque.View, null);
+
+    // Dashboard.init(); // Build animations
+    // Vapor.Page(.{ .route = "/dashboard" }, Dashboard.render, null);
+    // Vapor.Page(.{ .route = "/success" }, Payment.render, null);
+    // Vapor.Page(.{ .route = "/vapor-ui" }, Opaque.View, null);
 }
 //
 // export fn immediateMode() void {
@@ -1004,14 +1068,14 @@ const style_config = Vaporize.StyleConfig{
         .size = .w(.percent(100)),
         .margin = .{ .top = 32 },
         .visual = .{
-            .border = .round(.palette(.text_color), .all(4)),
-            .background = .transparentizeHex(.palette(.text_color), 0.7),
+            .border = .round(.transparentizeHex(.palette(.alternate_background), 0.5), .all(4)),
+            .background = .transparentizeHex(.palette(.alternate_background), 0.9),
             .cursor = .pointer,
             .font_size = 16,
             .text_color = .white,
             .new_shadow = Vapor.Types.NewShadow.init()
-                .inset(0, -2, .transparentizeHex(.black, 0.3))
-                .drop(0, 1, 3, .transparentizeHex(.black, 0.1)),
+                .inset(0, -2, .transparentizeHex(.palette(.alternate_background), 0.5))
+                .drop(0, 1, 3, .transparentizeHex(.palette(.alternate_background), 0.1)),
         },
         .transition = .{ .duration = 100 },
         .interactive = .{
@@ -1057,7 +1121,11 @@ pub export fn init() void {
         .page_node_count = 10_240,
     });
 
-    vaporize = Vaporize.init(Vapor.arena(.persist), style_config) catch unreachable; // this causes issues
+    OverlayManager.init();
+    Opaque.new();
+    Opaque.init();
+    //
+    // vaporize = Vaporize.init(Vapor.arena(.persist), style_config) catch unreachable; // this causes issues
     // initHooks();
     //
     // Global style variables

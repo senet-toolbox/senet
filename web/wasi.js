@@ -32,7 +32,7 @@ export let wasmInstance = null;
 let structBridge = undefined;
 
 // Define a cache outside the function to store DOM references
-const elementCache = new Map();
+export const elementCache = new Map();
 
 export function setWasiInstance(instance) {
   wasmInstance = instance;
@@ -228,6 +228,10 @@ export class DynamicStructReader {
           descriptor.size,
           descriptor.canBeNull,
         );
+        if (descriptor.typeId === 3 && fieldValue !== null) {
+          const num = fieldValue;
+          fieldValue = Number(num.toFixed(2));
+        }
       }
       result[fieldName.replace("_ptr", "")] = fieldValue;
     }
@@ -425,7 +429,6 @@ export const env = {
 
   createEventListener: (ptr, len, onid) => {
     if (!requireWasm()) return;
-    if (!requireWasm()) return;
     const event_id = onid >>> 0;
     const event_type = readWasmString(ptr, len);
     let eventData = eventHandlers.get("vapor-document");
@@ -435,22 +438,21 @@ export const env = {
       wasmInstance.eventCallback(event_id);
     };
 
-    if (eventData === undefined) {
-      eventData = {};
-      eventData[event_type] = handler;
-      document.addEventListener(event_type, handler);
-    } else {
-      if (eventData[event_type] === undefined) {
-        eventData[event_type] = handler;
-        document.addEventListener(event_type, handler);
-      }
-    }
+    // if (eventData === undefined) {
+    //   eventData = {};
+    //   eventData[event_type] = handler;
+    //   document.addEventListener(event_type, handler);
+    // } else {
+    //   if (eventData[event_type] === undefined) {
+    //     eventData[event_type] = handler;
+    document.addEventListener(event_type, handler);
+    // }
+    // }
     eventHandlers.set("vapor-document", eventData);
   },
 
   createEventListenerCtx: (ptr, len, onid) => {
     if (!requireWasm()) return;
-
     const event_id = onid >>> 0;
     const event_type = readWasmString(ptr, len);
     let eventData = eventHandlers.get("vapor-document");
@@ -460,16 +462,7 @@ export const env = {
       wasmInstance.eventInstCallback(event_id);
     };
 
-    if (eventData === undefined) {
-      eventData = {};
-      eventData[event_type] = handler;
-      document.addEventListener(event_type, handler);
-    } else {
-      if (eventData[event_type] === undefined) {
-        eventData[event_type] = handler;
-        document.addEventListener(event_type, handler);
-      }
-    }
+    document.addEventListener(event_type, handler);
     eventHandlers.set("vapor-document", eventData);
   },
 
@@ -634,6 +627,17 @@ export const env = {
     event.preventDefault();
   },
 
+  eventStopPropagation: (onid) => {
+    if (!requireWasm()) return;
+    const eventId = onid >>> 0;
+    const event = eventStorage[eventId];
+    if (!event) {
+      console.error("Event not found");
+      return;
+    }
+    event.stopPropagation();
+  },
+
   formDataWasm: (id) => {
     if (!requireWasm()) return;
     id = id >>> 0;
@@ -711,22 +715,17 @@ export const env = {
   // ==========================================================================
 
   mutateDomElementWasm: (idPtr, idLen, attributePtr, attributeLen, value) => {
-    requestAnimationFrame(() => {
-      if (!requireWasm()) return;
-      const memory = new Uint8Array(wasmInstance.memory.buffer);
-      const id = new TextDecoder().decode(
-        memory.subarray(idPtr, idPtr + idLen),
-      );
-      const attribute = new TextDecoder().decode(
-        memory.subarray(attributePtr, attributePtr + attributeLen),
-      );
-      const element = document.getElementById(id);
-      if (element === null) {
-        console.log("Is Null");
-        return;
-      }
-      element[attribute] = value;
-    });
+    // We removed requestAnimationFrame, this is a blocking call which caaused lag in the scroll hover for the dialog combobox
+    // basically thr scroll would happen in one frame nthe upate background in another frame causing a lag
+    if (!requireWasm()) return;
+    const id = readWasmString(idPtr, idLen);
+    const attribute = readWasmString(attributePtr, attributeLen);
+    const element = document.getElementById(id);
+    if (element === null) {
+      console.log("Is Null");
+      return;
+    }
+    element[attribute] = value;
   },
 
   getAttributeWasmNumber: (ptr, len, attributePtr, attributeLen) => {
@@ -1729,15 +1728,42 @@ export const env = {
     return video.currentTime;
   },
   frame_arena_init: () => { },
-  scrollIntoViewWasm: (idPtr, idLen) => {
+  scrollIntoViewWasm: (idPtr, idLen, behavior_enum, block_enum) => {
     const id = readWasmString(idPtr, idLen);
     const element = document.getElementById(id);
     if (element === null) {
       console.log("Element Is Null");
       return;
     }
-    console.log(element);
-    element.scrollIntoView();
+    let behavior = "auto";
+    let block = "start";
+
+    switch (behavior_enum) {
+      case 0:
+        behavior = "auto";
+        break;
+      case 1:
+        behavior = "smooth";
+        break;
+      case 2:
+        behavior = "instant";
+        break;
+    }
+    switch (block_enum) {
+      case 0:
+        block = "start";
+        break;
+      case 1:
+        block = "center";
+        break;
+      case 2:
+        block = "end";
+        break;
+      case 3:
+        block = "nearest";
+        break;
+    }
+    element.scrollIntoView({ block, behavior });
   },
   setAttributeWasm: (idPtr, idLen, keyPtr, keyLen, valuePtr, valueLen) => {
     const id = readWasmString(idPtr, idLen);

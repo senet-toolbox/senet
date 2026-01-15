@@ -239,7 +239,7 @@ pub fn mimeForPath(path: []const u8) []const u8 {
 var buffer: [2097152]u8 = undefined;
 pub fn openLocalFile(conn: std.net.Server.Connection, mime: []const u8, mimetype: []const u8, content_encoding: []const u8) !void { // TODO: Fix this
     var allocator = std.heap.page_allocator;
-    var path: []const u8 = "/index.html";
+    var path: []const u8 = mime;
     if (mime.len > 1) {
         if (std.mem.indexOf(u8, mime, ".wasm") != null) {
             path = mime;
@@ -263,8 +263,7 @@ pub fn openLocalFile(conn: std.net.Server.Connection, mime: []const u8, mimetype
             path = mime;
         } else if (std.mem.indexOf(u8, mime, ".md") != null) {
             path = mime;
-        } else {
-            // path = try std.fmt.allocPrint(allocator, "/static{s}/index.html", .{mime});
+        } else if (std.mem.indexOf(u8, mime, ".html") != null) {
             path = try std.fmt.allocPrint(allocator, "/template.html", .{});
         }
     } else {
@@ -272,6 +271,7 @@ pub fn openLocalFile(conn: std.net.Server.Connection, mime: []const u8, mimetype
         // path = try std.fmt.allocPrint(allocator, "/static/index.html", .{});
         path = try std.fmt.allocPrint(allocator, "/template.html", .{});
     }
+
     var encoding: []const u8 = "";
 
     if (content_encoding.len > 1 and std.mem.eql(u8, mimetype, "application/wasm")) {
@@ -304,6 +304,11 @@ pub fn openLocalFile(conn: std.net.Server.Connection, mime: []const u8, mimetype
     }; // Get file size
     const file_size = try file.getEndPos();
 
+    if (std.mem.eql(u8, mime, "/zig-out/bin/vapor.wasm")) {
+        const stat = try file.stat();
+        std.debug.print("Size: {d}\n", .{stat.size});
+    }
+
     // Read the entire file
     const contents = try file.readToEndAlloc(allocator, file_size);
     defer allocator.free(contents);
@@ -323,7 +328,6 @@ pub fn openLocalFile(conn: std.net.Server.Connection, mime: []const u8, mimetype
     const response = try std.fmt.allocPrint(allocator, httpHead, .{ mimetype, encoding, contents.len, contents });
     var writer = conn.stream.writer(&buffer);
     var source = &writer.interface;
-    // var writer = &conn.stream.writer(&.{}).interface;
     _ = try source.write(response);
     source.flush() catch {};
 }

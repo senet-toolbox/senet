@@ -160,6 +160,49 @@ rendering. Will be deduplicated. Instead a reference will be kept for the common
 The second type of styling in Vapor is the `Style` struct. This is contains all the styling properties, and is passed to the
 components, via the `style(*const Style)` fucntion. This is handy when we have a common style, shared across the application.
 
+### What About .style(&style)?
+
+When using a style struct, the syntax changes slightly:
+
+```zig
+// Builder chain → .children({})
+Button(.{ .on_press = click }).padding(.all(8)).children({
+    Text("Click").end();
+});
+
+// Style struct → direct block ({})
+Button(.{ .on_press = click }).style(&button_style)({
+    Text("Click").end();
+});
+```
+
+**Why?** `.style()` returns a different type that takes the children block directly. Just remember:
+
+- `.children({...})` after builder chains
+- `({...})` after `.style(&style)`
+
+### Quick Reference
+
+```zig
+// Leaf elements - use .end()
+Text("hello").end();
+Icon(.search).end();
+Image(.{ .src = "photo.jpg" }).end();
+TextField(.string).bind(&text).end();
+
+// Containers - use .children({})
+Box().children({ ... });
+Center().children({ ... });
+Stack().children({ ... });
+List().children({ ... });
+Button(.{ .on_press = fn }).children({ ... });
+Link(.{ .url = "/" }).children({ ... });
+
+// With style struct - use ({})
+Box().style(&my_style)({ ... });
+Button(.{}).style(&btn_style)({ ... });
+```
+
 ```zig
 pub fn render() void {
     const text_style: *const Vapor.Style = &.{
@@ -338,4 +381,3 @@ The extend function allows you to extend a style with another style. It mutates 
 #### merge
 
 The merge function allows you to merge a style with another style. This creates an entirely new style, and returns the new style.
-

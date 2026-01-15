@@ -20,6 +20,7 @@ const RedirectLink = Static.RedirectLink;
 const Button = Static.Button;
 const Theme = @import("theme");
 const Graphic = Static.Graphic;
+const OverlayManager = @import("OverlayManager.zig");
 
 var last_time: i64 = 0;
 pub fn throttle() bool {
@@ -78,28 +79,16 @@ inline fn routes() void {
     }
 }
 
-const Self = @This();
-
-fn switchTheme(opt: []const u8) void {
-    println("Switch Theme! {s}", .{opt});
-    // if (opt[0] == 'D') {
-    //     Vapor.Theme.switchTheme(.dark);
-    //     return;
-    // }
-    // Vapor.Theme.switchTheme(.light);
-    return;
-}
-
 pub fn init() void {
     Search.init();
+    OverlayManager.register(.keydown, clickEvent, &local_binded);
 }
 
 pub fn closeAll(evt: *Vapor.Event) void {
     evt.preventDefault();
 }
 
-pub fn setDefault() void {
-}
+pub fn setDefault() void {}
 
 fn openDialog() void {
     Search.toggle();
@@ -108,52 +97,39 @@ fn openDialog() void {
 fn navigate(url: []const u8) void {
     Kit.navigate(url);
     menu = !menu;
-    // Vapor.cycle();
 }
 
 fn toggleTheme() void {
     Theme.toggleTheme();
-    // Vapor.cycle();
+}
+
+var local_binded: []const u8 = "";
+
+pub fn clickEvent(_: *[]const u8, evt: *Vapor.Event) void {
+    const key = evt.key();
+    if (std.mem.eql(u8, key, "k") and evt.metaKey()) {
+        openDialog();
+    }
+
+    if (std.mem.eql(u8, key, "0")) {
+        navigate("/docs/vapor");
+    } else if (std.mem.eql(u8, key, "1")) {
+        navigate("/docs/reverb");
+    } else if (std.mem.eql(u8, key, "2")) {
+        navigate("/docs/canopy");
+    }
+
+    if (std.mem.eql(u8, key, "x") and evt.metaKey()) {
+        Theme.toggleTheme();
+    }
+}
+
+fn goto(url: []const u8) void {
+    Vapor.Kit.navigate(url);
 }
 
 pub fn render() void {
     if (Vapor.isDesktop()) {
-        // Box().id("nav")
-        //     .baseStyle(&.{
-        //         .size = .hw(.px(60), .grow),
-        //         .layout = .x_between_center,
-        //         .padding = .horizontal(50),
-        //         .blur = 2,
-        //         .z_index = 999,
-        //     })
-        //     .pos(.nav)
-        //     .body()({
-        //     Text("hello").plain();
-        // });
-        //
-        // Box().id("nav")
-        //     .pos(.nav)
-        //     .height(.px(60))
-        //     .width(.grow)
-        //     .layout(.x_between_center)
-        //     .padding(.horizontal(50))
-        //     .blur(2)
-        //     .zIndex(999)
-        //     .body()({
-        //     Text("hello").plain();
-        // });
-        //
-        // Box().id("nav")
-        //     .style(&.{
-        //     .position = .nav,
-        //     .size = .hw(.px(60), .grow),
-        //     .layout = .x_between_center,
-        //     .padding = .horizontal(50),
-        //     .blur = 2,
-        //     .z_index = 999,
-        // })({
-        //     Text("hello").plain();
-        // });
         Box().id("nav").style(&.{
             .position = .nav,
             .size = .hw(.px(60), .grow),
@@ -167,7 +143,9 @@ pub fn render() void {
                 .layout = .left_center,
                 .child_gap = 10,
             })({
-                Link(.{ .url = "/", .aria_label = "home page of tether" }).style(&.{
+                CtxButton(goto, .{"/"})
+                    .ariaLabel("home page of tether")
+                    .style(&.{
                     .visual = .{ .text_decoration = .none },
                 })({
                     Center().style(&.{
@@ -177,14 +155,6 @@ pub fn render() void {
                         .interactive = .{ .hover = .{ .transform = .scale() } },
                         .visual = .{ .text_color = .palette(.text_color) },
                     })({
-                        // Svg(.{ .svg = @embedFile("../assets/logonormal.svg") }).style(&.{
-                        //     .size = .{ .width = .percent(100), .height = .percent(100) },
-                        //     .visual = .{ .text_color = .palette(.text_color) },
-                        //     .transition = .{ .duration = 100 },
-                        //     .interactive = .{ .hover = .{
-                        //         .text_color = .palette(.tint),
-                        //     } },
-                        // });
                         Graphic(.{ .src = "/src/assets/logonormal.svg" }).style(&.{
                             .size = .{ .width = .percent(100), .height = .percent(100) },
                             .visual = .{ .fill = .palette(.text_color), .stroke = .palette(.text_color) },
@@ -194,10 +164,6 @@ pub fn render() void {
                                 .stroke = .palette(.tint),
                             } },
                         });
-                        // Image(.{ .src = "/assets/logonormal.svg" }).style(&.{
-                        //     .size = .{ .width = .percent(100), .height = .percent(100) },
-                        //     .visual = .{ .text_color = .hex("#5A27FF") },
-                        // });
                     });
                 });
                 List().style(&.{
@@ -259,10 +225,6 @@ pub fn render() void {
                         .visual = .{ .fill = .palette(.icon_color) },
                         .interactive = .{ .hover = .{ .fill = .palette(.tint) } },
                     });
-                    // Icon("bi bi-discord").style(&.{
-                    //     .visual = .{ .font_size = 24, .text_color = .palette(.icon_color) },
-                    //     .interactive = .{ .hover = .{ .text_color = .palette(.tint) } },
-                    // });
                 });
                 Button(.{ .on_press = toggleTheme, .aria_label = "toggle theme" }).style(&.{
                     .visual = .{
@@ -297,7 +259,7 @@ pub fn render() void {
                     .size = .h(.px(48)),
                     .layout = .center,
                 })({
-                    Image(.{ .src = "/assets/circlelogo.webp" }).style(&.{
+                    Image(.{ .src = "/assets/circlelogo.webp", .alt = "tether logo" }).style(&.{
                         .size = .w(.px(48)),
                     });
                 });
@@ -375,16 +337,6 @@ pub fn render() void {
             });
         }
     }
-    // List.body()({});
-    // Static.Hooks(.{ .mounted = mount }).body()({});
-    // Static.List.body()({});
-    // });
-}
-
-fn mount() void {
-    // _ = background.addListener(.click, closeEvent);
-    // _ = search_box.addListener(.input, search);
-    // _ = search_box.focus();
 }
 
 const Styles = struct {
@@ -393,8 +345,6 @@ const Styles = struct {
         .size = .{ .width = .auto, .height = .px(30) },
         .layout = .{ .y = .center, .x = .start },
         .visual = .{ .border = .bottom(.transparent) },
-        // .transition = .{ .duration = 100 },
-        // .border_color = if (std.mem.eql(u8, current_path, url.url)) text_color else .transparent,
         .interactive = .{
             .hover = .{
                 .border = .bottom(.palette(.text_color)),

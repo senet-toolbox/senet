@@ -31,7 +31,7 @@ import {
   pureNodeRegistry,
 } from "./maps.js";
 import { state } from "./state.js";
-import { DynamicStructReader } from "./wasi.js";
+import { DynamicStructReader, elementCache } from "./wasi.js";
 
 // Component type constants
 export const COMPONENT_TYPES = {
@@ -93,6 +93,7 @@ export const COMPONENT_TYPES = {
   NOOP: 55,
   TABLE_HEAD: 56,
   ANCHOR: 57,
+  SPACER: 58,
 };
 
 const STATE_TYPES = {
@@ -461,6 +462,7 @@ export async function animateExit(el, index = -1, skipAnimation = false) {
   domNodeRegistry.delete(el.id);
   pureNodeRegistry.delete(el.id);
   loadedSections.delete(el.id);
+  elementCache.delete(el.id);
 
   const eventData = eventHandlers.get(el.id);
   if (eventData) {
@@ -831,43 +833,8 @@ export function attachElementListeners(element, renderCmd) {
           element.innerHTML = text.replace(/^\s+|\s+$/g, "");
         })
         .catch((err) => {
-          // console.error("Fetch failed:", err);
+          console.error("Fetch failed:", err);
         });
-      break;
-
-    case COMPONENT_TYPES.BUTTON:
-    case COMPONENT_TYPES.BUTTON_CYCLE:
-      const label = wasmInstance.getAriaLabel(renderCmd.nodePtr);
-      if (label) {
-        const length = wasmInstance.getAriaLabelLen();
-        element.ariaLabel = readWasmString(label, length);
-      }
-      element.addEventListener("click", async (event) => {
-        state.currentDepthNode = renderCmd.id;
-        event.preventDefault();
-        event.stopPropagation();
-        const idPtr = allocString(renderCmd.id);
-        if (renderCmd.elemType === COMPONENT_TYPES.BUTTON_CYCLE) {
-          wasmInstance.buttonCycleCallback(idPtr);
-        } else {
-          wasmInstance.buttonCallback(idPtr);
-        }
-      });
-      break;
-
-    case COMPONENT_TYPES.BUTTON_CTX:
-      element.type = "button";
-      element.addEventListener("click", (event) => {
-        console.log("Button CTX", event);
-        // event.preventDefault();
-        // event.stopPropagation();
-        const idPtr = allocString(renderCmd.id);
-        wasmInstance.ctxButtonCallback(idPtr);
-      });
-      break;
-
-    case COMPONENT_TYPES.LINK:
-      element = createLinkElement(element, renderCmd);
       break;
 
     case COMPONENT_TYPES.VIDEO:
@@ -983,7 +950,6 @@ export function createElementByType(uinode) {
         element.setAttribute("alt", altText);
       }
       const src = readWasmString(uinode.hrefPtr, uinode.hrefLen);
-      console.log("Image", src);
       element.setAttribute("src", src);
       break;
 
@@ -1036,7 +1002,7 @@ export function createElementByType(uinode) {
       if (field_ptr) {
         const field_len = wasmInstance.getFieldNameLen();
         const field = readWasmString(field_ptr, field_len);
-        element.name = field;
+        element.setAttribute("name", field);
       }
       const instansePtr = wasmInstance.getTextFieldParams(uinode.offset);
       if (instansePtr) {
@@ -1171,10 +1137,7 @@ export function createElementByType(uinode) {
         element.ariaLabel = readWasmString(aria_label, length);
       }
 
-      element.href =
-        uinode.hrefLen > 0
-          ? readWasmString(uinode.hrefPtr, uinode.hrefLen)
-          : "";
+      element.href = readWasmString(uinode.hrefPtr, uinode.hrefLen);
       break;
 
     case COMPONENT_TYPES.EMBEDLINK:
@@ -1208,6 +1171,12 @@ export function createElementByType(uinode) {
 
     case COMPONENT_TYPES.LABEL:
       element = document.createElement("label");
+      const label_name_ptr = wasmInstance.getFieldName(uinode.offset) >>> 0;
+      if (label_name_ptr) {
+        const label_name_len = wasmInstance.getFieldNameLen();
+        const field = readWasmString(label_name_ptr, label_name_len);
+        element.setAttribute("for", field);
+      }
       // element.htmlFor = readWasmString(
       //   uinode.hrefPtr,
       //   uinode.hrefLen,
@@ -1272,6 +1241,10 @@ export function createElementByType(uinode) {
       }
       console.log("Src", element.src);
       element.autoplay = videoView.getUint8(8) === 1;
+      break;
+
+    case COMPONENT_TYPES.SPACER:
+      element = document.createElement("div");
       break;
 
     case COMPONENT_TYPES.NOOP:
@@ -1384,12 +1357,6 @@ export function updateElement(element, uinode) {
     } else if (uinode.elemType === COMPONENT_TYPES.ICON) {
       const iconName = readWasmString(uinode.hrefPtr, uinode.hrefLen);
       element.className = iconName + " " + uinode.styleId;
-      uinode.styleId = iconName + " " + uinode.styleId;
-      // const href = readWasmString(
-      //   uinode.hrefPtr,
-      //   uinode.hrefLen,
-      // );
-      // element.className = href;
     } else if (uinode.elemType === COMPONENT_TYPES.HTML_TEXT) {
       const text = readWasmString(uinode.textPtr, uinode.textLen);
       element.innerHTML = text;
@@ -1404,29 +1371,31 @@ export function updateElement(element, uinode) {
       const parser = new DOMParser();
       const doc = parser.parseFromString(cleanSvg, "image/svg+xml");
       element.innerHTML = doc.documentElement.outerHTML;
+    } else if (
+      uinode.elemType === COMPONENT_TYPES.LINK ||
+      uinode.elemType === COMPONENT_TYPES.REDIRECT_LINK
+    ) {
+      const href = readWasmString(uinode.hrefPtr, uinode.hrefLen);
+      element.setAttribute("href", href);
     }
   }
 
   // This means that the style hash has changed and we need to update
   if (uinode.changedStyle > 0) {
-    // let css = "";
-    // const cssStylePtr = wasmInstance.getStyle(uinode.offset);
-    // if (cssStylePtr !== 0) {
-    //   const cssStyleLen = wasmInstance.getStyleLen();
-    //   css = readWasmString(cssStylePtr, cssStyleLen);
-    // }
     // Update styling
     updateComponentStyle(uinode.offset, uinode.styleId, "", element);
 
     const inlineStylePtr = wasmInstance.getInlineStyle(uinode.offset);
-    const inlineStyleLen = wasmInstance.getInlineStyleLen(uinode.offset);
     if (inlineStylePtr !== 0) {
+      const inlineStyleLen = wasmInstance.getInlineStyleLen(uinode.offset);
       const inlineStyle = readWasmString(inlineStylePtr, inlineStyleLen);
       element.setAttribute("style", inlineStyle);
     } else if (uinode.elemType === COMPONENT_TYPES.ICON) {
       const iconName = readWasmString(uinode.hrefPtr, uinode.hrefLen);
       element.className = iconName + " " + uinode.styleId;
       uinode.styleId = iconName + " " + uinode.styleId;
+    } else {
+      element.setAttribute("style", "");
     }
   } else {
     // element.className = uinode.styleId;
@@ -1556,8 +1525,59 @@ export function traverseUINodes(parent, parentUINode) {
       element = document.getElementById(uinode.id);
       // t3 += performance.now() - s;
       if (element && state.initial_render) {
+        // Create new element
+
         attachElementListeners(element, uinode);
+        domNodeRegistry.set(uinode.id, {
+          elementType: uinode.elemType,
+          node_ptr: uinode.offset,
+          domNode: element,
+          exitAnimationId: uinode.exitAnimationId,
+          destroyId: uinode.hooks.destroyId > 0 ? uinode.hooks.destroyId : null,
+          hash: uinode.hash,
+        });
+
+        // Append to parent
+        const next = uinodes[i + 1];
+        let anchor = null;
+        if (next) {
+          const nextId = next[0]?.id; // id of the next sibling
+          anchor = nextId ? document.getElementById(nextId) : null;
+        }
+
+        // s = performance.now();
+        parent.insertBefore(element, anchor);
+        // t4 += performance.now() - s;
         traverseUINodes(element, child_ptr);
+
+        if (uinode.elemType === COMPONENT_TYPES.HOOKS_CTX) {
+          const hooks_type = wasmInstance.getHooksType(uinode.offset);
+          switch (hooks_type) {
+            case 0:
+              hooksMountedCtx.set(uinode.hash, true);
+              break;
+            case 1:
+              hooksDestroyCtx.set(uinode.hash, true);
+              break;
+            case 2:
+              hooksCtxCreated.set(uinode.hash, true);
+              break;
+          }
+          element.className = "";
+        } else if (uinode.elemType === COMPONENT_TYPES.HOOKS) {
+          if (uinode.hooks.mountedId > 0) {
+            hooksMounted.set(uinode.id, true);
+            element.className = "";
+          }
+          if (uinode.hooks.createdId > 0) {
+            wasmInstance.hooksCreatedCallback(uinode.hooks.createdId);
+          }
+          if (uinode.hooks.updatedId > 0) {
+            wasmInstance.hooksUpdatedCallback(uinode.hooks.updatedId);
+          }
+        } else if (uinode.hooks.createdId > 0) {
+          hooksCtxCreated.set(uinode.id, true);
+        }
       } else if (!element || state.initial_render) {
         // Create new element
         // s = performance.now();
@@ -1633,6 +1653,7 @@ export function traverseUINodes(parent, parentUINode) {
         }
 
         if (element.parentNode !== parent || actualNextSibling !== anchor) {
+          console.log("inserting", element, anchor, actualNextSibling, parent);
           parent.insertBefore(element, anchor);
         }
 

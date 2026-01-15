@@ -11,6 +11,7 @@ const Center = Vapor.Center;
 const Icon = Vapor.Icon;
 const HooksCtx = Vapor.Static.HooksCtx;
 const OverlayManager = @import("OverlayManager.zig");
+const OpaqueTypes = @import("OpaqueTypes.zig");
 
 var background: Vapor.Types.Background = .palette(.background);
 var border: Vapor.Types.BorderGrouped = .round(.palette(.border_color_light), .all(6));
@@ -42,50 +43,44 @@ pub fn new() void {
 }
 
 pub fn ComboBoxDialog(comptime T: type) type {
-    comptime {
-        if (!@hasField(T, "label")) {
-            @compileError("ComboBoxDialog requires a field named 'value'");
-        }
-        if (!@hasField(T, "label")) {
-            @compileError("ComboBoxDialog requires a field named 'label'");
-        }
-    }
-
     return struct {
         const Self = @This();
         pub const Group = struct {
             title: ?[]const u8 = null,
-            items: []Item,
+            items: []ItemT,
         };
 
-        pub const Item = struct {
-            value: T,
-            label: []const u8,
-            icon: ?*const Vapor.IconTokens = null,
-            is_selected: bool = false,
-            _is_shown: bool = true,
-        };
+        pub const ItemT = OpaqueTypes.Item(T);
+        // pub const Item = struct {
+        //     value: T,
+        //     label: []const u8,
+        //     icon: ?*const Vapor.IconTokens = null,
+        //     is_selected: bool = false,
+        //    .is_shown: bool = true,
+        // };
 
         _selected_count: usize = 0,
         trigger: []const u8,
         groups: Vapor.Array(Group),
-        _selected_items: std.AutoHashMap(*Item, void),
+        _selected_items: std.AutoHashMap(*ItemT, void),
         _closed: bool = true,
         _search_box: Vapor.Binded = .{},
         ctx: ?*anyopaque = null,
-        on_select: ?*const fn (item: *Item) void = null,
-        on_select_ctx: ?*const fn (item: *Item, ctx: ?*anyopaque) void = null,
+        on_select: ?*const fn (item: *ItemT) void = null,
+        on_select_ctx: ?*const fn (item: *ItemT, ctx: ?*anyopaque) void = null,
         on_close: ?*const fn () void = null,
+        on_mount: ?*const fn () void = null,
         on_close_ctx: ?*const fn (ctx: ?*anyopaque) void = null,
-        trigger_component: ?*const fn (self: *Self) void = null,
+        row_component: ?*const fn (self: *Self, item: *ItemT) void = null,
         render_trigger: bool = true,
+        hovered_item: ?*ItemT = null,
+        current_index: usize = 0,
         _x: f32 = 0,
         _y: f32 = 0,
         _width: f32 = 0,
         binded_combobox: Vapor.Binded = .{},
         binded_trigger: Vapor.Binded = .{},
         on_trigger: ?*const fn (combobox: *Self, ctx: ?*anyopaque) void = null,
-        // binded_triggers_ptrs: Vapor.Array(Vapor.Binded),
 
         pub fn init(trigger: []const u8, groups: []const Group) Self {
             var alloc_groups = Vapor.array(Group, .persist);
@@ -93,17 +88,16 @@ pub fn ComboBoxDialog(comptime T: type) type {
             return Self{
                 .trigger = trigger,
                 .groups = alloc_groups,
-                ._selected_items = std.AutoHashMap(*Item, void).init(Vapor.arena(.persist)),
+                ._selected_items = std.AutoHashMap(*ItemT, void).init(Vapor.arena(.persist)),
             };
         }
 
-        pub fn fromItems(items: []T) Self {
+        pub fn fromItems(items: []const ItemT) Self {
             var alloc_groups = Vapor.array(Group, .persist);
-            var alloc_items = Vapor.array(Item, .persist);
+            var alloc_items = Vapor.array(ItemT, .persist);
 
             for (items) |item| {
-                const label = item.label;
-                alloc_items.append(Item{ .value = item, .label = label }) catch unreachable;
+                alloc_items.append(item) catch unreachable;
             }
 
             // alloc_items.appendSlice(items) catch unreachable;
@@ -115,7 +109,8 @@ pub fn ComboBoxDialog(comptime T: type) type {
             return Self{
                 .trigger = "Search",
                 .groups = alloc_groups,
-                ._selected_items = std.AutoHashMap(*Item, void).init(Vapor.arena(.persist)),
+                ._selected_items = std.AutoHashMap(*ItemT, void).init(Vapor.arena(.persist)),
+                .hovered_item = &alloc_items.items[0],
             };
         }
 
@@ -126,13 +121,16 @@ pub fn ComboBoxDialog(comptime T: type) type {
         pub fn close(combobox: *Self) void {
             OverlayManager.unregister(.keydown, combobox);
             combobox._closed = true;
+            if (combobox.on_close) |callback| {
+                @call(.auto, callback, .{});
+            }
         }
 
         pub fn open(combobox: *Self) void {
             combobox._closed = false;
         }
 
-        pub fn default(combobox: *Self, selected_item: Item) void {
+        pub fn default(combobox: *Self, selected_item: ItemT) void {
             for (combobox.groups.items) |*group| {
                 for (group.items) |*item| {
                     if (std.mem.eql(u8, item.label, selected_item.label)) continue;
@@ -142,7 +140,7 @@ pub fn ComboBoxDialog(comptime T: type) type {
             combobox._selected_item = selected_item;
         }
 
-        fn selectItem(combobox: *Self, item: *Item) void {
+        pub fn selectItem(combobox: *Self, item: *ItemT) void {
             // TOGGLE logic
             item.is_selected = !item.is_selected;
 
@@ -162,23 +160,36 @@ pub fn ComboBoxDialog(comptime T: type) type {
             }
         }
 
-        fn renderItem(combobox: *Self, item: *Item) void {
-            if (!item._is_shown) return;
+        fn renderItem(combobox: *Self, item: *ItemT) void {
+            if (!item.is_shown) return;
+            if (combobox.row_component) |row_component| {
+                row_component(combobox, item);
+                return;
+            }
+            const background_color: Vapor.Types.Background = if (item.is_selected) blk: {
+                break :blk selected_background;
+            } else blk: {
+                break :blk background;
+            };
+
+            const selected_border_color: Vapor.Types.Color = if (combobox.hovered_item == item) blk: {
+                break :blk .transparentizeHex(.palette(.tint), 1);
+            } else blk: {
+                break :blk .transparent;
+            };
             ButtonCtx(selectItem, .{ combobox, item })
                 .width(.percent(100))
                 .height(.px(44))
-                .background(if (item.is_selected) selected_background else background)
+                .background(background_color)
                 .pointer()
                 .layout(.left_center)
-                .duration(100)
                 .hover(.{
                     .background = .transparentizeHex(.palette(.tint), 0.1),
                 })
                 .padding(.tblr(6, 6, 6, 24))
-                .border(.round(.transparent, .all(6)))
+                .border(.round(selected_border_color, .all(6)))
                 .spacing(8)
                 .children({
-                // CheckBox(item.is_selected);
                 if (item.icon) |icon| {
                     Icon(icon)
                         .font(14, 300, .transparentizeHex(.palette(.text_color), 0.7))
@@ -216,41 +227,157 @@ pub fn ComboBoxDialog(comptime T: type) type {
         fn search(combobox: *Self, evt: *Vapor.Event) void {
             const text = evt.text();
             combobox._search_box.text = text;
+            combobox.current_index = 0; // Reset to first match
+            combobox.hovered_item = null;
+
             for (combobox.groups.items) |*group| {
                 for (group.items) |*item| {
-                    if (std.ascii.startsWithIgnoreCase(item.label, text)) {
-                        item._is_shown = true;
+                    if (std.ascii.indexOfIgnoreCase(item.label, text) != null) {
+                        item.is_shown = true;
+                        if (combobox.hovered_item == null) {
+                            combobox.hovered_item = item; // Auto-select first match
+                        }
                     } else {
-                        item._is_shown = false;
+                        item.is_shown = false;
                     }
                 }
             }
         }
 
-        fn clearText(combobox: *Self) void {
+        pub fn clearText(combobox: *Self) void {
             combobox._search_box.text = "";
             for (combobox.groups.items) |*group| {
                 for (group.items) |*item| {
-                    item._is_shown = true;
+                    item.is_shown = true;
+                    if (combobox.hovered_item == null) {
+                        combobox.hovered_item = item; // Auto-select first match
+                    }
                 }
             }
         }
 
+        pub fn selectAll(combobox: *Self) void {
+            for (combobox.groups.items) |*group| {
+                for (group.items) |*item| {
+                    if (item.is_shown and !item.is_selected) {
+                        combobox.selectItem(item);
+                    }
+                }
+            }
+        }
+
+        pub fn clearAll(combobox: *Self) void {
+            var iter = combobox._selected_items.keyIterator();
+            while (iter.next()) |item_ptr| {
+                item_ptr.*.is_selected = false;
+            }
+            combobox._selected_items.clearRetainingCapacity();
+            combobox._selected_count = 0;
+        }
+
         fn mountSearchBox(combobox: *Self) void {
             OverlayManager.register(.keydown, handleKeyPresses, combobox);
-            // _ = Vapor.lib.addGlobalListenerCtx(.keydown, handleKeyPresses, combobox);
             combobox._search_box.focus();
+            if (combobox.on_mount) |on_mount| {
+                Vapor.print("on_mount\n", .{});
+                on_mount();
+            }
+        }
+
+        fn scrollItemIntoView(combobox: *Self, index: usize) void {
+            const item_height: u32 = 56;
+            const visible_height: u32 = 392;
+            const padding: u32 = 8;
+
+            const item_top: u32 = @intCast(index * item_height);
+            const item_bottom: u32 = item_top + item_height;
+            const scroll_top = combobox.binded_combobox.scroll_top;
+
+            if (item_top < scroll_top + padding) {
+                // Saturating sub: if item_top < padding, result is 0
+                combobox.binded_combobox.scrollToTop(item_top -| padding);
+            } else if (item_bottom > scroll_top + visible_height - padding) {
+                combobox.binded_combobox.scrollToTop(item_bottom - visible_height + padding);
+            }
         }
 
         fn handleKeyPresses(combobox: *Self, evt: *Vapor.Event) void {
             evt.preventDefault();
             const key = evt.key();
+
             if (std.mem.eql(u8, key, "Escape")) {
-                evt.preventDefault();
                 combobox.close();
                 if (combobox.on_close) |callback| {
                     @call(.auto, callback, .{});
                 }
+                return;
+            }
+
+            // Count total items first
+            var total_items: usize = 0;
+            for (combobox.groups.items) |*group| {
+                for (group.items) |*item| {
+                    if (item.is_shown) total_items += 1;
+                }
+            }
+
+            if (total_items == 0) return;
+
+            if (std.mem.eql(u8, "ArrowDown", key)) {
+                if (combobox.current_index + 1 < total_items) {
+                    combobox.current_index += 1;
+                } else {
+                    combobox.current_index = 0; // Wrap to top
+                }
+
+                var flat_index: usize = 0;
+                outer: for (combobox.groups.items) |*group| {
+                    for (group.items) |*item| {
+                        if (!item.is_shown) continue;
+                        if (flat_index == combobox.current_index) {
+                            combobox.hovered_item = item;
+                            break :outer;
+                        }
+                        flat_index += 1;
+                    }
+                }
+
+                combobox.scrollItemIntoView(combobox.current_index);
+            }
+
+            if (std.mem.eql(u8, "ArrowUp", key)) {
+                if (combobox.current_index > 0) {
+                    combobox.current_index -= 1;
+                } else {
+                    combobox.current_index = total_items - 1; // Wrap to bottom
+                }
+
+                var flat_index: usize = 0;
+                outer: for (combobox.groups.items) |*group| {
+                    for (group.items) |*item| {
+                        if (!item.is_shown) continue;
+                        if (flat_index == combobox.current_index) {
+                            combobox.hovered_item = item;
+                            break :outer;
+                        }
+                        flat_index += 1;
+                    }
+                }
+
+                combobox.scrollItemIntoView(combobox.current_index);
+            }
+
+            if (std.mem.eql(u8, "Enter", key) or std.mem.eql(u8, "Return", key)) {
+                if (combobox.hovered_item) |item| {
+                    combobox.selectItem(item);
+                }
+            }
+
+            if (std.mem.eql(u8, "Tab", key)) {
+                if (combobox.hovered_item) |item| {
+                    combobox.selectItem(item);
+                }
+                combobox.close();
             }
         }
 
@@ -301,7 +428,6 @@ pub fn ComboBoxDialog(comptime T: type) type {
 
         pub fn renderComboBoxDialog(combobox: *Self) void {
             Box()
-                // .pos(.tl(.percent(50), .percent(50), .fixed))
                 .zIndex(999)
                 .width(.percent(100))
                 .children({
@@ -323,6 +449,7 @@ pub fn ComboBoxDialog(comptime T: type) type {
                             TextField(.string)
                                 .ref(&combobox._search_box)
                                 .val(&combobox._search_box.text)
+                                .background(background)
                                 .placeholder("Search...")
                                 .width(.percent(100))
                                 .border(.none)
@@ -342,14 +469,43 @@ pub fn ComboBoxDialog(comptime T: type) type {
                             });
                         });
                     });
+                    Box()
+                        .width(.percent(100))
+                        .padding(.tblr(8, 8, 12, 12))
+                        .layout(.right_center)
+                        .spacing(16)
+                        .children({
+                        TextFmt("Total Selected: {d}", .{combobox._selected_count})
+                            .font(12, 300, .palette(.text_color))
+                            .fontFamily(font_family)
+                            .end();
+                    });
+
                     Stack()
-                        .height(.elastic(36, 384))
+                        .ref(&combobox.binded_combobox)
+                        .height(.elastic(36, 392))
                         .width(.percent(100))
                         .scroll(.scroll_y())
                         .padding(.all(8))
                         .children({
+                        var has_visible = false;
                         for (combobox.groups.items) |*group| {
+                            for (group.items) |*item| {
+                                if (item.is_shown) has_visible = true;
+                            }
                             combobox.renderGroup(group);
+                        }
+
+                        if (!has_visible) {
+                            Box()
+                                .width(.percent(100))
+                                .padding(.all(24))
+                                .layout(.center)
+                                .children({
+                                Text("No results found")
+                                    .font(14, 300, group_title_color)
+                                    .end();
+                            });
                         }
                     });
                     Box()
@@ -438,7 +594,6 @@ pub fn ComboBoxDialog(comptime T: type) type {
             if (combobox._closed) return;
             Box()
                 .id("combobox-background")
-                // .background(.transparentizeHex(.black, 0.1))
                 .blur(1)
                 .size(.full)
                 .pos(.full(.fixed))
@@ -452,13 +607,12 @@ pub fn ComboBoxDialog(comptime T: type) type {
             Box()
                 .pos(.tl(.percent(10), .percent(32), .fixed))
                 .zIndex(999)
-                .animationEnter(&animateEnter)
-                .animationExit(&animateExit)
+                .animationEnter("opaque-combobox-enter")
+                .animationExit("opaque-combobox-exit")
                 .width(.percent(34))
-                // .height(.percent(20))
-                .background(.white)
+                .background(background)
                 .shadow(.glow(30, .transparentizeHex(.black, 0.1)))
-                .border(.round(.hex("#e4e4e4"), .all(6)))
+                .border(.round(.transparent, .all(6)))
                 .layout(.top_left)
                 .zIndex(1000)
                 .children({

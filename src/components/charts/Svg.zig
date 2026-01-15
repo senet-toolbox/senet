@@ -1,5 +1,6 @@
 const std = @import("std");
 const Vapor = @import("vapor");
+const Writer = Vapor.Writer;
 
 pub const Svg = struct {
     buffer: std.array_list.Managed(u8),
@@ -53,11 +54,19 @@ pub const Svg = struct {
         try self.writer().writeAll("</g>\n");
     }
 
+    pub fn convertColor(color: Vapor.Types.Color) []const u8 {
+        var w: Writer = undefined;
+        var buffer: [4096]u8 = undefined;
+        w.init(&buffer);
+        color.toCss(&w) catch unreachable;
+        return w.buffer[0..w.pos];
+    }
+
     pub fn line(self: *Svg, x1: f64, y1: f64, x2: f64, y2: f64, opts: LineOpts) !void {
         const w = self.writer();
         try w.print("<line id=\"{s}\" x1=\"{d:.2}\" y1=\"{d:.2}\" x2=\"{d:.2}\" y2=\"{d:.2}\"", .{ opts.id, x1, y1, x2, y2 });
         if (opts.class) |c| try w.print(" class=\"{s}\"", .{c});
-        if (opts.stroke) |s| try w.print(" stroke=\"{s}\"", .{s});
+        if (opts.stroke) |s| try w.print(" stroke=\"{s}\"", .{convertColor(s)});
         if (opts.stroke_width) |sw| try w.print(" stroke-width=\"{d}\"", .{sw});
         try w.writeAll("/>\n");
     }
@@ -66,8 +75,9 @@ pub const Svg = struct {
         const w = self.writer();
         try w.print("<rect id=\"{s}\" x=\"{d:.2}\" y=\"{d:.2}\" width=\"{d:.2}\" height=\"{d:.2}\"", .{ opts.id, x, y, width, height });
         if (opts.class) |c| try w.print(" class=\"{s}\"", .{c});
-        if (opts.fill) |f| try w.print(" fill=\"{s}\"", .{f});
-        if (opts.stroke) |s| try w.print(" stroke=\"{s}\"", .{s});
+        if (opts.fill) |f| try w.print(" fill=\"{s}\"", .{convertColor(f)});
+        if (opts.stroke) |s| try w.print(" stroke=\"{s}\"", .{convertColor(s)});
+        if (opts.stroke_width) |sw| try w.print(" stroke-width=\"{d:.2}\"", .{sw});
         if (opts.rx) |r| try w.print(" rx=\"{d:.2}\"", .{r});
         try w.writeAll("/>\n");
     }
@@ -76,8 +86,8 @@ pub const Svg = struct {
         const w = self.writer();
         try w.print("<circle id=\"{s}\" cx=\"{d:.2}\" cy=\"{d:.2}\" r=\"{d:.2}\"", .{ opts.id, cx, cy, r });
         if (opts.class) |c| try w.print(" class=\"{s}\"", .{c});
-        if (opts.fill) |f| try w.print(" fill=\"{s}\"", .{f});
-        if (opts.stroke) |s| try w.print(" stroke=\"{s}\"", .{s});
+        if (opts.fill) |f| try w.print(" fill=\"{s}\"", .{convertColor(f)});
+        if (opts.stroke) |s| try w.print(" stroke=\"{s}\"", .{convertColor(s)});
         try w.writeAll("/>\n");
     }
 
@@ -85,8 +95,8 @@ pub const Svg = struct {
         const w = self.writer();
         try w.print("<path id=\"{s}\" d=\"{s}\"", .{ opts.id, d });
         if (opts.class) |c| try w.print(" class=\"{s}\"", .{c});
-        if (opts.fill) |f| try w.print(" fill=\"{s}\"", .{f});
-        if (opts.stroke) |s| try w.print(" stroke=\"{s}\"", .{s});
+        if (opts.fill) |f| try w.print(" fill=\"{s}\"", .{convertColor(f)});
+        if (opts.stroke) |s| try w.print(" stroke=\"{s}\"", .{convertColor(s)});
         if (opts.stroke_width) |sw| try w.print(" stroke-width=\"{d}\"", .{sw});
         try w.writeAll("/>\n");
     }
@@ -98,7 +108,7 @@ pub const Svg = struct {
         if (opts.anchor) |a| try w.print(" text-anchor=\"{s}\"", .{@tagName(a)});
         if (opts.dominant_baseline) |db| try w.print(" dominant-baseline=\"{s}\"", .{@tagName(db)});
         if (opts.font_size) |fs| try w.print(" font-size=\"{d}\"", .{fs});
-        if (opts.fill) |f| try w.print(" fill=\"{s}\"", .{f});
+        if (opts.fill) |f| try w.print(" fill=\"{s}\"", .{convertColor(f)});
         if (opts.transform) |t| try w.print(" transform=\"{s}\"", .{t});
         try w.print(">{s}</text>\n", .{content});
     }
@@ -112,31 +122,33 @@ pub const Svg = struct {
     pub const LineOpts = struct {
         id: []const u8 = "",
         class: ?[]const u8 = null,
-        stroke: ?[]const u8 = null,
-        stroke_width: ?u32 = null,
+        stroke: ?Vapor.Types.Color = null,
+        stroke_width: ?f32 = null,
     };
 
     pub const RectOpts = struct {
         id: []const u8 = "",
         class: ?[]const u8 = null,
-        fill: ?[]const u8 = null,
-        stroke: ?[]const u8 = null,
+        fill: ?Vapor.Types.Color = null,
+        stroke: ?Vapor.Types.Color = null,
         rx: ?f64 = null,
+        border: ?Vapor.Types.BorderGrouped = null,
+        stroke_width: ?f32 = null,
     };
 
     pub const CircleOpts = struct {
         id: []const u8 = "",
         class: ?[]const u8 = null,
-        fill: ?[]const u8 = null,
-        stroke: ?[]const u8 = null,
+        fill: ?Vapor.Types.Color = null,
+        stroke: ?Vapor.Types.Color = null,
     };
 
     pub const PathOpts = struct {
         id: []const u8 = "",
         class: ?[]const u8 = null,
-        fill: ?[]const u8 = null,
-        stroke: ?[]const u8 = null,
-        stroke_width: ?u32 = null,
+        fill: ?Vapor.Types.Color = null,
+        stroke: ?Vapor.Types.Color = null,
+        stroke_width: ?f32 = null,
     };
 
     pub const TextOpts = struct {
@@ -145,7 +157,7 @@ pub const Svg = struct {
         anchor: ?TextAnchor = null,
         dominant_baseline: ?DominantBaseline = null,
         font_size: ?u32 = null,
-        fill: ?[]const u8 = null,
+        fill: ?Vapor.Types.Color = null,
         transform: ?[]const u8 = null,
     };
 

@@ -23,7 +23,7 @@ this drops down to 28kb of memory.
 
 - Svelte runtime: ~5KB
 
-- **Vapor Hello World: 28KB** ✨
+- **Vapor Hello World: 33KB** ✨
 
 This documentation site, is originally 7MB, in release mode, it drops down to 150kb. a 40x reduction in memory usage.
 
@@ -37,8 +37,8 @@ benefit more from dead code elimination and deduplication.
 
 > ⚠️ All tests are run on a 2021 M1 MacBook M1 Pro.
 
-Out the gate, Vapor handles rendering **1,000 rows** in (~50-58ms), and updating in (2-3ms).
-With **10,000 rows**, (~400ms), for rendering and (2-3ms) updating.
+Out the gate, Vapor handles rendering **1,000 rows** in (~50-55ms), and updating in (2-3ms).
+With **10,000 rows**, (~450ms), for rendering and (2-3ms) updating.
 
 Compare this to traditional frameworks:
 

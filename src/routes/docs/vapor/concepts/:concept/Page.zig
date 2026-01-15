@@ -35,7 +35,9 @@ const Center = Static.Center;
 const Todo = @import("todo/Page.zig");
 const ReactToVapor = @import("react-to-vapor/Page.zig");
 const DontKnowZig = @import("dont-know-zig/Page.zig");
+const ThemeAndIcons = @import("theme-and-icons/Page.zig");
 const Opaque = @import("opaque/Page.zig");
+const ApiCheatSheet = @import("api/Page.zig");
 
 var sheet: Sheet(void, Menu.render) = undefined;
 
@@ -66,7 +68,9 @@ const Routes = enum {
     // @"ui-inversion",
     @"codex-engine",
     @"dont-know-zig",
+    @"theme-and-icons",
     todo,
+    api,
 };
 
 // Initialization
@@ -98,6 +102,8 @@ pub fn init() void {
     // sheet.init(&Vapor.lib.allocator_global);
     ReactToVapor.init();
     DontKnowZig.init();
+    ThemeAndIcons.init();
+    ApiCheatSheet.init();
     Page(.{ .route = "/docs/vapor/concepts/:concept/" }, render, null);
 }
 
@@ -170,6 +176,9 @@ fn getRender(path: []const u8) ?*const fn () void {
                 .tutorials => {
                     return Tutorials.render;
                 },
+                .@"theme-and-icons" => {
+                    return ThemeAndIcons.render;
+                },
                 // .csr_vs_ssr => {
                 //     return CsrVsSsr.render;
                 // },
@@ -178,6 +187,9 @@ fn getRender(path: []const u8) ?*const fn () void {
                 },
                 .todo => {
                     return Todo.render;
+                },
+                .api => {
+                    return ApiCheatSheet.render;
                 },
             }
         }

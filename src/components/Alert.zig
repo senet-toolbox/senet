@@ -21,15 +21,15 @@ const animateExit = Vapor.Animation.init("opaque-dialog-exit")
     .duration(200)
     .easing(.easeInOut);
 
-const animateExitBackground = Vapor.Animation.init("opaque-dialog-exit-background")
-    .prop(.opacity, 1, 0)
-    .duration(200)
-    .easing(.easeInOut);
+// const animateExitBackground = Vapor.Animation.init("opaque-dialog-exit-background")
+//     .prop(.opacity, 1, 0)
+//     .duration(200)
+//     .easing(.easeInOut);
 
 pub fn new() void {
     animateEnter.build();
     animateExit.build();
-    animateExitBackground.build();
+    // animateExitBackground.build();
 }
 
 content: ?*const fn (*Alert) void,
@@ -49,38 +49,45 @@ pub fn close(alert: *Alert) void {
     alert.closed = true;
 }
 
+fn evtClose(alert: *Alert, evt: *Vapor.Event) void {
+    evt.preventDefault();
+    alert.closed = true;
+}
+
 pub fn render(alert: *Alert) void {
     if (alert.closed) return;
     Box()
-        .background(.transparentizeHex(.black, 0.3))
+        .blur(1)
         .size(.full)
         .pos(.tl(.px(0), .px(0), .fixed))
         .zIndex(999)
         .layout(.center)
+        .children({});
+    Box()
+        .size(.full)
+        .pos(.tl(.px(0), .px(0), .fixed))
+        .zIndex(999)
+        .animationEnter("opaque-dialog-enter")
+        .animationExit("opaque-dialog-exit")
+        .layout(.center)
         .children({
         ButtonCtx(close, .{alert})
-            .background(.transparentizeHex(.black, 0.3))
             .size(.full)
             .pos(.tl(.px(0), .px(0), .fixed))
+            .size(.full)
             .layout(.center)
-            .end();
-    });
-    Box()
-        .pos(.tl(.percent(40), .percent(35), .fixed))
-        .zIndex(999)
-        .animationEnter(&animateEnter)
-        .animationExit(&animateExit)
-        .width(.percent(30))
-        .height(.percent(20))
-        .background(.white)
-        .shadow(.glow(30, .transparentizeHex(.black, 0.1)))
-        .border(.round(.hex("#e4e4e4"), .all(12)))
-        .layout(.top_left)
-        .padding(.all(18))
-        .zIndex(1000)
-        .children({
-        if (alert.content) |content| {
-            content(alert);
-        }
+            .zIndex(999)
+            .children({});
+        Box()
+            .background(.palette(.background))
+            .shadow(.glow(30, .transparentizeHex(.black, 0.1)))
+            .border(.round(.hex("#e4e4e4"), .all(12)))
+            .layout(.center)
+            .zIndex(1000)
+            .children({
+            if (alert.content) |content| {
+                content(alert);
+            }
+        });
     });
 }

@@ -7,7 +7,7 @@ const EventType = Vapor.Types.EventType;
 const OverlayManager = @This();
 
 const Item = struct {
-    id: u32,
+    id: usize,
     node: *EvtInstNode,
 };
 
@@ -21,13 +21,28 @@ pub fn init() void {
 fn onKeyDown(evt: *Vapor.Event) void {
     if (stack.items.len == 0) return;
     const key = evt.key();
-    if (std.mem.eql(u8, key, "Escape")) {
+    if (std.mem.eql(u8, key, "Escape") or std.mem.eql(u8, "Return", key) or std.mem.eql(u8, "Enter", key) or std.mem.eql(u8, "Tab", key)) {
         const last = stack.items.len - 1;
         const item = stack.items[last];
         const node = item.node;
         @call(.auto, node.data.evt_cb, .{ &node.data, evt });
     }
-    if (std.mem.eql(u8, key, "k") and evt.metaKey()) {
+
+    if (std.mem.eql(u8, key, "0") or std.mem.eql(u8, key, "1") or std.mem.eql(u8, key, "2") or std.mem.eql(u8, key, "3") or std.mem.eql(u8, key, "4") or std.mem.eql(u8, key, "5") or std.mem.eql(u8, key, "6") or std.mem.eql(u8, key, "7") or std.mem.eql(u8, key, "8") or std.mem.eql(u8, key, "9")) {
+        const last = stack.items.len - 1;
+        const item = stack.items[last];
+        const node = item.node;
+        @call(.auto, node.data.evt_cb, .{ &node.data, evt });
+    }
+
+    if ((std.mem.eql(u8, key, "k") or std.mem.eql(u8, key, "x")) and evt.metaKey()) {
+        const last = stack.items.len - 1;
+        const item = stack.items[last];
+        const node = item.node;
+        @call(.auto, node.data.evt_cb, .{ &node.data, evt });
+    }
+
+    if (std.mem.eql(u8, key, "ArrowDown") or std.mem.eql(u8, key, "ArrowUp") or std.mem.eql(u8, key, "ArrowLeft") or std.mem.eql(u8, key, "ArrowRight")) {
         const last = stack.items.len - 1;
         const item = stack.items[last];
         const node = item.node;

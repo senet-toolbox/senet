@@ -1,7 +1,7 @@
 const std = @import("std");
 const Vapor = @import("vapor");
 const Text = Vapor.Text;
-const TextArea = Vapor.TextArea; // Renamed for clarity if strictly separating Text/TextArea
+const TextArea = Vapor.TextArea;
 const Stack = Vapor.Stack;
 const Center = Vapor.Center;
 const Icon = Vapor.Icon;
@@ -25,8 +25,21 @@ pub const ToastType = enum {
     info,
 };
 
+// 2. Define stack position enum
+pub const StackPosition = enum {
+    top_right,
+    top_left,
+    bottom_right,
+    bottom_left,
+};
+
+// Current stack position (can be changed at runtime)
+pub var stack_position: StackPosition = .top_right;
+
 pub var toasts: Vapor.Array(Toast) = undefined;
-pub var border: Vapor.Types.BorderGrouped = .solid(.all(1), .transparentizeHex(.white, 0.5), .all(16));
+pub var border_thickness: u8 = 1;
+pub var border_radius: Vapor.Types.BorderRadius = .all(16);
+pub var border_color: Vapor.Types.BorderGrouped = .white;
 pub var background: Vapor.Types.Background = .transparentizeHex(.white, 0.2);
 pub var shadow: Vapor.Types.Shadow = .{
     .blur = 8,
@@ -34,6 +47,24 @@ pub var shadow: Vapor.Types.Shadow = .{
     .top = 2,
     .spread = 0,
 };
+
+pub var success_background: Vapor.Types.Background = .transparentizeHex(.white, 0.2);
+pub var err_background: Vapor.Types.Background = .transparentizeHex(.white, 0.2);
+pub var warning_background: Vapor.Types.Background = .transparentizeHex(.white, 0.2);
+pub var info_background: Vapor.Types.Background = .transparentizeHex(.white, 0.2);
+
+pub var success_text_color: Vapor.Types.Color = .palette(.text_color);
+pub var err_text_color: Vapor.Types.Color = .palette(.text_color);
+pub var warning_text_color: Vapor.Types.Color = .palette(.text_color);
+pub var info_text_color: Vapor.Types.Color = .palette(.text_color);
+
+pub var success_blur: u8 = 12;
+pub var err_blur: u8 = 12;
+pub var warning_blur: u8 = 12;
+pub var info_blur: u8 = 12;
+
+// Stack margin from screen edges
+pub var stack_margin: f32 = 24;
 
 const Toast = @This();
 var text_color: Vapor.Types.Color = .palette(.text_color);
@@ -48,7 +79,7 @@ auto_close: bool = true,
 duration: u32 = 3000,
 on_close: ?*const fn (toast: *Toast) void = null,
 id: usize = 0,
-top: f32 = 24,
+offset: f32 = 24, // Generic offset (used for top or bottom depending on position)
 right: f32 = 24,
 width: f32 = 280,
 scale_val: f16 = 1.0,
@@ -69,9 +100,18 @@ const anim_exit = Animation.init("opaque-toast-exit")
     .easing(.easeIn)
     .fill(.forwards);
 
+// Bottom position animations (enter from bottom)
+const anim_enter_bottom = Animation.init("opaque-toast-enter-bottom")
+    .prop(.translateY, 20, 0)
+    .prop(.opacity, 0, 1)
+    .duration(300)
+    .easing(.easeOut)
+    .fill(.forwards);
+
 pub fn new() void {
     anim_enter.build();
     anim_exit.build();
+    anim_enter_bottom.build();
     spinner.build();
     toasts = Vapor.array(Toast, .persist);
 }
@@ -81,15 +121,28 @@ pub const Options = struct {
     description: []const u8,
 };
 
+// Helper to check if position is at bottom
+fn isBottomPosition() bool {
+    return stack_position == .bottom_right or stack_position == .bottom_left;
+}
+
+// Helper to check if position is on left
+fn isLeftPosition() bool {
+    return stack_position == .top_left or stack_position == .bottom_left;
+}
+
 pub fn movePreviousDown() void {
     if (toasts.items.len == 0) return;
-    // if (toasts.items.len == previous_len) return;
     const last = toasts.items.len - 1;
     var i: usize = toasts.items.len - 1;
     var local_total_height: f32 = toasts.items[0].height;
+
     while (i < toasts.items.len) : (i -= 1) {
         if (toasts.items[i].is_visible) {
-            toasts.items[i].top = @as(f32, @floatFromInt(last - i)) * 14.0;
+            // For bottom positions, offset grows upward (negative direction visually)
+            // For top positions, offset grows downward
+            const stack_offset = @as(f32, @floatFromInt(last - i)) * 14.0;
+            toasts.items[i].offset = stack_offset;
             toasts.items[i].scale_val = 1.0 - (@as(f16, @floatFromInt(last - i)) * 0.04);
             local_total_height += 8;
         }
@@ -100,7 +153,7 @@ pub fn movePreviousDown() void {
 
 fn showToast(toast: *Toast) void {
     toast.show();
-    toasts.append(toast.*) catch unreachable; // Insert at the top
+    toasts.append(toast.*) catch unreachable;
     movePreviousDown();
     startToastTimeout(toast);
 }
@@ -111,6 +164,11 @@ fn startToastTimeout(toast: *Toast) void {
 }
 
 fn cancelToast(toast: *Toast) void {
+    const id = Vapor.fmtln("remove_oldest_toast-{d}", .{toast.id});
+    Vapor.lib.cancelTimeout(id);
+}
+
+fn clearTimeout(toast: *Toast) void {
     const id = Vapor.fmtln("remove_oldest_toast-{d}", .{toast.id});
     Vapor.lib.cancelTimeout(id);
 }
@@ -149,8 +207,6 @@ pub fn init(title: []const u8, description: []const u8, toast_type: ToastType) T
 
 pub fn show(toast: *Toast) void {
     toast.is_visible = true;
-    // Note: In a real implementation, you would trigger a timer here
-    // to set toast.is_visible = false after toast.duration
 }
 
 pub fn hide(toast: *Toast) void {
@@ -169,45 +225,33 @@ pub fn hide(toast: *Toast) void {
 
 fn movePreviousUp() void {
     if (toasts.items.len == 0) return;
-    // if (toasts.items.len == previous_len) return;
     const last = toasts.items.len - 1;
     var i: usize = 0;
     while (i < toasts.items.len) : (i += 1) {
         if (toasts.items[i].is_visible) {
-            toasts.items[i].top = @as(f32, @floatFromInt(last - i)) * 14.0;
-            // toasts.items[i].scale_val = 1.0 - (@as(f16, @floatFromInt(last - i)) * 0.04);
+            toasts.items[i].offset = @as(f32, @floatFromInt(last - i)) * 14.0;
             Vapor.print("Id {d}", .{toasts.items[i].id});
-            // toasts.items[i].width -= 8;
         }
         if (i == last) break;
     }
 }
 
 fn removeOldestToast(_: void) void {
-    // 1. Safety check to prevent panic on empty list
     if (toasts.items.len == 0) return;
-
-    // 2. Remove the item from memory
     const toast = toasts.orderedRemove(0);
     Vapor.print("Removed {d}", .{toast.id});
-
-    // 3. CRITICAL FIX: Recalculate positions for the remaining items
-    // Since this runs on timeout, the user is likely NOT hovering,
-    // so we want the "collapsed" stack view.
     movePreviousDown();
 }
 
-// Helper to get color based on type
 fn getTypeColor(toast_type: ToastType) Vapor.Types.Color {
     return switch (toast_type) {
-        .success => text_color, // Green
-        .err => .hex("#FF4000"), // Red
-        .warning => .hex("#FFB700"), // Orange
-        .info => .hex("#007AFF"), // System accent
+        .success => text_color,
+        .err => .hex("#FF4000"),
+        .warning => .hex("#FFB700"),
+        .info => .hex("#007AFF"),
     };
 }
 
-// Helper to get icon based on type
 fn getTypeIcon(toast_type: ToastType) *const IconTokens {
     return switch (toast_type) {
         .success => IconTokens.check2_all,
@@ -233,13 +277,15 @@ fn onLeave(_: *Vapor.Event) void {
 
 fn showAllToasts() void {
     if (toasts.items.len == 0) return;
-    // if (toasts.items.len == previous_len) return;
     const last = toasts.items.len - 1;
     var i: usize = 0;
     var local_total_height: f32 = 0;
+
     while (i < toasts.items.len) : (i += 1) {
         if (toasts.items[i].is_visible) {
-            toasts.items[i].top = @as(f32, @floatFromInt(last - i)) * (toasts.items[i].height + 8);
+            // When expanded, stack toasts with full height + spacing
+            const expanded_offset = @as(f32, @floatFromInt(last - i)) * (toasts.items[i].height + 8);
+            toasts.items[i].offset = expanded_offset;
             toasts.items[i].scale_val = 1;
         }
         local_total_height += toasts.items[i].height + 8;
@@ -248,45 +294,120 @@ fn showAllToasts() void {
     total_height = local_total_height;
 }
 
+// Set the stack position before rendering
+pub fn setPosition(position: StackPosition) void {
+    stack_position = position;
+}
+
+// Main render function - renders stack at current position
 pub fn renderStack() void {
+    renderStackAt(stack_position);
+}
+
+pub fn clearToasts() void {
+    for (toasts.items) |*t| {
+        t.is_visible = false;
+        t.clearTimeout();
+    }
+    toasts.clearRetainingCapacity();
+}
+
+// Render stack at a specific position
+pub fn renderStackAt(position: StackPosition) void {
+    const margin_px = Vapor.Types.Pos.px(stack_margin);
+    const width_val = if (toasts.items.len > 0) toasts.items[0].width else 0;
+
+    // Determine layout direction based on position
+    // Top positions: stack grows downward (column)
+    // Bottom positions: stack grows upward (column_reverse)
+    const layout_alignment: Vapor.Types.Layout = switch (position) {
+        .top_right => .top_center,
+        .top_left => .top_center,
+        .bottom_right => .bottom_center,
+        .bottom_left => .bottom_center,
+    };
+
+    // Get the appropriate fixed position
+    const fixed_pos = switch (position) {
+        .top_right => Vapor.Types.Position.tr(margin_px, margin_px, .fixed),
+        .top_left => Vapor.Types.Position.tl(margin_px, margin_px, .fixed),
+        .bottom_right => Vapor.Types.Position.br(margin_px, margin_px, .fixed),
+        .bottom_left => Vapor.Types.Position.bl(margin_px, margin_px, .fixed),
+    };
+
     Box()
-        // Fixed Position on Screen (Top Right)
-        // This is the ONLY place we use absolute positioning
-        .pos(.tr(.px(24), .px(24), .fixed))
-        .layout(.top_center) // Stack items downwards, align left
-        .spacing(12) // Gap between toasts
+        .pos(fixed_pos)
+        .layout(layout_alignment)
+        .spacing(12)
         .direction(.column)
         .background(.transparent)
-        .width(.px(if (toasts.items.len > 0) toasts.items[0].width else 0))
+        .width(.px(width_val))
         .height(.px(total_height))
         .onHover(onHover)
         .onLeave(onLeave)
-        .zIndex(9999) // Ensure it floats above everything
+        .zIndex(9999)
         .children({
-        // Iterate and Render
-        // We use a mutable slice because we might modify state
         for (toasts.items, 0..) |*t, i| {
-            render(t, i);
+            renderToast(t, i, position);
         }
     });
 }
 
-// We render but control visibility via Opacity/Animation
+fn getBackground(toast_type: ToastType) Vapor.Types.Background {
+    return switch (toast_type) {
+        .success => success_background,
+        .err => err_background,
+        .warning => warning_background,
+        .info => info_background,
+    };
+}
 
-pub fn render(toast: *Toast, index: usize) void {
-    // We render but control visibility via Opacity/Animation
-    // or return early depending on engine requirements.
-    // if (!toast.is_visible) return;
+fn getTextColor(toast_type: ToastType) Vapor.Types.Color {
+    return switch (toast_type) {
+        .success => success_text_color,
+        .err => err_text_color,
+        .warning => warning_text_color,
+        .info => info_text_color,
+    };
+}
 
-    // 1. Scale: Front is 1.0, behind is 0.96, then 0.92
+fn getBlur(toast_type: ToastType) u8 {
+    return switch (toast_type) {
+        .success => success_blur,
+        .err => err_blur,
+        .warning => warning_blur,
+        .info => info_blur,
+    };
+}
 
-    // 2. Vertical Offset: Front is 0, behind moves down by 10px, etc.
-    // This creates the "peeking out from bottom" effect
+fn getBorderColor(toast_type: ToastType) Vapor.Types.Color {
+    return switch (toast_type) {
+        .success => success_background.color.?,
+        .err => err_background.color.?,
+        .warning => warning_background.color.?,
+        .info => info_background.color.?,
+    };
+}
+
+// Renamed from render to renderToast for clarity
+fn renderToast(toast: *Toast, index: usize, position: StackPosition) void {
     const z_index: i16 = @as(i16, @intCast(100 + index));
 
-    // 3. Opacity: Cards deeper in stack fade out slightly
-    // (Optional, but looks nice. If index 0 -> 1.0, index 1 -> 0.9)
-    // const opacity_val: f32 = if (index == 0) 1.0 else 0.5;
+    // Determine the toast position within the stack based on stack position
+    const toast_pos = switch (position) {
+        // Top positions: offset from top
+        .top_right => Vapor.Types.Position.tr(.px(toast.offset), .px(0), .absolute),
+        .top_left => Vapor.Types.Position.tl(.px(toast.offset), .px(0), .absolute),
+        // Bottom positions: offset from bottom
+        .bottom_right => Vapor.Types.Position.br(.px(toast.offset), .px(0), .absolute),
+        .bottom_left => Vapor.Types.Position.bl(.px(toast.offset), .px(0), .absolute),
+    };
+
+    // Choose animation based on position
+    const enter_anim = if (position == .bottom_right or position == .bottom_left)
+        "opaque-toast-enter-bottom"
+    else
+        "opaque-toast-enter";
 
     Box()
         .id(Vapor.fmtln("opaque-toast-{d}", .{toast.id}))
@@ -295,63 +416,48 @@ pub fn render(toast: *Toast, index: usize) void {
                 .inset(0, -2, .transparentizeHex(.black, 0.1))
                 .drop(0, 1, 3, .transparentizeHex(.black, 0.2)),
         )
-        // .border(.solid(.all(1), .transparentizeHex(.white, 0.5), .specific(20, 18, 21, 22)))
-        .border(border)
-        // Position: Top Right, fixed/absolute
-        .pos(.tr(.px(toast.top), .px(0), .absolute))
-        // Animation applied here
-        .animationEnter(&anim_enter)
-        .animationExit(&anim_exit)
+        .border(.solid(.all(border_thickness), getBorderColor(toast.toast_type), border_radius))
+        .pos(toast_pos)
+        .animationEnter(enter_anim)
+        .animationExit("opaque-toast-exit")
         .zIndex(z_index)
         .transition(.{
-            .properties = &.{ .top, .scale, .opacity, .transform },
+            .properties = &.{ .top, .bottom, .scale, .opacity, .transform },
             .duration = 200,
             .timing = .easeInOut,
         })
         .scale(toast.scale_val)
-
-        // Container Styling
         .height(.px(toast.height))
-        .blur(12)
-        .width(.px(toast.width)) // Fixed width usually looks better than % for toasts
-        .background(background)
-
-        // Improved Shadow for "Pop"
-        // .shadow(shadow)
-
-        // Layout: Row (Icon -> Content -> Close)
-        .layout(.x_between_center) // Vertically center items
+        .blur(getBlur(toast.toast_type))
+        .inlineStyle("min-width: {d}px", .{toast.width})
+        // .width(.px(toast.width))
+        .background(getBackground(toast.toast_type))
+        .layout(.x_between_center)
         .padding(.all(8))
         .spacing(8)
         .children({
         // 1. Semantic Icon
         Center()
-            // .border(.round(getTypeColor(toast.toast_type), .all(4)))
             .width(.px(32))
             .height(.px(32))
-            // .background()
             .children({
             Icon(getTypeIcon(toast.toast_type))
-                .font(18, 700, text_color)
+                .font(18, 700, getTextColor(toast.toast_type))
                 .end();
         });
+
         // 2. Text Content (Stacked Vertically)
         Box()
-            // .spacing(8)
             .direction(.column)
             .layout(.left_center)
-            .width(.grow) // Take up remaining space
+            .width(.grow)
             .children({
-            // Title
-
             Text(toast.title)
-                .font(14, 600, text_color)
+                .font(14, 600, getTextColor(toast.toast_type))
                 .end();
-
-            // Description
             Text(toast.description)
-                .font(13, 400, text_color)
-                // .lineHeight(1.4)
+                .ellipsis(.dot)
+                .font(13, 400, getTextColor(toast.toast_type))
                 .end();
         });
 
@@ -362,17 +468,20 @@ pub fn render(toast: *Toast, index: usize) void {
             .padding(.all(4))
             .duration(100)
             .hover(.{
-                .text_color = .transparentizeHex(.black, 0.5),
+                .text_color = .transparentizeHex(getTextColor(toast.toast_type), 0.5),
             })
             .children({
             Icon(.x_lg)
-                .font(16, 700, text_color)
-                // .inheritHover(&.{.text_color})
+                .font(16, 700, getTextColor(toast.toast_type))
                 .hover(.{
-                    .text_color = .transparentizeHex(.black, 0.5),
-                    // .animation = &spinner,
+                    .text_color = .transparentizeHex(getTextColor(toast.toast_type), 0.5),
                 })
                 .end();
         });
     });
+}
+
+// Keep the original render function for backwards compatibility
+pub fn render(toast: *Toast, index: usize) void {
+    renderToast(toast, index, stack_position);
 }

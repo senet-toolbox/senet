@@ -45,25 +45,25 @@ max_width: f32 = 512,
 mode: SheetMode = .overlay,
 
 pub fn new() void {
-    animateEnterRight = Vapor.Animation.init("sheet-enter-right")
+    animateEnterRight = Vapor.Animation.init("opaque-sheet-enter-right")
         .propUnit(.right, -starting_width, 0, .px)
         .duration(200)
         .easing(.easeInOut);
     animateEnterRight.build();
 
-    animateExitRight = Vapor.Animation.init("sheet-exit-right")
+    animateExitRight = Vapor.Animation.init("opaque-sheet-exit-right")
         .propUnit(.right, 0, -starting_width, .px)
         .duration(200)
         .easing(.easeInOut);
     animateExitRight.build();
 
-    animateEnterLeft = Vapor.Animation.init("sheet-enter-left")
+    animateEnterLeft = Vapor.Animation.init("opaque-sheet-enter-left")
         .propUnit(.left, -starting_width, 0, .px)
         .duration(200)
         .easing(.easeInOut);
     animateEnterLeft.build();
 
-    animateExitLeft = Vapor.Animation.init("sheet-exit-left")
+    animateExitLeft = Vapor.Animation.init("opaque-sheet-exit-left")
         .propUnit(.left, 0, -starting_width, .px)
         .duration(200)
         .easing(.easeInOut);
@@ -72,13 +72,13 @@ pub fn new() void {
     animateBackgroundEnter.build();
     animateBackgroundExit.build();
 
-    animateEnterTop = Vapor.Animation.init("sheet-enter-top")
+    animateEnterTop = Vapor.Animation.init("opaque-sheet-enter-top")
         .propUnit(.top, -starting_width, 0, .px)
         .duration(200)
         .easing(.easeInOut);
     animateEnterTop.build();
 
-    animateExitTop = Vapor.Animation.init("sheet-exit-top")
+    animateExitTop = Vapor.Animation.init("opaque-sheet-exit-top")
         .propUnit(.top, 0, -starting_width, .px)
         .duration(200)
         .easing(.easeInOut);
@@ -167,21 +167,21 @@ fn HandleBar(sheet: *Sheet) void {
         .children({});
 }
 
-fn getAnimationEnter(sheet: *Sheet) *const Vapor.Animation {
+fn getAnimationEnter(sheet: *Sheet) []const u8 {
     switch (sheet.direction) {
-        .right => return &animateEnterRight,
-        .left => return &animateEnterLeft,
-        .top => return &animateEnterTop,
-        .bottom => return &animateEnterBottom,
+        .right => return "opaque-sheet-enter-right",
+        .left => return "opaque-sheet-enter-left",
+        .top => return "opaque-sheet-enter-top",
+        .bottom => return "opaque-sheet-enter-bottom",
     }
 }
 
-fn getAnimationExit(sheet: *Sheet) *const Vapor.Animation {
+fn getAnimationExit(sheet: *Sheet) []const u8 {
     switch (sheet.direction) {
-        .right => return &animateExitRight,
-        .left => return &animateExitLeft,
-        .top => return &animateExitTop,
-        .bottom => return &animateExitBottom,
+        .right => return "opaque-sheet-exit-right",
+        .left => return "opaque-sheet-exit-left",
+        .top => return "opaque-sheet-exit-top",
+        .bottom => return "opaque-sheet-exit-bottom",
     }
 }
 
@@ -212,8 +212,8 @@ pub fn render(sheet: *Sheet) void {
     Vapor.Static.HooksCtx(.mounted, mount, .{sheet})({
         if (sheet.mode == .overlay) {
             Box()
-                .animationEnter(&animateBackgroundEnter)
-                .animationExit(&animateBackgroundExit)
+                .animationEnter("opaque-sheet-background-enter")
+                .animationExit("opaque-sheet-background-exit")
                 .background(.transparentizeHex(.black, 0.3))
                 .size(.full)
                 .pos(.tl(.px(0), .px(0), .fixed))

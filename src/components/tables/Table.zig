@@ -7,13 +7,28 @@ const Stack = Vapor.Stack;
 const Components = @import("Components.zig");
 const TableContainer = Components.Table;
 const Select = @import("../Select.zig").Select;
-const animEnter = @import("../Select.zig").animateEnter;
-const animExit = @import("../Select.zig").animateExit;
 const Icon = Vapor.Icon;
 const TextField = Vapor.TextField;
 const TextFmt = Vapor.TextFmt;
 const File = Vapor.FileReader;
 const VirtualList = @import("Virtualize.zig").VirtualList;
+
+pub const animateEnter = Vapor.Animation.init("opaque-table-filter-enter")
+    .prop(.opacity, 0, 1)
+    .prop(.scale, 0.9, 1)
+    .duration(100)
+    .easing(.easeInOut);
+
+pub const animateExit = Vapor.Animation.init("opaque-table-filter-exit")
+    .prop(.opacity, 1, 0)
+    .prop(.scaleY, 1, 0.9)
+    .duration(100)
+    .easing(.easeInOut);
+
+pub fn new() void {
+    animateEnter.build();
+    animateExit.build();
+}
 
 pub const DisplayMode = enum {
     paginated,
@@ -109,7 +124,7 @@ pub fn Table(comptime T: type, comptime columns: []const Column(T), config: stru
         var row_height: f32 = 48;
         var row_width: f32 = 90;
         var checkbox_width: f32 = 5;
-        var show_actions: bool = false;
+        var show_actions: bool = if (config.actions != null) true else false;
 
         var actions: []const Action(T) = config.actions orelse &.{};
 
@@ -256,7 +271,9 @@ pub fn Table(comptime T: type, comptime columns: []const Column(T), config: stru
                     .layout(.right_center)
                     .height(.px(24))
                     .children({
-                    table.action_select.renderTrigger();
+                    if (show_actions) {
+                        table.action_select.renderTrigger();
+                    }
                 });
             });
         }
@@ -411,6 +428,28 @@ pub fn Table(comptime T: type, comptime columns: []const Column(T), config: stru
         }
 
         fn Rows(table: *Self) void {
+            if (table.filtered_data.items.len == 0) {
+                Box()
+                    .width(.percent(100))
+                    .padding(.vertical(48))
+                    .layout(.center)
+                    .children({
+                    Stack()
+                        .layout(.center)
+                        .spacing(8)
+                        .width(.percent(100))
+                        .children({
+                        // Icon(.inbox)
+                        //     .font(32, 300, icon_color)
+                        //     .end();
+                        Text("No results found")
+                            .font(14, 400, icon_color)
+                            .end();
+                    });
+                });
+                return;
+            }
+
             const items_to_render = switch (table.display_mode) {
                 .paginated => blk: {
                     const start_index = current_page * table.per_page;
@@ -428,49 +467,39 @@ pub fn Table(comptime T: type, comptime columns: []const Column(T), config: stru
             };
 
             Stack()
+                .scroll(.scroll_x()) // Allow horizontal scroll
                 .width(.percent(100))
                 .children({
                 // If we remove the outer box we get very strange behaviour
                 Box()
                     .inlineStyle(
-                        \\max-width: 16%;
-                        \\min-width: 10%;
+                        \\min-width: 128px;
+                        \\width: max-content;
                     , .{})
-                    .pos(.tl(.percent(0), .percent(0), .absolute))
+                    // .width(.percent(14))
+                    .pos(.tl(.percent(0), .percent(0), .absolute)) // Position absolute to the top left
+                    // .pos(.relative)
                     .children({
-                    table.action_select.renderSelect();
+                    if (show_actions) {
+                        table.action_select.renderSelect();
+                    }
                 });
                 // const fields = @typeInfo(T).@"struct".fields;
                 for (items_to_render, 0..) |*row, i| {
                     const last_row = table.rows.len - 1 == i;
                     Box()
-                        .width(.percent(100))
+                        // .width(.percent(100))
                         .height(.px(row_height))
-                        .layout(.x_between_center).children({
+                        .width(.percent(100))
+                        .inlineStyle("min-width: 600px", .{}) // Minimum table width
+                        .layout(.x_between_center)
+                        .children({
                         Box()
                             .padding(.horizontal(18))
                             .width(.percent(100))
                             .height(.px(row_height))
                             .background(.palette(.background))
                             .border(.bottom(if (!last_row) border_color else .transparent))
-                            // .hover(.{
-                            //     .background = .black,
-                            //     .text_color = .white,
-                            //     // .border = .sharp(.all(1), .black),
-                            //     // .transform = .{
-                            //     //     .trans_x = -2,
-                            //     //     .trans_y = -20,
-                            //     //     // .scale_size = 1.01,
-                            //     //     .type = &.{ .translateX, .translateY },
-                            //     //     .size_type = .percent,
-                            //     // },
-                            //     // .shadow = .{
-                            //     //     .color = .transparentizeHex(.black, 1),
-                            //     //     .spread = 0,
-                            //     //     .left = 8,
-                            //     //     .top = 8,
-                            //     // },
-                            // })
                             .layout(.x_between_center).children({
                             Box()
                                 .width(.percent(checkbox_width))
@@ -507,11 +536,17 @@ pub fn Table(comptime T: type, comptime columns: []const Column(T), config: stru
                                         .layout(.left_center)
                                         .children({
                                         switch (@typeInfo(@TypeOf(value))) {
-                                            .int => Text(value).end(),
-                                            .@"enum" => Text(value).end(),
+                                            .int => Text(value)
+                                                .ellipsis(.dot)
+                                                .end(),
+                                            .@"enum" => Text(value)
+                                                .ellipsis(.dot)
+                                                .end(),
                                             .pointer => |ptr| {
                                                 if (ptr.size == .slice) {
-                                                    Text(value).end();
+                                                    Text(value)
+                                                        .ellipsis(.dot)
+                                                        .end();
                                                 }
                                             },
                                             else => {
@@ -525,12 +560,14 @@ pub fn Table(comptime T: type, comptime columns: []const Column(T), config: stru
                                 .width(.percent(action_width))
                                 .layout(.right_center)
                                 .height(.px(24))
-                                .pos(.relative)
+                                // .pos(.relative)
                                 .children({
                                 // const trigger_index = Vapor.arena(.frame).create(usize) catch unreachable;
                                 // trigger_index.* = i;
-                                table.action_select.renderTrigger();
-                                // table.action_select.toggle();
+                                if (show_actions) {
+                                    table.action_select.renderTrigger();
+                                    // table.action_select.toggle();
+                                }
                             });
                         });
                     });
@@ -587,8 +624,8 @@ pub fn Table(comptime T: type, comptime columns: []const Column(T), config: stru
 
         fn CommonFilter() Vapor.Builder(.pure) {
             return Stack()
-                .animationEnter(&animEnter)
-                .animationExit(&animExit)
+                .animationEnter("opaque-table-filter-enter")
+                .animationExit("opaque-table-filter-exit")
                 .width(.percent(100))
                 .layout(.center)
                 .background(.palette(.background))
@@ -609,6 +646,7 @@ pub fn Table(comptime T: type, comptime columns: []const Column(T), config: stru
                 .children({
                 for (values) |value| {
                     ButtonCtx(handleFilter, .{ table, FT, value })
+                        .ariaLabel("Select Filter")
                         .width(.percent(100))
                         .height(.px(36))
                         .background(if (enum_filters.get(fieldToString(value)) != null) tint else .transparent)
@@ -665,6 +703,7 @@ pub fn Table(comptime T: type, comptime columns: []const Column(T), config: stru
                             .onEventCtx(.input, search, table)
                             .end();
                         ButtonCtx(clearText, .{table})
+                            .ariaLabel("Search Filter")
                             .background(.transparent)
                             .pointer()
                             .padding(.all(4))
@@ -687,9 +726,9 @@ pub fn Table(comptime T: type, comptime columns: []const Column(T), config: stru
                 clicked_index = index;
             }
 
-            const bounds = binded_cols[index].getBoundingClientRect() orelse return;
-            filter_top = bounds.height;
-            filter_right = 0;
+            const bounds = binded_cols[index].getOffsets() orelse return;
+            filter_top = bounds.offset_top + bounds.offset_height;
+            filter_right = bounds.offset_left;
         }
 
         fn toggleSearch(_: *Self, index: usize) void {
@@ -704,9 +743,9 @@ pub fn Table(comptime T: type, comptime columns: []const Column(T), config: stru
                 search_box.text = active_filters[index] orelse "";
             }
 
-            const bounds = binded_cols[index].getBoundingClientRect() orelse return;
-            search_top = bounds.height;
-            search_right = 0;
+            const bounds = binded_cols[index].getOffsets() orelse return;
+            search_top = bounds.offset_top + bounds.offset_height;
+            search_right = bounds.offset_left;
         }
 
         fn Pagination(table: *Self) void {
@@ -730,6 +769,7 @@ pub fn Table(comptime T: type, comptime columns: []const Column(T), config: stru
                     .children({
                     if (float_current_page > 0) {
                         ButtonCtx(prevPage, .{table})
+                            .ariaLabel("Previous Page")
                             .background(.transparent)
                             .cursor(.pointer)
                             .children({
@@ -740,6 +780,7 @@ pub fn Table(comptime T: type, comptime columns: []const Column(T), config: stru
                     }
                     if (float_current_page < page_count - 1) {
                         ButtonCtx(nextPage, .{table})
+                            .ariaLabel("Next Page")
                             .background(.transparent)
                             .cursor(.pointer)
                             .children({
@@ -810,6 +851,7 @@ pub fn Table(comptime T: type, comptime columns: []const Column(T), config: stru
 
         fn CommonToggleFilter(func: anytype, args: anytype) Vapor.ButtonBuilder(.pure) {
             return ButtonCtx(func, args)
+                .ariaLabel("Toggle Filter")
                 .cursor(.pointer)
                 .border(.round(.transparent, .all(4)))
                 .padding(.all(4))
@@ -828,6 +870,7 @@ pub fn Table(comptime T: type, comptime columns: []const Column(T), config: stru
         }
         fn CheckBox(func: anytype, args: anytype) Vapor.ButtonBuilder(.pure) {
             return ButtonCtx(func, args)
+                .ariaLabel("Table Row Checkbox")
                 .width(.px(20))
                 .height(.px(20))
                 .cursor(.pointer)
@@ -843,124 +886,139 @@ pub fn Table(comptime T: type, comptime columns: []const Column(T), config: stru
                 .layout(.top_center)
                 .children({
                 Box()
-                    .height(.px(row_height))
-                    .border(.bottom(border_color))
-                    .padding(.horizontal(18))
                     .width(.percent(100))
-                    .layout(.x_between_center)
+                    .pos(.relative)
                     .children({
                     Box()
-                        .width(.percent(checkbox_width))
-                        .children({
-                        const active = table.selected_rows.count() == table.data.len - 1;
-                        CheckBox(selectAll, .{table})
-                            .hoverScale()
-                            .border(.solid(.all(1), if (active) .transparentizeHex(.palette(.tint), 0.8) else border_color, .all(6)))
-                            .layout(.center)
-                            .children({
-                            if (table.selected_rows.count() == table.data.len - 1) {
-                                Box()
-                                    .width(.px(14))
-                                    .height(.px(14))
-                                    .background(if (active) .transparentizeHex(.palette(.tint), 0.8) else .transparent)
-                                    .border(.round(if (active) .transparent else border_color, .all(4)))
-                                    .hoverScale()
-                                    .layout(.center)
-                                    .children({});
-                            }
-                        });
-                    });
-
-                    Box()
-                        .width(.percent(row_width))
+                        .scroll(.scroll_x()) // Allow horizontal scroll
+                        .width(.percent(100))
                         .height(.px(row_height))
-                        .layout(.x_even_center).children({
-                        const fields = @typeInfo(T).@"struct".fields;
-                        inline for (table_columns, 0..) |*column, i| {
-                            Box()
-                                .ref(&binded_cols[i])
-                                .pos(.relative)
-                                .width(.percent(100))
-                                .layout(.left_center)
-                                .spacing(4)
-                                .children({
-                                Text(column.title)
-                                    .fontFamily("Montserrat")
-                                    .font(16, null, null).end();
-
-                                if (column.sort) |sort_type| {
-                                    CommonToggleFilter(sortColumn, .{ table, sort_type, column.key })
-                                        .children({
-                                        switch (sort_type) {
-                                            .asc => Icon(.sort_alpha_down).font(14, 700, null).end(),
-                                            .desc => Icon(.sort_alpha_up).font(14, 700, null).end(),
-                                            else => {},
-                                        }
-                                    });
-                                }
-                                if (column.search) {
-                                    CommonToggleFilter(toggleSearch, .{ table, i })
-                                        .children({
-                                        Icon(.search).font(14, 700, null).end();
-                                    });
-                                }
-                                if (column.filter) {
-                                    CommonToggleFilter(toggleFilter, .{ table, i })
-                                        .children({
-                                        Icon(.funnel).font(14, 700, null).end();
-                                    });
-                                }
-                                Box()
-                                    .pos(.tl(.px(0), .percent(0), .absolute))
-                                    .width(.fit)
-                                    .zIndex(1000)
-                                    .inlineStyle("transform: translate({d}px, {d}px)", .{ filter_right, filter_top })
-                                    .children({
-                                    if (column.filter and show_filter and clicked_index == i) {
-                                        inline for (fields) |field| {
-                                            const name = field.name;
-                                            const field_type = field.type;
-                                            if (std.mem.eql(u8, column.key, name)) {
-                                                if (@typeInfo(field_type) == .@"enum") {
-                                                    FilterSelect(table, field_type, std.enums.values(field_type));
-                                                }
-                                            }
-                                        }
-                                    }
-                                });
-
-                                Box()
-                                    .pos(.tl(.px(0), .percent(0), .absolute))
-                                    .width(.fit)
-                                    .zIndex(1000)
-                                    .inlineStyle("transform: translate({d}px, {d}px)", .{ search_right, search_top })
-                                    .children({
-                                    if (column.search and show_search and clicked_index == i) {
-                                        Search(table);
-                                    }
-                                });
-                            });
-                        }
-                    });
-                    Box()
-                        .width(.percent(action_width))
-                        .layout(.right_center)
-                        .height(.px(24))
+                        .layout(.x_between_center)
                         .children({
                         Box()
+                            .height(.px(row_height))
                             .width(.percent(100))
-                            .height(.percent(100))
-                            .layout(.left_center)
-                            .spacing(8)
+                            .inlineStyle("min-width: 600px", .{}) // Minimum table width
                             .children({
-                            CommonToggleFilter(download, .{ table, .json })
-                                .layout(.center)
-                                .cursor(.pointer)
-                                .padding(.all(0))
-                                .children({
-                                Vapor.Icon(.filetype_json)
-                                    .font(18, 300, null)
-                                    .end();
+                            Box()
+                                .padding(.horizontal(18))
+                                .width(.percent(100))
+                                .height(.px(row_height))
+                                .layout(.x_between_center).children({
+                                Box()
+                                    .width(.percent(checkbox_width))
+                                    .children({
+                                    const active = table.selected_rows.count() == table.data.len - 1;
+                                    CheckBox(selectAll, .{table})
+                                        .hoverScale()
+                                        .border(.solid(.all(1), if (active) .transparentizeHex(.palette(.tint), 0.8) else border_color, .all(6)))
+                                        .layout(.center)
+                                        .children({
+                                        if (table.selected_rows.count() == table.data.len - 1) {
+                                            Box()
+                                                .width(.px(14))
+                                                .height(.px(14))
+                                                .background(if (active) .transparentizeHex(.palette(.tint), 0.8) else .transparent)
+                                                .border(.round(if (active) .transparent else border_color, .all(4)))
+                                                .hoverScale()
+                                                .layout(.center)
+                                                .children({});
+                                        }
+                                    });
+                                });
+                                const fields = @typeInfo(T).@"struct".fields;
+                                Box()
+                                    .width(.percent(row_width))
+                                    .height(.px(row_height))
+                                    .layout(.x_even_center).children({
+                                    inline for (table_columns, 0..) |*column, i| {
+                                        Box()
+                                            .ref(&binded_cols[i])
+                                            .width(.percent(100))
+                                            .height(.px(row_height))
+                                            .layout(.left_center)
+                                            .spacing(4)
+                                            .children({
+                                            Text(column.title)
+                                                .fontFamily("Montserrat")
+                                                .font(16, null, null).end();
+
+                                            if (column.sort) |sort_type| {
+                                                CommonToggleFilter(sortColumn, .{ table, sort_type, column.key })
+                                                    .children({
+                                                    switch (sort_type) {
+                                                        .asc => Icon(.sort_alpha_down).font(14, 700, null).end(),
+                                                        .desc => Icon(.sort_alpha_up).font(14, 700, null).end(),
+                                                        else => {},
+                                                    }
+                                                });
+                                            }
+                                            if (column.search) {
+                                                CommonToggleFilter(toggleSearch, .{ table, i })
+                                                    .children({
+                                                    Icon(.search).font(14, 700, null).end();
+                                                });
+                                            }
+                                            if (column.filter) {
+                                                CommonToggleFilter(toggleFilter, .{ table, i })
+                                                    .children({
+                                                    Icon(.funnel).font(14, 700, null).end();
+                                                });
+                                            }
+                                            Box()
+                                                .pos(.tl(.px(0), .percent(0), .absolute))
+                                                .width(.fit)
+                                                .zIndex(1000)
+                                                .inlineStyle("transform: translate({d}px, {d}px)", .{ filter_right, filter_top })
+                                                .children({
+                                                if (column.filter and show_filter and clicked_index == i) {
+                                                    inline for (fields) |field| {
+                                                        const name = field.name;
+                                                        const field_type = field.type;
+                                                        if (std.mem.eql(u8, column.key, name)) {
+                                                            if (@typeInfo(field_type) == .@"enum") {
+                                                                FilterSelect(table, field_type, std.enums.values(field_type));
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            });
+
+                                            Box()
+                                                .pos(.tl(.px(0), .percent(0), .absolute))
+                                                .width(.fit)
+                                                .zIndex(1000)
+                                                .inlineStyle("transform: translate({d}px, {d}px)", .{ search_right, search_top })
+                                                .children({
+                                                if (column.search and show_search and clicked_index == i) {
+                                                    Search(table);
+                                                }
+                                            });
+                                        });
+                                    }
+                                });
+                                Box()
+                                    .width(.percent(action_width))
+                                    .layout(.right_center)
+                                    .height(.px(24))
+                                    .children({
+                                    Box()
+                                        .width(.percent(100))
+                                        .height(.percent(100))
+                                        .layout(.left_center)
+                                        .spacing(8)
+                                        .children({
+                                        CommonToggleFilter(download, .{ table, .json })
+                                            .layout(.center)
+                                            .cursor(.pointer)
+                                            .padding(.all(0))
+                                            .children({
+                                            Vapor.Icon(.filetype_json)
+                                                .font(18, 300, null)
+                                                .end();
+                                        });
+                                    });
+                                });
                             });
                         });
                     });
@@ -971,7 +1029,9 @@ pub fn Table(comptime T: type, comptime columns: []const Column(T), config: stru
                         .width(.percent(14))
                         .pos(.tl(.percent(0), .percent(0), .absolute))
                         .children({
-                        table.action_select.renderSelect();
+                        if (show_actions) {
+                            table.action_select.renderSelect();
+                        }
                     });
                 } else {
                     table.Rows();

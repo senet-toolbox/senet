@@ -2,7 +2,172 @@
 
 # Memory
 
-In Vapor, the majority of memory is handled by the Vapor's engine _Codex_. If you haven't been exposed to memory management yet, it is recommended to read through the 
+{#memory}
+
+# Memory
+
+### You Probably Don't Need This Section
+
+**Seriously.** Look at the Tic-Tac-Toe tutorial—150 lines, zero memory management. For most Vapor apps:
+
+```zig
+// This is all you need
+var counter: i32 = 0;
+var items: [10]Item = undefined;
+var text: []const u8 = "Hello";
+```
+
+Module-level variables live forever. Event handlers mutate them. Vapor re-renders. Done.
+
+**When DO you need memory management?**
+
+| Scenario                                         | Do you need arenas? |
+| ------------------------------------------------ | ------------------- |
+| Fixed-size state (counters, flags, small arrays) | ❌ No               |
+| Strings known at compile time                    | ❌ No               |
+| Dynamic lists that grow/shrink                   | ✅ Yes              |
+| Formatted strings with runtime values            | ✅ Yes              |
+| Data fetched from an API                         | ✅ Yes              |
+| User-generated content                           | ✅ Yes              |
+
+If your app is mostly static UI with simple state, skip to the next section.
+
+---
+
+### When You Need Dynamic Memory
+
+Let's say you're building a todo app where users can add items:
+
+```zig
+// ❌ This won't work - can't grow a fixed array
+var todos: [100]Todo = undefined;
+var todo_count: usize = 0;
+
+fn addTodo(text: []const u8) void {
+    if (todo_count >= 100) return; // Stuck at 100!
+    todos[todo_count] = .{ .text = text };
+    todo_count += 1;
+}
+```
+
+You need a dynamic array. This is where arenas come in.
+
+---
+
+### The Four Arenas (Mental Model)
+
+Think of arenas as **buckets with different lifetimes**:
+
+| Arena      | Lifetime       | Use Case             | Analogy                                   |
+| ---------- | -------------- | -------------------- | ----------------------------------------- |
+| `.frame`   | Single render  | Temporary formatting | Whiteboard (erased after meeting)         |
+| `.view`    | Current page   | Page-specific data   | Notebook (thrown out when you leave room) |
+| `.persist` | Entire session | App-wide state       | Filing cabinet (permanent)                |
+| `.scratch` | You decide     | Manual control       | Sticky notes (you throw away)             |
+
+```zig
+┌─────────────────────────────────────────────────────┐
+│ App Start                                           │
+│  ┌─────────────────────────────────────────────┐    │
+│  │ .persist (lives forever)                    │    │
+│  │  - User settings                            │    │
+│  │  - Auth state                               │    │
+│  │  ┌─────────────────────────────────────┐    │    │
+│  │  │ .view (cleared on navigation)       │    │    │
+│  │  │  - Page-specific lists              │    │    │
+│  │  │  - Form data                        │    │    │
+│  │  │  ┌─────────────────────────────┐    │    │    │
+│  │  │  │ .frame (cleared each render)│    │    │    │
+│  │  │  │  - Formatted strings        │    │    │    │
+│  │  │  │  - Temporary calculations   │    │    │    │
+│  │  │  └─────────────────────────────┘    │    │    │
+│  │  └─────────────────────────────────────┘    │    │
+│  └─────────────────────────────────────────────┘    │
+└─────────────────────────────────────────────────────┘
+```
+
+---
+
+### Practical Examples
+
+**Example 1: Formatted text in UI**
+
+```zig
+var score: i32 = 0;
+
+fn render() void {
+    // ✅ fmtln uses .frame automatically - freed after render
+    const label = Vapor.fmtln("Score: {d} points", .{score});
+    Text(label).end();
+}
+```
+
+**Example 2: Page-specific list**
+
+Useful within `mount()` functions
+
+```zig
+// This list only matters on this page
+var todos: std.ArrayList(Todo) = undefined;
+
+pub fn init() void {
+    // ✅ .view - freed when user navigates away
+    todos = std.ArrayList(Todo).init(Vapor.arena(.view));
+    Vapor.Page(.{ .route = "/todos" }, render, null);
+}
+
+fn addTodo(text: []const u8) void {
+    todos.append(.{ .text = text }) catch return;
+}
+```
+
+**Example 3: App-wide state**
+
+```zig
+// User stays logged in across all pages
+var current_user: ?User = null;
+var auth_token: []const u8 = "";
+
+pub fn init() void {
+    // ✅ .persist - lives until app closes
+    const alloc = Vapor.arena(.persist);
+    // ... fetch and store user data
+}
+```
+
+---
+
+### The Simple Rule
+
+```zig
+// Ask yourself: "When should this data disappear?"
+
+// "After this render" → .frame (or just use Vapor.fmtln)
+const temp = Vapor.fmtln("{d}", .{x});
+
+// "When leaving this page" → .view
+var page_data = Vapor.arena(.view).alloc(T, n);
+
+// "Never (until refresh)" → .persist
+var app_state = Vapor.arena(.persist).create(T);
+
+// "When I say so" → .scratch
+var manual = Vapor.arena(.scratch).alloc(T, n);
+// Later: Vapor.arena(.scratch).free(manual);
+```
+
+---
+
+### You Can Ignore This If...
+
+- Your state is simple types (integers, bools, enums)
+- Your strings are literals (`"hello"`) not runtime-generated
+- Your arrays have fixed, known sizes
+- You're not fetching data from APIs
+
+The Tic-Tac-Toe game uses **zero** arena calls. Start simple, add memory management only when you need dynamic data.
+
+In Vapor, the majority of memory is handled by the Vapor's engine _Codex_. If you haven't been exposed to memory management yet, it is recommended to read through the
 New to Zig section first, and then come back here.
 
 {#memory-is-not-scary}

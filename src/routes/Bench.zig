@@ -154,6 +154,7 @@ fn clearRows() void {
     last_time_ms = @floatFromInt(end - start);
 }
 
+var counter: usize = 0;
 fn swapRows() void {
     const start = std.time.milliTimestamp();
 
@@ -166,6 +167,7 @@ fn swapRows() void {
     const end = std.time.milliTimestamp();
     last_action = "Swap rows";
     last_time_ms = @floatFromInt(end - start);
+    counter += 1;
 }
 
 fn selectRow(id: u32) void {
@@ -273,7 +275,13 @@ fn Benchmark() void {
             ActionButton("Append 1,000", append1k);
             ActionButton("Update every 10th", updateEvery10th);
             ActionButton("Clear", clearRows);
-            ActionButton("Swap Rows", swapRows);
+            // ActionButton("Swap Rows", swapRows);
+            Button(.{ .on_press = swapRows })
+                .background(if (counter % 2 == 0) .red else .blue)
+                .padding(.tblr(8, 8, 16, 16))
+                .children({
+                Text("Swap Rows").font(14, 600, .white).end();
+            });
         });
 
         // Table

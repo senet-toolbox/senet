@@ -40,6 +40,7 @@
 --code_component_color:255,0,255;;
 --code_operator_color:86,86,86;;
 --code_identifier_color:46,59,90;;
+--chart_bar_color:33,33,33;;
 }
 [data-theme="dark"] {
 --border_color:39,39,42;;
@@ -57,9 +58,9 @@
 --dark_text:11,11,11;;
 --form_input_border_color:39,39,42;;
 --danger:255,78,51;;
---alternate_background:0,0,0;;
+--alternate_background:38,38,38;;
 --alternate_border_color:255,255,255;;
---alternate_text_color:255,255,21;;
+--alternate_text_color:15,15,15;;
 --logo:15,15,15;;
 --gradient_start_0stop_color:238,255,0;;
 --gradient_start_100stop_color:204,255,0;;
@@ -83,4 +84,5 @@
 --code_component_color:181,239,138;;
 --code_operator_color:66,66,66;;
 --code_identifier_color:82,92,115;;
+--chart_bar_color:39,39,39;;
 }

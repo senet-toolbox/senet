@@ -391,8 +391,8 @@ pub fn ComboBox(comptime T: type) type {
                 if (!combobox._closed) {
                     Stack()
                         .transformOrigin(.top_center)
-                        .animationEnter(&animateEnter)
-                        .animationExit(&animateExit)
+                        .animationEnter("opaque-combobox-enter")
+                        .animationExit("opaque-combobox-exit")
                         .width(.percent(100))
                         .border(border)
                         .background(background)

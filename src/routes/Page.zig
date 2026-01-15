@@ -13,7 +13,6 @@ const Link = Static.Link;
 const Stack = Static.Stack;
 const Html = Vapor.Html;
 const Image = Static.Image;
-const Svg = Static.Svg;
 const Center = Static.Center;
 const Icon = Static.Icon;
 const Button = Static.Button;
@@ -36,7 +35,6 @@ const ComplexForm = @import("VaporizeComplexForm.zig");
 
 var counter: i32 = 0;
 var code_view_loc: CodeEditor = undefined;
-var form_code: CodeEditor = undefined;
 var highlighter: SyntaxHighlighter = undefined;
 var form_highlighter: SyntaxHighlighter = undefined;
 var reverb_highlighter: SyntaxHighlighter = undefined;
@@ -46,18 +44,6 @@ var websocket_highlighter: SyntaxHighlighter = undefined;
 var complex_form_highlighter: SyntaxHighlighter = undefined;
 var react_form_highlighter: SyntaxHighlighter = undefined;
 var react_form_highlighter_modern: SyntaxHighlighter = undefined;
-
-// const slide_in: Animation = Animation.init("fadeIn", .translateY)
-//     .from(100)
-//     .to(0)
-//     .duration(500)
-//     .easing(.easeOut);
-//
-// const slide_out: Animation = Animation.init("fadeOut", .translateY)
-//     .from(0)
-//     .to(-100)
-//     .duration(500)
-//     .easing(.easeOut);
 
 fn decrement() void {
     counter -= 1;
@@ -133,19 +119,12 @@ pub fn init() void {
 
     complex_form_highlighter = SyntaxHighlighter.init(allocator);
     complex_form_highlighter.use_cpy_btn = false;
-    // complex_form_highlighter.parse(@embedFile("VaporizeComplexForm.zig")) catch unreachable;
 
     react_form_highlighter = SyntaxHighlighter.init(allocator);
     react_form_highlighter.use_cpy_btn = false;
-    // react_form_highlighter.parse(@embedFile("ReactComplexForm.tsx")) catch unreachable;
 
     react_form_highlighter_modern = SyntaxHighlighter.init(allocator);
     react_form_highlighter_modern.use_cpy_btn = false;
-    // react_form_highlighter_modern.parse(@embedFile("ReactComplexFormModern.tsx")) catch unreachable;
-
-    // canopy_highlighter = SyntaxHighlighter.init(allocator);
-    // canopy_highlighter.use_cpy_btn = false;
-    // canopy_highlighter.parse(@embedFile("Canopy.zig")) catch unreachable;
 
     Vapor.Kit.fetch("/src/routes/VaporizeComplexForm.zig", handlePageForm, .{ .method = .GET });
     Vapor.Kit.fetch("/src/routes/ReactComplexForm.tsx", handlePageReactForm, .{ .method = .GET });
@@ -194,28 +173,11 @@ fn handlePageReactFormModern(resp: Vapor.Kit.Response) void {
     Vapor.cycle();
 }
 
-//
-// pub fn shuffle() void {
-//     // Vapor.println("Before", .{});
-//     // for (buffer[0..]) |i| {
-//     //     Vapor.println("elem: {d}", .{i});
-//     // }
-//     random.random().shuffle(usize, &buffer);
-//     // Vapor.println("After", .{});
-//     // for (buffer[0..]) |i| {
-//     //     Vapor.println("elem: {d}", .{i});
-//     // }
-//
-//     rand_num = random.random().intRangeAtMost(usize, 1, 5);
-// }
-//
 pub fn increment() void {
     counter += 1;
-    // Vapor.lib.persist("counter", counter);
     Vapor.printlnSrc("count: {any}", .{counter}, @src());
-    // Vapor.cycle();
 }
-//
+
 const blocks: []const struct { title: []const u8, description: []const u8 } = &.{
     .{
         .title = "Vapor",
@@ -275,11 +237,6 @@ fn boxes() void {
     // ## Box() 02 Data
     var box_2_style = box_style_base.merge(.{
         .position = .tr(.px(unit * 28), .px(-unit * 4), .absolute),
-        // .visual = .{
-        //     .border = .simple(.palette(.tint)),
-        //     .text_color = .palette(.tint),
-        //     .font_size = 22,
-        // },
     });
     box_2_style.interactive.?.hover.?.transform = .direction_scale(.right, 4, 1.05);
     // ## Box 03 Data
@@ -310,29 +267,11 @@ var binded_textfield: Vapor.Binded = .{};
 
 fn log(evt: *Vapor.Event) void {
     Vapor.println("From binded Text: {s}", .{evt.text()});
-    // text = binded_textfield.text;
-    // Vapor.cycle();
 }
-
-// var video_element: Vapor.Binded = .{};
-// fn mount_video() void {
-//     video_element.startVideo();
-// }
-
 var likes: usize = 0;
 fn like() void {
     likes += 1;
 }
-
-// var milliseconds: u32 = 0;
-// fn mount() void {
-//     Vapor.lib.loopInterval("timer", increment_timer, .{{}}, 100);
-// }
-//
-// fn increment_timer(_: void) void {
-//     milliseconds += 1;
-// }
-
 pub fn render() void {
     Box().style(&.{
         .size = .hw(.percent(100), .percent(100)),
@@ -340,36 +279,6 @@ pub fn render() void {
         .layout = .center,
     })({
         if (Vapor.isDesktop()) {
-            // Stack()
-            //     .pos(.bl(.px(24), .px(24), .fixed))
-            //     .zIndex(999)
-            //     .width(.percent(20))
-            //     .height(.px(180))
-            //     .background(.palette(.tint))
-            //     .layer(.dot(0.5, 20, .palette(.background)))
-            //     .padding(.all(24))
-            //     .border(.simple(.palette(.text_color)))
-            //     .shadow(.card(.palette(.text_color)))
-            //     .spacing(32).children({
-            //     Text("This is not a Cookie Banner!").font(20, null, .palette(.background)).end();
-            //
-            //     Box().spacing(8).layout(.left_center).children({
-            //         Button(.{ .on_press = like })
-            //             .direction(.row)
-            //             .shadow(.card(.palette(.text_color)))
-            //             .padding(.all(8))
-            //             .width(.percent(40))
-            //             .layout(.center)
-            //             .background(.palette(.background))
-            //             .spacing(8).children({
-            //             Icon(.heart_balloon).font(28, null, .palette(.text_color)).end();
-            //
-            //             Text(likes).font(28, 700, .palette(.text_color))
-            //                 .fontFamily("Montserrat")
-            //                 .end();
-            //         });
-            //     });
-            // });
             Stack().style(&.{
                 .position = .{ .type = .relative, .z_index = 10 },
                 .size = .hw(.percent(60), .mobile_desktop_percent(100, 70)),
@@ -377,11 +286,6 @@ pub fn render() void {
                 .layout = .center,
                 .visual = .{
                     .layer = .grid(14, 1, .palette(.grid_color)),
-                    // .background = .gradient(.linear, .deg(45), &.{ .red, .blue }),
-                    // .layers = &.{
-                    //     .grid(14, 1, .palette(.grid_color)),
-                    //     .gradient(.linear, .to_bottom, &.{ .transparent, .transparentizeHex(.vapor_blue, 0.5) }),
-                    // },
                     .border = .simple(.palette(.border_color_light)),
                 },
                 .padding = .horizontal(12),
@@ -406,8 +310,6 @@ pub fn render() void {
                     .margin = .t(64),
                     .layout = .center,
                 })({
-                    // Hooks(.{ .mounted = mount })({
-                    // });
                     Html("<code>vapor rendered in 0.6ms</code>").style(&.{
                         .layout = .center,
                         .visual = .font(12, 500, .hex("#6f6f6f")),
@@ -435,8 +337,6 @@ pub fn render() void {
                     Html(
                         \\<strong style="color: rgb(var(--tint))">Out the Box</strong> production defaults, and
                         \\<strong style="color: rgb(var(--text_color))"><i>+100 UI Components</i></strong>.
-                        // \\<strong style="color: rgb(var(--tint))">Deploy Apps</strong> with a
-                        // \\<strong style="color: rgb(var(--text_color))"><i>Engine</i></strong>.
                     ).style(&Styles.body_text.merge(.{
                         .layout = .center,
                         .visual = .font(20, 500, .palette(.text_color)),
@@ -447,7 +347,8 @@ pub fn render() void {
                     .child_gap = 20,
                     .layout = .center,
                 })({
-                    Link(.{ .url = "/huh", .aria_label = "what is tether?" }).style(&link_style.style(.light))({
+                    Link(.{ .url = "/huh", .aria_label = "what is tether?" })
+                        .style(&link_style.style(.light))({
                         Text("Huh?").style(&link_style.text(.light));
                     });
                     Link(.{ .url = "/install", .aria_label = "download page for tether" }).style(&link_style.style(.dark).merge(.{
@@ -456,12 +357,6 @@ pub fn render() void {
                         Text("Install").style(&link_style.text(.dark));
                         Icon(.cloud_download_fill).style(&link_style.text(.dark));
                     });
-                    // ButtonCycle(.{ .on_press = increment, .aria_label = "increment" }).style(&link_style.style(.light))({
-                    //     Icon(.plus).style(&link_style.text(.light));
-                    //     TextFmt("{d}", .{counter}).id("counter").style(&.{
-                    //         .visual = .font(18, 700, if (counter % 2 == 0) .red else .palette(.text_color)),
-                    //     });
-                    // });
                 });
                 Html(
                     \\<strong style="color: rgb(var(--text_color))">THIS</strong>
@@ -472,32 +367,8 @@ pub fn render() void {
                     .layout = .center,
                     .visual = .font(14, 500, .hex("#6f6f6f")),
                 }));
-                // Html(
-                //     \\<strong style="color: rgb(var(--text_color))">NASA</strong>
-                //     \\went to the moon with
-                //     \\<strong style="color: rgb(var(--text_color))"><i>72kb</i></strong>
-                //     \\, we need to do better.
-                // ).style(&Styles.body_text.merge(.{
-                //     .layout = .center,
-                //     .visual = .font(14, 500, .hex("#6f6f6f")),
-                // }));
-                // Text(binded_textfield.text)
-                //     .font(16, null, .palette(.text_color)).end();
-                // TextField(.string)
-                //     .bind(&binded_textfield)
-                //     .plain();
             });
         }
-        // if (counter % 2 == 0) {
-        //     Box()
-        //         .id("box")
-        //         // .animationEnter(&slide_in).animationExit(&slide_out)
-        //         .pos(.{ .type = .absolute, .left = .percent(0), .bottom = .percent(0) })
-        //         .size(.square_px(100))
-        //         .border(.simple(.palette(.tint)))
-        //         .body()({});
-        // }
-
         if (Vapor.isMobile()) {
             Stack().style(&.{
                 .layout = .center,
@@ -573,12 +444,13 @@ pub fn render() void {
                     Text("Used By").style(&Styles.muted_text);
                     Box().style(&.{ .child_gap = 12, .layout = .x_even_center })({
                         if (Theme.mode == .light) {
-                            Image(.{ .src = "/assets/acorn.png" }).style(&.{
+                            Image(.{ .src = "/assets/acorn.png", .alt = "acorn" })
+                                .style(&.{
                                 .id = "acorn-image-light",
                                 .size = .{ .height = .px(32), .width = .percent(100) },
                             });
                         } else {
-                            Image(.{ .src = "/assets/acornwhite.png" }).style(&.{
+                            Image(.{ .src = "/assets/acornwhite.png", .alt = "acorn" }).style(&.{
                                 .id = "acorn-image-dark",
                                 .size = .{ .height = .px(32), .width = .percent(100) },
                             });
@@ -600,36 +472,12 @@ pub fn render() void {
             },
             // .layout = .x_even,
         })({
-            // Stack().style(&.{
-            //     .size = .hw_percent(100, 40),
-            //     .visual = .{ .background = .palette(.image_bg) },
-            // })({
-            //     Text("From Here...").style(&Styles.subheading);
-            //     Graphic(.{ .src = "/assets/webdev.svg" }).style(&.{
-            //         .size = .hw(.percent(100), .percent(100)),
-            //         .visual = .{ .fill = .palette(.text_color), .stroke = .palette(.text_color) },
-            //     });
-            // });
             Stack().style(&.{
                 .size = .hw_percent(60, 60),
-                // .margin = .t(-128),
-                // .visual = .{ .background = .palette(.image_bg) },
-                // .position = .{ .type = .relative },
             })({
-                // Text("To Here...").style(&Styles.subheading);
-                // Graphic(.{ .src = "/assets/tether_has_it_all.svg" }).style(&.{
-                //     .size = .hw(.percent(100), .percent(100)),
-                //     .visual = .{ .fill = .palette(.text_color), .stroke = .palette(.text_color) },
-                // });
                 Graphic(.{ .src = "/src/assets/tether.svg" }).style(&.{
                     .size = .hw(.percent(100), .percent(100)),
-                    // .visual = .{ .fill = .palette(.text_color), .stroke = .palette(.text_color) },
                 });
-                // Graphic(.{ .src = "/assets/logonormal.svg" }).style(&.{
-                //     .position = .{ .type = .absolute, .right = .percent(46), .top = .percent(44) },
-                //     .size = .hw(.percent(22), .percent(22)),
-                //     .visual = .{ .fill = .palette(.text_color), .stroke = .palette(.text_color) },
-                // });
             });
         });
         Box().style(&.{
@@ -639,9 +487,6 @@ pub fn render() void {
             .position = .relative,
             .visual = .{
                 .border = .tb(.palette(.border_color_light)),
-                //     .layers = &.{
-                //         .gradient(.linear, .deg(145), &.{ .hex("#0d0d0d"), .hex("#0d0d0d"), .hex("#1a1a1a"), .hex("#0a0a0a") }),
-                //     },
             },
         })({
             Text(".width(.percent(100)).padding(.tb(64, 64)).layout(.x_even).border(.top(.hex(\"#E4E4E4\")))").style(&.{
@@ -662,69 +507,8 @@ pub fn render() void {
                     });
                 });
             }
-
-            // Box().pos(.{ .bottom = .percent(0), .type = .absolute }).layout(.center).width(.percent(100)).height(.percent(100)).children({
-            //     Graphic(.{ .src = "/assets/chip.svg" }).style(&.{
-            //         .position = .{ .type = .absolute, .bottom = .percent(0) },
-            //         .size = .{ .height = .percent(8), .width = .percent(70) },
-            //         .visual = .{
-            //             .fill = .palette(.background),
-            //         },
-            //         .layout = .center,
-            //     });
-            // });
         });
     }
-
-    // Stack().style(&.{
-    //     .size = .hw(.percent(30), .percent(100)),
-    //     .layout = .center,
-    //     .child_gap = 48,
-    //     .visual = .{
-    //         .border = .bottom(.hex("#E4E4E4")),
-    //         .layer = .dot(0.5, 20, .palette(.text_color)),
-    //     },
-    // })({
-    //     Box().style(&.{
-    //         .size = .hw(.fit, .percent(80)),
-    //         .layout = .x_even_center,
-    //         .child_gap = 64,
-    //     })({
-    //         Box().style(&.{
-    //             .layout = .x_even_center,
-    //             .size = .hw(.fit, .percent(100)),
-    //         })({
-    //             Graphic(.{ .src = "/assets/comparison_tether.svg" }).style(&.{
-    //                 .size = .w(.px(200)),
-    //             });
-    //             Text("18.4KB").style(Styles.logo_text);
-    //         });
-    //         Box().style(&.{
-    //             .layout = .x_even_center,
-    //             .size = .hw(.fit, .percent(100)),
-    //         })({
-    //             Graphic(.{ .src = "/assets/comparison_react.svg" }).style(&.{
-    //                 .size = .w(.px(160)),
-    //             });
-    //             Text("51KB").style(Styles.logo_text);
-    //         });
-    //         Box().style(&.{ .layout = .x_even_center, .size = .hw(.fit, .percent(100)) })({
-    //             Graphic(.{ .src = "/assets/comparison_dioxus.svg" }).style(&.{
-    //                 .size = .w(.px(90)),
-    //             });
-    //             // Image(.{ .src = "https://dioxuslabs.com/assets/smalllogo-dxhed9875cc575d36b.png", .alt = "Dioxus" }).style(&.{
-    //             //     .size = .w(.px(60)),
-    //             // });
-    //             Text("234KB").style(Styles.logo_text);
-    //         });
-    //         Box().style(&.{ .layout = .x_even_center, .size = .hw(.fit, .percent(100)) })({
-    //             Graphic(.{ .src = "/assets/comparison_svelte.svg" }).style(&.{
-    //                 .size = .w(.px(120)),
-    //             });
-    //             Text("15KB").style(Styles.logo_text);
-    //         });
-    //     });
-    // });
 
     // ---------------------------------------------------------------------------------------------
     // Content
@@ -747,13 +531,7 @@ pub fn render() void {
             .padding(.horizontal(12))
             .size(.hw(.mobile_desktop(.fit, .percent(60)), .mobile_desktop_percent(100, 40)))
             .border(.simple(.palette(.text_color)))
-            //     .style(&.{
-            //     .padding = .horizontal(12),
-            //     .size = .hw(.mobile_desktop(.fit, .percent(60)), .mobile_desktop_percent(100, 40)),
-            //     .visual = .{ .border = .simple(.palette(.text_color)) },
-            // })
             .children({
-            // code_view_loc.render(0);
             highlighter.render() catch unreachable;
         });
         Stack().style(&.{
@@ -766,8 +544,6 @@ pub fn render() void {
                 Text("Vapor Code Sample").style(&Styles.subheading);
             });
             Html(
-                // \\Vapor introduces <strong>no new syntax</strong> — everything you see is valid Zig.
-                // \\In Vapor, functions expect children and styles as arguments. We pass them with normal Zig literals or chained functions.
                 \\Vapor lets you build user interfaces using a simple, <strong>what you see is what you get</strong> approach. 
                 \\The code on the left shows two core concepts that make Vapor special: <i style="color: rgb(var(--tint))">automatic UI updates</i>
                 \\ and <i style="color: rgb(var(--tint))">flexible styling</i>.
@@ -777,40 +553,17 @@ pub fn render() void {
             })({
                 ListItem().style(&.{})({
                     Html(
-                        // \\Empty struct literal <i style="color: rgb(var(--tint))"><code>{}</code></i> used for children.
                         \\Notice how the counter updates? 
                         \\We use a plain variable <i style="color: rgb(var(--tint))"><code>counter</code></i> 
                         \\for the state, <strong>no special hooks or functions.</strong> <i style="color: rgb(var(--tint))"><code>Text</code></i>
                         \\automatically updates when <i style="color: rgb(var(--tint))"><code>counter</code></i> changes.
                     ).style(&Styles.body_text);
                 });
-                // ListItem().style(&.{})({
-                //     Html(
-                //         // \\Pointer to struct literal <i style="color: rgb(var(--tint))"><code>&.{}</code></i> used for styles.
-                //         \\Vapor gives you two ways to style your components, so you can pick the best one for the job.
-                //     ).style(&Styles.body_text);
-                // });
-                // ListItem.style(&.{})({
-                //     Html(
-                //         \\Chained function <i style="color: rgb(var(--tint))"><code>.layout(.center)</code></i> used for styles.
-                //     ).style(&Styles.body_text);
-                // });
             });
-
-            // Html(
-            //     \\The <i style="color: rgb(var(--tint))"><code>CSS Class</code></i> Method (Reusable Styles).
-            //     \\You can define a Style struct once, like a CSS class, and apply it to any component.
-            //     \\For my JS devs <i style="color: kgb(var(--tint))"><code>struct</code></i> is an enhanced object or class,
-            //     \\we can attach functions and default values to it.
-            // ).style(&Styles.body_text);
 
             Html(
                 \\The <i style="color: rgb(var(--tint))"><code>Inline Style</code></i> Method (Chaining) For quick or unique styles, you can "chain" 
                 \\modifiers directly onto the component. This is fast, readable, and keeps the styles right next to the component they affect.
-                //     \\This creates a <strong>powerful pattern</strong>, since now our <i style="color: rgb(var(--tint))">Style</i>
-                //     \\structs can be passed to functions, instantiated with default values, and modified.
-                //     \\We can also <i>extend</i> or <i>merge</i> two or more styles together,
-                //     \\and they can be passed from <strong>UI</strong> to <strong>Function</strong>.
             ).style(&Styles.body_text);
 
             Center().width(.percent(100)).height(.percent(30)).children({
@@ -981,7 +734,7 @@ pub fn render() void {
             .height(.percent(60))
             .layout(.x_even_center)
             .children({
-            Stack().width(.percent(32)).height(.percent(100))
+            Stack().width(.percent(40)).height(.percent(100))
                 .layout(.center)
                 .spacing(16)
                 .children({
@@ -994,7 +747,7 @@ pub fn render() void {
                 });
             });
 
-            Stack().width(.percent(32)).height(.percent(100))
+            Stack().width(.percent(40)).height(.percent(100))
                 .layout(.center)
                 .spacing(16)
                 .children({
@@ -1004,19 +757,6 @@ pub fn render() void {
                     .border(.simple(.palette(.text_color)))
                     .children({
                     react_form_highlighter_modern.render() catch unreachable;
-                });
-            });
-
-            Stack().width(.percent(32)).height(.percent(100))
-                .layout(.center)
-                .spacing(16)
-                .children({
-                Text("React, Zod, React-Hook Form, ~1000 Lines").font(20, 700, .palette(.text_color)).end();
-                Center().width(.percent(100)).height(.percent(100))
-                    .scroll(.scroll_y())
-                    .border(.simple(.palette(.text_color)))
-                    .children({
-                    react_form_highlighter.render() catch unreachable;
                 });
             });
         });
@@ -1068,19 +808,16 @@ pub fn render() void {
             Stack().style(&.{ .child_gap = 16, .size = .hw(.mobile_desktop_percent(100, 50), .percent(100)) })({
                 RedirectLink(.{ .url = "https://github.com/tether-labs", .aria_label = "github page of tether" }).style(&.{
                     .visual = .{ .text_color = .white, .text_decoration = .none },
-                    // .interactive = .hover_text(.palette(.tint)),
                 })({
                     Text("Github").style(&Styles.muted_text);
                 });
                 RedirectLink(.{ .url = "https://discord.gg/tether", .aria_label = "discord page of tether" }).style(&.{
                     .visual = .{ .text_color = .white, .text_decoration = .none },
-                    // .interactive = .hover_text(.palette(.tint)),
                 })({
                     Text("Discord").style(&Styles.muted_text);
                 });
                 RedirectLink(.{ .url = "https://youtube.com/tetherlabs", .aria_label = "youtube page of tether" }).style(&.{
                     .visual = .{ .text_color = .white, .text_decoration = .none },
-                    // .interactive = .hover_text(.palette(.tint)),
                 })({
                     Text("Youtube").style(&Styles.muted_text);
                 });
@@ -1095,25 +832,21 @@ pub fn render() void {
             Stack().style(&.{ .child_gap = 16 })({
                 RedirectLink(.{ .url = "https://docs.tether.sh", .aria_label = "docs page of tether" }).style(&.{
                     .visual = .{ .text_color = .white, .text_decoration = .none },
-                    // .interactive = .hover_text(.palette(.tint)),
                 })({
                     Text("Vapor Docs").style(&Styles.muted_text);
                 });
                 RedirectLink(.{ .url = "https://docs.tether.sh", .aria_label = "docs page of tether" }).style(&.{
                     .visual = .{ .text_color = .white, .text_decoration = .none },
-                    // .interactive = .hover_text(.palette(.tint)),
                 })({
                     Text("Reverb Docs").style(&Styles.muted_text);
                 });
                 RedirectLink(.{ .url = "https://docs.tether.sh", .aria_label = "docs page of tether" }).style(&.{
                     .visual = .{ .text_color = .white, .text_decoration = .none },
-                    // .interactive = .hover_text(.palette(.tint)),
                 })({
                     Text("Canopy Docs").style(&Styles.muted_text);
                 });
                 RedirectLink(.{ .url = "https://blog.tether.sh", .aria_label = "blog page of tether" }).style(&.{
                     .visual = .{ .text_color = .white, .text_decoration = .none },
-                    // .interactive = .hover_text(.palette(.tint)),
                 })({
                     Text("Blog").style(&Styles.muted_text);
                 });
@@ -1128,19 +861,16 @@ pub fn render() void {
             Stack().style(&.{ .child_gap = 16 })({
                 RedirectLink(.{ .url = "/acorn", .aria_label = "nightwatch page of tether" }).style(&.{
                     .visual = .{ .text_color = .white, .text_decoration = .none },
-                    // .interactive = .hover_text(.palette(.tint)),
                 })({
                     Text("Acorn").style(&Styles.muted_text);
                 });
                 RedirectLink(.{ .url = "https://heightsandminds.org", .aria_label = "heights and minds page of tether" }).style(&.{
                     .visual = .{ .text_color = .white, .text_decoration = .none },
-                    // .interactive = .hover_text(.palette(.tint)),
                 })({
                     Text("Heights & Minds").style(&Styles.muted_text);
                 });
                 RedirectLink(.{ .url = "https://metal.tether.sh", .aria_label = "metal page of tether" }).style(&.{
                     .visual = .{ .text_color = .white, .text_decoration = .none },
-                    // .interactive = .hover_text(.palette(.tint)),
                 })({
                     Text("Metal").style(&Styles.muted_text);
                 });
@@ -1215,7 +945,7 @@ const link_style = struct {
         base.extend(.{
             .visual = .when(
                 mode == .dark,
-                .{ .border = .simple(.palette(.text_tint_color)), .background = .palette(.alternate_background), .text_color = .palette(.alternate_text_color), .text_decoration = .none },
+                .{ .border = .simple(.palette(.text_tint_color)), .background = .palette(.alternate_background), .text_color = .white, .text_decoration = .none },
                 .{ .border = .simple(.palette(.alternate_border_color)), .background = .palette(.background), .text_color = .palette(.text_color), .text_decoration = .none },
             ),
         });

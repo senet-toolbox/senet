@@ -46,7 +46,7 @@ import {
   cacheMisses,
   styleClassCache,
 } from "./wasi_styling.js";
-import { initCacheModule } from "./cachebindings.js";
+// import { initCacheModule } from "./cachebindings.js";
 
 export let wasmInstance;
 export let activeNodeIds = new Set();
@@ -111,7 +111,6 @@ const socket = new WebSocket("ws://localhost:3003");
 //
 // This fires when the connection is successfully established
 socket.onopen = function(event) {
-  console.log(event);
   console.log("WebSocket connection established!");
   // Maybe update UI to show connected status
 };
@@ -259,7 +258,7 @@ async function loadWasiModule() {
       moduleRoutes.add(pathname);
       wasmInstance = exports;
       setWasiInstance(wasmInstance);
-      initCacheModule();
+      // initCacheModule();
 
       text_data = {};
       init();
@@ -346,9 +345,10 @@ export const rerenderRoute = (navigatedPath) => {
   );
   slice.set(buffer);
   slice[buffer.length] = 0; // null byte to null-terminate the string
-  wasmInstance.callRouteRenderCycle(pointer);
-
-  const has_dirty = wasmInstance.hasDirty();
+  const success = wasmInstance.callRouteRenderCycle(pointer);
+  if (!success) {
+    console.error("Failed to call route render cycle");
+  }
 
   const count = wasmInstance.removalCount();
 
@@ -365,6 +365,8 @@ export const rerenderRoute = (navigatedPath) => {
     }
   }
   wasmInstance.clearRemovalQueueRetainingCapacity();
+
+  const has_dirty = wasmInstance.hasDirty();
   // We need to fix this
   // root.innerHTML = "";
   // wasmInstance.clearRemovedNodesretainingCapacity();
@@ -399,9 +401,13 @@ export const rerenderRoute = (navigatedPath) => {
     activeNodeIds = new Set();
     // state.initial_render = true;
     traverseUINodes(root, rootUINode);
+
+    callDestroyFncs();
+    removeInactiveNodes();
     wasmInstance.markCurrentTreeNotDirty();
     wasmInstance.resetRerender();
-    removeInactiveNodes();
+    wasmInstance.registerAllListenerCallbacks();
+
     // handleIntersection();
     // requestAnimationFrame(wasmInstance.cleanUp);
     // wasmInstance.onEndCtxCallback();
@@ -422,23 +428,18 @@ export const rerenderRoute = (navigatedPath) => {
       //   behavior: "smooth", // or 'auto' for instant scroll
       // });
     }
-
-    hooksCtxCreated.forEach((value, key) => {
-      const idPtr = allocString(key);
-      wasmInstance.callOnCreateNode(idPtr);
-      hooksCtxCreated.delete(key);
-    });
-
     hooksMounted.forEach((value, key) => {
-      const idPtr = allocString(key);
-      wasmInstance.hooksMountedCallback(idPtr);
+      wasmInstance.hooksMountedCallback(key);
       hooksMounted.delete(key);
     });
-
     hooksMountedCtx.forEach((value, key) => {
-      const idPtr = allocString(key);
-      wasmInstance.hooksMountedCtxCallback(idPtr);
+      wasmInstance.hooksMountedCallbackCtx(key);
       hooksMountedCtx.delete(key);
+    });
+    // wasmInstance.onMountCtxCallback();
+    hooksCtxCreated.forEach((value, key) => {
+      wasmInstance.callOnCreateNode(key);
+      hooksCtxCreated.delete(key);
     });
 
     // wasmInstance.callAllMountedCallbacks();
@@ -874,9 +875,9 @@ function setupWasiInstance() {
   requestAnimationFrame(() => {
     wasmInstance.onEndCallback();
     wasmInstance.onEndCtxCallback();
+    wasmInstance.registerAllListenerCallbacks();
   });
 
-  wasmInstance.registerAllListenerCallbacks();
   // After render completes
   // const memory = wasmInstance.memory;
   // const heapSizeKB = memory.buffer.byteLength / 1024;
@@ -1013,7 +1014,7 @@ function clearCSS() {
   // document.adoptedStyleSheets = [];
 }
 
-function injectCSS(cssString) {
+export function injectCSS(cssString) {
   // Append new CSS to the existing sheet
   // read old rules as text
   const existingRules = Array.from(styleSheet.cssRules)
@@ -1101,17 +1102,17 @@ let renderTimeout = null;
 const DEBOUNCE_DELAY = 8; // Can be 0 for next tick, or 16-50ms for smoother batching
 //
 export function requestRerender() {
-  if (renderTimeout) {
-    clearTimeout(renderTimeout);
-  }
+  // if (renderTimeout) {
+  //   clearTimeout(renderTimeout);
+  // }
 
-  renderTimeout = setTimeout(() => {
-    renderTimeout = null;
-    if (!state.isRenderScheduled) {
-      state.isRenderScheduled = true;
-      requestAnimationFrame(render);
-    }
-  }, DEBOUNCE_DELAY);
+  // renderTimeout = setTimeout(() => {
+  // renderTimeout = null;
+  if (!state.isRenderScheduled) {
+    state.isRenderScheduled = true;
+    requestAnimationFrame(render);
+  }
+  // }, 0);
 }
 
 let dirty_count = 0;
@@ -1377,23 +1378,22 @@ export async function render() {
         wasmInstance.resetRerender();
         wasmInstance.registerAllListenerCallbacks();
 
-        hooksCtxCreated.forEach((value, key) => {
-          const idPtr = allocString(key);
-          wasmInstance.callOnCreateNode(idPtr);
-          hooksCtxCreated.delete(key);
+        requestAnimationFrame(() => {
+          hooksMounted.forEach((value, key) => {
+            wasmInstance.hooksMountedCallback(key);
+            hooksMounted.delete(key);
+          });
+          hooksMountedCtx.forEach((value, key) => {
+            wasmInstance.hooksMountedCallbackCtx(key);
+            hooksMountedCtx.delete(key);
+          });
+          // wasmInstance.onMountCtxCallback();
+          hooksCtxCreated.forEach((value, key) => {
+            wasmInstance.callOnCreateNode(key);
+            hooksCtxCreated.delete(key);
+          });
         });
 
-        hooksMounted.forEach((value, key) => {
-          const idPtr = allocString(key);
-          wasmInstance.hooksMountedCallback(idPtr);
-          hooksMounted.delete(key);
-        });
-
-        hooksMountedCtx.forEach((value, key) => {
-          const idPtr = allocString(key);
-          wasmInstance.hooksMountedCtxCallback(idPtr);
-          hooksMountedCtx.delete(key);
-        });
         // requestAnimationFrame(wasmInstance.onEndCallback);
 
         // requestAnimationFrame(wasmInstance.cleanUp);
@@ -1484,10 +1484,9 @@ export function callDestroyFncs() {
   // Remove any nodes that aren't active in this render
   domNodeRegistry.forEach((node, nodeId) => {
     if (!activeNodeIds.has(nodeId)) {
-      if (hooksDestroyCtx.get(nodeId)) {
-        const idPtr = allocString(nodeId);
-        wasmInstance.hooksMountedCtxCallback(idPtr);
-        hooksDestroyCtx.delete(nodeId);
+      if (hooksDestroyCtx.get(node.hash)) {
+        wasmInstance.hooksMountedCallbackCtx(node.hash);
+        hooksDestroyCtx.delete(node.hash);
       }
     }
   });
@@ -1889,6 +1888,7 @@ export function readUINode(offset) {
 
   if (
     elemType === COMPONENT_TYPES.LINK ||
+    elemType === COMPONENT_TYPES.REDIRECT_LINK ||
     elemType === COMPONENT_TYPES.EMBEDLINK ||
     elemType === COMPONENT_TYPES.EMBEDICON ||
     elemType === COMPONENT_TYPES.IMAGE ||

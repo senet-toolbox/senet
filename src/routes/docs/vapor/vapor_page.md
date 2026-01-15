@@ -5,7 +5,7 @@
 #### A framework without all the ceremony.
 
 ```jsx
-// JS Frameworks - what you may know
+// JSX Frameworks
 function Counter() {
   const [count, setCount] = useState(0);
 
@@ -18,9 +18,8 @@ function Counter() {
 ```
 
 ```zig
-// Vapor - almost the same, but simpler
+// Vapor
 var count: i32 = 0;
-
 fn increment() void { count += 1; }
 
 fn render() void {
@@ -35,6 +34,51 @@ fn render() void {
 - `.end()` closes leaf elements (no children)
 - `.children({})` wraps elements that contain others
 - The `{}` block runs first, adding children before the parent closes
+
+#### The Two Endings: `.end()` vs `.children({})`
+
+**Simple rule:** Does this element have children inside it?
+
+| Element has children? | Use             |
+| --------------------- | --------------- |
+| No (leaf node)        | `.end()`        |
+| Yes (container)       | `.children({})` |
+
+```zig
+// ❌ Text never has children - it IS the content
+Text("Hello").children({});  // Wrong!
+
+// ✅ Text is a leaf - close it
+Text("Hello").end();
+
+// ❌ Box needs to wrap something
+Box().end();  // Wrong! (unless intentionally empty)
+
+// ✅ Box contains children
+Box().children({
+    Text("I'm inside").end();
+});
+```
+
+**The `{}` block is just Zig code.** It runs first, building children, then the parent closes:
+
+```zig
+Box().padding(.all(16)).children({
+    // This code executes BEFORE Box closes
+    Text("First").end();
+    Text("Second").end();
+
+    // You can use normal Zig here
+    if (showThird) {
+        Text("Third").end();
+    }
+
+    for (items) |item| {
+        Text(item.name).end();
+    }
+});
+// Box closes here, after all children are added
+```
 
 ### The Difference
 

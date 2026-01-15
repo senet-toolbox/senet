@@ -10,6 +10,7 @@ const color_util = @import("util/color.zig");
 const ScaleConfig = @import("scales/scale.zig").ScaleConfig;
 const Scale = @import("scales/scale.zig").Scale;
 const LogScale = @import("scales/log.zig").LogScale;
+const Writer = Vapor.Writer;
 
 pub const ElementId = struct {
     series_index: u16,
@@ -45,20 +46,21 @@ pub const RenderedElement = struct {
     id: ElementId,
     // Store the attributes that can change
     attrs: union(enum) {
-        circle: struct { cx: f64, cy: f64, r: f64, fill: ?[]const u8 = null },
-        rect: struct { x: f64, y: f64, width: f64, height: f64, fill: ?[]const u8 = null },
+        circle: struct { cx: f64, cy: f64, r: f64, fill: ?Vapor.Types.Color = null },
+        rect: struct { x: f64, y: f64, width: f64, height: f64, fill: ?Vapor.Types.Color = null },
         path: struct {
             d: []const u8,
-            stroke: ?[]const u8 = null,
-            stroke_width: ?u32 = null,
-            fill: ?[]const u8 = null,
+            stroke: ?Vapor.Types.Color = null,
+            stroke_width: ?f32 = null,
+            fill: ?Vapor.Types.Color = null,
         },
     },
 };
 
 const TooltipLegend = struct {
     title: []const u8 = "",
-    color: []const u8 = "",
+    color: Vapor.Types.Color = .hex("#000000"),
+    background: Vapor.Types.Color = .hex("#ffffff"),
     value: []const u8 = "",
 };
 
@@ -115,7 +117,7 @@ pub const Chart = struct {
         screen_x: f32,
         screen_y: f32,
         series_name: []const u8,
-        series_color: []const u8,
+        series_color: Vapor.Types.Color,
     };
 
     pub const HoverResult = struct {
@@ -140,7 +142,7 @@ pub const Chart = struct {
         width: u32 = 600,
         height: u32 = 400,
         margin: Margin = .{},
-        background: ?[]const u8 = null,
+        background: ?Vapor.Types.Color = null,
         palette: color_util.Palette = color_util.palettes.category10,
     };
 
@@ -174,8 +176,8 @@ pub const Chart = struct {
     };
 
     pub const SeriesOptions = struct {
-        color: ?[]const u8 = null,
-        stroke_width: u32 = 2,
+        color: ?Vapor.Types.Color = null,
+        stroke_width: f32 = 2,
         show_dots: bool = true,
         dot_radius: u32 = 4,
         fill_opacity: f64 = 0.3,
@@ -333,17 +335,17 @@ pub const Chart = struct {
                     const val = try std.fmt.bufPrint(&buf, "{d:.2}", .{c.r});
                     self.platform.browser.setAttribute(id, "r", val);
                 }
-                if (c.fill) |f| if (old.attrs.circle.fill) |old_f| {
-                    if (!std.mem.eql(u8, f, old_f)) {
-                        self.platform.browser.setAttribute(id, "fill", f);
-                    }
-                };
+                // if (c.fill) |f| if (old.attrs.circle.fill) |old_f| {
+                //     if (!std.mem.eql(u8, f, old_f)) {
+                //         self.platform.browser.setAttribute(id, "fill", f);
+                //     }
+                // };
             },
             .path => |p| {
                 self.platform.browser.setAttribute(id, "d", p.d);
                 self.allocator.free(old.attrs.path.d);
                 if (p.stroke) |s| {
-                    self.platform.browser.setAttribute(id, "stroke", s);
+                    self.platform.browser.setAttribute(id, "stroke", Svg.convertColor(s));
                 }
                 if (p.stroke_width) |sw| {
                     var buf: [32]u8 = undefined;
@@ -351,7 +353,7 @@ pub const Chart = struct {
                     self.platform.browser.setAttribute(id, "stroke-width", val);
                 }
                 if (p.fill) |f| {
-                    self.platform.browser.setAttribute(id, "fill", f);
+                    self.platform.browser.setAttribute(id, "fill", Svg.convertColor(f));
                 }
             },
             .rect => |r| {
@@ -377,7 +379,7 @@ pub const Chart = struct {
                     self.platform.browser.setAttribute(id, "height", val);
                 }
                 if (r.fill) |f| {
-                    self.platform.browser.setAttribute(id, "fill", f);
+                    self.platform.browser.setAttribute(id, "fill", Svg.convertColor(f));
                 }
             },
         }
@@ -536,7 +538,13 @@ pub const Chart = struct {
 
         try self.rendered_elements.append(.{
             .id = .{ .element_type = .background, .series_index = 0 },
-            .attrs = .{ .rect = .{ .x = 0, .y = 0, .width = @floatFromInt(self.config.width), .height = @floatFromInt(self.config.height), .fill = self.config.background } },
+            .attrs = .{ .rect = .{
+                .x = 0,
+                .y = 0,
+                .width = @floatFromInt(self.config.width),
+                .height = @floatFromInt(self.config.height),
+                .fill = self.config.background,
+            } },
         });
 
         // Chart area group
@@ -553,7 +561,7 @@ pub const Chart = struct {
 
         // Render each series
         for (self.series.items, 0..) |s, i| {
-            const series_color = s.options.color orelse self.config.palette.get(i);
+            const series_color = s.options.color orelse Vapor.Types.Color.hex(self.config.palette.get(i));
             try self.renderSeries(&svg, s, i, x_scale, y_scale, series_color);
         }
 
@@ -578,8 +586,9 @@ pub const Chart = struct {
             tooltip.value = self.allocator.alloc(TooltipLegend, self.series.items.len) catch unreachable;
             for (self.series.items, 0..) |s, i| {
                 tooltip.value[i].title = s.name;
-                tooltip.value[i].color = s.options.color orelse self.config.palette.get(i);
+                tooltip.value[i].color = s.options.color orelse Vapor.Types.Color.hex(self.config.palette.get(i));
                 tooltip.value[i].value = "";
+                tooltip.value[i].background = s.options.color orelse Vapor.Types.Color.hex(self.config.palette.get(i));
             }
         }
 
@@ -599,7 +608,7 @@ pub const Chart = struct {
         }
     }
 
-    fn renderSeries(self: *Chart, svg: *Svg, s: Series, series_index: usize, x_scale: Scale, y_scale: Scale, series_color: []const u8) !void {
+    fn renderSeries(self: *Chart, svg: *Svg, s: Series, series_index: usize, x_scale: Scale, y_scale: Scale, series_color: Vapor.Types.Color) !void {
         switch (s.type) {
             .line => try self.renderLine(svg, s, series_index, x_scale, y_scale, series_color, false),
             .line_smooth => try self.renderLine(svg, s, series_index, x_scale, y_scale, series_color, true),
@@ -610,7 +619,7 @@ pub const Chart = struct {
         }
     }
 
-    fn renderLine(self: *Chart, svg: *Svg, s: Series, series_index: usize, x_scale: Scale, y_scale: Scale, series_color: []const u8, smooth: bool) !void {
+    fn renderLine(self: *Chart, svg: *Svg, s: Series, series_index: usize, x_scale: Scale, y_scale: Scale, series_color: Vapor.Types.Color, smooth: bool) !void {
         if (s.data.len == 0) return;
 
         // Build points array
@@ -666,7 +675,7 @@ pub const Chart = struct {
         }
     }
 
-    fn renderArea(self: *Chart, svg: *Svg, s: Series, series_index: usize, x_scale: Scale, y_scale: Scale, series_color: []const u8, smooth: bool) !void {
+    fn renderArea(self: *Chart, svg: *Svg, s: Series, series_index: usize, x_scale: Scale, y_scale: Scale, series_color: Vapor.Types.Color, smooth: bool) !void {
         if (s.data.len == 0) return;
 
         var points = try self.allocator.alloc([2]f64, s.data.len);
@@ -695,8 +704,8 @@ pub const Chart = struct {
         try path.closePath();
 
         // Render with opacity
-        var fill_buf: [32]u8 = undefined;
-        const fill_with_opacity = try std.fmt.bufPrint(&fill_buf, "{s}", .{series_color});
+
+        const fill_with_opacity = series_color;
 
         var path_id_buf: [64]u8 = undefined;
         const path_id = try std.fmt.bufPrint(&path_id_buf, "chart-{d}-area_path", .{series_index});
@@ -717,7 +726,7 @@ pub const Chart = struct {
         try self.renderLine(svg, s, series_index, x_scale, y_scale, series_color, smooth);
     }
 
-    fn renderBars(self: *Chart, svg: *Svg, s: Series, series_index: usize, x_scale: Scale, y_scale: Scale, series_color: []const u8) !void {
+    fn renderBars(self: *Chart, svg: *Svg, s: Series, series_index: usize, x_scale: Scale, y_scale: Scale, series_color: Vapor.Types.Color) !void {
         if (s.data.len == 0) return;
 
         // Count how many bar series we have
@@ -767,7 +776,7 @@ pub const Chart = struct {
             });
         }
     }
-    fn renderScatter(self: *Chart, svg: *Svg, s: Series, series_index: usize, x_scale: Scale, y_scale: Scale, series_color: []const u8) !void {
+    fn renderScatter(self: *Chart, svg: *Svg, s: Series, series_index: usize, x_scale: Scale, y_scale: Scale, series_color: Vapor.Types.Color) !void {
         for (s.data, 0..) |p, point_index| {
             const x = x_scale.scale(p.x);
             const y = y_scale.scale(p.y);
@@ -864,12 +873,12 @@ pub const Chart = struct {
             .top_right, .bottom_right => @floatFromInt(self.config.width - m.right - 100),
         };
         const y: f64 = switch (cfg.position) {
-            .top_left, .top_right => @floatFromInt(m.top + 10),
+            .top_left, .top_right => @floatFromInt(m.top + 0),
             .bottom_left, .bottom_right => @floatFromInt(self.config.height - m.bottom - 20),
         };
 
         for (self.series.items, 0..) |s, i| {
-            const series_color = s.options.color orelse self.config.palette.get(i);
+            const series_color = s.options.color orelse Vapor.Types.Color.hex(self.config.palette.get(i));
             const offset_y = y + @as(f64, @floatFromInt(i)) * 18;
 
             // Color box
@@ -904,11 +913,8 @@ pub const Chart = struct {
     pub fn updateTooltip(self: *Chart, event: *Vapor.Event) void {
         if (Vapor.Kit.throttle(16)) return;
         if (self.tooltip) |*tooltip| {
-            const x = event.clientX() - self.bounds.offset_x;
-            const y = event.clientY() - self.bounds.offset_y;
-            // Vapor.print("Tooltip: {d}, {d}\n", .{ x, y });
-
-            // Vapor.print("Bounds: x={d}, y={d}, w={d}, h={d}\n", .{ self.bounds.x, self.bounds.y, self.bounds.width, self.bounds.height });
+            const x = event.pageX() - self.bounds.offset_x;
+            const y = event.pageY() - self.bounds.offset_y;
 
             tooltip.left = x;
             tooltip.top = y;
@@ -937,28 +943,6 @@ pub const Chart = struct {
             if (self.findNearestX(@floatCast(x), y)) |result| {
                 defer self.allocator.free(result.points);
 
-                // // Build tooltip content
-                // var buf: [512]u8 = undefined;
-                // var stream = std.io.fixedBufferStream(&buf);
-                // const writer = stream.writer();
-
-                // // Write X value header
-                // writer.print("X: {d:.2}\n", .{result.points[0].data_x}) catch {};
-                //
-                // // Write each series value
-                // for (result.points) |pt| {
-                //     writer.print("{s}: {d:.2}\n", .{ pt.series_name, pt.data_y }) catch {};
-                // }
-                //
-                // const content = stream.getWritten();
-                //
-                // // Position tooltip
-                // tooltip.left = @as(i32, @intFromFloat(result.screen_x + 15));
-                // tooltip.top = @as(i32, @intFromFloat(result.points[0].screen_y));
-                // tooltip.setContent(content);
-
-                // const value = Vapor.fmtln("{d}", .{result.points[0].data_y});
-
                 if (self.old_x != result.points[0].screen_x) {
                     for (result.points, 0..) |pt, i| {
                         const val = Vapor.fmtln("{d}", .{pt.data_y});
@@ -966,22 +950,9 @@ pub const Chart = struct {
                     }
                     Vapor.cycle();
                 }
-                //     tooltip.value = value;
-                //     Vapor.cycle();
                 _ = tooltip.binded.translate3d(.{ .x = result.points[0].screen_x, .y = tooltip.top });
 
                 self.old_x = result.points[0].screen_x;
-                // self.old_y = result.points[0].screen_y;
-
-                // if (tooltip.hide) {
-                //     tooltip.binded.mutateStyleString("display", "block");
-                //     tooltip.hide = false;
-                // }
-
-                // Optional: highlight the points
-                // for (result.points) |pt| {
-                //     self.highlightPoint(pt.series_index, pt.point_index);
-                // }
             } else {
                 // Outside chart or no data
                 if (!tooltip.hide) {
@@ -1000,15 +971,6 @@ pub const Chart = struct {
 
         // Convert mouse position to chart-local coordinates
         const chart_x = mouse_x - @as(f64, @floatFromInt(m.left));
-        // const chart_y = mouse_y - @as(f64, @floatFromInt(m.top));
-
-        // Check bounds
-        // const chart_width: f64 = @floatFromInt(self.config.width - m.left - m.right);
-        // const chart_height: f64 = @floatFromInt(self.config.height - m.top - m.bottom);
-
-        // if (chart_x < 0 or chart_x > chart_width or chart_y < 0 or chart_y > chart_height) {
-        //     return null;
-        // }
 
         // Invert X scale: screen coordinate → data value
         const data_x = x_scale.invert(chart_x);
@@ -1039,7 +1001,7 @@ pub const Chart = struct {
                 if (@abs(p.x - target_x) < 0.0001) {
                     const screen_x = x_scale.scale(p.x);
                     const screen_y = y_scale.scale(p.y);
-                    const color = s.options.color orelse self.config.palette.get(series_idx);
+                    const color = s.options.color orelse Vapor.Types.Color.hex(self.config.palette.get(series_idx));
 
                     points.append(.{
                         .series_index = series_idx,
@@ -1102,7 +1064,7 @@ pub const Chart = struct {
                             .padding(.tblr(4, 4, 8, 8))
                             .layout(.top_left)
                             .direction(.column)
-                            .background(.white)
+                            .background(.palette(.background))
                             .border(.round(.hex("#e5e5e5"), .all(6)))
                             .shadow(.glow(4, .transparentizeHex(.hex("#616161"), 0.1)))
                             .children({
@@ -1113,8 +1075,8 @@ pub const Chart = struct {
                                     .spacing(4)
                                     .children({
                                     Box().width(.px(12)).height(.px(12))
-                                        .border(.round(.hex(lg.color), .all(2)))
-                                        .background(.hex(lg.color))
+                                        .border(.round(lg.color, .all(2)))
+                                        .background(.{ .color = lg.background })
                                         .children({});
                                     Text(lg.value).font(12, 300, .palette(.text_color)).end();
                                 });

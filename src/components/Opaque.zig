@@ -6,7 +6,7 @@ const AlertStruct = @import("Alert.zig");
 const SheetStruct = @import("Sheet.zig");
 const ToastStruct = @import("Toast.zig");
 const TableStruct = @import("tables/Table.zig");
-const ChartStruct = @import("charts/Chart.zig").Chart;
+const ChartStruct = @import("charts/ChartEnhanced.zig").Chart;
 const FieldStruct = @import("Field.zig");
 const TooltipStruct = @import("Tooltip.zig");
 const ComboBoxStruct = @import("ComboBox.zig");
@@ -25,10 +25,11 @@ const ButtonCtx = Vapor.CtxButton;
 const GroupStruct = @import("Group.zig");
 const TextArea = Vapor.TextArea;
 const FileUpload = @import("FileUpload.zig");
-const DatePicker = @import("DatePicker.zig");
+const DatePickerStruct = @import("DatePicker.zig");
 const TabsStruct = @import("Tabs.zig");
 const OverlayManager = @import("OverlayManager.zig");
 const Slider = @import("Slider.zig");
+const Item = @import("OpaqueTypes.zig").Item;
 
 pub const glitch = Vapor.Animation.init("glitch")
     .duration(200)
@@ -67,7 +68,6 @@ pub const blink = Vapor.Animation.init("blink")
 
 const Opaque = @This();
 pub fn new() void {
-    OverlayManager.init();
     SelectStruct.new();
     AlertStruct.new();
     SheetStruct.new();
@@ -81,6 +81,7 @@ pub fn new() void {
     blink.build();
     Tabs.new();
     Slider.new();
+    TableStruct.new();
 }
 
 pub const Table = TableStruct.Table;
@@ -117,6 +118,8 @@ pub const Group = GroupStruct;
 
 pub const Tabs = TabsStruct;
 
+pub const DatePicker = DatePickerStruct;
+
 const Status = enum {
     pending,
     success,
@@ -130,100 +133,7 @@ const Data = struct {
     amount: i32,
 };
 
-var data = [_]Data{
-    .{ .id = 0, .status = .pending, .email = "john@doe.com", .amount = 100 },
-    .{ .id = 1, .status = .success, .email = "jane@doe.com", .amount = 200 },
-    .{ .id = 2, .status = .err, .email = "john@doe.com", .amount = 300 },
-    .{ .id = 3, .status = .pending, .email = "mary@doe.com", .amount = 400 },
-    .{ .id = 4, .status = .success, .email = "vic@doe.com", .amount = 500 },
-    .{ .id = 5, .status = .err, .email = "alicia@doe.com", .amount = 600 },
-    .{ .id = 6, .status = .pending, .email = "nick@doe.com", .amount = 700 },
-    .{ .id = 7, .status = .success, .email = "paxton@doe.com", .amount = 800 },
-    .{ .id = 8, .status = .err, .email = "jaden@doe.com", .amount = 900 },
-    .{ .id = 9, .status = .pending, .email = "sara@doe.com", .amount = 1000 },
-    .{ .id = 10, .status = .success, .email = "marina@doe.com", .amount = 1100 },
-    .{ .id = 11, .status = .err, .email = "gil@doe.com", .amount = 1200 },
-    .{ .id = 12, .status = .pending, .email = "clara@doe.com", .amount = 1300 },
-    .{ .id = 13, .status = .pending, .email = "mads@doe.com", .amount = 1400 },
-    .{ .id = 14, .status = .success, .email = "jake@doe.com", .amount = 1500 },
-    .{ .id = 15, .status = .err, .email = "james@doe.com", .amount = 1600 },
-    .{ .id = 16, .status = .pending, .email = "jake@doe.com", .amount = 1700 },
-    .{ .id = 17, .status = .success, .email = "james@doe.com", .amount = 1800 },
-    .{ .id = 18, .status = .err, .email = "james@doe.com", .amount = 1900 },
-    .{ .id = 19, .status = .pending, .email = "jake@doe.com", .amount = 2000 },
-    .{ .id = 20, .status = .success, .email = "james@doe.com", .amount = 2100 },
-    .{ .id = 21, .status = .err, .email = "james@doe.com", .amount = 2200 },
-    .{ .id = 22, .status = .pending, .email = "jake@doe.com", .amount = 2300 },
-    .{ .id = 23, .status = .success, .email = "james@doe.com", .amount = 2400 },
-    .{ .id = 24, .status = .err, .email = "james@doe.com", .amount = 2500 },
-    .{ .id = 25, .status = .pending, .email = "jake@doe.com", .amount = 2600 },
-    .{ .id = 26, .status = .success, .email = "james@doe.com", .amount = 2700 },
-    .{ .id = 27, .status = .err, .email = "james@doe.com", .amount = 2800 },
-    .{ .id = 28, .status = .pending, .email = "jake@doe.com", .amount = 2900 },
-    .{ .id = 29, .status = .success, .email = "james@doe.com", .amount = 3000 },
-    .{ .id = 30, .status = .err, .email = "james@doe.com", .amount = 3100 },
-    .{ .id = 31, .status = .pending, .email = "jake@doe.com", .amount = 3200 },
-    .{ .id = 32, .status = .success, .email = "james@doe.com", .amount = 3300 },
-    .{ .id = 33, .status = .err, .email = "james@doe.com", .amount = 3400 },
-    .{ .id = 34, .status = .pending, .email = "jake@doe.com", .amount = 3500 },
-    .{ .id = 35, .status = .success, .email = "james@doe.com", .amount = 3600 },
-    .{ .id = 36, .status = .err, .email = "james@doe.com", .amount = 3700 },
-    .{ .id = 37, .status = .pending, .email = "jake@doe.com", .amount = 3800 },
-    .{ .id = 38, .status = .success, .email = "james@doe.com", .amount = 3900 },
-    .{ .id = 39, .status = .err, .email = "james@doe.com", .amount = 4000 },
-    .{ .id = 40, .status = .pending, .email = "jake@doe.com", .amount = 4100 },
-    .{ .id = 41, .status = .success, .email = "james@doe.com", .amount = 4200 },
-    .{ .id = 42, .status = .err, .email = "james@doe.com", .amount = 4300 },
-    .{ .id = 42, .status = .err, .email = "james@doe.com", .amount = 4300 },
-    .{ .id = 44, .status = .pending, .email = "jake@doe.com", .amount = 4500 },
-    .{ .id = 45, .status = .success, .email = "james@doe.com", .amount = 4600 },
-    .{ .id = 46, .status = .err, .email = "james@doe.com", .amount = 4700 },
-    .{ .id = 47, .status = .pending, .email = "jake@doe.com", .amount = 4800 },
-    .{ .id = 48, .status = .success, .email = "james@doe.com", .amount = 4900 },
-    .{ .id = 49, .status = .err, .email = "james@doe.com", .amount = 5000 },
-    .{ .id = 50, .status = .pending, .email = "jake@doe.com", .amount = 5100 },
-    .{ .id = 51, .status = .success, .email = "james@doe.com", .amount = 5200 },
-    .{ .id = 52, .status = .err, .email = "james@doe.com", .amount = 5300 },
-    .{ .id = 53, .status = .pending, .email = "jake@doe.com", .amount = 5400 },
-    .{ .id = 54, .status = .success, .email = "james@doe.com", .amount = 5500 },
-    .{ .id = 55, .status = .err, .email = "james@doe.com", .amount = 5600 },
-    .{ .id = 56, .status = .pending, .email = "jake@doe.com", .amount = 5700 },
-    .{ .id = 57, .status = .success, .email = "james@doe.com", .amount = 5800 },
-    .{ .id = 58, .status = .err, .email = "james@doe.com", .amount = 5900 },
-    .{ .id = 59, .status = .pending, .email = "jake@doe.com", .amount = 6000 },
-    .{ .id = 60, .status = .success, .email = "james@doe.com", .amount = 6100 },
-    .{ .id = 61, .status = .err, .email = "james@doe.com", .amount = 6200 },
-    .{ .id = 62, .status = .pending, .email = "jake@doe.com", .amount = 6300 },
-    .{ .id = 63, .status = .success, .email = "james@doe.com", .amount = 6400 },
-    .{ .id = 64, .status = .err, .email = "james@doe.com", .amount = 6500 },
-    .{ .id = 65, .status = .pending, .email = "jake@doe.com", .amount = 6600 },
-    .{ .id = 66, .status = .success, .email = "james@doe.com", .amount = 6700 },
-    .{ .id = 67, .status = .err, .email = "james@doe.com", .amount = 6800 },
-    .{ .id = 68, .status = .pending, .email = "jake@doe.com", .amount = 6900 }, // <-- add this
-    .{ .id = 69, .status = .success, .email = "james@doe.com", .amount = 7000 },
-    .{ .id = 70, .status = .err, .email = "james@doe.com", .amount = 7100 },
-    .{ .id = 71, .status = .pending, .email = "jake@doe.com", .amount = 7200 },
-    .{ .id = 72, .status = .success, .email = "james@doe.com", .amount = 7300 },
-    .{ .id = 73, .status = .err, .email = "james@doe.com", .amount = 7400 },
-    .{ .id = 74, .status = .pending, .email = "jake@doe.com", .amount = 7500 },
-    .{ .id = 75, .status = .success, .email = "james@doe.com", .amount = 7600 },
-    .{ .id = 76, .status = .err, .email = "james@doe.com", .amount = 7700 },
-    .{ .id = 77, .status = .pending, .email = "jake@doe.com", .amount = 7800 },
-    .{ .id = 78, .status = .success, .email = "james@doe.com", .amount = 7900 },
-    .{ .id = 79, .status = .err, .email = "james@doe.com", .amount = 8000 },
-    .{ .id = 80, .status = .pending, .email = "jake@doe.com", .amount = 8100 },
-    .{ .id = 81, .status = .success, .email = "james@doe.com", .amount = 8200 },
-    .{ .id = 82, .status = .err, .email = "james@doe.com", .amount = 8300 },
-    .{ .id = 83, .status = .pending, .email = "jake@doe.com", .amount = 8400 },
-    .{ .id = 84, .status = .success, .email = "james@doe.com", .amount = 8500 },
-    .{ .id = 85, .status = .err, .email = "james@doe.com", .amount = 8600 },
-    .{ .id = 86, .status = .pending, .email = "jake@doe.com", .amount = 8700 },
-    .{ .id = 87, .status = .success, .email = "james@doe.com", .amount = 8800 },
-    .{ .id = 88, .status = .err, .email = "james@doe.com", .amount = 8900 },
-    .{ .id = 89, .status = .pending, .email = "jake@doe.com", .amount = 9000 },
-    .{ .id = 90, .status = .success, .email = "james@doe.com", .amount = 9100 },
-    .{ .id = 91, .status = .err, .email = "james@doe.com", .amount = 9200 },
-};
+var data: Vapor.Array(Data) = undefined;
 
 const columns = [_]Column(Data){
     Column(Data){ .title = "Status", .width = 100, .key = "status", .filter = true },
@@ -272,10 +182,10 @@ var sheet: Sheet = undefined;
 var chart: Chart = undefined;
 var combobox: ComboBox(Status) = undefined;
 var alert: Alert = undefined;
-var combobox_dialog: ComboBoxDialog(MenuItem) = undefined;
+var combobox_dialog: ComboBoxDialog([]const u8) = undefined;
 var accordion: Accordion = undefined;
 var command_palette: CommandPalette = .{};
-var date_picker: DatePicker = undefined;
+var date_picker: DatePickerStruct = undefined;
 
 const MonthItem = struct {
     value: []const u8,
@@ -362,18 +272,6 @@ fn sample(_: *Sheet) void {
                 .fontFamily("Montserrat")
                 .end();
         });
-        Box()
-            .children({
-            chart.render();
-        });
-        Button(Sheet.open, .{&sheet})
-            .width(.px(800 / 3))
-            .children({
-            Text("Close")
-                .font(14, 300, .palette(.text_color))
-                .fontFamily("Montserrat")
-                .end();
-        });
     });
 }
 
@@ -386,38 +284,122 @@ var combobox_options = [_]ComboBox(Status).Item{
     .{ .value = Status.success, .label = "Success" },
     .{ .value = Status.err, .label = "Error" },
 };
+const MenuItem = Item([]const u8);
 
-var combobox_dialog_options = [_]ComboBoxDialog(Status).Item{
-    .{ .value = Status.pending, .label = "Pending" },
-    .{ .value = Status.success, .label = "Success" },
-    .{ .value = Status.err, .label = "Error" },
-    .{ .value = Status.pending, .label = "Pending" },
-    .{ .value = Status.err, .label = "Error" },
-    .{ .value = Status.success, .label = "Success" },
-    .{ .value = Status.err, .label = "Error" },
+const menu_items = &.{
+    MenuItem{ .label = "Item 1", .value = "1", .icon = Vapor.IconTokens.hash },
+    MenuItem{ .label = "Item 2", .value = "2", .icon = Vapor.IconTokens.hash },
+    MenuItem{ .label = "Item 3", .value = "3", .icon = Vapor.IconTokens.hash },
+    MenuItem{ .label = "Item 4", .value = "4", .icon = Vapor.IconTokens.hash },
+    MenuItem{ .label = "Item 5", .value = "5", .icon = Vapor.IconTokens.hash },
+    MenuItem{ .label = "Item 6", .value = "6", .icon = Vapor.IconTokens.hash },
+    MenuItem{ .label = "Item 7", .value = "7", .icon = Vapor.IconTokens.hash },
+    MenuItem{ .label = "Item 8", .value = "8", .icon = Vapor.IconTokens.hash },
+    MenuItem{ .label = "Item 9", .value = "9", .icon = Vapor.IconTokens.hash },
 };
 
-const MenuItem = struct {
-    label: []const u8,
-    icon: ?*const Vapor.IconTokens = null,
-    value: []const u8 = "",
-};
-
-var menu_items = [_]MenuItem{
-    .{ .label = "Item 1", .value = "1" },
-    .{ .label = "Item 2", .value = "2" },
-    .{ .label = "Item 3", .value = "3" },
-    .{ .label = "Item 4", .value = "4" },
-    .{ .label = "Item 5", .value = "5" },
-    .{ .label = "Item 6", .value = "6" },
-    .{ .label = "Item 7", .value = "7" },
-    .{ .label = "Item 8", .value = "8" },
-    .{ .label = "Item 9", .value = "9" },
-};
+fn initTableData() void {
+    data.appendSlice(&.{
+        .{ .id = 0, .status = .pending, .email = "john@doe.com", .amount = 100 },
+        .{ .id = 1, .status = .success, .email = "jane@doe.com", .amount = 200 },
+        .{ .id = 2, .status = .err, .email = "john@doe.com", .amount = 300 },
+        .{ .id = 3, .status = .pending, .email = "mary@doe.com", .amount = 400 },
+        .{ .id = 4, .status = .success, .email = "vic@doe.com", .amount = 500 },
+        .{ .id = 5, .status = .err, .email = "alicia@doe.com", .amount = 600 },
+        .{ .id = 6, .status = .pending, .email = "nick@doe.com", .amount = 700 },
+        .{ .id = 7, .status = .success, .email = "paxton@doe.com", .amount = 800 },
+        .{ .id = 8, .status = .err, .email = "jaden@doe.com", .amount = 900 },
+        .{ .id = 9, .status = .pending, .email = "sara@doe.com", .amount = 1000 },
+        .{ .id = 10, .status = .success, .email = "marina@doe.com", .amount = 1100 },
+        .{ .id = 11, .status = .err, .email = "gil@doe.com", .amount = 1200 },
+        .{ .id = 12, .status = .pending, .email = "clara@doe.com", .amount = 1300 },
+        .{ .id = 13, .status = .pending, .email = "mads@doe.com", .amount = 1400 },
+        .{ .id = 14, .status = .success, .email = "jake@doe.com", .amount = 1500 },
+        .{ .id = 15, .status = .err, .email = "james@doe.com", .amount = 1600 },
+        .{ .id = 16, .status = .pending, .email = "jake@doe.com", .amount = 1700 },
+        .{ .id = 17, .status = .success, .email = "james@doe.com", .amount = 1800 },
+        .{ .id = 18, .status = .err, .email = "james@doe.com", .amount = 1900 },
+        .{ .id = 19, .status = .pending, .email = "jake@doe.com", .amount = 2000 },
+        .{ .id = 20, .status = .success, .email = "james@doe.com", .amount = 2100 },
+        .{ .id = 21, .status = .err, .email = "james@doe.com", .amount = 2200 },
+        .{ .id = 22, .status = .pending, .email = "jake@doe.com", .amount = 2300 },
+        .{ .id = 23, .status = .success, .email = "james@doe.com", .amount = 2400 },
+        .{ .id = 24, .status = .err, .email = "james@doe.com", .amount = 2500 },
+        .{ .id = 25, .status = .pending, .email = "jake@doe.com", .amount = 2600 },
+        .{ .id = 26, .status = .success, .email = "james@doe.com", .amount = 2700 },
+        .{ .id = 27, .status = .err, .email = "james@doe.com", .amount = 2800 },
+        .{ .id = 28, .status = .pending, .email = "jake@doe.com", .amount = 2900 },
+        .{ .id = 29, .status = .success, .email = "james@doe.com", .amount = 3000 },
+        .{ .id = 30, .status = .err, .email = "james@doe.com", .amount = 3100 },
+        .{ .id = 31, .status = .pending, .email = "jake@doe.com", .amount = 3200 },
+        .{ .id = 32, .status = .success, .email = "james@doe.com", .amount = 3300 },
+        .{ .id = 33, .status = .err, .email = "james@doe.com", .amount = 3400 },
+        .{ .id = 34, .status = .pending, .email = "jake@doe.com", .amount = 3500 },
+        .{ .id = 35, .status = .success, .email = "james@doe.com", .amount = 3600 },
+        .{ .id = 36, .status = .err, .email = "james@doe.com", .amount = 3700 },
+        .{ .id = 37, .status = .pending, .email = "jake@doe.com", .amount = 3800 },
+        .{ .id = 38, .status = .success, .email = "james@doe.com", .amount = 3900 },
+        .{ .id = 39, .status = .err, .email = "james@doe.com", .amount = 4000 },
+        .{ .id = 40, .status = .pending, .email = "jake@doe.com", .amount = 4100 },
+        .{ .id = 41, .status = .success, .email = "james@doe.com", .amount = 4200 },
+        .{ .id = 42, .status = .err, .email = "james@doe.com", .amount = 4300 },
+        .{ .id = 42, .status = .err, .email = "james@doe.com", .amount = 4300 },
+        .{ .id = 44, .status = .pending, .email = "jake@doe.com", .amount = 4500 },
+        .{ .id = 45, .status = .success, .email = "james@doe.com", .amount = 4600 },
+        .{ .id = 46, .status = .err, .email = "james@doe.com", .amount = 4700 },
+        .{ .id = 47, .status = .pending, .email = "jake@doe.com", .amount = 4800 },
+        .{ .id = 48, .status = .success, .email = "james@doe.com", .amount = 4900 },
+        .{ .id = 49, .status = .err, .email = "james@doe.com", .amount = 5000 },
+        .{ .id = 50, .status = .pending, .email = "jake@doe.com", .amount = 5100 },
+        .{ .id = 51, .status = .success, .email = "james@doe.com", .amount = 5200 },
+        .{ .id = 52, .status = .err, .email = "james@doe.com", .amount = 5300 },
+        .{ .id = 53, .status = .pending, .email = "jake@doe.com", .amount = 5400 },
+        .{ .id = 54, .status = .success, .email = "james@doe.com", .amount = 5500 },
+        .{ .id = 55, .status = .err, .email = "james@doe.com", .amount = 5600 },
+        .{ .id = 56, .status = .pending, .email = "jake@doe.com", .amount = 5700 },
+        .{ .id = 57, .status = .success, .email = "james@doe.com", .amount = 5800 },
+        .{ .id = 58, .status = .err, .email = "james@doe.com", .amount = 5900 },
+        .{ .id = 59, .status = .pending, .email = "jake@doe.com", .amount = 6000 },
+        .{ .id = 60, .status = .success, .email = "james@doe.com", .amount = 6100 },
+        .{ .id = 61, .status = .err, .email = "james@doe.com", .amount = 6200 },
+        .{ .id = 62, .status = .pending, .email = "jake@doe.com", .amount = 6300 },
+        .{ .id = 63, .status = .success, .email = "james@doe.com", .amount = 6400 },
+        .{ .id = 64, .status = .err, .email = "james@doe.com", .amount = 6500 },
+        .{ .id = 65, .status = .pending, .email = "jake@doe.com", .amount = 6600 },
+        .{ .id = 66, .status = .success, .email = "james@doe.com", .amount = 6700 },
+        .{ .id = 67, .status = .err, .email = "james@doe.com", .amount = 6800 },
+        .{ .id = 68, .status = .pending, .email = "jake@doe.com", .amount = 6900 }, // <-- add this
+        .{ .id = 69, .status = .success, .email = "james@doe.com", .amount = 7000 },
+        .{ .id = 70, .status = .err, .email = "james@doe.com", .amount = 7100 },
+        .{ .id = 71, .status = .pending, .email = "jake@doe.com", .amount = 7200 },
+        .{ .id = 72, .status = .success, .email = "james@doe.com", .amount = 7300 },
+        .{ .id = 73, .status = .err, .email = "james@doe.com", .amount = 7400 },
+        .{ .id = 74, .status = .pending, .email = "jake@doe.com", .amount = 7500 },
+        .{ .id = 75, .status = .success, .email = "james@doe.com", .amount = 7600 },
+        .{ .id = 76, .status = .err, .email = "james@doe.com", .amount = 7700 },
+        .{ .id = 77, .status = .pending, .email = "jake@doe.com", .amount = 7800 },
+        .{ .id = 78, .status = .success, .email = "james@doe.com", .amount = 7900 },
+        .{ .id = 79, .status = .err, .email = "james@doe.com", .amount = 8000 },
+        .{ .id = 80, .status = .pending, .email = "jake@doe.com", .amount = 8100 },
+        .{ .id = 81, .status = .success, .email = "james@doe.com", .amount = 8200 },
+        .{ .id = 82, .status = .err, .email = "james@doe.com", .amount = 8300 },
+        .{ .id = 83, .status = .pending, .email = "jake@doe.com", .amount = 8400 },
+        .{ .id = 84, .status = .success, .email = "james@doe.com", .amount = 8500 },
+        .{ .id = 85, .status = .err, .email = "james@doe.com", .amount = 8600 },
+        .{ .id = 86, .status = .pending, .email = "jake@doe.com", .amount = 8700 },
+        .{ .id = 87, .status = .success, .email = "james@doe.com", .amount = 8800 },
+        .{ .id = 88, .status = .err, .email = "james@doe.com", .amount = 8900 },
+        .{ .id = 89, .status = .pending, .email = "jake@doe.com", .amount = 9000 },
+        .{ .id = 90, .status = .success, .email = "james@doe.com", .amount = 9100 },
+        .{ .id = 91, .status = .err, .email = "james@doe.com", .amount = 9200 },
+    }) catch |err| Vapor.printErr("Failed to append data: {any}", .{err});
+}
 
 pub fn init() void {
     Opaque.new();
-    table.init(&data);
+    data = Vapor.array(Data, .persist);
+    initTableData();
+    table.init(data.items);
     table.on_select = onSelect;
     status_select = .fromItems(&status_options);
     status_select.on_select = onStatusSelect;
@@ -454,20 +436,21 @@ pub fn init() void {
         .{ .x = 10, .y = 100 },
     };
 
-    chart.addSeries(.bar, "Sales", &sales, .{ .color = "#000000" }) catch unreachable;
-    chart.addSeries(.line_smooth, "Costs", &costs, .{ .color = "#002BFF" }) catch unreachable;
+    chart.addSeries(.bar, "Sales", &sales, .{ .color = .palette(.chart_bar_color) }) catch unreachable;
+    chart.addSeries(.line_smooth, "Costs", &costs, .{ .color = .palette(.tint) }) catch unreachable;
 
     chart.xAxis(.{ .label = "Month", .tick_count = 6 });
     chart.yAxis(.{ .label = "USD ($)", .tick_count = 5 });
-    chart.legend(.{ .position = .top_right });
+    chart.legend(.{ .position = .top_left });
     chart.build() catch unreachable;
     sheet = Sheet.init(.bottom);
     sheet.content = sample;
     alert = Alert.init(content);
 
     combobox = .fromItems(&combobox_options);
-    combobox_dialog = .fromItems(&menu_items);
-    combobox_dialog.on_close = closeSearch;
+    combobox_dialog = .fromItems(menu_items);
+    combobox_dialog.on_mount = openPalette;
+    combobox_dialog.on_close = closePalette;
     command_palette.on_click = openSearch;
     months_select = .fromItems(&months);
     years_select = .fromItems(&years);
@@ -476,12 +459,88 @@ pub fn init() void {
     date_picker.init();
 }
 
+fn openPalette() void {}
+
 fn openSearch() void {
+    combobox_dialog.clearAll();
+    combobox_dialog.clearText();
     combobox_dialog.open();
 }
 
 fn closeSearch() void {
+    combobox_dialog.close();
+}
+
+fn closePalette() void {
     command_palette.clicked = false;
+}
+
+var counter: usize = 0;
+fn regenerate() void {
+    if (counter % 2 == 0) {
+        const costs = [_]Chart.Point{
+            .{ .x = 1, .y = 80 },
+            .{ .x = 2, .y = 20 },
+            .{ .x = 3, .y = 25 },
+            .{ .x = 4, .y = 40 },
+            .{ .x = 5, .y = 55 },
+            .{ .x = 6, .y = 25 },
+            .{ .x = 7, .y = 30 },
+            .{ .x = 8, .y = 20 },
+            .{ .x = 9, .y = 45 },
+            .{ .x = 10, .y = 15 },
+        };
+
+        const sales = [_]Chart.Point{
+            .{ .x = 1, .y = 40 },
+            .{ .x = 2, .y = 95 },
+            .{ .x = 3, .y = 10 },
+            .{ .x = 4, .y = 40 },
+            .{ .x = 5, .y = 65 },
+            .{ .x = 6, .y = 75 },
+            .{ .x = 7, .y = 80 },
+            .{ .x = 8, .y = 20 },
+            .{ .x = 9, .y = 25 },
+            .{ .x = 10, .y = 40 },
+        };
+
+        chart.updateSeries(&.{
+            Chart.SeriesData{ .name = "Sales", .data = &sales },
+            Chart.SeriesData{ .name = "Costs", .data = &costs },
+        });
+    } else {
+        const sales = [_]Chart.Point{
+            .{ .x = 1, .y = 90 },
+            .{ .x = 2, .y = 70 },
+            .{ .x = 3, .y = 45 },
+            .{ .x = 4, .y = 50 },
+            .{ .x = 5, .y = 65 },
+            .{ .x = 6, .y = 55 },
+            .{ .x = 7, .y = 75 },
+            .{ .x = 8, .y = 85 },
+            .{ .x = 9, .y = 95 },
+            .{ .x = 10, .y = 100 },
+        };
+
+        const costs = [_]Chart.Point{
+            .{ .x = 1, .y = 20 },
+            .{ .x = 2, .y = 35 },
+            .{ .x = 3, .y = 30 },
+            .{ .x = 4, .y = 50 },
+            .{ .x = 5, .y = 45 },
+            .{ .x = 6, .y = 55 },
+            .{ .x = 7, .y = 75 },
+            .{ .x = 8, .y = 85 },
+            .{ .x = 9, .y = 95 },
+            .{ .x = 10, .y = 100 },
+        };
+
+        chart.updateSeries(&.{
+            Chart.SeriesData{ .name = "Sales", .data = &sales },
+            Chart.SeriesData{ .name = "Costs", .data = &costs },
+        });
+    }
+    counter += 1;
 }
 
 fn content(_: *Alert) void {
@@ -505,6 +564,7 @@ fn content(_: *Alert) void {
             .layout(.right_center)
             .children({
             ButtonCtx(Alert.close, .{&alert})
+                .ariaLabel("Close Alert")
                 .cursor(.pointer)
                 .hw(.px(42), .px(100))
                 .background(.palette(.text_color))
@@ -515,6 +575,7 @@ fn content(_: *Alert) void {
                 Text("Cancel").fontFamily("Montserrat").font(14, null, .white).end();
             });
             ButtonCtx(Alert.close, .{&alert})
+                .ariaLabel("Close Alert")
                 .cursor(.pointer)
                 .hw(.px(42), .px(100))
                 .border(.round(.palette(.text_color), .all(12)))
@@ -557,32 +618,12 @@ pub fn TabsView() void {
 pub fn View() void {
     Vapor.Stack()
         .children({
-        Vapor.Stack()
-            .layout(.center)
-            .height(.px(512))
-            .width(.percent(100))
-            .children({
-            Text("vapor-ui ⇒").style(&.{
-                .visual = .font(12, 500, .hex("#6f6f6f")),
-                .font_family = "IBM Plex Mono,monospace",
-            });
-            Text("vapor-ui")
-                .font(72, 700, .palette(.text_color))
-                .end();
-            Text("Vapor UI is a collection of well crafted UI components for Vapor. It comes with default animations, and a rich set of components.")
-                .font(16, 300, .palette(.text_color))
-                .end();
-            Text("Vapor allows you to build complex UIs, and Animations, with no dependencies.")
-                .font(14, 300, .palette(.text_color))
-                .fontFamily("Montserrat")
-                .end();
-        });
         Vapor.Box()
             .spacing(16)
             .padding(.all(32))
             .children({
             Vapor.Stack()
-                .width(.percent(60))
+                .width(.percent(100))
                 .spacing(16)
                 .layer(.grid(14, 1, .palette(.grid_color)))
                 .children({
@@ -638,6 +679,7 @@ pub fn View() void {
                             .layout(.x_between_center)
                             .children({
                             Button(Vapor.print, .{ "{s}", .{"hello"} })
+                                .ariaLabel("Print Hello")
                                 .width(.px(36))
                                 .height(.px(36))
                                 .border(.round(.palette(.border_color_light), .all(99)))
@@ -692,6 +734,7 @@ pub fn View() void {
                             .layout(.right_center)
                             .children({
                             Button(addSuccessToast, .{})
+                                .ariaLabel("Success Toast")
                                 .background(.transparentizeHex(.palette(.tint), 0.7))
                                 .border(.round(.palette(.tint), .all(12)))
                                 .children({
@@ -714,6 +757,7 @@ pub fn View() void {
                         .spacing(8)
                         .children({
                         Button(Vapor.print, .{ "{s}", .{"hello"} })
+                            .ariaLabel("Print Hello")
                             .width(.px(32))
                             .height(.px(32))
                             .border(.round(.palette(.border_color_light), .all(99)))
@@ -729,6 +773,7 @@ pub fn View() void {
                                 .end();
                         });
                         Button(Vapor.print, .{ "{s}", .{"hello"} })
+                            .ariaLabel("Print Hello")
                             .width(.px(32))
                             .height(.px(32))
                             .border(.round(.palette(.border_color_light), .all(99)))
@@ -744,6 +789,7 @@ pub fn View() void {
                                 .end();
                         });
                         Button(Vapor.print, .{ "{s}", .{"hello"} })
+                            .ariaLabel("Print Hello")
                             .width(.px(32))
                             .height(.px(32))
                             .border(.round(.palette(.border_color_light), .all(99)))
@@ -759,6 +805,7 @@ pub fn View() void {
                                 .end();
                         });
                         Button(Vapor.print, .{ "{s}", .{"hello"} })
+                            .ariaLabel("Print Hello")
                             .width(.px(32))
                             .height(.px(32))
                             .border(.round(.palette(.border_color_light), .all(99)))
@@ -783,6 +830,33 @@ pub fn View() void {
                 chart.render();
                 Box()
                     .width(.percent(100))
+                    .height(.fit)
+                    .layout(.right_center)
+                    .children({
+                    Button(regenerate, .{})
+                        .ariaLabel("Regenerate Chart")
+                        .hover(.{ .background = .yellow, .animation = "glitch" })
+                        .border(.round(.palette(.text_color), .all(12)))
+                        .onHover(onHover)
+                        .spacing(16)
+                        .children({
+                        Text("//")
+                            .font(16, 300, .palette(.text_color))
+                            .fontFamily("IBM Plex Sans,monospace")
+                            .end();
+                        Text("Re-generate")
+                            .font(16, 300, .palette(.text_color))
+                            .fontFamily("IBM Plex Sans,monospace")
+                            .end();
+                        Text("_ ↺")
+                            .animation(if (hovered) "blink" else null)
+                            .font(16, 300, .palette(.text_color))
+                            .fontFamily("IBM Plex Sans,monospace")
+                            .end();
+                    });
+                });
+                Box()
+                    .width(.percent(100))
                     .height(.px(72))
                     .layout(.center)
                     .spacing(16)
@@ -797,6 +871,7 @@ pub fn View() void {
                     // })
                     .children({
                     Button(Sheet.open, .{&sheet})
+                        .ariaLabel("Open Sheet")
                         .width(.px(200))
                         .background(.transparentizeHex(.palette(.tint), 0.7))
                         .border(.round(.palette(.tint), .all(12)))
@@ -833,7 +908,6 @@ pub fn View() void {
                         .font(12, 300, .palette(.text_color))
                         .end();
                 });
-                command_palette.render();
 
                 Box()
                     .width(.percent(100))
@@ -852,6 +926,7 @@ pub fn View() void {
                         .end();
 
                     TextArea()
+                        .ariaLabel("Text Area")
                         .width(.percent(100))
                         .height(.percent(100))
                         .outline(.none)
@@ -868,7 +943,8 @@ pub fn View() void {
                         .layout(.right_center)
                         .children({
                         Button(addSuccessToast, .{})
-                            .hover(.{ .background = .yellow, .animation = &glitch })
+                            .ariaLabel("Success Toast")
+                            .hover(.{ .background = .yellow, .animation = "glitch" })
                             .border(.round(.palette(.text_color), .all(12)))
                             .onHover(onHover)
                             .spacing(16)
@@ -882,14 +958,15 @@ pub fn View() void {
                                 .fontFamily("IBM Plex Sans,monospace")
                                 .end();
                             Text("_ ⇒")
-                                .animation(if (hovered) &blink else null)
+                                .animation(if (hovered) "blink" else null)
                                 .font(16, 300, .palette(.text_color))
                                 .fontFamily("IBM Plex Sans,monospace")
                                 .end();
                         });
                     });
                 });
-                Button(ComboBoxDialog(MenuItem).open, .{&combobox_dialog})
+                Button(ComboBoxDialog([]const u8).open, .{&combobox_dialog})
+                    .ariaLabel("Open ComboBox Dialog")
                     .children({
                     Text("Open Dialog")
                         .font(14, 300, .palette(.text_color))

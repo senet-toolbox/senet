@@ -5,11 +5,11 @@ fn generateHtml(b: *std.Build, run: *std.Build.Step.Run, static: bool, atomic: b
 
     const optimize = std.builtin.OptimizeMode.Debug;
     // Create a module for your config file
-    // const user_config_module = b.addModule("user_config", .{
-    //     .root_source_file = b.path("src/my_config.zig"),
-    //     .target = target,
-    //     .optimize = optimize,
-    // });
+    const user_config_module = b.addModule("user_config", .{
+        .root_source_file = b.path("src/my_config.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
 
     // Define your build options
 
@@ -22,7 +22,7 @@ fn generateHtml(b: *std.Build, run: *std.Build.Step.Run, static: bool, atomic: b
 
     const vapor_module = vapor.module("vapor");
 
-    // vapor_module.addImport("user_config", user_config_module);
+    vapor_module.addImport("user_config", user_config_module);
     vapor_module.addImport("vapor", vapor_module);
 
 
@@ -52,7 +52,7 @@ fn generateHtml(b: *std.Build, run: *std.Build.Step.Run, static: bool, atomic: b
         .imports = &.{
             .{ .name = "vapor", .module = vapor_module },
             .{ .name = "theme", .module = theme_module }, // ADD THIS
-            // .{ .name = "user_config", .module = user_config_module },
+            .{ .name = "user_config", .module = user_config_module },
             .{ .name = "vaporize", .module = vaporize_module },
         },
     });

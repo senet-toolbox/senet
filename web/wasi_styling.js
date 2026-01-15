@@ -83,6 +83,7 @@ export function updateComponentStyle(
 
   while (true) {
     className = style_slice.pop();
+
     if (className === undefined) {
       break;
     }
@@ -139,7 +140,7 @@ export function updateComponentStyle(
         const newIndex = styleSheet.cssRules.length;
         styleSheet.insertRule(`.${className} { ${css} }`, newIndex);
         styleRuleCache.set(`.${className}`, newIndex);
-      } else if (element.localName !== "i" && specified_className.length > 0) {
+      } else if (specified_className.length > 0) {
         const ruleIndex = styleRuleCache.get(`.${className}`);
         if (ruleIndex === undefined) {
           const cssStylePtr = wasmInstance.getStyle(nodePtr);
@@ -154,6 +155,21 @@ export function updateComponentStyle(
         } else {
           // styleSheet.deleteRule(ruleIndex);
           // styleSheet.insertRule(`.${className} { ${styleString} }`, ruleIndex);
+        }
+
+        const inherited_ptr = wasmInstance.getInheritedStyle(nodePtr);
+        if (inherited_ptr !== 0) {
+          const inherited_len = wasmInstance.getInheritedLen();
+          const ruleString = readWasmString(inherited_ptr, inherited_len);
+          const braceIndex = ruleString.indexOf("{");
+          const selector = ruleString.slice(0, braceIndex).trim();
+
+          // Now you can check the cache
+          const newIndex = styleSheet.cssRules.length;
+          if (!styleRuleCache.has(selector)) {
+            styleSheet.insertRule(ruleString, newIndex);
+            styleRuleCache.set(selector, newIndex);
+          }
         }
 
         const intr_ptr = wasmInstance.getVisualStyle(nodePtr, 0);

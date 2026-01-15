@@ -31,11 +31,11 @@ pub fn init() void {
 
 // page deinitialization
 pub fn deinit() void {
-    vapor.print("i get called when you navigate away from this page", .{});
+    Vapor.print("i get called when you navigate away from this page", .{});
 }
 
 pub fn render() void {
-    text("i get rendered when you navigate to this page");
+    Text("i get rendered when you navigate to this page").end();
 }
 ```
 
@@ -58,7 +58,7 @@ pub fn deinit() void {
 }
 
 pub fn render() void {
-    Text("i get rendered when you navigate to this page");
+    Text("i get rendered when you navigate to this page").end();
 }
 ```
 
@@ -73,7 +73,7 @@ it takes 3 arguments,
 
 `@src()` is a builtin function that returns the current source location.
 
-### remember
+### Remember
 
 Vapor takes a function approach, you need to call `Vapor.Page()` to declare your routes. or the corresponding function within the `.zig` file.
 
@@ -84,11 +84,11 @@ With the above example, we call our `Page(...)` function, within the `init()` fu
 ```zig
 // /routes/app/about/page.zig
 const vapor = @import("vapor");
-const page = vapor.page;
+const Page = Vapor.Page;
 
 // page initialization
 pub fn init() void {
-    page(.{ .src = @src() }, render, deinit); // this will refer to "/app/about" since we are in /routes/app/about/page.zig
+    Page(.{ .src = @src() }, render, deinit); // this will refer to "/app/about" since we are in /routes/app/about/page.zig
 }
 ```
 
@@ -97,13 +97,13 @@ pub fn init() void {
 ```zig
 // /routes/app/about/page.zig
 const vapor = @import("vapor");
-const aboutpage = @import("routes/app/about/page.zig");
+const AboutPage = @import("routes/app/about/page.zig");
 
 // page initialization
 export fn init() void {
-    vapor.init(.{});
-    aboutpage.init();
+    Vapor.init(.{});
+    AboutPage.init();
 }
 ```
 
-**note:** don't forget to mark functions as `pub` if you want to call them from other files.
+**Note:** Don't forget to mark functions as `pub` if you want to call them from other files.

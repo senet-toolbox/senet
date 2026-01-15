@@ -18,6 +18,7 @@ pub const FieldType = enum {
     telephone,
     cvv,
     expiry,
+    float,
 };
 
 var background: Vapor.Types.Background = .palette(.background);
@@ -30,6 +31,7 @@ const FieldValue = union(enum) {
     email: *[]const u8,
     credit_card: *[]const u8,
     telephone: *[]const u8,
+    float: *f32,
 };
 
 pub fn new() void {
@@ -52,6 +54,7 @@ fn getPtrId(val: FieldValue) usize {
         .email => |ptr| @intFromPtr(ptr),
         .credit_card => |ptr| @intFromPtr(ptr),
         .telephone => |ptr| @intFromPtr(ptr),
+        .float => |ptr| @intFromPtr(ptr),
     };
 }
 
@@ -212,6 +215,16 @@ fn numberCallback(callback: Callback, evt: *Vapor.Event) void {
     }
 }
 
+fn floatCallback(callback: Callback, evt: *Vapor.Event) void {
+    const float_buf = callback.value.float;
+    const float = evt.float() catch 0;
+    float_buf.* = float;
+
+    if (callback.on_change) |on_change| {
+        on_change(evt);
+    }
+}
+
 const Field = @This();
 label: ?[]const u8 = null,
 field_name: []const u8 = "",
@@ -249,6 +262,7 @@ fn getFieldType(field_value: FieldType) Vapor.Types.InputTypes {
         .email => .email,
         .credit_card => .string,
         .telephone => .string,
+        .float => .float,
         else => .string,
     };
 }
@@ -261,14 +275,16 @@ fn getFieldTypeFromValue(field_value: FieldValue) FieldType {
         .number => .number,
         .password => .password,
         .credit_card => .credit_card,
+        .float => .float,
         else => .string,
     };
 }
 
-fn ErasedField(field: Field) Vapor.TextFieldBuilder(.pure) {
+fn ErasedField(field: Field, field_id: []const u8) Vapor.TextFieldBuilder(.pure) {
     const field_type = getFieldType(field.type);
 
     return TextField(field_type)
+        .id(field_id)
         .fieldName(field.field_name)
         .font(14, 300, null)
         .padding(.tblr(8, 8, 12, 12))
@@ -279,11 +295,11 @@ fn ErasedField(field: Field) Vapor.TextFieldBuilder(.pure) {
 }
 
 fn destroy(stable_id: []const u8) void {
-    _ = focus_states.?.fetchRemove(stable_id);  // Don't early return
-    
+    _ = focus_states.?.fetchRemove(stable_id); // Don't early return
+
     const field_value = field_values.fetchRemove(stable_id) orelse return;
     Vapor.arena(.scratch).free(field_value.key);
-    
+
     // Destroy the inner allocated pointer
     switch (field_value.value) {
         .string => |ptr| Vapor.arena(.scratch).destroy(ptr),
@@ -293,6 +309,7 @@ fn destroy(stable_id: []const u8) void {
         .telephone => |ptr| Vapor.arena(.scratch).destroy(ptr),
         .number => |ptr| Vapor.arena(.scratch).destroy(ptr),
         .bool => |ptr| Vapor.arena(.scratch).destroy(ptr),
+        .float => |ptr| Vapor.arena(.scratch).destroy(ptr),
     }
 }
 
@@ -304,6 +321,11 @@ fn checkLength(value: FieldValue) bool {
             }
         },
         .number => |v| {
+            if (v.* > 0) {
+                return true;
+            }
+        },
+        .float => |v| {
             if (v.* > 0) {
                 return true;
             }
@@ -325,6 +347,7 @@ pub const DefaultValue = union(enum) {
     string: []const u8,
     number: i32,
     bool: bool,
+    float: f32,
 };
 
 fn createValue(stable_id: []const u8, field_type: FieldType, default_value: ?DefaultValue) FieldValue {
@@ -378,6 +401,14 @@ fn createValue(stable_id: []const u8, field_type: FieldType, default_value: ?Def
                 focus_states.?.put(stable_id_alloc, false) catch unreachable;
                 return value;
             },
+            .float => {
+                const float_field = Vapor.arena(.scratch).create(f32) catch unreachable;
+                float_field.* = if (default_value) |default| default.float else 0;
+                const value = FieldValue{ .float = float_field };
+                field_values.put(stable_id_alloc, value) catch unreachable;
+                focus_states.?.put(stable_id_alloc, false) catch unreachable;
+                return value;
+            },
             .telephone => {
                 const telephone_field = Vapor.arena(.scratch).create([]const u8) catch unreachable;
                 telephone_field.* = if (default_value) |default| default.string else "";
@@ -390,6 +421,21 @@ fn createValue(stable_id: []const u8, field_type: FieldType, default_value: ?Def
     };
 }
 
+fn renderLabel(label: []const u8, label_left: f32, trans: f32, scale: f32, z_index: f32, text_color: Vapor.Types.Color) Vapor.BuilderClose(.pure) {
+    return Label(label)
+        .background(background)
+        .pos(.{ .left = .px(label_left), .type = .absolute })
+        .padding(.horizontal(2))
+        .transition(.{
+            .properties = &.{ .transform, .left },
+            .duration = 100,
+            .timing = .easeInOut,
+        })
+        .font(14, 300, text_color)
+        .inlineStyle("transform: translateY({d}%) scale({d}); z-index: {d};", .{ trans, scale, z_index })
+        .fontFamily("Montserrat");
+}
+
 const Callback = struct {
     value: FieldValue,
     on_change: ?*const fn (evt: *Vapor.Event) void,
@@ -397,7 +443,8 @@ const Callback = struct {
 
 pub fn render(field: Field) void {
     const container = Container();
-    const stable_id = if (field.id) |id| id else container.getUUID();
+    // const stable_id = if (field.id) |id| id else container.getUUID();
+    const stable_id = container.getUUID();
     const value = field.value orelse createValue(stable_id, field.type, field.default_value);
     var field_type = field.type;
     if (field.value) |v| {
@@ -426,27 +473,18 @@ pub fn render(field: Field) void {
         })
         .children({
         Vapor.Static.HooksCtx(.destroy, destroy, .{stable_id})({
-            // --- 3. RENDER LABEL ---
+            const field_id = Vapor.fmtln("{s}_{s}", .{ @tagName(field_type), stable_id });
+            var label_component: ?Vapor.BuilderClose(.pure) = null;
             if (field.label) |label| {
-                Label(label)
-                    .background(background)
-                    .pos(.{ .left = .px(label_left), .type = .absolute })
-                    .padding(.horizontal(2))
-                    .transition(.{
-                        .properties = &.{ .transform, .scale, .left },
-                        .duration = 100,
-                        .timing = .easeInOut,
-                    })
-                    .inlineStyle("transform: translateY({d}%) scale({d}); z-index: {d};", .{ trans, scale, z_index })
-                    .font(14, 300, text_color)
-                    .fontFamily("Montserrat")
-                    .end();
+                label_component = renderLabel(label, label_left, trans, scale, z_index, text_color);
+                label_component.?.fieldName(field_id).end();
             }
+
+            const text_field: Vapor.TextFieldBuilder(.pure) = ErasedField(field, field_id);
 
             // --- 4. RENDER INPUT FIELD ---
             switch (field_type) {
                 .string => {
-                    const text_field: Vapor.TextFieldBuilder(.pure) = ErasedField(field);
                     text_field
                         // OVERRIDE Padding here to account for icons
                         .pos(.absolute)
@@ -460,7 +498,6 @@ pub fn render(field: Field) void {
                         .end();
                 },
                 .telephone => {
-                    const text_field: Vapor.TextFieldBuilder(.pure) = ErasedField(field);
                     text_field
                         // OVERRIDE Padding here to account for icons
                         .pos(.absolute)
@@ -474,7 +511,6 @@ pub fn render(field: Field) void {
                         .end();
                 },
                 .credit_card => {
-                    const text_field: Vapor.TextFieldBuilder(.pure) = ErasedField(field);
                     text_field
                         // OVERRIDE Padding here to account for icons
                         .pos(.absolute)
@@ -489,7 +525,6 @@ pub fn render(field: Field) void {
                         .end();
                 },
                 .email => {
-                    const text_field: Vapor.TextFieldBuilder(.pure) = ErasedField(field);
                     text_field
                         // OVERRIDE Padding here to account for icons
                         .pos(.absolute)
@@ -503,7 +538,6 @@ pub fn render(field: Field) void {
                         .end();
                 },
                 .password => {
-                    const text_field: Vapor.TextFieldBuilder(.pure) = ErasedField(field);
                     text_field
                         // OVERRIDE Padding here to account for icons
                         .pos(.absolute)
@@ -517,7 +551,6 @@ pub fn render(field: Field) void {
                         .end();
                 },
                 .number => {
-                    const text_field: Vapor.TextFieldBuilder(.pure) = ErasedField(field);
                     text_field
                         // OVERRIDE Padding here to account for icons
                         .pos(.absolute)
@@ -529,6 +562,22 @@ pub fn render(field: Field) void {
                         .border(.none)
                         .config(field.config)
                         .placeholder(if (field.placeholder) |placeholder| placeholder.number else 0)
+                        .val(value.number)
+                        .end();
+                },
+                .float => {
+                    text_field
+                        // OVERRIDE Padding here to account for icons
+                        .pos(.absolute)
+                        .onEventCtx(.focus, handleFocus, stable_id)
+                        .onEventCtx(.blur, handleBlur, stable_id)
+                        .border(.none)
+                        .width(.percent(100))
+                        .onEventCtx(.input, floatCallback, Callback{ .value = value, .on_change = field.on_change })
+                        .border(.none)
+                        .config(field.config)
+                        .placeholder(if (field.placeholder) |placeholder| placeholder.float else 0)
+                        .val(value.float)
                         .end();
                 },
                 else => {},

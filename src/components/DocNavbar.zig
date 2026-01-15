@@ -25,6 +25,7 @@ const Hooks = Static.Hooks;
 const Observer = Vapor.Kit.Observer;
 const Stack = Static.Stack;
 const Content = @import("../components/Content.zig");
+const OverlayManager = @import("../components/OverlayManager.zig");
 
 const SideBar = @This();
 
@@ -370,6 +371,30 @@ pub const menu_items: []const MenuItem = &.{
         .icon = .hourglass_split,
     },
     MenuItem{
+        .id = "theme-and-icons",
+        .title = "Theme and Icons",
+        .link = "/docs/vapor/concepts/theme-and-icons",
+        .icon = .palette,
+        .tags = &.{
+            Tag{
+                .keywords = &.{ "theme", "icons", "vapor", "ui" },
+                .sub_title = "Theme and Icons",
+                .url = "/docs/vapor/concepts/theme-and-icons",
+                .description = "Theme and Icons",
+            },
+        },
+        .sections = &.{
+            &.{ .title = "Theme and Icons", .link = "theme-and-icons" },
+            &.{ .title = "Theme System", .link = "theme-system" },
+            &.{ .title = "Using Theme Colors", .link = "using-theme-colors" },
+            &.{ .title = "Registering Themes", .link = "registering-themes" },
+            &.{ .title = "Color Formats", .link = "color-formats" },
+            &.{ .title = "Icon System", .link = "icon-system" },
+            &.{ .title = "Complete Example", .link = "complete-example" },
+            &.{ .title = "Benefits Over External Libraries", .link = "benefits-over-external-libraries" },
+        },
+    },
+    MenuItem{
         .id = "react-to-vapor",
         .title = "React to Vapor",
         .link = "/react-to-vapor",
@@ -413,14 +438,16 @@ pub const menu_items: []const MenuItem = &.{
         .sections = &.{
             &.{ .title = "Performance", .link = "performance" },
             &.{ .title = "Memory", .link = "memory" },
-            &.{ .title = "Speed", .link = "speed-and-runtime" },
+            &.{ .title = "Speed", .link = "speed-runtime" },
+            &.{ .title = "Default Mode", .link = "default-mode" },
+            &.{ .title = "Fullstack", .link = "full-stack" },
         },
     },
     MenuItem{
         .id = "tutorials",
         .title = "Tutorials",
         .link = "/docs/vapor/concepts/tutorials",
-        .icon = .award,
+        .icon = .chart_steps,
         .tags = &.{
             Tag{
                 .keywords = &.{ "tutorials", "tic-tac-toe", "react-to-vapor", "dont-know-zig", "vapor-tictactoe-tutorial" },
@@ -443,15 +470,63 @@ pub const menu_items: []const MenuItem = &.{
             &.{ .title = "Complete Source", .link = "complete-code" },
             &.{ .title = "What's Next", .link = "whats-next" },
             &.{ .title = "Api Quick Reference", .link = "api-quick-reference" },
-            &.{ .title = "Challenges", .link = "challenges" },  
+            &.{ .title = "Challenges", .link = "challenges" },
             &.{ .title = "Key Takeaway", .link = "key-takeaways" },
+        },
+    },
+    MenuItem{
+        .id = "api",
+        .title = "API Cheat Sheet",
+        .link = "/docs/vapor/concepts/api",
+        .icon = .filetype_json,
+        .tags = &.{
+            Tag{
+                .keywords = &.{ "api", "cheat", "sheet", "vapor" },
+                .sub_title = "API Cheat Sheet",
+                .url = "/docs/vapor/concepts/api",
+                .description = "API Cheat Sheet",
+            },
+        },
+        .sections = &.{
+            &.{ .title = "Core Imports", .link = "core-imports" },
+            &.{ .title = "Component Patterns", .link = "component-patterns" },
+            &.{ .title = "Sizing", .link = "sizing" },
+            &.{ .title = "Layout", .link = "layout" },
+            &.{ .title = "Spacing", .link = "spacing" },
+            &.{ .title = "Typography", .link = "typography" },
+            &.{ .title = "Colors", .link = "colors" },
+            &.{ .title = "Borders", .link = "borders" },
+            &.{ .title = "Shadows", .link = "shadows" },
+            &.{ .title = "Backgrounds & Layers", .link = "backgrounds-layers" },
+            &.{ .title = "Positioning", .link = "positioning" },
+            &.{ .title = "Interactions & Hover", .link = "interactions-hover" },
+            &.{ .title = "Buttons & Events", .link = "buttons-events" },
+            &.{ .title = "Text Input", .link = "text-input" },
+            &.{ .title = "Links", .link = "links" },
+            &.{ .title = "Images & Graphics", .link = "images-graphics" },
+            &.{ .title = "Icons", .link = "icons" },
+            &.{ .title = "Lists", .link = "lists" },
+            &.{ .title = "Scrolling", .link = "scrolling" },
+            &.{ .title = "Conditionals & Loops", .link = "conditionals-loops" },
+            &.{ .title = "Responsive Design", .link = "responsive-design" },
+            &.{ .title = "Style Structs", .link = "style-structs" },
+            &.{ .title = "Animations", .link = "animations" },
+            &.{ .title = "Lifecycle Hooks", .link = "lifecycle-hooks" },
+            &.{ .title = "State Management", .link = "state-management" },
+            &.{ .title = "Memory Arenas", .link = "memory-arenas" },
+            &.{ .title = "Routing", .link = "routing" },
+            &.{ .title = "Fetching Data", .link = "fetching-data" },
+            &.{ .title = "Debugging", .link = "debugging" },
+            &.{ .title = "Opaque UI Components", .link = "opaque-ui-components" },
+            &.{ .title = "Quick Reference Tables", .link = "quick-reference-tables" },
+            &.{ .title = "Common Patterns", .link = "common-patterns" },
         },
     },
     MenuItem{
         .id = "ui-components",
         .title = "UI Components",
         .link = "/docs/vapor/concepts/opaque",
-        .icon = .paint_bucket,
+        .icon = .cubes_stacked,
         .tags = &.{
             Tag{
                 .keywords = &.{ "ui", "components", "vaporize", "vapor", "ui-components" },
@@ -459,6 +534,10 @@ pub const menu_items: []const MenuItem = &.{
                 .url = "/docs/vapor/concepts/opaque",
                 .description = "UI Components",
             },
+        },
+        .sections = &.{
+            &.{ .title = "UI Components", .link = "ui-components" },
+            &.{ .title = "Form Generation", .link = "form-generation" },
         },
     },
     MenuItem{
@@ -477,7 +556,7 @@ pub const menu_items: []const MenuItem = &.{
     },
 };
 
-var current_menu_item: ?MenuItem = menu_items[0];
+var current_menu_item: ?MenuItem = null;
 var current_section: []const u8 = "";
 var sections: std.StringHashMap(bool) = undefined;
 pub var section_indices: std.AutoHashMap(usize, void) = undefined;
@@ -485,6 +564,9 @@ pub fn init() void {
     sections = std.StringHashMap(bool).init(Vapor.lib.frame_arena.persistentAllocator());
     section_indices = std.AutoHashMap(usize, void).init(Vapor.lib.frame_arena.persistentAllocator());
     Content.initBoxes();
+    observer = Observer.new("menu-bar", handleSection, .{
+        .threshold = 0.4,
+    });
 }
 
 fn openDialog() void {
@@ -542,7 +624,7 @@ fn handleSection(target: Observer.Target) void {
 }
 
 pub fn reinit() void {
-    Vapor.print("reinit", .{});
+    if (!Vapor.getStatus().valid_url) return;
     observer.disconnect();
     Content.reinitBoxes(); // This creates the boxes after the page is mounted
     Vapor.cycle();
@@ -553,11 +635,8 @@ var mounted: bool = false;
 
 var observer: Observer = undefined;
 fn createObserver() void {
-    Vapor.print("createObserver", .{});
+    if (!Vapor.getStatus().valid_url) return;
     Content.reinitBoxes(); // This creates the boxes after the page is mounted
-    observer = Observer.new("menu-bar", handleSection, .{
-        .threshold = 0.4,
-    });
 
     if (current_menu_item) |item| {
         for (item.sections, 0..) |section, i| {
@@ -574,12 +653,9 @@ fn reinitObserver() void {
     }
 }
 
-fn createTimeout(_: void) void {
-    Vapor.cycle();
-}
-
 fn mount() void {
-    Vapor.print("MOUNT", .{});
+    mounted = true;
+    Vapor.Kit.scrollTo(0, 0);
     // this runs after the vaporize is mounter
     const current_path = Vapor.Kit.getWindowPath() orelse "/docs/vapor";
     current_menu_item = null;
@@ -593,8 +669,17 @@ fn mount() void {
         }
     }
 
+    if (current_menu_item == null) return;
+    const uuid = Vapor.fmtln("menu-{s}", .{current_menu_item.?.link});
+    Vapor.scrollIntoView(uuid, .{ .block = .start });
+    if (!Vapor.getStatus().valid_url) return;
     Vapor.onEnd(createObserver);
     Vapor.onPopState(handlePopState);
+}
+
+fn home() void {
+    Vapor.Kit.navigate("/");
+    Vapor.Kit.scrollTo(0, 0);
 }
 
 fn list() void {
@@ -615,10 +700,12 @@ fn list() void {
                 .child_gap = 8,
                 .size = .h(.percent(100)),
             })({
-                Link(.{ .url = "/", .aria_label = "home page of tether" }).style(&.{
+                Button(.{ .on_press = home, })
+                    // Link(.{ .url = "/", .aria_label = "home page of tether" })
+                    .style(&.{
                     .visual = .{ .text_decoration = .none, .cursor = .pointer },
                 })({
-                    Image(.{ .src = "/assets/circlelogo.webp" }).style(&.{
+                    Image(.{ .src = "/assets/circlelogo.webp", .alt = "tether logo" }).style(&.{
                         .layout = .center,
                         .size = .square_px(42),
                     });
@@ -690,7 +777,10 @@ fn list() void {
                 .layout = .{},
             })({
                 for (menu_items) |item| {
-                    ListItem().style(&.{
+                    const uuid = Vapor.fmtln("menu-{s}", .{item.link});
+                    ListItem()
+                        .id(uuid)
+                        .style(&.{
                         .size = .hw(.fit, .percent(100)),
                         .visual = .{
                             .background = if (std.mem.eql(u8, current_path, item.link)) .transparentizeHex(.palette(.tint), 0.1) else .transparent,

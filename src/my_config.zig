@@ -1,117 +1,3 @@
-const std = @import("std");
-const Vapor = @import("vapor");
-const Color = Vapor.Types.Color;
-pub const Mode = enum {
-    light,
-    dark,
-};
-
-pub const ElementType = enum(u8) {
-    Rectangle,
-    Text,
-    Image,
-    FlexBox,
-    TextField,
-    Button,
-    Block,
-    Box,
-    Header,
-    Svg,
-    Link,
-    EmbedLink,
-    List,
-    ListItem,
-    _If,
-    Hooks,
-    Layout,
-    Page,
-    Bind,
-    Dialog,
-    DialogBtnShow,
-    DialogBtnClose,
-    Draggable,
-    RedirectLink,
-    Select,
-    SelectItem,
-    CtxButton,
-    EmbedIcon,
-    Icon,
-    Label,
-    Form,
-    TextFmt,
-    Table,
-    TableRow,
-    TableCell,
-    TableHeader,
-    TableBody,
-    TextArea,
-    Canvas,
-    SubmitButton,
-    HooksCtx,
-    JsonEditor,
-    HtmlText,
-    Code,
-    Span,
-    LazyImage,
-    Intersection,
-    PreImage,
-    TextGradient,
-    Gradient,
-    Virtualize,
-    ButtonCycle,
-    Graphic,
-    Heading,
-    Video,
-    Noop,
-    TableHead,
-    Anchor,
-};
-
-pub const ThemeTokens = enum(u8) {
-    none,
-    border_color,
-    text_color,
-    background,
-    primary,
-    secondary,
-    border_cache_color,
-    btn_color,
-    tint,
-    dark_tint,
-    text_tint_color,
-    alternate_tint,
-    btn_tint,
-    dark_text,
-    form_input_border_color,
-    danger,
-    alternate_background,
-    alternate_border_color,
-    alternate_text_color,
-    logo,
-    gradient_start_0stop_color,
-    gradient_start_100stop_color,
-    gradient_end_0stop_color,
-    gradient_end_100stop_color,
-    icon_color,
-    image_bg,
-    code_background,
-    highlight_color,
-    border_color_light,
-    grid_color,
-    code_text_color,
-    code_function_color,
-    code_keyword_color,
-    disabled,
-    light_text,
-    code_tint_color,
-    code_comment_color,
-    code_string_color,
-    code_type_color,
-    code_component_color,
-    code_operator_color,
-    code_identifier_color,
-};
-
 pub const IconTokens = struct {
     web: ?[]const u8 = null,
     svg: ?[]const u8 = null,
@@ -150,7 +36,7 @@ pub const IconTokens = struct {
     pub const filetype_js = &IconTokens{ .web = "bi bi-filetype-js", .svg = "\u{f0e8}" };
     pub const filetype_json = &IconTokens{ .web = "bi bi-filetype-json", .svg = "\u{f0e8}" };
     pub const exclamation_triangle = &IconTokens{ .web = "bi bi-exclamation-triangle", .svg = "\u{f0e8}" };
-    pub const award = &IconTokens{ .web = "bi bi-award", .svg = "\u{f0e8}" };
+    pub const chart_steps = &IconTokens{ .web = "bi bi-bar-chart-steps", .svg = "\u{f0e8}" };
     pub const motherboard = &IconTokens{ .web = "bi bi-motherboard", .svg = "\u{f0e8}" };
     pub const x_lg = &IconTokens{ .web = "bi bi-x-lg", .svg = "\u{f0e8}" };
     pub const arrow_return_left = &IconTokens{ .web = "bi bi-arrow-return-left", .svg = "\u{f0e8}" };
@@ -190,4 +76,69 @@ pub const IconTokens = struct {
     pub const person_rolodex = &IconTokens{ .web = "bi bi-person-rolodex", .svg = "\u{f0e8}" };
     pub const film = &IconTokens{ .web = "bi bi-film", .svg = "\u{f0e8}" };
     pub const react = &IconTokens{ .web = "fa-brands fa-react", .svg = "\u{f0e8}" };
+    pub const hash = &IconTokens{ .web = "bi bi-hash", .svg = "\u{f0e8}" };
+    pub const file = &IconTokens{ .web = "bi bi-file", .svg = "\u{f0e8}" };
+    pub const cubes_stacked = &IconTokens{ .web = "fa-solid fa-cubes-stacked", .svg = "\u{f0e8}" };
+    pub const palette = &IconTokens{ .web = "bi bi-palette2", .svg = "\u{f0e8}" };
+    pub const clock = &IconTokens{ .web = "bi bi-clock", .svg = "\u{f0e8}" };
+    pub const bell = &IconTokens{ .web = "bi bi-bell", .svg = "\u{f0e8}" };
+    pub const gear = &IconTokens{ .web = "bi bi-gear", .svg = "\u{f0e8}" };
+    pub const chart_bar = &IconTokens{ .web = "bi bi-chart-bar", .svg = "\u{f0e8}" };
+    pub const users = &IconTokens{ .web = "bi bi-users", .svg = "\u{f0e8}" };
+    pub const sliders2_vertical = &IconTokens{ .web = "bi bi-sliders2-vertical", .svg = "\u{f0e8}" };
+    pub const bars = &IconTokens{ .web = "bi bi-bars", .svg = "\u{f0e8}" };
+    pub const user_circle = &IconTokens{ .web = "bi bi-person-circle", .svg = "\u{f0e8}" };
+    pub const dollar_sign = &IconTokens{ .web = "bi bi-dollar-sign", .svg = "\u{f0e8}" };
+    pub const shopping_cart = &IconTokens{ .web = "bi bi-shopping-cart", .svg = "\u{f0e8}" };
+    pub const stripe = &IconTokens{ .web = "bi bi-stripe", .svg = "\u{f0e8}" };
+
+    // For Dashboard
+    pub const graph_up = &IconTokens{ .web = "bi bi-graph-up", .svg = "\u{f0e8}" };
+    pub const x_circle = &IconTokens{ .web = "bi bi-x-circle", .svg = "\u{f0e8}" };
+    pub const pause_fill = &IconTokens{ .web = "bi bi-pause-fill", .svg = "\u{f0e8}" };
+    pub const grid = &IconTokens{ .web = "bi bi-grid", .svg = "\u{f0e8}" };
+    pub const flag = &IconTokens{ .web = "bi bi-flag", .svg = "\u{f0e8}" };
+    pub const arrow_left_right = &IconTokens{ .web = "bi bi-arrow-left-right", .svg = "\u{f0e8}" };
+    pub const link_45deg = &IconTokens{ .web = "bi bi-link-45deg", .svg = "\u{f0e8}" };
+    pub const exclamation_octagon = &IconTokens{ .web = "bi bi-exclamation-octagon", .svg = "\u{f0e8}" };
+    pub const play_fill = &IconTokens{ .web = "bi bi-play-fill", .svg = "\u{f0e8}" };
+    pub const is_live = &IconTokens{ .web = "bi bi-live", .svg = "\u{f0e8}" };
+    pub const arrow_clockwise = &IconTokens{ .web = "bi bi-arrow-clockwise", .svg = "\u{f0e8}" };
+    pub const arrow_up = &IconTokens{ .web = "bi bi-arrow-up", .svg = "\u{f0e8}" };
+    pub const arrow_down = &IconTokens{ .web = "bi bi-arrow-down", .svg = "\u{f0e8}" };
+    pub const speedometer2 = &IconTokens{ .web = "bi bi-speedometer2", .svg = "\u{f0e8}" };
+    pub const arrow_counterclockwise = &IconTokens{ .web = "bi bi-arrow-counterclockwise", .svg = "\u{f0e8}" };
+    pub const currency_dollar = &IconTokens{ .web = "bi bi-currency-dollar", .svg = "\u{f0e8}" };
+    pub const download = &IconTokens{ .web = "bi bi-download", .svg = "\u{f0e8}" };
+    pub const receipt = &IconTokens{ .web = "bi bi-receipt", .svg = "\u{f0e8}" };
+    pub const people = &IconTokens{ .web = "bi bi-people", .svg = "\u{f0e8}" };
+    pub const lightning_charge_fill = &IconTokens{ .web = "bi bi-lightning-charge-fill", .svg = "\u{f0e8}" };
+    pub const chevron_expand = &IconTokens{ .web = "bi bi-chevron-expand", .svg = "\u{f0e8}" };
+    pub const grid_3x3 = &IconTokens{ .web = "bi bi-grid-3x3", .svg = "\u{f0e8}" };
+    pub const credit_card = &IconTokens{ .web = "bi bi-credit-card", .svg = "\u{f0e8}" };
+    pub const printer = &IconTokens{ .web = "bi bi-printer", .svg = "\u{f0e8}" };
+    pub const bar_chart_line = &IconTokens{ .web = "bi bi-bar-chart-line", .svg = "\u{f0e8}" };
+    pub const flower = &IconTokens{ .web = "bi bi-flower1", .svg = "\u{f0e8}" };
+    pub const calendar = &IconTokens{ .web = "bi bi-calendar3-range", .svg = "\u{f0e8}" };
+    pub const share = &IconTokens{ .web = "bi bi-share", .svg = "\u{f0e8}" };
+    pub const heart = &IconTokens{ .web = "bi bi-heart", .svg = "\u{f0e8}" };
+    pub const bookmark = &IconTokens{ .web = "bi bi-bookmark", .svg = "\u{f0e8}" };
+    pub const more_horizontal = &IconTokens{ .web = "bi bi-more-horizontal", .svg = "\u{f0e8}" };
+    pub const loader = &IconTokens{ .web = "bi bi-loader", .svg = "\u{f0e8}" };
+    pub const align_left = &IconTokens{ .web = "bi bi-align-left", .svg = "\u{f0e8}" };
+    pub const align_center = &IconTokens{ .web = "bi bi-align-center", .svg = "\u{f0e8}" };
+    pub const align_right = &IconTokens{ .web = "bi bi-align-right", .svg = "\u{f0e8}" };
+    pub const envelope = &IconTokens{ .web = "bi bi-envelope", .svg = "\u{f0e8}" };
+    pub const toolbox = &IconTokens{ .web = "fa-solid fa-toolbox", .svg = "\u{f0e8}" };
+    pub const arrow_left = &IconTokens{ .web = "bi bi-arrow-left", .svg = "\u{f0e8}" };
+    pub const kanban = &IconTokens{ .web = "bi bi-kanban", .svg = "\u{f0e8}" };
+    pub const inbox = &IconTokens{ .web = "bi bi-inbox", .svg = "\u{f0e8}" };
+    pub const flag_fill = &IconTokens{ .web = "bi bi-flag-fill", .svg = "\u{f0e8}" };
+    pub const circle = &IconTokens{ .web = "bi bi-circle", .svg = "\u{f0e8}" };
+    pub const exclamation_triangle_fill = &IconTokens{ .web = "bi bi-exclamation-triangle-fill", .svg = "\u{f0e8}" };
+    pub const play_circle = &IconTokens{ .web = "bi bi-play-circle", .svg = "\u{f0e8}" };
+    pub const eye_slash = &IconTokens{ .web = "bi bi-eye-slash", .svg = "\u{f0e8}" };
+    pub const check_circle_fill = &IconTokens{ .web = "bi bi-check-circle-fill", .svg = "\u{f0e8}" };
+    pub const link = &IconTokens{ .web = "bi bi-link", .svg = "\u{f0e8}" };
+    pub const list_ul = &IconTokens{ .web = "bi bi-list-ul", .svg = "\u{f0e8}" };
 };

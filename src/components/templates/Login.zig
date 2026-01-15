@@ -18,10 +18,15 @@ const Validation = @import("vaporize").Validation;
 const ValidationError = @import("vaporize").ValidationError;
 const Select = @import("../Select.zig").Select;
 
+const Login = @This();
+login_title: []const u8 = "Login",
+login_subtitle: []const u8 = "Login to your account",
+create_account_title: []const u8 = "Create Account",
+create_account_subtitle: []const u8 = "Create an account to login",
+
 var hovered: ?*const Vapor.IconTokens = null;
 
 pub const Details = struct {
-    username: []const u8 = "",
     email: []const u8 = "",
     password: []const u8 = "",
 };
@@ -62,8 +67,8 @@ fn validateSession(resp: Vapor.Kit.Response) void {
     }
 }
 
-fn googleLogin() void {
-    KeyStone.signInWithOauth(.google);
+fn loginWithProvider(provider: KeyStone.Provider) void {
+    KeyStone.signInWithOauth(provider);
 }
 
 fn Card() Vapor.Builder(.pure) {
@@ -84,8 +89,8 @@ fn onLeave(_: *Vapor.Event) void {
     hovered = null;
 }
 
-fn AuthBtn(func: anytype, icon: *const Vapor.IconTokens) void {
-    Button(func, .{})
+fn AuthBtn(args: KeyStone.Provider, icon: *const Vapor.IconTokens) void {
+    Button(loginWithProvider, .{args})
         .size(.hw_px(36, 36))
         .layout(.center)
         .background(.transparentizeHex(.black, 0.8))
@@ -105,184 +110,27 @@ fn AuthBtn(func: anytype, icon: *const Vapor.IconTokens) void {
     });
 }
 
-const Country = enum {
-    US,
-    CA,
-    UK,
-};
-
-const PaymentMethod = enum {
-    card,
-    paypal,
-};
-
-const CheckoutForm = struct {
-    // Account
-    account: struct {
-        email: []const u8 = "",
-        password: []const u8 = "",
-        confirm_password: []const u8 = "",
-        contact: struct {
-            phone: []const u8 = "",
-        } = .{},
-    } = .{},
-
-    payment: struct {
-        method: []const u8 = "",
-        expiry: []const u8 = "",
-        cvv: []const u8 = "",
-        billing_address: []const u8 = "",
-        card_number: []const u8 = "",
-    } = .{},
-
-    shipping_details: struct {
-        shipping_same_as_billing: Vaporize.Condition(CheckoutForm) = .{
-            .callback = sameAsBilling,
-            .target_field = "shipping",
+fn payment() void {
+    Vapor.Kit.fetch("http://localhost:8080/checkout", handlePayment, .{
+        .method = .POST,
+        .credentials = "include",
+        .headers = .{
+            .content_type = "application/x-www-form-urlencoded",
         },
-    } = .{},
-
-    shipping: struct {
-        address: []const u8 = "",
-        country: []const u8 = "",
-        state: []const u8 = "",
-        city: []const u8 = "",
-        postal_code: []const u8 = "",
-    } = .{},
-
-    pub const __validations = .{
-        .email = Validation{ .field_type = .email },
-        .password = Validation{ .field_type = .password },
-        .confirm_password = Validation{ .field_type = .password, .target_field = "password", .match = true },
-        .phone = Validation{ .field_type = .telephone, .depends_on = "country" },
-        .card_number = Validation{ .field_type = .credit_card },
-        .expiry = Validation{ .field_type = .expiry, .placeholder = "MM/YY" },
-    };
-
-    pub const __components = .{
-        .method = PaymentMethodComponent,
-        .cvv = CvvComponent,
-        .country = CountryComponent,
-    };
-};
-
-const Currency = enum {
-    usd,
-    eur,
-};
-
-const LoginForm = struct {
-    email: []const u8 = "",
-    password: []const u8 = "",
-    age: u8 = 0,
-    credit_card: []const u8 = "",
-    currency: Currency = .usd,
-    pub const __validations = .{
-        .email = Validation{ .field_type = .email },
-        .password = Validation{ .field_type = .password },
-        .age = Validation{ .field_type = .int },
-    };
-
-    pub const __components = .{
-        .credit_card = CreditCardComponent,
-        .currency = CurrencyComponent,
-    };
-};
-
-fn CreditCardComponent(form: *CheckoutForm, err: ?ValidationError) void {
-    Box()
-        .width(.percent(100))
-        .direction(.column)
-        .spacing(8)
-        .children({
-        Field.render(.{ .type = .string, .label = "Credit Card", .value = .{ .credit_card = &form.payment.card_number } });
-        Box()
-            .height(.px(16))
-            .width(.percent(100)).children({
-            if (err) |e| {
-                Text(e.message)
-                    .inlineStyle("min-width: 0;", .{})
-                    .font(12, null, .red)
-                    .height(.px(16))
-                    .width(.percent(100))
-                    .ellipsis(.dot)
-                    .end();
-            }
-        });
     });
 }
 
-fn CvvComponent(form: *CheckoutForm, _: ?ValidationError) void {
-    Box().width(.percent(30)).children({
-        Field.render(.{
-            .type = .cvv,
-            .label = "CVV",
-            .value = .{ .string = &form.payment.cvv },
-            .field_name = "cvv",
-            .placeholder = .{ .string = "123" },
-        });
-    });
-}
-
-var select: Select(Currency) = undefined;
-fn CurrencyComponent(_: *LoginForm) void {
-    select.render();
-}
-
-var payment_method: Select(PaymentMethod) = undefined;
-fn PaymentMethodComponent(_: *CheckoutForm, _: ?ValidationError) void {
-    payment_method.render();
-}
-
-var country: Select(Country) = undefined;
-fn CountryComponent(_: *CheckoutForm, _: ?ValidationError) void {
-    country.render();
-}
-
-fn sameAsBilling(form: *CheckoutForm) void {
-    Vapor.print("sameAsBilling {any}", .{form.shipping_details.shipping_same_as_billing.value});
-}
-
-const FormCheckout = Compiler.vaporize.Form(CheckoutForm);
-var login_form: FormCheckout = undefined;
-var login_form2: FormCheckout = undefined;
-
-pub fn init() void {
-    // compile the struct into a UI form
-    login_form.compile() catch unreachable;
-    // login_form.inner_form.on_submit = onSubmit;
-
-    login_form2.compile() catch unreachable;
-    // login_form2.inner_form.on_submit = onSubmit;
-
-    select = .fromItems(&.{
-        .{ .value = Currency.usd, .label = "USD" },
-        .{ .value = Currency.eur, .label = "EUR" },
-    });
-
-    select.trigger = "Currency";
-
-    payment_method = .fromItems(&.{
-        .{ .value = PaymentMethod.card, .label = "Card" },
-        .{ .value = PaymentMethod.paypal, .label = "PayPal" },
-    });
-
-    payment_method.trigger = "Payment Method";
-
-    country = .fromItems(&.{
-        .{ .value = Country.US, .label = "United States" },
-        .{ .value = Country.CA, .label = "Canada" },
-        .{ .value = Country.UK, .label = "United Kingdom" },
-    });
-    country.trigger = "Country";
-}
-
-fn onSubmit(form: CheckoutForm) void {
-    Vapor.print("Submitted {s}", .{form.payment.card_number});
-}
-
-fn LoginComponent() void {
-    login_form.render();
+fn handlePayment(resp: Vapor.Kit.Response) void {
+    switch (resp) {
+        .ok => |data| {
+            Vapor.println("Payment data {any}", .{data.body});
+            Vapor.Kit.setWindowLocation(data.body);
+        },
+        .err => |err| {
+            Vapor.println("Failed to fetch payment data: {s}", .{err.message});
+        },
+    }
+    // Vapor.cycle();
 }
 
 fn onChange(evt: *Vapor.Event) void {
@@ -290,143 +138,118 @@ fn onChange(evt: *Vapor.Event) void {
     Vapor.print("onChange {s}", .{evt.text()});
 }
 
-var username: []const u8 = "";
-pub fn render() void {
-    Box()
-        .layout(.top_center)
-        .size(.full)
-        .spacing(128)
-        .children({
-        Box()
-            .width(.percent(40))
-            .height(.percent(40))
-            .direction(.column)
-            .layout(.top_left)
-            .spacing(32)
-            .children({
-            LoginComponent();
-            // Stack().width(.percent(100)).spacing(16).layout(.left_center).children({
-            //     Text("Login").font(16, 700, .palette(.text_color)).end();
-            //     login_form2.render();
-            // });
-            //     const active_index = Tabs.NavBar("login_tabs", &.{ "Login", "Create Account" });
-            //     switch (active_index) {
-            //         0 => {
-            //             Card().children({
-            //                 Stack()
-            //                     .width(.percent(100))
-            //                     .spacing(8)
-            //                     .children({
-            //                     Text("Acorn Login")
-            //                         .font(16, 700, .palette(.text_color))
-            //                         .end();
-            //                     Text("Login into your Acorn account.")
-            //                         .font(14, 300, .palette(.text_color))
-            //                         .end();
-            //                 });
-            //
-            //                 Box()
-            //                     .width(.percent(100))
-            //                     .spacing(16)
-            //                     .layout(.left_center)
-            //                     .children({
-            //                     AuthBtn(googleLogin, .google);
-            //                     AuthBtn(googleLogin, .github);
-            //                     AuthBtn(googleLogin, .apple);
-            //                 });
-            //                 Stack()
-            //                     .width(.percent(100))
-            //                     .spacing(16)
-            //                     .children({
-            //                     Field.render(.{
-            //                         .label = "Username",
-            //                         .value = .{ .string = &details.username },
-            //                         .on_change = onChange,
-            //                         .type = .string,
-            //                         .id = "username",
-            //                     });
-            //                     Field.render(.{
-            //                         .label = "Email",
-            //                         .value = .{ .email = &details.email },
-            //                         .type = .email,
-            //                         .id = "email",
-            //                     });
-            //                     Field.render(.{
-            //                         .label = "Password",
-            //                         .value = .{ .password = &details.password },
-            //                         .type = .password,
-            //                         .id = "password",
-            //                     });
-            //                 });
-            //                 Box()
-            //                     .layout(.right_center)
-            //                     .width(.percent(100))
-            //                     .children({
-            //                     Button(submit, .{})
-            //                         .animation(&glitch)
-            //                         .background(.transparentizeHex(.black, 0.8))
-            //                         .border(.round(.black, .all(8)))
-            //                         .padding(.all(6))
-            //                         .pointer()
-            //                         .children({
-            //                         Text("Login")
-            //                             .font(16, 300, .palette(.alternate_text_color))
-            //                             .fontFamily("IBM Plex Sans,monospace")
-            //                             .end();
-            //                         Vapor.Svg(.{ .svg = key })
-            //                             .stroke(.palette(.alternate_text_color))
-            //                             .fill(.palette(.text_color))
-            //                             .end();
-            //                     });
-            //                 });
-            //             });
-            //         },
-            //         1 => {
-            //             Card().children({
-            //                 Stack()
-            //                     .width(.percent(100))
-            //                     .spacing(8)
-            //                     .children({
-            //                     Text("Login")
-            //                         .font(16, 700, .palette(.text_color))
-            //                         .end();
-            //                     Text("Login into your Acorn account.")
-            //                         .font(14, 300, .palette(.text_color))
-            //                         .end();
-            //                 });
-            //                 Stack()
-            //                     .width(.percent(100))
-            //                     .spacing(16)
-            //                     .children({
-            //                     Field.render(.{ .label = "Username", .value = .{ .string = &details.username }, .type = .string });
-            //                     Field.render(.{ .label = "Email", .value = .{ .email = &details.email }, .type = .email });
-            //                     Field.render(.{ .label = "Password", .value = .{ .password = &details.password }, .type = .password });
-            //                 });
-            //                 Box()
-            //                     .layout(.right_center)
-            //                     .width(.percent(100))
-            //                     .children({
-            //                     Button(createAccount, .{})
-            //                         .animation(&glitch)
-            //                         .background(.transparentizeHex(.black, 0.8))
-            //                         .border(.round(.black, .all(8)))
-            //                         .padding(.all(6))
-            //                         .pointer()
-            //                         .children({
-            //                         Text("Create Account")
-            //                             .font(16, 300, .palette(.alternate_text_color))
-            //                             .fontFamily("IBM Plex Sans,monospace")
-            //                             .end();
-            //                         Vapor.Icon(.person_rolodex)
-            //                             .font(16, 700, .palette(.alternate_text_color))
-            //                             .end();
-            //                     });
-            //                 });
-            //             });
-            //         },
-            //         else => {},
-            //     }
-        });
-        // TrainTicket.render(&details);
-    });
+pub fn render(login: *Login) void {
+    const active_index = Tabs.NavBar("login_tabs", &.{ "Login", "Create Account" });
+    const google = KeyStone.keystone.clients.google;
+    const github = KeyStone.keystone.clients.github;
+    const apple = KeyStone.keystone.clients.apple;
+    const auth_providers = if (google != null or github != null or apple != null) true else false;
+    Vapor.Spacer(24).end();
+    switch (active_index) {
+        0 => {
+            Card().children({
+                Stack()
+                    .width(.percent(100))
+                    .spacing(8)
+                    .children({
+                    Text(login.login_title)
+                        .font(16, 700, .palette(.text_color))
+                        .end();
+                    Text(login.login_subtitle)
+                        .font(14, 300, .palette(.text_color))
+                        .end();
+                });
+
+                if (auth_providers) {
+                    Box()
+                        .width(.percent(100))
+                        .spacing(16)
+                        .layout(.left_center)
+                        .children({
+                        if (google) |_| {
+                            AuthBtn(KeyStone.Provider.google, .google);
+                        }
+                        if (github) |_| {
+                            AuthBtn(KeyStone.Provider.github, .github);
+                        }
+                        if (apple) |_| {
+                            AuthBtn(KeyStone.Provider.apple, .apple);
+                        }
+                    });
+                }
+
+                Stack()
+                    .width(.percent(100))
+                    .spacing(16)
+                    .children({
+                    Field.render(.{ .label = "Email", .value = .{ .email = &details.email }, .type = .email, .id = "email" });
+                    Field.render(.{ .label = "Password", .value = .{ .password = &details.password }, .type = .password, .id = "password" });
+                });
+                Box()
+                    .layout(.right_center)
+                    .width(.percent(100))
+                    .children({
+                    Button(submit, .{})
+                        .animation("glitch")
+                        .background(.transparentizeHex(.black, 0.8))
+                        .border(.round(.black, .all(8)))
+                        .padding(.all(6))
+                        .pointer()
+                        .children({
+                        Text("Login")
+                            .font(16, 300, .palette(.alternate_text_color))
+                            .fontFamily("IBM Plex Sans,monospace")
+                            .end();
+                        Vapor.Svg(.{ .svg = key })
+                            .stroke(.palette(.alternate_text_color))
+                            .fill(.palette(.text_color))
+                            .end();
+                    });
+                });
+            });
+        },
+        1 => {
+            Card().children({
+                Stack()
+                    .width(.percent(100))
+                    .spacing(8)
+                    .children({
+                    Text(login.create_account_title)
+                        .font(16, 700, .palette(.text_color))
+                        .end();
+                    Text(login.create_account_subtitle)
+                        .font(14, 300, .palette(.text_color))
+                        .end();
+                });
+                Stack()
+                    .width(.percent(100))
+                    .spacing(16)
+                    .children({
+                    Field.render(.{ .label = "Email", .value = .{ .email = &details.email }, .type = .email });
+                    Field.render(.{ .label = "Password", .value = .{ .password = &details.password }, .type = .password });
+                });
+                Box()
+                    .layout(.right_center)
+                    .width(.percent(100))
+                    .children({
+                    Button(createAccount, .{})
+                        .animation("glitch")
+                        .background(.transparentizeHex(.black, 0.8))
+                        .border(.round(.black, .all(8)))
+                        .padding(.all(6))
+                        .pointer()
+                        .children({
+                        Text("Create Account")
+                            .font(16, 300, .palette(.alternate_text_color))
+                            .fontFamily("IBM Plex Sans,monospace")
+                            .end();
+                        Vapor.Icon(.person_rolodex)
+                            .font(16, 700, .palette(.alternate_text_color))
+                            .end();
+                    });
+                });
+            });
+        },
+        else => {},
+    }
 }

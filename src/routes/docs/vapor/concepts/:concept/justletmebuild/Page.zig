@@ -5,7 +5,7 @@ const Style = Vapor.Style;
 const Static = Vapor.Static;
 const Box = Static.Box;
 const Text = Static.Text;
-const Link = Static.Link;
+const RedirectLink = Static.RedirectLink;
 const Image = Static.Image;
 const Svg = Static.Svg;
 const Button = Static.Button;
@@ -120,7 +120,7 @@ pub fn render() void {
             .font_family = "IBM Plex Mono,monospace",
         });
         Text("Linux, BSD, MacOS, *nix").font(18, 700, .palette(.text_color)).end();
-        Link(.{ .url = "https://www.zvm.app/guides/install-zvm/", .aria_label = "zvm github page" })
+        RedirectLink(.{ .url = "https://www.zvm.app/guides/install-zvm/", .aria_label = "zvm github page" })
             .textDecoration(.none)
             .children({
             Text("https://www.zvm.app/guides/install-zvm/").font(16, 500, .palette(.tint)).end();

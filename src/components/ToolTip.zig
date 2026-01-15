@@ -154,8 +154,8 @@ pub fn renderCtx(tooltip_options: Options) void {
             if (options.show) {
                 Box()
                     .transformOrigin(.bottom_center)
-                    .animationEnter(&animateEnter)
-                    .animationExit(&animateExit)
+                    .animationEnter("opaque-tooltip-enter")
+                    .animationExit("opaque-tooltip-exit")
                     .border(.round(.transparent, .all(6)))
                     .zIndex(1000)
                     .layout(.center)
@@ -254,8 +254,8 @@ pub fn render(tooltip_options: Options) void {
             if (options.show) {
                 Box()
                     .transformOrigin(.bottom_center)
-                    .animationEnter(&animateEnter)
-                    .animationExit(&animateExit)
+                    .animationEnter("opaque-tooltip-enter")
+                    .animationExit("opaque-tooltip-exit")
                     .border(.round(.transparent, .all(6)))
                     .zIndex(1000)
                     .layout(.center)

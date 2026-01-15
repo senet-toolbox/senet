@@ -14,10 +14,10 @@ pub const AccordionItem = struct {
     title: []const u8,
     description: []const u8,
     is_open: bool = false,
-    min_height: f32 = 52,
-    max_height: f32 = 256,
-    height: f32 = 52,
-    total_height: Vapor.Types.Sizing = .px(52),
+    min_height: f32 = 42,
+    max_height: f32 = 252,
+    height: f32 = 42,
+    total_height: Vapor.Types.Sizing = .px(42),
     binded: Vapor.Binded = .{},
     calculated_height: f32 = 0,
 
@@ -28,7 +28,7 @@ pub const AccordionItem = struct {
         if (accordon_item.is_open) {
             accordon_item.is_open = false;
             accordon_item.height = accordon_item.min_height;
-            accordon_item.total_height = .px(52);
+            accordon_item.total_height = .px(42);
         } else {
             accordon_item.is_open = true;
             accordon_item.height = accordon_item.max_height;
@@ -41,13 +41,6 @@ pub const AccordionItem = struct {
         const full_height = accordon_item.binded.getAttributeNumber("scrollHeight") + 52;
         accordon_item.calculated_height = @floatFromInt(full_height);
         Vapor.print("Full height: {any}", .{full_height});
-
-        // Vapor.print("Accordion: mount", .{});
-        // if (self.is_open) {
-        //     self.height = self.max_height;
-        // } else {
-        //     self.height = self.min_height;
-        // }
     }
 
     pub fn render(accordon_item: *AccordionItem) void {
@@ -60,7 +53,6 @@ pub const AccordionItem = struct {
                     .duration = 150,
                     .timing = .easeInOut,
                 })
-                .border(.bottom(if (accordon_item.is_open) border_color else border_color))
                 // Position: Top Right, fixed/absolute
                 .background(.transparent)
 
@@ -90,7 +82,8 @@ pub const AccordionItem = struct {
                 });
                 Box()
                     .height(.grow)
-                    .padding(.horizontal(8))
+                    .width(.percent(100))
+                    .padding(.horizontal(12))
                     .ref(&accordon_item.binded)
                     .scroll(.{ .x = .hidden, .y = .hidden })
                     .children({

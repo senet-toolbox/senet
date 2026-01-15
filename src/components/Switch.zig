@@ -6,11 +6,11 @@ const ButtonCtx = Vapor.CtxButton;
 var active_color: Vapor.Types.Background = .palette(.background);
 var inactive_color: Vapor.Types.Background = .palette(.background);
 var inactive_background: Vapor.Types.Background = .palette(.border_color_light);
-var active_background: Vapor.Types.Background = .hex("#FFE100");
-// var active_background: Vapor.Types.Background = .transparentizeHex(.palette(.tint), 0.7);
+// var active_background: Vapor.Types.Background = .hex("#FFE100");
+var active_background: Vapor.Types.Background = .transparentizeHex(.palette(.tint), 0.7);
 
 var border_radius: u8 = 4;
-var duration: u32 = 300;
+var duration: u32 = 100;
 
 var switches: std.AutoHashMap(u32, *SwitchOptions) = undefined;
 
@@ -90,6 +90,7 @@ pub fn render(id: []const u8) void {
             , .{})
             .children({
             ButtonCtx(toggle, .{switch_options})
+                .ariaLabel("Toggle Switch")
                 .width(.percent(100))
                 .border(.{
                     .thickness = .none,

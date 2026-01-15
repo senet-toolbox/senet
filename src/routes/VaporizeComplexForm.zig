@@ -86,7 +86,6 @@ fn onSubmit(form: CheckoutForm) void {
 }
 
 const FormCheckout = Compiler.vaporize.Form(CheckoutForm);
-
 var login_form: FormCheckout = undefined;
 var country: Select(Country) = undefined;
 var payment_method: Select(PaymentMethod) = undefined;

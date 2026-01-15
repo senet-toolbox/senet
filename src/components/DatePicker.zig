@@ -21,14 +21,14 @@ const week_days: []const []const u8 = &.{
 };
 
 var border: Vapor.Types.BorderGrouped = .round(.transparent, .all(6));
-var selected_border: Vapor.Types.BorderGrouped = .round(.vapor_blue, .all(6));
-var selected_background: Vapor.Types.Background = .vapor_blue;
+var selected_border: Vapor.Types.BorderGrouped = .round(.palette(.tint), .all(6));
+var selected_background: Vapor.Types.Background = .palette(.tint);
 var shadow: Vapor.Types.Shadow = .{
     .color = .transparent,
     .spread = 2,
 };
 var selected_shadow: Vapor.Types.Shadow = .{
-    .color = .transparentizeHex(.vapor_blue, 0.1),
+    .color = .transparentizeHex(.palette(.tint), 0.1),
     .spread = 2,
 };
 
@@ -49,6 +49,7 @@ var months: []const []const u8 = &.{
 
 const DatePicker = @This();
 current_date: DateTime,
+start_date: ?DateTime = null,
 _viewed_date: DateTime = undefined,
 _selected_date: DateTime = undefined,
 _all_dates: []DateTime = undefined,
@@ -56,17 +57,22 @@ _container_width: f32 = 256,
 _container_height: f32 = 260,
 _cell_dim: f32 = 32,
 _allocator: *std.mem.Allocator = undefined,
-tint: Vapor.Types.Background = .vapor_blue,
+tint: Vapor.Types.Background = .palette(.tint),
 background: Vapor.Types.Background = .palette(.background),
 selected_text_color: Vapor.Types.Color = .white,
-text_color: Vapor.Types.Color = .black,
-border_color: Vapor.Types.Color = .black,
+text_color: Vapor.Types.Color = .palette(.text_color),
+border_color: Vapor.Types.Color = .palette(.text_color),
 months_select: Select(DateTime) = undefined,
 years_select: Select(i32) = undefined,
+on_date_select: ?*const fn (date: DateTime) void = null,
+on_year_select: ?*const fn (year: i32) void = null,
+on_month_select: ?*const fn (month: i32) void = null,
+on_next_month: ?*const fn () void = null,
+on_prev_month: ?*const fn () void = null,
 
 pub fn init(date_picker: *DatePicker) void {
     var allocator = Vapor.arena(.persist);
-    const selected_date = DateTime.now();
+    const selected_date = date_picker.start_date orelse DateTime.now();
     const start_dates = DateTime.getCalendarView(
         &allocator,
         selected_date.month,
@@ -77,7 +83,7 @@ pub fn init(date_picker: *DatePicker) void {
     };
 
     new();
-    const current_months = DateTime.getMonths(&allocator, 2025) catch {
+    const current_months = DateTime.getMonths(&allocator, selected_date.year) catch {
         Vapor.printErr("Error getting months", .{});
         unreachable;
     };
@@ -109,7 +115,7 @@ pub fn init(date_picker: *DatePicker) void {
     years_select.on_select = selectYear;
     years_select.trigger = "Year";
 
-    const view_date = DateTime.now();
+    const view_date = selected_date;
     date_picker.* = DatePicker{
         ._selected_date = selected_date,
         ._allocator = &allocator,
@@ -126,20 +132,25 @@ fn selectMonth(select: *Select(DateTime), item: *Select(DateTime).Item) void {
     const date_picker: *DatePicker = @alignCast(@fieldParentPtr("months_select", select));
     date_picker._viewed_date = item.value;
     date_picker.updateViewedDate();
+    if (date_picker.on_month_select) |cb| {
+        @call(.auto, cb, .{item.value.month});
+    }
 }
 
 fn selectYear(select: *Select(i32), item: *Select(i32).Item) void {
     const date_picker: *DatePicker = @alignCast(@fieldParentPtr("years_select", select));
     date_picker._viewed_date.year = item.value;
     date_picker.updateViewedDate();
+    if (date_picker.on_year_select) |cb| {
+        @call(.auto, cb, .{item.value});
+    }
 }
 
 fn selectDate(date_picker: *DatePicker, date_time: DateTime) void {
     date_picker._selected_date = date_time;
-    // Vapor.print("Selected date: {d:2} {d}", .{ date_time.day, date_time.month });
-    // if (date_picker.on_click) |cb| {
-    //     @call(.auto, cb, .{ cal, date_time });
-    // }
+    if (date_picker.on_date_select) |cb| {
+        @call(.auto, cb, .{date_time});
+    }
 }
 
 fn isSelectedColor(date_picker: *DatePicker, date_time: DateTime) Vapor.Types.Background {
@@ -217,6 +228,9 @@ fn prev(date_picker: *DatePicker) void {
 
     const dates = date_picker.getMonthDays();
     date_picker._all_dates = dates;
+    if (date_picker.on_prev_month) |cb| {
+        @call(.auto, cb, .{});
+    }
 }
 
 fn next(date_picker: *DatePicker) void {
@@ -230,6 +244,9 @@ fn next(date_picker: *DatePicker) void {
 
     const dates = date_picker.getMonthDays();
     date_picker._all_dates = dates;
+    if (date_picker.on_next_month) |cb| {
+        @call(.auto, cb, .{});
+    }
 }
 
 fn updateViewedDate(date_picker: *DatePicker) void {
@@ -270,6 +287,7 @@ pub fn render(date_picker: *DatePicker) void {
             .layout(.x_between_center)
             .children({
             ButtonCtx(prev, .{date_picker})
+                .ariaLabel("Previous Month")
                 .background(date_picker.background)
                 .cursor(.pointer)
                 .children({
@@ -282,6 +300,7 @@ pub fn render(date_picker: *DatePicker) void {
                 date_picker._viewed_date.year,
             }).end();
             ButtonCtx(next, .{date_picker})
+                .ariaLabel("Next Month")
                 .background(date_picker.background)
                 .cursor(.pointer)
                 .children({
@@ -335,6 +354,7 @@ pub fn render(date_picker: *DatePicker) void {
                 for (date_picker._all_dates) |date| {
                     const color: Vapor.Types.Background = if (date_picker.isSelected(date)) date_picker.background else .transparentizeHex(.black, 0.05);
                     ButtonCtx(selectDate, .{ date_picker, date })
+                        .ariaLabel("Select Date")
                         .cursor(.pointer)
                         .background(date_picker.background)
                         .width(.px(date_picker._cell_dim))
