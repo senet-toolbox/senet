@@ -20,7 +20,6 @@ import {
   hooksDestroyCtx,
 } from "./maps.js";
 import {
-  traverse,
   COMPONENT_TYPES,
   recurseDestroy,
   updateElement,
@@ -55,62 +54,10 @@ export let layoutInfo;
 export let UINodelayoutInfo;
 
 let tree_node;
-
-let isDragging = false;
-let offsetX, offsetY;
-let draggableElement;
-
-function startDrag(e) {
-  isDragging = true;
-
-  // Calculate the offset from the mouse position to the element's top-left corner
-  const rect = draggableElement.getBoundingClientRect();
-  offsetX = e.clientX - rect.left;
-  offsetY = e.clientY - rect.top;
-}
-
-function drag(e) {
-  if (!isDragging) return;
-
-  // Prevent any default behavior
-  e.preventDefault();
-
-  // Calculate new position
-  let left = e.clientX - offsetX;
-  let top = e.clientY - offsetY;
-
-  // Apply new position
-  draggableElement.style.left = left + "px";
-  draggableElement.style.top = top + "px";
-}
-
-function startDragTouch(e) {
-  const touch = e.touches[0];
-  const mouseEvent = new MouseEvent("mousedown", {
-    clientX: touch.clientX,
-    clientY: touch.clientY,
-  });
-  startDrag(mouseEvent);
-}
-
-function dragTouch(e) {
-  if (!isDragging) return;
-
-  const touch = e.touches[0];
-  const mouseEvent = new MouseEvent("mousemove", {
-    clientX: touch.clientX,
-    clientY: touch.clientY,
-  });
-  drag(mouseEvent);
-}
-
-function endDrag() {
-  isDragging = false;
-}
 const socket = new WebSocket("ws://localhost:3003");
 //
 // This fires when the connection is successfully established
-socket.onopen = function(event) {
+socket.onopen = function (event) {
   console.log("WebSocket connection established!");
   // Maybe update UI to show connected status
 };
@@ -150,7 +97,8 @@ function hideReloading() {
 }
 
 // Handle incoming messages
-socket.onmessage = async function(event) {
+socket.onmessage = async function (event) {
+  console.log(event);
   if (event.data === "reloading") {
     showReloading();
     return;
@@ -161,36 +109,7 @@ socket.onmessage = async function(event) {
   if (event.data === "refresh") {
     const rootElement = document.getElementById("contents");
     rootElement.innerHTML = "";
-    // initWasi();
     window.location.reload();
-    // updatePageContent();
-    // if (state.initial_render === true) {
-    //   const rootElement = document.getElementById("contents");
-    //   rootElement.innerHTML = "";
-    //   initWasi();
-    //   // state.initial_render = true;
-    //   // state.initial_render = false;
-    // } else {
-    //   // currentPath = window.location.pathname;
-    //   // clearIntervalsForRoute(currentPath);
-    //   //
-    //   // // Update the browser URL without reloading the page
-    //   // // window.history.pushState({}, "", currentPath);
-    //   //
-    //   // if (currentPath === "/") {
-    //   //   encodeString("/root");
-    //   // } else {
-    //   //   encodeString(currentPath);
-    //   // }
-    //   // console.log(rootNodeId);
-    //   // const rootElement = document.getElementById(rootNodeId);
-    //   // rootElement.innerHTML = "";
-    //   // tree_node = wasmInstance.getRenderTreePtr();
-    //   // state.initial_render = true;
-    //   // traverse(rootElement, tree_node, layoutInfo);
-    //   // state.initial_render = false;
-    //   return;
-    // }
   }
   hideReloading();
 };
@@ -208,7 +127,7 @@ socket.onmessage = async function(event) {
 let layoutInfoPtr;
 let uiNodeLayoutInfoPtr;
 
-window.addEventListener("popstate", async function(event) {
+window.addEventListener("popstate", async function (event) {
   const path = window.location.pathname;
   rerenderRoute(path);
   requestAnimationFrame(() => {
@@ -428,18 +347,20 @@ export const rerenderRoute = (navigatedPath) => {
       //   behavior: "smooth", // or 'auto' for instant scroll
       // });
     }
-    hooksMounted.forEach((value, key) => {
-      wasmInstance.hooksMountedCallback(key);
-      hooksMounted.delete(key);
-    });
-    hooksMountedCtx.forEach((value, key) => {
-      wasmInstance.hooksMountedCallbackCtx(key);
-      hooksMountedCtx.delete(key);
-    });
-    // wasmInstance.onMountCtxCallback();
-    hooksCtxCreated.forEach((value, key) => {
-      wasmInstance.callOnCreateNode(key);
-      hooksCtxCreated.delete(key);
+    requestAnimationFrame(() => {
+      hooksMounted.forEach((value, key) => {
+        wasmInstance.hooksMountedCallback(key);
+        hooksMounted.delete(key);
+      });
+      hooksMountedCtx.forEach((value, key) => {
+        wasmInstance.hooksMountedCallbackCtx(key);
+        hooksMountedCtx.delete(key);
+      });
+      // wasmInstance.onMountCtxCallback();
+      hooksCtxCreated.forEach((value, key) => {
+        wasmInstance.callOnCreateNode(key);
+        hooksCtxCreated.delete(key);
+      });
     });
 
     // wasmInstance.callAllMountedCallbacks();
@@ -572,6 +493,11 @@ function setupLayoutInfo() {
     styleHashOffset: new DataView(
       wasmInstance.memory.buffer,
       uiNodeLayoutInfoPtr + 48,
+      4,
+    ).getUint32(0, true),
+    accessibilityOffset: new DataView(
+      wasmInstance.memory.buffer,
+      uiNodeLayoutInfoPtr + 52,
       4,
     ).getUint32(0, true),
   };
@@ -746,7 +672,7 @@ function setupWasiInstance() {
   checkMemoryGrowth();
   wasmInstance.init(); // Example UI function
 
-  new PerformanceMonitor();
+  // new PerformanceMonitor();
 
   document.getElementById("contents").addEventListener("click", (event) => {
     const button = event.target.closest("button");
@@ -798,12 +724,12 @@ function setupWasiInstance() {
   }
   console.log("Rendering UI...");
   // const current_pages = checkMemoryGrowth();
-  const start = performance.now();
+  // const start = performance.now();
   wasmInstance.renderUI(route_ptr);
-  const wasmend = performance.now();
-  const wasmrenderTimeElement = document.getElementById("renderTime");
-  const wasmrenderTime = Math.round((wasmend - start) * 100) / 100;
-  wasmrenderTimeElement.textContent = wasmrenderTime;
+  // const wasmend = performance.now();
+  // const wasmrenderTimeElement = document.getElementById("renderTime");
+  // const wasmrenderTime = Math.round((wasmend - start) * 100) / 100;
+  // wasmrenderTimeElement.textContent = wasmrenderTime;
   // const new_pages = checkMemoryGrowth();
   // console.log(
   //   `Pages: ${current_pages} -> ${new_pages} Diff: ${new_pages - current_pages}`,
@@ -1015,14 +941,13 @@ function clearCSS() {
 }
 
 export function injectCSS(cssString) {
-  // Append new CSS to the existing sheet
-  // read old rules as text
   const existingRules = Array.from(styleSheet.cssRules)
     .map((rule) => rule.cssText)
     .join("\n");
 
-  // replace with old + new rules
-  styleSheet.replaceSync(`${existingRules}\n${cssString}`);
+  const finalCSS = `${existingRules}\n${cssString}`;
+
+  styleSheet.replaceSync(finalCSS);
   rebuildCacheFromStylesheet();
 }
 
@@ -1141,12 +1066,12 @@ export async function render() {
         currentPath === "/" ? "/root" : `/root${currentPath}`,
       );
 
-      const wasmstart = performance.now();
+      // const wasmstart = performance.now();
       wasmInstance.renderUI(route_ptr);
-      const wasmend = performance.now();
-      const wasmrenderTimeElement = document.getElementById("renderTime");
-      const wasmrenderTime = Math.round((wasmend - wasmstart) * 100) / 100;
-      wasmrenderTimeElement.textContent = wasmrenderTime;
+      // const wasmend = performance.now();
+      // const wasmrenderTimeElement = document.getElementById("renderTime");
+      // const wasmrenderTime = Math.round((wasmend - wasmstart) * 100) / 100;
+      // wasmrenderTimeElement.textContent = wasmrenderTime;
 
       const has_dirty = wasmInstance.hasDirty();
 
@@ -1163,6 +1088,10 @@ export async function render() {
             console.error("Error destroying node:", e),
           );
         }
+      }
+
+      if (document.getElementById("checkbox-row-0-col-0")) {
+        console.log("REMOVING ---- Checkbox");
       }
 
       /* ───────── main removal loop ───────── */
@@ -1425,10 +1354,10 @@ export async function render() {
     }
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
-        const end = performance.now();
-        const renderTimeElement = document.getElementById("totalRenderTime");
-        const renderTime = Math.round((end - start) * 100) / 100;
-        renderTimeElement.textContent = renderTime;
+        // const end = performance.now();
+        // const renderTimeElement = document.getElementById("totalRenderTime");
+        // const renderTime = Math.round((end - start) * 100) / 100;
+        // renderTimeElement.textContent = renderTime;
 
         wasmInstance.onEndCallback();
         wasmInstance.onEndCtxCallback();
@@ -1679,72 +1608,7 @@ export function readRenderCommand(offset, layout) {
       updatedId: view.getUint32(layoutInfo.hooksOffset + 8, true),
       destroyId: view.getUint32(layoutInfo.hooksOffset + 12, true),
     };
-    // const dialogIdPtr = propsView.getUint32(layoutInfo.dialogIdPtrOffset, true);
-    // const dialogIdLen = propsView.getUint32(layoutInfo.dialogIdLenOffset, true);
-    // dialogId = dialogIdPtr ? readWasmString(dialogIdPtr, dialogIdLen) : "";
-    // const propsHoverOffset = offset + layoutInfo.hoverOffset;
-    // const propsHoverView = new DataView(
-    //   wasmInstance.memory.buffer,
-    //   propsHoverOffset, // propsOffset is relative to the start of RenderCommand
-    //   layoutInfo.hoverSize,
-    // );
-    // const hoverExists = propsHoverView.getUint8(0, true);
-    // if (hoverExists > 0) {
-    //   const cssHoverPtr = wasmInstance.getVisualStyle(nodePtr, 0);
-    //   const cssHoverLen = wasmInstance.getVisualLen();
-    //   hoverCss = readWasmString(cssHoverPtr, cssHoverLen);
-    // }
-    //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    // const propsFocusOffset = offset + layoutInfo.focusOffset;
-    // const propsFocusView = new DataView(
-    //   wasmInstance.memory.buffer,
-    //   propsFocusOffset, // propsOffset is relative to the start of RenderCommand
-    //   layoutInfo.focusSize,
-    // );
-    // const focusExists = propsFocusView.getUint8(0, true);
-    // if (focusExists > 0) {
-    //   const cssHoverPtr = wasmInstance.getVisualStyle(nodePtr, 1);
-    //   const cssHoverLen = wasmInstance.getVisualLen();
-    //   focusCss = readWasmString(cssHoverPtr, cssHoverLen);
-    // }
-    //
-    // const propsFocusWithinOffset = offset + layoutInfo.focusWithinOffset;
-    // const propsFocusWithinView = new DataView(
-    //   wasmInstance.memory.buffer,
-    //   propsFocusWithinOffset, // propsOffset is relative to the start of RenderCommand
-    //   layoutInfo.focusWithinSize,
-    // );
-    // const focusWithinExists = propsFocusWithinView.getUint8(0, true);
-    // if (focusWithinExists > 0) {
-    //   const cssHoverPtr = wasmInstance.getVisualStyle(nodePtr, 2);
-    //   const cssHoverLen = wasmInstance.getVisualLen();
-    //   focusWithinCss = readWasmString(cssHoverPtr, cssHoverLen);
-    // }
-    //
-    // const toolTipOffset = offset + layoutInfo.tooltipOffset;
-    // const toolTipView = new DataView(
-    //   wasmInstance.memory.buffer,
-    //   toolTipOffset, // propsOffset is relative to the start of RenderCommand
-    //   layoutInfo.tooltipSize,
-    // );
-    // const toolTipExists = toolTipView.getUint32(0, true);
-    // if (toolTipExists > 0) {
-    //   const toolTipTextLen = toolTipView.getUint32(4, true);
-    //   tooltipTitle = readWasmString(toolTipExists, toolTipTextLen);
-    //   const tooltip_stylePtr = wasmInstance.getTooltipStyle(nodePtr);
-    //   if (tooltip_stylePtr !== 0) {
-    //     const tooltip_styleLen = wasmInstance.getTooltipStyleLen();
-    //     tooltipCss = readWasmString(tooltip_stylePtr, tooltip_styleLen);
-    //   }
-    // }
-    // const exitAnimPtr = propsView.getUint32(layoutInfo.propsExitAnimation, true);
-    // if (exitAnimPtr) {
-    //   const exitAnimLen = propsView.getUint32(
-    //     layoutInfo.propsExitAnimationLength,
-    //     true,
-    //   );
-    //   exitAnimationId = readWasmString(exitAnimPtr, exitAnimLen);
-    // }
+
     // if (cssStylePtr !== 0) {
     // 1. Get the offset of the classname's POINTER from our new layout object.
     const classnamePtrOffset = layoutInfo.classnamePtrOffset;
@@ -1925,6 +1789,11 @@ export function readUINode(offset) {
     true,
   );
 
+  const accessibility = view.getUint8(
+    offset + UINodelayoutInfo.accessibilityOffset,
+    true,
+  );
+
   // In hot path
   let styleId = "";
   if (style_hash) {
@@ -1960,12 +1829,14 @@ export function readUINode(offset) {
     changedProps: view.getUint8(offset + UINodelayoutInfo.propsChangedOffset),
     hooks,
     hash,
+    accessibility,
   };
 }
 // ✅ Faster: Reuse decoder (2-3x faster)
 const textDecoder = new TextDecoder();
 
 export function readWasmString(ptr, len) {
+  if (len === 0) return "";
   const bytes = new Uint8Array(wasmInstance.memory.buffer, ptr, len);
   return textDecoder.decode(bytes);
 }

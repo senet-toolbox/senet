@@ -103,7 +103,7 @@ fn render() void {
             });
 
             // Reset button
-            Button(.{ .on_press = resetGame }).style(&reset_button_style)({
+            Button(resetGame).style(&reset_button_style)({
                 Text("New Game").end();
             });
         });
@@ -508,7 +508,7 @@ fn render() void {
             });
 
             // Reset button
-            Button(.{ .on_press = resetGame }).style(&reset_button_style)({
+            Button(resetGame).style(&reset_button_style)({
                 Text("New Game").end();
             });
         });
@@ -835,7 +835,7 @@ Congratulations! You've built a complete Tic-Tac-Toe game and learned:
 | Concept                   | What You Did                                                |
 | ------------------------- | ----------------------------------------------------------- |
 | **State Management**      | Variables outside `render()` persist between updates        |
-| **Event Handling**        | `Button(.{ .on_press = fn })` and `ButtonCtx(fn, .{args})`  |
+| **Event Handling**        | `Button(fn)` and `ButtonCtx(fn, .{args})`  |
 | **Conditional Rendering** | Standard Zig `if` statements in UI code                     |
 | **Loops**                 | Zig `for` loops to generate repeated UI elements            |
 | **Styling**               | Builder pattern and Style structs with `.style(&style)({})` |

@@ -38,7 +38,7 @@ fn onMove(draggable: *Draggable, evt: *Vapor.Event) void {
         point.x = bounds_width;
     }
     draggable.updatePosition(point.x, 0);
-    point.binded_trans.mutateStyleString("width", Vapor.fmtln("{d}px", .{point.x}));
+    point.binded_trans.mutateStyleString("width", Vapor.fmtln("{d}px", .{point.x + 9}));
 }
 
 fn DragBox() Vapor.Builder(.pure) {
@@ -47,7 +47,7 @@ fn DragBox() Vapor.Builder(.pure) {
         .width(.px(18))
         .height(.px(18))
         .border(.round(.palette(.alternate_background), .all(99)))
-        .background(.palette(.background));
+        .background(.white);
 }
 
 fn Slide() Vapor.Builder(.pure) {
@@ -61,6 +61,7 @@ fn Slide() Vapor.Builder(.pure) {
 fn mount(point: *Point) void {
     const bound = point.binded.getBoundingClientRect() orelse return;
     const bounds_width = bound.width / 2;
+    point.x = bounds_width;
     point.binded_trans.mutateStyleString("width", Vapor.fmtln("{d}px", .{bounds_width + 9}));
     point.draggable.updatePosition(bounds_width, 0);
 }
@@ -68,6 +69,7 @@ fn mount(point: *Point) void {
 pub fn render(_: Slider) void {
     Box()
         .pos(.relative)
+        .direction(.column)
         .children({
 
         // Hello
@@ -75,7 +77,6 @@ pub fn render(_: Slider) void {
         const slide_uuid = slide.getUUID();
 
         const binded = binded_comps.get(slide_uuid) orelse blk: {
-            Vapor.printErr("Failed to get binded slide", .{});
             const binded = Vapor.arena(.persist).create(Vapor.Binded) catch unreachable;
             binded.* = .{};
             binded_comps.put(slide_uuid, binded) catch unreachable;
@@ -91,7 +92,6 @@ pub fn render(_: Slider) void {
         const slide_trans_uuid = slide_trans.getUUID();
 
         const binded_trans = binded_comps.get(slide_trans_uuid) orelse blk: {
-            Vapor.printErr("Failed to get binded trans", .{});
             const binded_trans = Vapor.arena(.persist).create(Vapor.Binded) catch unreachable;
             binded_trans.* = .{};
             binded_comps.put(slide_trans_uuid, binded_trans) catch unreachable;
@@ -99,8 +99,8 @@ pub fn render(_: Slider) void {
         };
 
         slide_trans
-            .width(.px(0))
-            .background(.black)
+            .width(.percent(0))
+            .background(.palette(.text_color))
             .ref(binded_trans)
             .children({});
 
@@ -108,8 +108,8 @@ pub fn render(_: Slider) void {
 
         const uuid = drag_box.getUUID();
 
+
         const point = points.get(uuid) orelse blk: {
-            Vapor.printErr("Failed to get point", .{});
             const draggable = Vapor.arena(.persist).create(Draggable) catch unreachable;
             draggable.* = .{
                 .on_drag = onMove,
@@ -125,6 +125,7 @@ pub fn render(_: Slider) void {
         };
 
         drag_box
+            .id("draggable")
             .createDraggable(&point.draggable)
             .children({});
         Vapor.Static.HooksCtx(.mounted, mount, .{point})({});

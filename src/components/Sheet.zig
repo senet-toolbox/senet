@@ -208,20 +208,25 @@ fn escape(sheet: *Sheet, evt: *Vapor.Event) void {
 }
 
 pub fn render(sheet: *Sheet) void {
-    if (sheet.closed) return;
+    if (sheet.closed) {
+        Vapor.Null();
+        Vapor.Null();
+        return;
+    }
     Vapor.Static.HooksCtx(.mounted, mount, .{sheet})({
         if (sheet.mode == .overlay) {
             Box()
                 .animationEnter("opaque-sheet-background-enter")
                 .animationExit("opaque-sheet-background-exit")
-                .background(.transparentizeHex(.black, 0.3))
+                .background(.transparentizeHex(.black, 0.1))
+                .blur(1)
                 .size(.full)
                 .pos(.tl(.px(0), .px(0), .fixed))
                 .zIndex(999)
                 .layout(.center)
                 .children({
                 ButtonCtx(close, .{sheet})
-                    .background(.transparentizeHex(.black, 0.3))
+                    // .background(.transparentizeHex(.black, 0.3))
                     .size(.full)
                     .pos(.tl(.px(0), .px(0), .fixed))
                     .layout(.center)
@@ -232,7 +237,7 @@ pub fn render(sheet: *Sheet) void {
     Box()
         .pos(getPosition(sheet))
         .ref(&sheet.binded)
-        .zIndex(999)
+        .zIndex(9999)
         .animationEnter(getAnimationEnter(sheet))
         .animationExit(getAnimationExit(sheet))
         .width(if (sheet.direction == .right or sheet.direction == .left) .px(sheet.size) else .percent(100))

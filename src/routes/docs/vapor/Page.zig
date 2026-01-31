@@ -9,7 +9,6 @@ const Link = Static.Link;
 const Image = Static.Image;
 const Svg = Static.Svg;
 const Button = Static.Button;
-const HtmlText = Custom.Chain.HtmlText;
 const List = Static.List;
 const ListItem = Static.ListItem;
 const Graphic = Static.Graphic;
@@ -27,9 +26,9 @@ var content: Content.new("") = undefined;
 const Compiler = @import("../../../main.zig");
 
 const components = .{
-    .{ .tag = "alert", .function = alertComponent },
     .{ .tag = "counter", .function = counter },
-    .{ .tag = "builder", .function = builder },
+    .{ .tag = "video", .function = Demo },
+    // .{ .tag = "builder", .function = builder },
 };
 
 fn builder() void {
@@ -180,9 +179,30 @@ var count: i32 = 0;
 fn increment() void {
     count += 1;
 }
+
+var video: Vapor.Types.Video = .{
+    .src = "/assets/kanban.mp4",
+    .autoplay = true,
+    .muted = true,
+    .loop = true,
+};
+
+fn Demo() void {
+    Box().style(&.{
+        .margin = .tb(24, 48),
+        .size = .hw(.percent(100), .percent(100)),
+        .layout = .center,
+    })({
+        Vapor.Video(&video)
+            .aspectRatio(.landscape)
+            .hw(.percent(90), .percent(90))
+            .end();
+    });
+}
+
 fn counter() void {
     Box().margin(.tb(12, 32)).spacing(48).width(.percent(100)).layout(.center).children({
-        Button(.{ .on_press = increment })
+        Button(increment)
             .shadow(.card(.palette(.text_color)))
             .padding(.all(8))
             .border(.simple(.palette(.text_color)))
@@ -236,7 +256,7 @@ const Counter = struct {
 
 fn alertComponent() void {
     Box().margin(.tb(12, 32)).spacing(16).width(.percent(100)).layout(.center).children({
-        Button(.{ .on_press = alert })
+        Button(alert)
             .shadow(.card(.palette(.text_color)))
             .padding(.all(8))
             .border(.simple(.palette(.text_color)))
@@ -255,7 +275,9 @@ fn alertComponent() void {
 }
 
 fn component() void {
-    markdown.render() catch unreachable;
+    markdown.render() catch |err| {
+        Vapor.TextFmt("Failed to render markdown: {any}", .{err}).end();
+    };
 }
 
 pub fn render() void {

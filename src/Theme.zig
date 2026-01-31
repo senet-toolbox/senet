@@ -50,6 +50,7 @@ pub const ThemeTokens = enum(u8) {
     code_component_color,
     code_operator_color,
     code_identifier_color,
+    code_is_added_color,
     chart_bar_color,
 };
 
@@ -95,6 +96,7 @@ pub const Colors = struct {
     code_component_color: Color,
     code_operator_color: Color,
     code_identifier_color: Color,
+    code_is_added_color: Color,
     chart_bar_color: Color,
 };
 
@@ -125,21 +127,22 @@ pub const Light = Colors{
     .icon_color = .hex("#A2A2A2"),
     .image_bg = .hex("#ffffff"),
     .code_background = .white,
-    .highlight_color = .hex("#EDEDED"),
+    .highlight_color = .hex("#F3F3F3"),
     .border_color_light = .hex("#e4e4e4"),
     .grid_color = .hex("#f6f6f6"),
-    .code_text_color = .hex("#262626"),
-    .code_function_color = .hex("#6E3DE1"),
+    .code_text_color = .hex("#E4E7EE"),
+    .code_function_color = .hex("#FFED84"),
     .code_keyword_color = .hex("#002bff"),
     .disabled = .hex("#A2A2A2"),
     .light_text = .hex("#B7B7B7"),
-    .code_tint_color = .hex("#2108FF"),
+    .code_tint_color = .hex("#84FFED"),
     .code_comment_color = .hex("#767676"),
     .code_string_color = .hex("#C4A262"),
     .code_type_color = .hex("#7D7684"),
     .code_component_color = .hex("#FF00FF"),
     .code_operator_color = .hex("#565656"),
     .code_identifier_color = .hex("#2E3B5A"),
+    .code_is_added_color = .hex("#16DF8F"),
     .chart_bar_color = .hex("#212121"),
 };
 
@@ -185,6 +188,7 @@ pub const Dark = Colors{
     .code_component_color = .hex("#B5EF8A"),
     .code_operator_color = .hex("#424242"),
     .code_identifier_color = .hex("#525C73"),
+    .code_is_added_color = .hex("#085436"),
     .chart_bar_color = .hex("#272727"),
 };
 
@@ -192,6 +196,7 @@ pub var mode: Mode = .light;
 
 pub export fn setTheme(new_mode: Mode) void {
     mode = new_mode;
+    std.log.info("Theme set to {s}", .{@tagName(mode)});
 }
 
 pub fn toggleTheme() void {

@@ -1,3 +1,4 @@
+// Dashboard
 const std = @import("std");
 const Vapor = @import("vapor");
 const Text = Vapor.Text;
@@ -11,6 +12,7 @@ const TextField = Vapor.TextField;
 const TextArea = Vapor.TextArea;
 const Animation = Vapor.Animation;
 const ButtonCtx = Vapor.CtxButton;
+const toggleTheme = @import("theme").toggleTheme;
 
 // Import UI Components
 const SelectStruct = @import("../../components/Select.zig");
@@ -29,6 +31,7 @@ const AccordionStruct = @import("../../components/Accordion.zig");
 const SliderStruct = @import("../../components/Slider.zig");
 const GroupStruct = @import("../../components/Group.zig");
 const Button = @import("../../components/Button.zig").Button;
+const SideBar = @import("../../components/SideBar.zig");
 
 const Dashboard = @This();
 
@@ -138,6 +141,7 @@ var selected_transaction: ?*const Transaction = null;
 var is_live_mode: bool = true;
 var show_date_picker: bool = false;
 var search_query: []const u8 = "";
+var email_query: []const u8 = "";
 var chart_type: ChartType = .revenue;
 
 const NavItem = enum {
@@ -205,6 +209,58 @@ var detail_sheet: Sheet = undefined;
 var date_picker: DatePicker = undefined;
 var status_filter: Select(TransactionStatus) = undefined;
 var time_range_select: Select(TimeRange) = undefined;
+
+var sidebar: SideBar = .{
+    .items = &menu_items,
+    .title = "Vapor UI",
+    .show_menu = true,
+    .on_item_click = onItemClick,
+};
+
+fn onItemClick(item: *const MenuItem) void {
+    selected_nav = std.meta.stringToEnum(NavItem, Vapor.utils.toLowerCase(item.title, .frame)) orelse unreachable;
+    Vapor.lib.store("selected_nav", @tagName(selected_nav));
+}
+
+fn getNavItem() ?*const MenuItem {
+    for (&menu_items) |*item| {
+        if (std.ascii.eqlIgnoreCase(selected_nav.label(), item.title)) {
+            return item;
+        }
+    }
+    return null;
+}
+
+const GroupItem = SideBar.GroupItem;
+const MenuItem = SideBar.MenuItem;
+
+var menu_items = [_]MenuItem{
+    MenuItem{
+        .title = "Dashboard",
+        .link = "/dashboard",
+        .icon = .house,
+    },
+    MenuItem{
+        .title = "Transactions",
+        .link = "/projects",
+        .icon = .folder,
+    },
+    MenuItem{
+        .title = "Analytics",
+        .link = "/routes",
+        .icon = .diagram_3,
+    },
+    MenuItem{
+        .title = "Customers",
+        .link = "/treehouse",
+        .icon = .tree,
+    },
+    MenuItem{
+        .title = "Settings",
+        .link = "/database",
+        .icon = .database,
+    },
+};
 
 // Table configuration
 const transaction_columns = [_]Column(Transaction){
@@ -467,6 +523,7 @@ fn toggleDatePicker() void {
 }
 
 fn handleViewTransaction(txn: *Transaction) void {
+    Vapor.print("handleViewTransaction {s}", .{txn.email});
     selected_transaction = txn;
     detail_sheet.open();
 }
@@ -474,6 +531,7 @@ fn handleViewTransaction(txn: *Transaction) void {
 fn handleRefundTransaction(txn: *Transaction) void {
     txn.status = .refunded;
     Toast.success(.{ .title = "Refund Initiated", .description = "Transaction will be refunded within 3-5 business days" });
+    // detail_sheet.close();
 }
 
 fn handleDeleteTransaction(txn: *Transaction) void {
@@ -553,7 +611,7 @@ pub fn init() void {
     requests_chart.addSeries(.stacked_bar, "1/2XX", &data_1xx_2xx_3xx, .{
         .color = gray,
         .bar_radius = 0,
-        .border = .top(.hex("#000000")),
+        .border = .top(1, .hex("#000000")),
         .stroke = .hex("#000000"),
         .stroke_width = 0.5,
     }) catch unreachable;
@@ -596,8 +654,6 @@ fn renderNavigation() void {
         .width(.px(240))
         .height(.percent(100))
         .padding(.all(20))
-        // .background(Theme.bg_base)
-        // .border(.r(1, Theme.border))
         .spacing(24)
         .children({
         // Logo
@@ -641,8 +697,7 @@ fn renderNavigation() void {
                 .margin(.b(8))
                 .end();
 
-            inline for (@typeInfo(NavItem).@"enum".fields) |field| {
-                const nav_item = @as(NavItem, @enumFromInt(field.value));
+            for (std.enums.values(NavItem)) |nav_item| {
                 if (nav_item != .settings) {
                     renderNavButton(nav_item);
                 }
@@ -650,7 +705,8 @@ fn renderNavigation() void {
         });
 
         // Spacer
-        Box().height(.grow).children({});
+        // Box().height(.grow).children({});
+        Vapor.Spacer(16).end();
 
         // Settings at bottom
         renderNavButton(.settings);
@@ -709,7 +765,7 @@ fn renderNavButton(item: NavItem) void {
                 .end();
         });
         Text(item.label())
-            .font(14, if (is_active) @as(u32, 500) else @as(u32, 400), if (is_active) .palette(.tint) else Theme.text_secondary)
+            .font(14, 400, if (is_active) .palette(.tint) else Theme.text_secondary)
             .fontFamily("Montserrat")
             .end();
     });
@@ -744,7 +800,7 @@ fn renderHeader() void {
             Box()
                 .width(.px(160))
                 .children({
-                time_range_select.render();
+                time_range_select.renderPos(.bottom);
             });
 
             // Live mode toggle
@@ -895,13 +951,13 @@ fn renderDashboardView() void {
             .children({
             // Main chart
             Box()
-                .width(.percent(65))
+                .width(.percent(100))
                 .padding(.all(24))
                 .direction(.row)
+                .layout(.x_between_center)
                 .spacing(20)
                 .children({
                 Box()
-                    .width(.percent(100))
                     .direction(.column)
                     .children({
                     Stack()
@@ -919,7 +975,6 @@ fn renderDashboardView() void {
                     revenue_chart.render();
                 });
                 Box()
-                    .width(.percent(100))
                     .direction(.column)
                     .children({
                     Stack()
@@ -969,7 +1024,7 @@ fn renderDashboardView() void {
                     Box()
                         .width(.px(140))
                         .children({
-                        status_filter.render();
+                        status_filter.renderPos(.bottom);
                     });
                     Button(selectNav, .{NavItem.transactions})
                         .padding(.xy(14, 9))
@@ -986,7 +1041,13 @@ fn renderDashboardView() void {
                 });
             });
 
-            transactions_table.render();
+            Box()
+                .width(.percent(100))
+                .height(.px(720))
+                .layout(.top_center)
+                .children({
+                transactions_table.render();
+            });
         });
     });
 }
@@ -1082,6 +1143,7 @@ fn renderTransactionsView() void {
         .height(.percent(100))
         .padding(.all(28))
         .spacing(24)
+        .layout(.top_center)
         .children({
         // Table
         Box()
@@ -1141,7 +1203,7 @@ fn renderSettingsView() void {
                 .end();
 
             Field.render(.{ .label = "Display Name", .value = .{ .string = &search_query } });
-            Field.render(.{ .label = "Email Address", .value = .{ .string = &search_query } });
+            Field.render(.{ .label = "Email Address", .value = .{ .email = &email_query }, .type = .email });
 
             Box()
                 .layout(.x_between_center)
@@ -1150,7 +1212,7 @@ fn renderSettingsView() void {
                     .font(14, 400, Theme.text)
                     .fontFamily("IBM Plex Mono,monospace")
                     .end();
-                Switch.render("notifications-switch");
+                Switch.render("notifications-switch", Vapor.alert, .{ "{s}", .{"Im a switch"} });
             });
 
             Box()
@@ -1160,7 +1222,7 @@ fn renderSettingsView() void {
                     .font(14, 400, Theme.text)
                     .fontFamily("IBM Plex Mono,monospace")
                     .end();
-                Switch.render("dark-mode-switch");
+                Switch.render("dark-mode-switch", toggleTheme, .{});
             });
         });
     });
@@ -1280,7 +1342,7 @@ fn renderDetailRow(label: []const u8, value: []const u8) void {
         .width(.percent(100))
         .layout(.x_between_center)
         .padding(.vertical(12))
-        .border(.bottom(.palette(.border_color_light)))
+        .border(.bottom(1, .palette(.border_color_light)))
         .children({
         Text(label)
             .font(14, 400, Theme.text_muted)
@@ -1298,7 +1360,7 @@ fn renderDetailRowFmt(comptime label: []const u8, comptime fmt: []const u8, args
         .width(.percent(100))
         .layout(.x_between_center)
         .padding(.vertical(12))
-        .border(.bottom(.palette(.border_color_light)))
+        .border(.bottom(1, .palette(.border_color_light)))
         .children({
         Text(label)
             .font(14, 400, Theme.text_muted)
@@ -1320,7 +1382,7 @@ pub fn render() void {
     selected_nav = std.meta.stringToEnum(NavItem, nav) orelse .dashboard;
     Box()
         .width(.percent(100))
-        .height(.percent(100))
+        .height(.fit)
         .background(Theme.bg_base)
         .layout(.top_left)
         .children({
@@ -1330,7 +1392,7 @@ pub fn render() void {
         // Main content area
         Stack()
             .width(.grow)
-            .height(.percent(100))
+            .height(.fit)
             .children({
             // Header
             renderHeader();
@@ -1352,7 +1414,5 @@ pub fn render() void {
 
         // Overlays
         detail_sheet.render();
-        Toast.renderStack();
     });
 }
-

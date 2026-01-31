@@ -22,6 +22,8 @@ const Theme = @import("theme");
 const Graphic = Static.Graphic;
 const OverlayManager = @import("OverlayManager.zig");
 
+const Ghost = @embedFile("ghost.svg");
+
 var last_time: i64 = 0;
 pub fn throttle() bool {
     const current_time = std.time.milliTimestamp();
@@ -43,7 +45,7 @@ const Url = struct {
     url: []const u8,
     title: []const u8,
 };
-const urls: [5]Url = .{
+const urls: [4]Url = .{
     .{
         .url = "/docs/vapor",
         .title = "[0] = Vapor",
@@ -60,20 +62,16 @@ const urls: [5]Url = .{
         .url = "/docs/metal",
         .title = "Metal",
     },
-    .{
-        .url = "/about",
-        .title = "About Me",
-    },
 };
 
 inline fn routes() void {
     // const current_path = Kit.getWindowPath();
     for (urls) |url| {
-        ListItem().style(&Styles.item)({
+        ListItem().style(&Styles.item).children({
             Link(.{ .url = url.url, .aria_label = url.title }).style(&.{
                 .visual = .{ .text_decoration = .none },
-            })({
-                Text(url.title).style(&.{ .visual = .font(20, 300, .palette(.text_color)), .font_family = "IBM Plex Mono,monospace" });
+            }).children({
+                Text(url.title).style(&.{ .visual = .font(18, 300, .palette(.text_color)), .font_family = "IBM Plex Mono,monospace" }).end();
             });
         });
     }
@@ -111,13 +109,13 @@ pub fn clickEvent(_: *[]const u8, evt: *Vapor.Event) void {
         openDialog();
     }
 
-    if (std.mem.eql(u8, key, "0")) {
-        navigate("/docs/vapor");
-    } else if (std.mem.eql(u8, key, "1")) {
-        navigate("/docs/reverb");
-    } else if (std.mem.eql(u8, key, "2")) {
-        navigate("/docs/canopy");
-    }
+    // if (std.mem.eql(u8, key, "0")) {
+    //     navigate("/docs/vapor");
+    // } else if (std.mem.eql(u8, key, "1")) {
+    //     navigate("/docs/reverb");
+    // } else if (std.mem.eql(u8, key, "2")) {
+    //     navigate("/docs/canopy");
+    // }
 
     if (std.mem.eql(u8, key, "x") and evt.metaKey()) {
         Theme.toggleTheme();
@@ -136,25 +134,25 @@ pub fn render() void {
             .layout = .x_between_center,
             .padding = .horizontal(50),
             .visual = .{ .blur = 2 },
-        })({
+        }).children({
             Box().style(&.{
                 .size = .{ .height = .px(50) },
                 .direction = .row,
                 .layout = .left_center,
                 .child_gap = 10,
-            })({
+            }).children({
                 CtxButton(goto, .{"/"})
                     .ariaLabel("home page of tether")
                     .style(&.{
-                    .visual = .{ .text_decoration = .none },
-                })({
+                        .visual = .{ .text_decoration = .none },
+                    }).children({
                     Center().style(&.{
                         .size = .{ .width = .px(45) },
                         .margin = .{ .right = 30 },
                         .transition = .{ .duration = 100 },
                         .interactive = .{ .hover = .{ .transform = .scale() } },
                         .visual = .{ .text_color = .palette(.text_color) },
-                    })({
+                    }).children({
                         Graphic(.{ .src = "/src/assets/logonormal.svg" }).style(&.{
                             .size = .{ .width = .percent(100), .height = .percent(100) },
                             .visual = .{ .fill = .palette(.text_color), .stroke = .palette(.text_color) },
@@ -163,14 +161,14 @@ pub fn render() void {
                                 .fill = .palette(.tint),
                                 .stroke = .palette(.tint),
                             } },
-                        });
+                        }).end();
                     });
                 });
                 List().style(&.{
                     .child_gap = 60,
                     .layout = .center,
                     .size = .hw(.percent(100), .percent(100)),
-                })({
+                }).children({
                     routes();
                 });
             });
@@ -178,66 +176,77 @@ pub fn render() void {
             Center().style(&.{
                 .child_gap = 24,
                 .size = .w(.percent(30)),
-            })({
-                Button(.{ .on_press = openDialog, .aria_label = "search-dialog" }).style(&.{
-                    .layout = .x_between_center,
-                    .size = .hw(.px(38), .percent(70)),
-                    .padding = .tblr(4, 4, 8, 8),
-                    .visual = .{ .border = .simple(.hex("#E1E1E1")), .cursor = .pointer, .background = .palette(.background) },
-                    .interactive = .{ .hover = .{
-                        .border = .simple(.palette(.tint)),
-                    } },
-                })({
-                    Box().style(&.{ .layout = .left_center, .child_gap = 24 })({
+            }).children({
+                Button(openDialog)
+                    .ariaLabel("Search Dialog")
+                    .style(&.{
+                        .layout = .x_between_center,
+                        .size = .hw(.px(38), .percent(70)),
+                        .padding = .tblr(4, 4, 8, 8),
+                        .visual = .{ .border = .simple(.hex("#E1E1E1")), .cursor = .pointer, .background = .palette(.background) },
+                        .interactive = .{ .hover = .{
+                            .border = .simple(.palette(.tint)),
+                        } },
+                    }).children({
+                    Box().style(&.{ .layout = .left_center, .child_gap = 24 }).children({
                         Icon(.search).style(&.{
                             .visual = .{ .font_size = 16, .text_color = .palette(.icon_color) },
-                        });
+                        }).end();
                         Text("Search...").style(&.{
                             .visual = .font(16, 500, .palette(.icon_color)),
                             .font_family = "IBM Plex Mono,monospace",
-                        });
+                        }).end();
                     });
                     Icon(.command).style(&.{
                         .visual = .{ .font_size = 16, .text_color = .palette(.icon_color) },
-                    });
+                    }).end();
                 });
                 RedirectLink(.{ .url = "https://github.com/vic-Rokx/vapor", .aria_label = "redirect link to tether github repo" }).style(&.{
                     .visual = .{ .text_decoration = .none },
-                })({
+                }).children({
                     Icon(.github).style(&.{
                         .visual = .{ .font_size = 24, .text_color = .palette(.icon_color) },
                         .interactive = .{ .hover = .{ .text_color = .palette(.tint) } },
-                    });
+                    }).end();
                 });
                 RedirectLink(.{ .url = "https://github.com/vic-Rokx/vapor", .aria_label = "redirect link to discord" }).style(&.{
                     .visual = .{ .text_decoration = .none },
-                })({
+                }).children({
                     Icon(.discord).style(&.{
                         .visual = .{ .font_size = 24, .text_color = .palette(.icon_color) },
                         .interactive = .{ .hover = .{ .text_color = .palette(.tint) } },
-                    });
+                    }).end();
                 });
                 RedirectLink(.{ .url = "https://ziglang.org/", .aria_label = "redirect link to ziglang" }).style(&.{
                     .visual = .{ .text_decoration = .none },
-                })({
+                }).children({
                     Graphic(.{ .src = "/src/assets/zig_simple.svg" }).style(&.{
                         .size = .{ .height = .px(24), .width = .px(24) },
                         .visual = .{ .fill = .palette(.icon_color) },
                         .interactive = .{ .hover = .{ .fill = .palette(.tint) } },
-                    });
+                    }).end();
                 });
-                Button(.{ .on_press = toggleTheme, .aria_label = "toggle theme" }).style(&.{
-                    .visual = .{
-                        .background = .transparent,
-                        .cursor = .pointer,
-                    },
-                    .padding = .all(0),
-                    .margin = .all(0),
-                })({
+                Button(toggleTheme)
+                    .ariaLabel("toggle theme")
+                    .style(&.{
+                        .visual = .{
+                            .background = .transparent,
+                            .cursor = .pointer,
+                        },
+                        .padding = .all(0),
+                        .margin = .all(0),
+                    }).children({
+                    // Vapor.Svg(.{ .svg = Ghost, .override = true })
+                    //     .class("ghost")
+                    //     .hover(.{
+                    //         .animation = "look-around",
+                    //     })
+                    //     .size(.hw_px(24, 24))
+                    //     .end();
                     Icon(.cloud_moon).style(&.{
                         .visual = .{ .font_size = 24, .text_color = .palette(.icon_color) },
                         .interactive = .{ .hover = .{ .text_color = .palette(.tint) } },
-                    });
+                    }).end();
                 });
             });
         });
@@ -252,52 +261,52 @@ pub fn render() void {
             .visual = .{
                 .background = .palette(.background),
             },
-        })({
-            Box().style(&.{ .layout = .left_center })({
+        }).children({
+            Box().style(&.{ .layout = .left_center }).children({
                 Link(.{ .url = "/", .aria_label = "home page of tether" }).style(&.{
                     .visual = .{ .text_decoration = .none },
                     .size = .h(.px(48)),
                     .layout = .center,
-                })({
+                }).children({
                     Image(.{ .src = "/assets/circlelogo.webp", .alt = "tether logo" }).style(&.{
                         .size = .w(.px(48)),
-                    });
+                    }).end();
                 });
             });
-            Box().style(&.{ .layout = .right_center })({
-                Button(.{ .on_press = openMenu }).style(&.{
+            Box().style(&.{ .layout = .right_center }).children({
+                Button(openMenu).style(&.{
                     .size = .hw(.px(36), .px(48)),
                     .visual = .bg(.palette(.background)),
-                })({
+                }).children({
                     Icon(.search).style(&.{
                         .visual = .{ .font_size = 24, .text_color = .palette(.icon_color) },
                         .interactive = .{ .hover = .{ .text_color = .palette(.tint) } },
-                    });
+                    }).end();
                 });
 
-                Button(.{ .on_press = toggleTheme }).style(&.{
+                Button(toggleTheme).style(&.{
                     .visual = .{ .cursor = .pointer, .background = .palette(.background) },
                     .size = .hw(.px(36), .px(48)),
-                })({
+                }).children({
                     Icon(.cloud_moon).style(&.{
                         .visual = .{ .font_size = 24, .text_color = .palette(.icon_color) },
-                    });
+                    }).end();
                 });
 
-                Button(.{ .on_press = openMenu }).style(&.{
+                Button(openMenu).style(&.{
                     .size = .hw(.px(36), .px(48)),
                     .visual = .bg(.palette(.background)),
-                })({
+                }).children({
                     if (menu) {
                         Icon(.x_lg).style(&.{
                             .id = "close-menu",
                             .visual = .{ .font_size = 24, .text_color = .palette(.icon_color) },
-                        });
+                        }).end();
                     } else {
                         Icon(.list).style(&.{
                             .id = "open-menu",
                             .visual = .{ .font_size = 24, .text_color = .palette(.icon_color) },
-                        });
+                        }).end();
                     }
                 });
             });
@@ -307,29 +316,29 @@ pub fn render() void {
                 .position = .{ .type = .fixed, .top = .px(80), .left = .px(0), .z_index = 999 },
                 .size = .w(.percent(100)),
                 // .visual = .{ .background = Theme.background, .border = .tb(.hex("#E4E4E4")) },
-            })({
+            }).children({
                 List().style(&.{
                     .list_style = .none,
                     .direction = .column,
                     .padding = .tblr(16, 16, 8, 8),
                     .child_gap = 16,
                     .size = .w(.percent(100)),
-                })({
+                }).children({
                     for (urls) |item| {
                         ListItem().style(&.{
                             .size = .w(.percent(70)),
-                        })({
+                        }).children({
                             CtxButton(navigate, .{item.url}).style(&.{
                                 .size = .w(.percent(100)),
                                 .layout = .left_center,
                                 .child_gap = 12,
                                 .padding = .tblr(10, 10, 8, 8),
                                 .visual = .{ .cursor = .pointer, .background = .white },
-                            })({
+                            }).children({
                                 Text(item.title).style(&.{
                                     .font_family = "Montserrat",
-                                    .visual = .font(18, 300, .hex("#262626")),
-                                });
+                                    .visual = .font(16, 300, .hex("#262626")),
+                                }).end();
                             });
                         });
                     }
@@ -342,12 +351,12 @@ pub fn render() void {
 const Styles = struct {
     pub const item = Vapor.Style{
         .list_style = .none,
-        .size = .{ .width = .auto, .height = .px(30) },
+        .size = .{ .height = .px(30) },
         .layout = .{ .y = .center, .x = .start },
-        .visual = .{ .border = .bottom(.transparent) },
+        .visual = .{ .border = .bottom(1, .transparent) },
         .interactive = .{
             .hover = .{
-                .border = .bottom(.palette(.text_color)),
+                .border = .bottom(1, .palette(.text_color)),
             },
         },
     };

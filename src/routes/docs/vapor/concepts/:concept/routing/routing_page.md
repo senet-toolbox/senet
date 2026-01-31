@@ -73,9 +73,7 @@ it takes 3 arguments,
 
 `@src()` is a builtin function that returns the current source location.
 
-### Remember
-
-Vapor takes a function approach, you need to call `Vapor.Page()` to declare your routes. or the corresponding function within the `.zig` file.
+Vapor takes a function approach, you need to call `Vapor.Page()` to declare your routes. or the corresponding functions within the `.zig` file.
 
 With the above example, we call our `Page(...)` function, within the `init()` function of `main.zig`. like this:
 
@@ -83,7 +81,7 @@ With the above example, we call our `Page(...)` function, within the `init()` fu
 
 ```zig
 // /routes/app/about/page.zig
-const vapor = @import("vapor");
+const Vapor = @import("vapor");
 const Page = Vapor.Page;
 
 // page initialization
@@ -96,7 +94,7 @@ pub fn init() void {
 
 ```zig
 // /routes/app/about/page.zig
-const vapor = @import("vapor");
+const Vapor = @import("vapor");
 const AboutPage = @import("routes/app/about/page.zig");
 
 // page initialization

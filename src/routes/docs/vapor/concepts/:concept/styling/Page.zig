@@ -117,12 +117,12 @@ fn samples() void {
             Text("Top left Text").fontSize(14).end();
         });
 
-        Button(.{ .on_press = clicked }).style(&pill_button_base)({
+        Button(clicked).style(&pill_button_base)({
             Text("Click Me").fontSize(18).end();
         });
 
         // Here we merge the pill style,
-        Button(.{ .on_press = clicked }).style(&mergedStyle())({
+        Button(clicked).style(&mergedStyle())({
             Text("Click Me").fontSize(18).end();
         });
     });

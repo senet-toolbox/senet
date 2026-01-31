@@ -16,7 +16,7 @@ pub fn Button(func: anytype, args: anytype) Vapor.ButtonBuilder(.pure) {
         .padding(.tblr(8, 8, 10, 10))
         .duration(100)
         .newShadow(Vapor.Types.NewShadow.init()
-            .inset(0, -2, .transparentizeHex(.black, 0.3))
+            .inset(0, -2, .transparentizeHex(.black, 0.2))
             .drop(0, 1, 3, .transparentizeHex(.black, 0.1)))
         .hover(.{
         .transform = .scaleDecimal(1.01),

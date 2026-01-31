@@ -22,6 +22,7 @@ const CheckoutForm = struct {
         email: []const u8 = "",
         password: []const u8 = "",
         confirm_password: []const u8 = "",
+        notes: []const []const u8 = &.{},
         contact: struct {
             phone: []const u8 = "",
         } = .{},
@@ -62,6 +63,7 @@ const CheckoutForm = struct {
         .city = Validation{ .field_type = .string, .required = true },
         .state = Validation{ .field_type = .string, .required = true },
         .postal_code = Validation{ .field_type = .string, .required = true },
+        .notes = Validation{ .field_type = .string, .required = true, .err = "Notes are required" },
     };
 
     pub const __components = .{
@@ -85,8 +87,10 @@ fn onSubmit(form: CheckoutForm) void {
     Vapor.print("Submitted {any}", .{form});
 }
 
-const FormCheckout = Compiler.vaporize.Form(CheckoutForm);
-var login_form: FormCheckout = undefined;
+const FormCheckout = Vaporize.Form(CheckoutForm);
+var login_form: FormCheckout = .{
+    .on_submit = onSubmit,
+};
 var country: Select(Country) = undefined;
 var payment_method: Select(PaymentMethod) = undefined;
 
@@ -95,7 +99,6 @@ pub fn init() void {
     new();
     // compile the struct into a UI form
     login_form.compile() catch unreachable;
-    login_form.inner_form.on_submit = onSubmit;
 
     payment_method = .fromItems(&.{
         .{ .value = PaymentMethod.card, .label = "Card" },

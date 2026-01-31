@@ -69,13 +69,13 @@ pub fn render() void {
     setCurrentRoute(path);
     Box().style(&.{
         .size = .w(.percent(100)),
-        .layout = .{ .x = .end, .y = .center },
+        .layout = .x_between_center,
         .child_gap = 32,
     })({
         if (getPrevPath()) |item| {
-            Button(.{ .on_press = gotoPrevRoute })
+            Button(gotoPrevRoute)
                 .class("prev-btn")
-                .size(.hw(.px(128), .percent(50)))
+                .size(.hw(.px(128), .percent(45)))
                 .border(.simple(.palette(.border_color_light)))
                 .background(.transparent)
                 .cursor(.pointer)
@@ -117,9 +117,9 @@ pub fn render() void {
             });
         }
         if (getNextPathItem()) |item| {
-            Button(.{ .on_press = gotoNextRoute })
+            Button(gotoNextRoute)
                 .class("next-btn")
-                .size(.hw(.px(128), .percent(50)))
+                .size(.hw(.px(128), .percent(45)))
                 .border(.simple(.palette(.border_color_light)))
                 .background(.transparent)
                 .cursor(.pointer)

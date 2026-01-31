@@ -24,7 +24,12 @@ var text: []const u8 = "Current count: 0";
 
 pub fn increment() void {
     counter += 1;
-    text = Vapor.fmtln("Current count: {d}", .{counter});
+    text = std.log.debug("Current count: {d}", .{counter});
+}
+
+fn multiply(multiplier: usize) void {
+    counter *= 2;
+    text = std.log.debug("Current count: {d}", .{counter});
 }
 
 var color: Vapor.Types.Color = .palette(.text_color);
@@ -39,16 +44,32 @@ fn changeColor(_: *Vapor.Event) void {
 }
 
 pub fn render() void {
-    Button(.{ .on_press = increment })
+    Button(increment)
         .onHover(changeColor)
         .shadow(.card(color))
         .children({
             Text(text).font(22, 700, color).end();
     });
+
+    const multiplier = if (counter % 2 == 0) 2 else 3;
+
+    ButtonCtx(multiply, .{multiplier})
+        .onHover(changeColor)
+        .shadow(.card(color))
+        .children({
+            Text("*").font(22, 700, color).end();
+    });
 }
 ```
 
 @counter
+
+### State is not reset
+
+By default, Vapor will persist the state of the application, if you navigate away from the page, and return, the state will not be reset.
+Feel free to increment the counter, and come back another time, the counter will still be incremented.
+
+This also works for forms, modals, and other components, everything is considered stateful, it is up to the developer to decide how they want to handle it.
 
 {#ui-as-reactivity}
 
@@ -132,7 +153,7 @@ pub fn render() void {
     Text(text).end(); // This will update
 
     // The user interacts with the UI, via a button press
-    Button(.{ .on_press = increment }).children({
+    Button(increment).children({
         Text("Increment").end();
     });
     Text(counter).end();
@@ -140,7 +161,7 @@ pub fn render() void {
 }
 ```
 
-![diagram](/assets/event_state_diagram.svg)
+@graphics
 
 Since the user interacts with the UI, an event is triggered, Vapor sees this, and then checks what is changed, added, or removed. And updates the UI accordingly.
 Since Vapor runs in WASM, this process is extremely fast, and uses very little memory.
@@ -195,7 +216,7 @@ pub fn Home() void {
     Text(text).end(); // This will update
 
     // The user interacts with the UI, via a button press
-    Button(.{ .on_press = increment }).children({
+    Button(increment).children({
         Text("Increment").end();
     });
     Text(counter).end();
@@ -259,7 +280,7 @@ pub fn increment() void {
 }
 
 pub fn render() void {
-    Button(.{ .on_press = increment }).children({
+    Button(increment).children({
         Text("Increment").end();
     });
     TextFmt("I am a counter: {d}", .{counter}).end(); // Only this updates
@@ -284,7 +305,7 @@ pub fn increment() void {
 }
 
 pub fn render() void {
-    Button(.{ .on_press = increment }).end()({
+    Button(increment).end()({
         Text(text).end(); // This now updates
     });
     TextFmt("{d}", .{counter}).end(); // This still updates
@@ -315,21 +336,24 @@ const Signal = Vapor.Signal; // The Signal type
 const Static = Vapor.Static;
 const TextFmt = Vapor.TextFmt;
 
-var counter: Signal(u32) = undefined;
+const Counter = struct {
+    count: Signal(u32) = undefined,
 
-fn init() void {
-    counter.init(0);
-}
+    pub fn init() Counter {
+        return .{ .count = count.init(0) };
+    }
 
-fn increment() void {
-    counter.increment();
-}
+    pub fn increment(counter: *Counter) void {
+        counter.count.increment();
+    }
 
-fn render() void {
-    Static.Button(.{ .on_press = increment }).end()({
-        TextFmt("I am a counter: {d}", .{counter.get()}).end(); // This updates
-    });
-}
+    pub fn render(counter: *Counter) void {
+        Static.ButtonCtx(increment, .{counter}).end()({
+            TextFmt("I am a counter: {d}", .{counter.count.get()}).end(); // This updates
+        });
+    }
+};
+
 ```
 
 `Signal(T)` has a number of methods, that can be used to change or update the state variable.
@@ -423,3 +447,35 @@ We can just import the variable where needed. `const Parent = @import("parent.zi
 
 This also means that we can pass variables from parent to child, or child to parent.
 This shows the immense power of Zig, and keeping the framework away from transpilation!
+
+```zig
+// GlobalCounter.zig
+const std = @import("std");
+const Vapor = @import("vapor");
+
+pub var count: u32 = 0;
+
+pub fn init() void {
+    Page(.{ .src = "/global-counter" }, render, null);
+}
+
+fn render() void {
+    TextFmt("I am a counter: {d}", .{count}).end();
+}
+```
+
+```zig
+// Parent.zig or Child.zig or Anywhere.zig
+const Vapor = @import("vapor");
+const GlobalCounter = @import("GlobalCounter.zig");
+
+pub fn increment() void {
+    GlobalCounter.count += 1;
+}
+
+pub fn render() void {
+    Button(increment).children({
+        Text("Increment the Global Counter").end();
+    });
+}
+```

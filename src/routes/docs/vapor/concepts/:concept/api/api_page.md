@@ -1,4 +1,3 @@
-
 {#vapor-api-cheatsheet}
 
 # Vapor API Cheat Sheet
@@ -29,9 +28,11 @@ const Link = Vapor.Link;
 const Image = Vapor.Image;
 const List = Vapor.List;
 const ListItem = Vapor.ListItem;
+const TextFmt = Vapor.TextFmt;
+const Spacer = Vapor.Spacer;
 
 // Context Components
-const ButtonCtx = Vapor.CtxButton;
+const ButtonCtx = Vapor.ButtonCtx;
 const TextFmt = Vapor.TextFmt;
 
 // Static Components (never update)
@@ -55,11 +56,11 @@ const Animation = Vapor.Animation;
 // main.zig
 export fn init() void {
     Vapor.init(.{});
-    
+
     // Register routes
     Vapor.Page(.{ .route = "/" }, Home, null);
     Vapor.Page(.{ .route = "/about" }, About, deinit);
-    
+
     // Or use @src() for file-based routing
     Vapor.Page(.{ .src = @src() }, render, null);
 }
@@ -89,16 +90,16 @@ fn deinit() void {
 // State lives OUTSIDE render function
 var counter: i32 = 0;
 var text: []const u8 = "Hello";
-var items: []Item = &.{};
+var items: []const Item = &.{};
 
-fn increment() void {
-    counter += 1;
+fn multiply(multiplier: i32) void {
+    counter = counter * multiplier;
 }
 
 fn render() void {
     // UI declaration runs every update
     Text(counter).end();
-    Button(.{ .on_press = increment }).children({
+    Button(multiply, .{2}).children({
         Text("Click").end();
     });
 }
@@ -126,15 +127,15 @@ fn render() void {
 
 ### Signal Methods
 
-| Method | Description |
-|--------|-------------|
-| `.init(value)` | Initialize with value |
-| `.get()` | Get current value |
-| `.set(value)` | Set new value |
-| `.increment()` | Increment numeric value |
-| `.decrement()` | Decrement numeric value |
-| `.toggle()` | Toggle boolean value |
-| `.append(item)` | Append to array |
+| Method          | Description             |
+| --------------- | ----------------------- |
+| `.init(value)`  | Initialize with value   |
+| `.get()`        | Get current value       |
+| `.set(value)`   | Set new value           |
+| `.increment()`  | Increment numeric value |
+| `.decrement()`  | Decrement numeric value |
+| `.toggle()`     | Toggle boolean value    |
+| `.append(item)` | Append to array         |
 
 ---
 
@@ -158,9 +159,9 @@ fn decrement() void { count -= 1; }
 
 pub fn render() void {
     Box().layout(.center).spacing(16).children({
-        Button(.{ .on_press = decrement }).children({ Text("-").end(); });
+        Button(decrement).children({ Text("-").end(); });
         Text(count).font(24, 700, .palette(.text_color)).end();
-        Button(.{ .on_press = increment }).children({ Text("+").end(); });
+        Button(increment).children({ Text("+").end(); });
     });
 }
 ```
@@ -207,9 +208,9 @@ pub fn Counter(comptime T: type, initial_value: T) type {
 
         pub fn render() void {
             Box().layout(.center).spacing(16).children({
-                Button(.{ .on_press = decrement }).children({ Text("-").end(); });
+                Button(decrement).children({ Text("-").end(); });
                 Text(count).font(24, 700, .palette(.text_color)).end();
-                Button(.{ .on_press = increment }).children({ Text("+").end(); });
+                Button(increment).children({ Text("+").end(); });
             });
         }
     };
@@ -267,6 +268,15 @@ Box()
     .background(.palette(.background))
     .border(.round(.palette(.border_color), .all(8)))
     .children({ /* children */ });
+
+// Styled Box with style struct
+Box()
+    .style(&.{
+        .visual = .{
+            .background = .palette(.background),
+            .border = .simple(.palette(.border_color)),
+        },
+    })({ /* children */ });
 ```
 
 ### Stack (Vertical Container)
@@ -295,7 +305,7 @@ Center()
 
 ```zig
 // Simple button
-Button(.{ .on_press = handleClick }).children({
+Button(handleClick).children({
     Text("Click Me").end();
 });
 
@@ -305,7 +315,7 @@ ButtonCtx(handleAction, .{ item, index }).children({
 });
 
 // Styled button
-Button(.{ .on_press = submit })
+Button(submit)
     .padding(.tblr(12, 12, 24, 24))
     .background(.palette(.tint))
     .border(.round(.transparent, .all(8)))
@@ -314,6 +324,25 @@ Button(.{ .on_press = submit })
     .children({
         Text("Submit").font(16, 600, .white).end();
     });
+```
+
+Button(handler)
+→ Handler takes no arguments
+
+ButtonCtx(handler, .{args})
+→ Handler receives args
+→ Example: ButtonCtx(deleteTodo, .{item.id})
+
+```zig
+
+// Button - no arguments to handler
+Vapor.Button(doSomething)
+
+// ButtonCtx - pass arguments to handler
+Vapor.ButtonCtx(doSomething, .{arg1, arg2})
+
+// ❌ This doesn't exist:
+Vapor.Button(handler, .{args})
 ```
 
 ### TextField
@@ -336,6 +365,62 @@ TextField(.password)   // Password
 TextField(.email)      // Email
 ```
 
+### TextField Events
+
+```zig
+var text: []const u8 = "";
+
+// Basic binding
+TextField(.string)
+    .bind(&text)
+    .end();
+
+// With change handler
+TextField(.string)
+    .bind(&text)
+    .onChange(handleChange)
+    .end();
+
+fn handleChange(evt: *Vapor.Event) void {
+    const new_text = evt.text();
+    std.log.debug("Text changed to: {s}", .{new_text});
+}
+
+// With keyboard events (e.g., submit on Enter)
+TextField(.string)
+    .bind(&text)
+    .onEvent(.keydown, handleKeyDown)
+    .end();
+
+fn handleKeyDown(evt: *Vapor.Event) void {
+    if (std.mem.eql(u8, evt.key(), "Enter")) {
+        evt.preventDefault();
+        submitForm();
+    }
+}
+
+// With context
+TextField(.string)
+    .bind(&text)
+    .onEventCtx(.keydown, handleKeyDownCtx, form_id)
+    .end();
+
+fn handleKeyDownCtx(id: u32, evt: *Vapor.Event) void {
+    if (std.mem.eql(u8, evt.key(), "Enter")) {
+        submitFormById(id);
+    }
+}
+```
+
+### Common TextField Events
+
+| Event                    | Trigger              | Use Case                   |
+| ------------------------ | -------------------- | -------------------------- |
+| `.onChange`              | Text content changes | Validation, live search    |
+| `.onEvent(.keydown, fn)` | Key pressed          | Submit on Enter, shortcuts |
+| `.onEvent(.focus, fn)`   | Field gains focus    | Show suggestions           |
+| `.onEvent(.blur, fn)`    | Field loses focus    | Validate on blur           |
+
 ### TextArea
 
 ```zig
@@ -351,12 +436,12 @@ TextArea()
 ### Link
 
 ```zig
-Link(.{ .url = "/about", .aria_label = "About Page" }).children({
+Link(.{ .url = "/about" }).children({
     Text("Go to About").end();
 });
 
 // External link
-Link(.{ .url = "https://vapor.dev", .aria_label = "Vapor Website" })
+Link(.{ .url = "https://vapor.dev" })
     .textDecoration(.none)
     .children({
         Text("Visit Vapor").end();
@@ -472,15 +557,17 @@ List()
 .palette(.border_color)
 .hex("#FF5733")               // Hex color
 .rgba(255, 87, 51, 255)       // RGBA
+.rgb(255, 87, 51)             // RGB
 .white
 .black
 .transparent
-.transparentizeHex(.palette(.tint), 0.5)  // Semi-transparent
+.transparentize(.palette(.tint), 0.5)  // Semi-transparent
 
 // Backgrounds
 .background(.palette(.background))
 .background(.hex("#F5F5F5"))
 .background(.transparent)
+.background(.transparentize(.palette(.tint), 0.5))  // Semi-transparent
 .layer(.grid(14, 1, .palette(.grid_color)))
 .layer(.dot(0.5, 20, .white))
 ```
@@ -500,12 +587,12 @@ List()
 
 ```zig
 .shadow(.card(.hex("#00000033")))
-.shadow(.glow(30, .transparentizeHex(.black, 0.1)))
+.shadow(.glow(30, .transparentize(.black, 0.1)))
 .shadow(.{
     .top = 4,
     .spread = 2,
     .blur = 6,
-    .color = .transparentizeHex(.black, 0.05),
+    .color = .transparentize(.black, 0.05),
 })
 ```
 
@@ -553,6 +640,7 @@ List()
 ```zig
 .scroll(.scroll_y())                   // Vertical scroll
 .scroll(.scroll_x())                   // Horizontal scroll
+.scroll(.none())                       // No scroll
 ```
 
 ---
@@ -578,7 +666,7 @@ const button_style = Vapor.Style{
 };
 
 // Apply with .style()
-Button(.{ .on_press = action }).style(&button_style)({
+Button(action).style(&button_style)({
     Text("Click").end();
 });
 
@@ -631,7 +719,7 @@ fn handleLeave(_: *Vapor.Event) void {
 
 // Context events
 Box()
-    .onHoverCtx(handleHoverItem, item)
+    .onEventCtx(.pointerenter, handleHoverItem, item)
     .children({ /* ... */ });
 
 fn handleHoverItem(item: *Item, _: *Vapor.Event) void {
@@ -654,12 +742,12 @@ fn mount() void {
 
 fn handleKeyPress(evt: *Vapor.Event) void {
     const key = evt.key();
-    
+
     if (std.mem.eql(u8, key, "Escape")) {
         evt.preventDefault();
         close();
     }
-    
+
     if (std.mem.eql(u8, key, "k") and evt.metaKey()) {
         evt.preventDefault();
         openSearch();
@@ -669,15 +757,15 @@ fn handleKeyPress(evt: *Vapor.Event) void {
 
 ### Event Methods
 
-| Method | Description |
-|--------|-------------|
-| `evt.key()` | Get pressed key name |
-| `evt.text()` | Get input text value |
-| `evt.number()` | Get numeric input value |
-| `evt.metaKey()` | Check if meta/cmd pressed |
-| `evt.shiftKey()` | Check if shift pressed |
-| `evt.ctrlKey()` | Check if ctrl pressed |
-| `evt.preventDefault()` | Prevent default action |
+| Method                 | Description               |
+| ---------------------- | ------------------------- |
+| `evt.key()`            | Get pressed key name      |
+| `evt.text()`           | Get input text value      |
+| `evt.number()`         | Get numeric input value   |
+| `evt.metaKey()`        | Check if meta/cmd pressed |
+| `evt.shiftKey()`       | Check if shift pressed    |
+| `evt.ctrlKey()`        | Check if ctrl pressed     |
+| `evt.preventDefault()` | Prevent default action    |
 
 ---
 
@@ -690,12 +778,12 @@ fn handleKeyPress(evt: *Vapor.Event) void {
 ```zig
 fn mount() void {
     // Called after component is mounted
-    Vapor.print("Mounted", .{});
+    std.log.debug("Mounted", .{});
 }
 
 fn destroy() void {
     // Called when component is removed
-    Vapor.print("Destroyed", .{});
+    std.log.debug("Destroyed", .{});
 }
 
 fn render() void {
@@ -750,6 +838,286 @@ items.append(item) catch unreachable;
 items.clearRetainingCapacity();
 ```
 
+{#dynamic-arrays}
+
+## Dynamic Arrays
+
+Vapor provides a convenient wrapper around Zig's `std.array_list.Managed` that automatically uses the correct arena allocator.
+
+### Creating Arrays
+```zig
+const Vapor = @import("vapor");
+
+// Create a dynamic array with a specific arena lifetime
+var todos = Vapor.array(TodoItem, .persist);    // Lives entire session
+var search_results = Vapor.array(Result, .view); // Lives until route change
+var temp_items = Vapor.array(Item, .frame);      // Lives only this render
+
+// The type annotation (optional but helpful)
+var todos: Vapor.Array(TodoItem) = Vapor.array(TodoItem, .persist);
+```
+
+### Array Methods
+
+`Vapor.Array(T)` is an alias for `std.array_list.Managed(T)`, so you get all standard ArrayList methods:
+```zig
+var items = Vapor.array(Item, .persist);
+
+// Adding items
+items.append(item) catch return;                    // Add single item
+items.appendSlice(&.{ item1, item2 }) catch return; // Add multiple items
+
+// Accessing items
+const first = items.items[0];           // Direct index access
+const all = items.items;                // Get underlying slice
+const count = items.items.len;          // Get count
+
+// Removing items
+_ = items.orderedRemove(index);         // Remove at index, preserve order
+_ = items.swapRemove(index);            // Remove at index, swap with last (faster)
+items.clearRetainingCapacity();         // Remove all, keep memory allocated
+items.clearAndFree();                   // Remove all, free memory
+
+// Iteration
+for (items.items) |item| {
+    // Use item
+}
+
+for (items.items, 0..) |item, i| {
+    // Use item and index
+}
+```
+
+### Choosing the Right Arena
+
+| Arena | Array Lifetime | Use Case |
+|-------|----------------|----------|
+| `.persist` | Entire session | User data, app state, settings |
+| `.view` | Until route change | Page-specific lists, search results |
+| `.frame` | Single render | Temporary filtering, sorting for display |
+| `.scratch` | Manual control | Advanced use cases |
+
+### Complete Example: Todo List with Dynamic Array
+```zig
+const std = @import("std");
+const Vapor = @import("vapor");
+const Box = Vapor.Box;
+const Text = Vapor.Text;
+const Button = Vapor.Button;
+const ButtonCtx = Vapor.ButtonCtx;
+const TextField = Vapor.TextField;
+
+const TodoItem = struct {
+    text: []const u8,
+    completed: bool = false,
+};
+
+// Dynamic array that persists across navigations
+var todos: Vapor.Array(TodoItem) = undefined;
+var input_text: []const u8 = "";
+
+pub fn init() void {
+    // Initialize with persist arena - todos survive page navigation
+    todos = Vapor.array(TodoItem, .persist);
+    Vapor.Page(.{ .src = @src() }, render, null);
+}
+
+fn addTodo() void {
+    if (input_text.len == 0) return;
+    
+    // Copy text to same arena as the array
+    const text_copy = Vapor.arena(.persist).dupe(u8, input_text) catch return;
+    
+    todos.append(.{
+        .text = text_copy,
+        .completed = false,
+    }) catch return;
+    
+    input_text = "";
+}
+
+fn deleteTodo(index: usize) void {
+    if (index >= todos.items.len) return;
+    _ = todos.orderedRemove(index);
+}
+
+fn toggleTodo(index: usize) void {
+    if (index >= todos.items.len) return;
+    todos.items[index].completed = !todos.items[index].completed;
+}
+
+fn render() void {
+    Box().direction(.column).spacing(16).padding(.all(20)).children({
+        // Input
+        TextField(.string)
+            .bind(&input_text)
+            .placeholder("New todo...")
+            .end();
+        
+        Button(addTodo).children({
+            Text("Add").end();
+        });
+        
+        // List - iterate with index for delete/toggle operations
+        for (todos.items, 0..) |todo, i| {
+            Box().layout(.x_between_center).children({
+                Text(todo.text)
+                    .textDecoration(if (todo.completed) .line_through else .none)
+                    .end();
+                
+                ButtonCtx(toggleTodo, .{i}).children({
+                    Text(if (todo.completed) "Undo" else "Done").end();
+                });
+                
+                ButtonCtx(deleteTodo, .{i}).children({
+                    Text("Delete").end();
+                });
+            });
+        }
+        
+        // Count display
+        Text(Vapor.fmtln("{d} items", .{todos.items.len})).end();
+    });
+}
+```
+
+### Why Use Vapor.array() Instead of std.ArrayList Directly?
+
+1. **Automatic allocator selection** - No need to manually get the allocator
+2. **Consistent lifetime semantics** - Arena type clearly indicates data lifetime
+3. **Less boilerplate** - One line instead of three
+```zig
+// Without Vapor.array()
+const allocator = Vapor.arena(.persist);
+var todos = std.array_list.Managed(TodoItem).init(allocator);
+
+// With Vapor.array()
+var todos = Vapor.array(TodoItem, .persist);
+```
+
+### Common Patterns
+
+**Filtering for display (use .frame):**
+```zig
+fn render() void {
+    // Create temporary filtered list just for this render
+    var active_todos = Vapor.array(TodoItem, .frame);
+    
+    for (todos.items) |todo| {
+        if (!todo.completed) {
+            active_todos.append(todo) catch continue;
+        }
+    }
+    
+    // Render only active todos
+    for (active_todos.items) |todo| {
+        Text(todo.text).end();
+    }
+    // active_todos is automatically freed after render
+}
+```
+
+**Page-specific data (use .view):**
+```zig
+var search_results: Vapor.Array(SearchResult) = undefined;
+
+pub fn init() void {
+    // Results cleared when user navigates away
+    search_results = Vapor.array(SearchResult, .view);
+    Vapor.Page(.{ .src = @src() }, render, null);
+}
+
+fn performSearch(query: []const u8) void {
+    search_results.clearRetainingCapacity();
+    // ... populate with new results
+}
+```
+
+**Persistent app state (use .persist):**
+```zig
+var user_favorites: Vapor.Array(FavoriteItem) = undefined;
+var cart_items: Vapor.Array(CartItem) = undefined;
+
+pub fn init() void {
+    // These survive the entire session
+    user_favorites = Vapor.array(FavoriteItem, .persist);
+    cart_items = Vapor.array(CartItem, .persist);
+}
+```
+
+### ⚠️ Important: Match Array and Item Arenas
+
+When storing strings or allocated data in an array, use the **same arena** for both:
+```zig
+// ✅ Correct - both use .persist
+var todos = Vapor.array(TodoItem, .persist);
+const text = Vapor.arena(.persist).dupe(u8, input) catch return;
+todos.append(.{ .text = text }) catch return;
+
+// ❌ Wrong - mismatched lifetimes
+var todos = Vapor.array(TodoItem, .persist);  // Lives forever
+const text = Vapor.arena(.frame).dupe(u8, input) catch return;  // Freed after render!
+todos.append(.{ .text = text }) catch return;  // Dangling pointer!
+```
+
+
+### Practical Example: When to Use Each Arena
+```zig
+const std = @import("std");
+const Vapor = @import("vapor");
+
+// ============================================
+// PERSIST ARENA - Lives entire session
+// ============================================
+// Use for: User data, app state, anything that survives navigation
+
+var user_todos: [100][]const u8 = undefined;
+var todo_count: usize = 0;
+
+fn addTodo(input: []const u8) void {
+    // Copy string to persistent memory
+    const copied = Vapor.arena(.persist).dupe(u8, input) catch return;
+    user_todos[todo_count] = copied;
+    todo_count += 1;
+}
+
+// ============================================
+// VIEW ARENA - Lives until route change  
+// ============================================
+// Use for: Page-specific state, form data, temporary lists
+
+var page_search_results: []SearchResult = &.{};
+
+fn loadPageData() void {
+    const view_alloc = Vapor.arena(.view);
+    page_search_results = view_alloc.alloc(SearchResult, 50) catch return;
+    // This memory is freed when user navigates away
+}
+
+// ============================================
+// FRAME ARENA - Lives only during this render
+// ============================================
+// Use for: Formatted strings, temporary display values
+
+fn render() void {
+    // fmtln uses frame arena internally - perfect for display
+    Text(Vapor.fmtln("You have {d} todos", .{todo_count})).end();
+    
+    // This string only needs to exist during render
+    const status = Vapor.fmtln("Page {d} of {d}", .{current_page, total_pages});
+    Text(status).end();
+}
+```
+
+### Arena Decision Flowchart
+```
+Is this data needed after render completes?
+├── No → Use .frame (or Vapor.fmtln)
+└── Yes → Is this data needed after leaving the page?
+    ├── No → Use .view
+    └── Yes → Use .persist
+```
+
 ---
 
 {#routing}
@@ -761,14 +1129,14 @@ items.clearRetainingCapacity();
 ```zig
 export fn init() void {
     Vapor.init(.{});
-    
+
     // Static routes
     Vapor.Page(.{ .route = "/" }, Home, null);
     Vapor.Page(.{ .route = "/about" }, About, aboutDeinit);
-    
+
     // Dynamic routes
     Vapor.Page(.{ .route = "/user/:id" }, UserPage, null);
-    
+
     // File-based routing
     Vapor.Page(.{ .src = @src() }, render, deinit);
 }
@@ -782,7 +1150,7 @@ fn navigate(url: []const u8) void {
 }
 
 // Usage
-Button(.{ .on_press = goHome }).children({ Text("Home").end(); });
+Button(goHome).children({ Text("Home").end(); });
 
 fn goHome() void {
     Vapor.Kit.navigate("/");
@@ -845,43 +1213,43 @@ fn init() void {
 
 ```zig
 Box()
-    .animationEnter(&fadeIn)
-    .animationExit(&slideOut)
+    .animationEnter("fadeIn")
+    .animationExit("slideOut")
     .children({ /* ... */ });
 
 // Hover animation
-Button(.{ .on_press = action })
-    .hover(.{ .animation = &pulse })
+Button(action)
+    .hover(.{ .animation = "pulse" })
     .children({ /* ... */ });
 
 // Conditional
 Text("Loading")
-    .animation(if (loading) &spin else null)
+    .animation(if (loading) "spin" else null)
     .end();
 ```
 
 ### Animation Properties
 
-| Property | Description |
-|----------|-------------|
-| `.translateX`, `.translateY` | Position |
-| `.scale`, `.scaleX`, `.scaleY` | Scaling |
-| `.rotate` | Rotation |
-| `.opacity` | Transparency |
-| `.blur` | Blur filter |
-| `.backgroundColor` | Color |
+| Property                       | Description  |
+| ------------------------------ | ------------ |
+| `.translateX`, `.translateY`   | Position     |
+| `.scale`, `.scaleX`, `.scaleY` | Scaling      |
+| `.rotate`                      | Rotation     |
+| `.opacity`                     | Transparency |
+| `.blur`                        | Blur filter  |
+| `.backgroundColor`             | Color        |
 
 ### Easing Functions
 
-| Function | Description |
-|----------|-------------|
-| `.linear` | Constant speed |
-| `.ease` | Default |
-| `.easeIn` | Start slow |
-| `.easeOut` | End slow |
-| `.easeInOut` | Slow start and end |
-| `.easeOutBack` | Overshoot |
-| `.easeOutBounce` | Bounce |
+| Function         | Description        |
+| ---------------- | ------------------ |
+| `.linear`        | Constant speed     |
+| `.ease`          | Default            |
+| `.easeIn`        | Start slow         |
+| `.easeOut`       | End slow           |
+| `.easeInOut`     | Slow start and end |
+| `.easeOutBack`   | Overshoot          |
+| `.easeOutBounce` | Bounce             |
 
 ---
 
@@ -901,7 +1269,7 @@ fn render() void {
     Box()
         .ref(&binded_box)
         .children({ /* ... */ });
-    
+
     TextField(.string)
         .ref(&search_box)
         .val(&search_box.text)
@@ -936,12 +1304,12 @@ fn render() void {
     if (show_modal) {
         Modal.render();
     }
-    
+
     // Ternary in styles
     Text("Status")
         .font(16, 400, if (active) .palette(.tint) else .palette(.text_color))
         .end();
-    
+
     // Conditional rendering
     Box()
         .background(if (hovered) .palette(.tint) else .transparent)
@@ -964,7 +1332,7 @@ fn render() void {
             Text(item.name).end();
         }
     });
-    
+
     // With index
     List().children({
         for (items, 0..) |item, i| {
@@ -973,7 +1341,7 @@ fn render() void {
             });
         }
     });
-    
+
     // Range
     Box().children({
         for (0..5) |i| {
@@ -996,15 +1364,15 @@ fn render() void {
 const text = Vapor.fmtln("Count: {d}", .{counter});
 
 // Print to console
-Vapor.print("Debug: {s}", .{message});
-Vapor.printErr("Error: {any}", .{err});
+std.log.debug("Debug: {s}", .{message});
+std.log.err("Error: {any}", .{err});
 ```
 
 ### DOM Utilities
 
 ```zig
 // Alert
-Vapor.alert("Message");
+Vapor.alert("Say {s}", .{"Hi"});
 
 // Scroll into view
 Vapor.scrollIntoView(element_id, .{ .block = .nearest });
@@ -1033,17 +1401,17 @@ File.downloadFile("data.json", json_content, .@"application/json");
 
 ## Quick Syntax Reference
 
-| Pattern | Description |
-|---------|-------------|
-| `Component().children({ ... });` | Container with children |
-| `Component().end();` | Leaf element (no children) |
-| `Component().style(&style)({ ... });` | Apply style struct with children |
-| `.children({ ... })` | Block for child elements |
-| `ButtonCtx(fn, .{args})` | Button with context arguments |
-| `.onEventCtx(.event, fn, ctx)` | Event handler with context |
-| `Vapor.Static.HooksCtx(.mounted, fn, .{})({ ... });` | Lifecycle hook |
-| `for (items) \|item\| { ... }` | Loop over items |
-| `if (cond) { ... }` | Conditional render |
+| Pattern                                              | Description                      |
+| ---------------------------------------------------- | -------------------------------- |
+| `Component().children({ ... });`                     | Container with children          |
+| `Component().end();`                                 | Leaf element (no children)       |
+| `Component().style(&style)({ ... });`                | Apply style struct with children |
+| `.children({ ... })`                                 | Block for child elements         |
+| `ButtonCtx(fn, .{args})`                             | Button with context arguments    |
+| `.onEventCtx(.event, fn, ctx)`                       | Event handler with context       |
+| `Vapor.Static.HooksCtx(.mounted, fn, .{})({ ... });` | Lifecycle hook                   |
+| `for (items) \|item\| { ... }`                       | Loop over items                  |
+| `if (cond) { ... }`                                  | Conditional render               |
 
 ---
 
@@ -1059,11 +1427,11 @@ if (show_modal) {
     Box()
         .pos(.full(.fixed))
         .zIndex(999)
-        .background(.transparentizeHex(.black, 0.5))
+        .background(.transparentize(.black, 0.5))
         .children({
-            Button(.{ .on_press = closeModal }).size(.full).end();
+            Button(closeModal).size(.full).end();
         });
-    
+
     // Modal content
     Center()
         .pos(.full(.fixed))
@@ -1092,17 +1460,17 @@ fn toggleDropdown() void {
 
 fn render() void {
     Box().pos(.relative).children({
-        Button(.{ .on_press = toggleDropdown }).children({
+        Button(toggleDropdown).children({
             Text("Select Option").end();
         });
-        
+
         if (show_dropdown) {
             Stack()
                 .pos(.tl(.px(0), .percent(100), .absolute))
                 .zIndex(100)
                 .background(.palette(.background))
                 .border(.round(.palette(.border_color), .all(8)))
-                .shadow(.card(.transparentizeHex(.black, 0.1)))
+                .shadow(.card(.transparentize(.black, 0.1)))
                 .children({
                     for (options) |option| {
                         ButtonCtx(selectOption, .{option}).children({
@@ -1153,10 +1521,9 @@ fn render() void {
         if (error_message) |err| {
             Text(err).font(12, 400, .hex("#FF0000")).end();
         }
-        Button(.{ .on_press = submit }).children({
+        Button(submit).children({
             Text("Submit").end();
         });
     });
 }
 ```
-

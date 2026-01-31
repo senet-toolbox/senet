@@ -24,6 +24,7 @@ pub const ElementId = struct {
         dot,
         bar,
         stacked_bar, // NEW
+        shadow_bar, // NEW: for shadow bars behind stacked bars
         legend,
         background,
         pie_slice, // NEW: for pie chart slices
@@ -78,7 +79,7 @@ pub const Tooltip = struct {
     top: f32 = 0,
     left: f32 = 0,
     binded: Vapor.Binded = .{},
-    hide: bool = false,
+    hide: bool = true,
     x_label: []const u8 = "",
     y_label: []const u8 = "",
     value: []TooltipLegend = &.{},
@@ -91,6 +92,14 @@ const Bounds = struct {
     y: f32 = 0,
     width: f32 = 0,
     height: f32 = 0,
+};
+
+pub const SelectionState = struct {
+    start_x: f32 = 0,
+    start_y: f32 = 0,
+    current_x: f32 = 0,
+    current_y: f32 = 0,
+    is_dragging: bool = false,
 };
 
 pub const Chart = struct {
@@ -119,6 +128,22 @@ pub const Chart = struct {
     bounds: Bounds = .{},
 
     total_item_count: usize = 0,
+
+    // Store max Y value for shadow bars
+    max_y_value: f64 = 0,
+
+    // Zoom/selection state
+    selection: ?SelectionState = null,
+    selection_rect: Vapor.Binded = .{},
+    zoom_enabled: bool = true,
+
+    // Store original domains for reset
+    original_x_domain: ?[2]f64 = null,
+    original_y_domain: ?[2]f64 = null,
+
+    old_points: ?[]HoveredPoint = null,
+
+    onendselection: ?*const fn (x_min: f64, x_max: f64, y_min: f64, y_max: f64) void = null,
 
     pub const Platform = union(enum) {
         browser: BrowserPlatform,
@@ -203,6 +228,10 @@ pub const Chart = struct {
         // NEW: Colors for stacked segments (if not specified per-segment)
         stack_colors: ?[]const Vapor.Types.Color = null,
         border: ?Vapor.Types.BorderGrouped = null,
+        // NEW: Show shadow bar behind data bars to indicate max value
+        show_shadow: bool = false,
+        shadow_color: ?Vapor.Types.Color = null, // Default: semi-transparent gray
+        shadow_opacity: f64 = 0.15,
         // NEW: Pie/Donut specific options
         inner_radius_ratio: f64 = 0, // 0 = pie, 0.5 = donut with 50% hole
         start_angle: f64 = -std.math.pi / 2.0, // Start from top (12 o'clock)
@@ -210,6 +239,7 @@ pub const Chart = struct {
         corner_radius: f64 = 0, // Rounded corners on slices
         show_labels: bool = true, // Show labels on slices
         label_position: LabelPosition = .outside, // Where to position labels
+        hovered_color: ?Vapor.Types.Color = null,
     };
 
     pub const LabelPosition = enum {
@@ -224,6 +254,8 @@ pub const Chart = struct {
         format: ?[]const u8 = null,
         grid: bool = true,
         scale: ScaleConfig = .{},
+        show_axis_line: bool = true,
+        show_axis_ticks: bool = true,
     };
 
     const LegendField = struct {
@@ -382,11 +414,6 @@ pub const Chart = struct {
                     const val = try std.fmt.bufPrint(&buf, "{d:.2}", .{c.r});
                     self.platform.browser.setAttribute(id, "r", val);
                 }
-                // if (c.fill) |f| if (old.attrs.circle.fill) |old_f| {
-                //     if (!std.mem.eql(u8, f, old_f)) {
-                //         self.platform.browser.setAttribute(id, "fill", f);
-                //     }
-                // };
             },
             .path => |p| {
                 self.platform.browser.setAttribute(id, "d", p.d);
@@ -505,13 +532,14 @@ pub const Chart = struct {
             \\.axis { stroke: #333; stroke-width: 1; }
             \\.axis-label { font-size: 12px; fill: #333; }
             \\.grid { stroke: #e5e5e5; stroke-width: 1; }
-            \\.tick-label { font-size: 10px; fill: #666; }
-            \\.legend-text { font-size: 11px; }
+            \\.tick-label { font-size: 10px; fill: #666; user-select: none; }
+            \\.legend-text { font-size: 11px; user-select: none; }
             \\.series-line { fill: none; stroke-linecap: round; stroke-linejoin: round; transition: all 200ms ease-in-out; }
             \\.series-area { stroke: none; }
             \\.series-dot { stroke: white; stroke-width: 1.5; transition: all 200ms ease-in-out; }
             \\.series-bar { transition: all 200ms ease-in-out; }
             \\.stacked-bar { transition: all 200ms ease-in-out; }
+            \\.shadow-bar { transition: all 200ms ease-in-out; }
             \\.pie-slice { transition: all 200ms ease-in-out; }
             \\.pie-slice:hover { opacity: 0.8; transform-origin: center; }
             \\.pie-label { font-size: 11px; fill: #333; pointer-events: none; }
@@ -567,6 +595,9 @@ pub const Chart = struct {
                     }
                 }
             }
+
+            // Store max Y value for shadow bars
+            self.max_y_value = findMax(all_y.items);
 
             // ============ X SCALE ============
             const x_config = if (self.x_axis_config) |c| c.scale else ScaleConfig{};
@@ -656,7 +687,7 @@ pub const Chart = struct {
 
             // Axes
             if (self.x_axis_config) |_| {
-                try self.renderAxes(&svg, x_scale, y_scale, chart_width, chart_height);
+                try self.renderAxes(&svg, x_scale, y_scale, chart_width, chart_height, self.x_axis_config.?, self.y_axis_config.?);
             }
 
             try svg.closeGroup();
@@ -971,6 +1002,42 @@ pub const Chart = struct {
             const group_start = center_x - (group_width / 2);
             const bar_x = group_start + (@as(f64, @floatFromInt(stacked_series_index)) * bar_width);
 
+            // Render shadow bar first (behind the actual bars) if enabled
+            if (s.options.show_shadow) {
+                const shadow_color = s.options.shadow_color orelse Vapor.Types.Color.hex("#000000");
+                const max_y = y_scale.scale(self.max_y_value);
+                const shadow_height = @abs(baseline_y - max_y);
+
+                var shadow_id_buf: [64]u8 = undefined;
+                const shadow_id = try std.fmt.bufPrint(&shadow_id_buf, "chart-{d}-{d}-shadow_bar", .{
+                    series_index,
+                    point_index,
+                });
+
+                try svg.rect(bar_x, max_y, actual_bar_width, shadow_height, .{
+                    .id = shadow_id,
+                    .fill = shadow_color,
+                    .opacity = s.options.shadow_opacity,
+                    .rx = s.options.bar_radius,
+                    .class = "shadow-bar",
+                });
+
+                try self.rendered_elements.append(.{
+                    .id = .{
+                        .series_index = @intCast(series_index),
+                        .point_index = @intCast(point_index),
+                        .element_type = .shadow_bar,
+                    },
+                    .attrs = .{ .rect = .{
+                        .x = bar_x,
+                        .y = max_y,
+                        .width = actual_bar_width,
+                        .height = shadow_height,
+                        .fill = shadow_color,
+                    } },
+                });
+            }
+
             if (p.stack) |stack| {
                 // Render stacked segments
                 var pos_offset: f64 = 0; // Accumulator for positive values (stack upward)
@@ -1175,13 +1242,49 @@ pub const Chart = struct {
             const group_start = center_x - (group_width / 2);
             const x = group_start + (@as(f64, @floatFromInt(bar_series_index)) * bar_width);
 
+            const actual_bar_width = bar_width * 0.95;
+
+            // Render shadow bar first if enabled
+            if (s.options.show_shadow) {
+                const shadow_color = s.options.shadow_color orelse Vapor.Types.Color.hex("#000000");
+                const max_y = y_scale.scale(self.max_y_value);
+                const shadow_height = @abs(baseline - max_y);
+
+                var shadow_id_buf: [64]u8 = undefined;
+                const shadow_id = try std.fmt.bufPrint(&shadow_id_buf, "chart-{d}-{d}-shadow_bar", .{
+                    series_index,
+                    point_index,
+                });
+
+                try svg.rect(x, max_y, actual_bar_width, shadow_height, .{
+                    .id = shadow_id,
+                    .fill = shadow_color,
+                    .opacity = s.options.shadow_opacity,
+                    .rx = s.options.bar_radius,
+                    .class = "shadow-bar",
+                });
+
+                try self.rendered_elements.append(.{
+                    .id = .{
+                        .series_index = @intCast(series_index),
+                        .point_index = @intCast(point_index),
+                        .element_type = .shadow_bar,
+                    },
+                    .attrs = .{ .rect = .{
+                        .x = x,
+                        .y = max_y,
+                        .width = actual_bar_width,
+                        .height = shadow_height,
+                        .fill = shadow_color,
+                    } },
+                });
+            }
+
             const y = y_scale.scale(p.y);
             const height = @abs(baseline - y);
 
-            const actual_bar_width = bar_width * 0.95;
-
-            var id_buf: [64]u8 = undefined;
-            const id = try std.fmt.bufPrint(&id_buf, "chart-{d}-{d}-bar", .{ series_index, point_index });
+            var id_buf: [128]u8 = undefined;
+            const id = try std.fmt.bufPrint(&id_buf, "{s}-chart-{d}-{d}-bar", .{ s.name, series_index, point_index });
             try svg.rect(x, @min(y, baseline), actual_bar_width, height, .{
                 .id = id,
                 .fill = series_color,
@@ -1217,12 +1320,21 @@ pub const Chart = struct {
         }
     }
 
-    fn renderAxes(self: *Chart, svg: *Svg, x_scale: Scale, y_scale: Scale, width: f64, height: f64) !void {
+    fn renderAxes(self: *Chart, svg: *Svg, x_scale: Scale, y_scale: Scale, width: f64, height: f64, x_axis_config: AxisConfig, y_axis_config: AxisConfig) !void {
+        const show_x_axis_line = x_axis_config.show_axis_line;
+        const show_y_axis_line = y_axis_config.show_axis_line;
+        // const show_x_axis_ticks = x_axis_config.show_axis_ticks;
+        // const show_y_axis_ticks = y_axis_config.show_axis_ticks;
+
         // X axis line
-        try svg.line(0, height, width, height, .{ .class = "axis", .id = "chart-axis-x" });
+        if (show_x_axis_line) {
+            try svg.line(0, height, width, height, .{ .class = "axis", .id = "chart-axis-x" });
+        }
 
         // Y axis line
-        try svg.line(0, 0, 0, height, .{ .class = "axis", .id = "chart-axis-y" });
+        if (show_y_axis_line) {
+            try svg.line(0, 0, 0, height, .{ .class = "axis", .id = "chart-axis-y" });
+        }
 
         // X axis ticks
         const x_tick_count: usize = if (self.x_axis_config) |c| c.tick_count else 5;
@@ -1388,6 +1500,10 @@ pub const Chart = struct {
                         if (pt.data_y > 0) {
                             tooltip.value[i].value = pt.data_y;
                             tooltip.value[i].color = pt.series_color;
+                            const id = Vapor.fmtln("{s}-chart-{d}-{d}-{s}", .{ pt.series_name, pt.series_index, pt.point_index, @tagName(self.series.items[pt.series_index].type) });
+                            self.platform.browser.setAttribute(id, "fill", "black");
+                            // Store current points for reset on next hover
+                            self.old_points = self.allocator.dupe(HoveredPoint, result.points) catch null;
                         } else {
                             tooltip.value[i].value = null;
                         }
@@ -1401,7 +1517,6 @@ pub const Chart = struct {
     }
 
     pub fn updateTooltip(self: *Chart, event: *Vapor.Event) void {
-        if (Vapor.Kit.throttle(60)) return;
         if (self.tooltip) |*tooltip| {
             const x = event.pageX() - self.bounds.offset_x;
             const y = event.pageY() - self.bounds.offset_y;
@@ -1413,16 +1528,35 @@ pub const Chart = struct {
                 defer self.allocator.free(result.points);
 
                 if (self.old_x != result.points[0].screen_x) {
+                    // Reset previously hovered points back to tint color
+                    if (self.old_points) |old_pts| {
+                        for (old_pts) |old_pt| {
+                            const old_id = Vapor.fmtln("{s}-chart-{d}-{d}-{s}", .{ old_pt.series_name, old_pt.series_index, old_pt.point_index, @tagName(self.series.items[old_pt.series_index].type) });
+                            self.platform.browser.setAttribute(old_id, "fill", Svg.convertColor(old_pt.series_color));
+                        }
+                        self.allocator.free(self.old_points.?);
+                    }
+
+                    // Set new hovered points to black
                     for (result.points, 0..) |pt, i| {
                         if (pt.data_y > 0) {
                             tooltip.value[i].value = pt.data_y;
                             tooltip.value[i].color = pt.series_color;
+                            const id = Vapor.fmtln("{s}-chart-{d}-{d}-{s}", .{ pt.series_name, pt.series_index, pt.point_index, @tagName(self.series.items[pt.series_index].type) });
+                            self.platform.browser.setAttribute(id, "fill", Svg.convertColor(pt.hovered_color));
                         } else {
                             tooltip.value[i].value = null;
                         }
                     }
-                    Vapor.cycle();
+
+                    // Store current points for reset on next hover
+                    self.old_points = self.allocator.dupe(HoveredPoint, result.points) catch null;
+
+                    if (self.selection == null) {
+                        Vapor.cycle();
+                    }
                 }
+                tooltip.left = result.points[0].screen_x;
                 _ = tooltip.binded.translate3d(.{ .x = result.points[0].screen_x, .y = tooltip.top });
 
                 self.old_x = result.points[0].screen_x;
@@ -1435,6 +1569,15 @@ pub const Chart = struct {
             tooltip.binded.mutateStyleString("display", "none");
             tooltip.hide = true;
         }
+
+        if (self.old_points) |old_pts| {
+            for (old_pts) |old_pt| {
+                const old_id = Vapor.fmtln("{s}-chart-{d}-{d}-{s}", .{ old_pt.series_name, old_pt.series_index, old_pt.point_index, @tagName(self.series.items[old_pt.series_index].type) });
+                self.platform.browser.setAttribute(old_id, "fill", Svg.convertColor(old_pt.series_color));
+            }
+            self.allocator.free(old_pts);
+            self.old_points = null;
+        }
     }
 
     pub const HoveredPoint = struct {
@@ -1446,6 +1589,7 @@ pub const Chart = struct {
         screen_y: f32,
         series_name: []const u8,
         series_color: Vapor.Types.Color,
+        hovered_color: Vapor.Types.Color,
     };
 
     pub const HoverResult = struct {
@@ -1511,6 +1655,7 @@ pub const Chart = struct {
                                     .screen_y = @as(f32, @floatCast(screen_y)) + @as(f32, @floatFromInt(m.top)),
                                     .series_name = s.name,
                                     .series_color = stacked_color,
+                                    .hovered_color = s.options.hovered_color orelse stacked_color,
                                 }) catch continue;
                             }
                         }
@@ -1524,6 +1669,7 @@ pub const Chart = struct {
                             .screen_y = @as(f32, @floatCast(screen_y)) + @as(f32, @floatFromInt(m.top)),
                             .series_name = s.name,
                             .series_color = color,
+                            .hovered_color = s.options.hovered_color orelse color,
                         }) catch continue;
                     }
                 }
@@ -1541,7 +1687,155 @@ pub const Chart = struct {
         };
     }
 
+    // Called on pointerdown
+    pub fn startSelection(self: *Chart, event: *Vapor.Event) void {
+        if (!self.zoom_enabled) return;
+
+        const x = event.pageX() - self.bounds.offset_x;
+        const y = event.pageY() - self.bounds.offset_y;
+        std.log.info("startSelection {d} {d}", .{ x, y });
+
+        // Check if within chart area
+        if (x < self.bounds.x or x > self.bounds.x + self.bounds.width) return;
+        if (y < self.bounds.y or y > self.bounds.y + self.bounds.height) return;
+
+        self.selection = .{
+            .start_x = x,
+            .start_y = y,
+            .current_x = x,
+            .current_y = y,
+            .is_dragging = true,
+        };
+    }
+
+    // Called on pointermove (update your existing updateTooltip or add separate handler)
+    pub fn updateSelection(self: *Chart, event: *Vapor.Event) void {
+        if (Vapor.Kit.throttle(16)) return;
+        self.updateTooltip(event);
+        if (self.selection) |*sel| {
+            if (!sel.is_dragging) return;
+
+            const x = event.pageX() - self.bounds.offset_x;
+            const y = event.pageY() - self.bounds.offset_y;
+
+            // Clamp to chart bounds
+            sel.current_x = @max(self.bounds.x, @min(x, self.bounds.x + self.bounds.width));
+            sel.current_y = @max(self.bounds.y, @min(y, self.bounds.y + self.bounds.height));
+            const min_x = @min(sel.start_x, sel.current_x);
+            const min_y = @min(sel.start_y, sel.current_y);
+
+            _ = self.selection_rect.translate3d(.{ .x = min_x, .y = min_y });
+            const width = @abs(sel.current_x - sel.start_x);
+            const height = @abs(sel.current_y - sel.start_y);
+            self.selection_rect.mutateStyleString("width", Vapor.fmtln("{d}px", .{width}));
+            self.selection_rect.mutateStyleString("height", Vapor.fmtln("{d}px", .{height}));
+            // Force re-render to show selection box
+        }
+    }
+
+    // Called on pointerup
+    pub fn endSelection(self: *Chart, event: *Vapor.Event) void {
+        _ = event;
+        if (self.selection) |sel| {
+            if (!sel.is_dragging) return;
+
+            // Calculate selection bounds (handle any drag direction)
+            const min_x = @min(sel.start_x, sel.current_x);
+            const max_x = @max(sel.start_x, sel.current_x);
+            const min_y = @min(sel.start_y, sel.current_y);
+            const max_y = @max(sel.start_y, sel.current_y);
+
+            // Minimum selection size (prevent accidental tiny selections)
+            const min_size: f32 = 20;
+            if ((max_x - min_x) < min_size or (max_y - min_y) < min_size) {
+                self.selection = null;
+                return;
+            }
+
+            // Convert screen coordinates to data coordinates
+            if (self.x_scale) |x_scale| {
+                if (self.y_scale) |y_scale| {
+                    // Store original domains on first zoom
+                    if (self.original_x_domain == null) {
+                        self.original_x_domain = .{ x_scale.domainMin(), x_scale.domainMax() };
+                        self.original_y_domain = .{ y_scale.domainMin(), y_scale.domainMax() };
+                    }
+
+                    // Convert to chart-local coordinates
+                    const m = self.config.margin;
+                    const chart_min_x = min_x - @as(f32, @floatFromInt(m.left));
+                    const chart_max_x = max_x - @as(f32, @floatFromInt(m.left));
+                    const chart_min_y = min_y - @as(f32, @floatFromInt(m.top));
+                    const chart_max_y = max_y - @as(f32, @floatFromInt(m.top));
+
+                    // Invert to get data values
+                    const new_x_min = x_scale.invert(@floatCast(chart_min_x));
+                    const new_x_max = x_scale.invert(@floatCast(chart_max_x));
+                    // Note: Y is inverted (screen Y increases downward)
+                    const new_y_min = y_scale.invert(@floatCast(chart_max_y));
+                    const new_y_max = y_scale.invert(@floatCast(chart_min_y));
+
+                    // Apply zoom by updating axis configs
+                    self.applyZoom(new_x_min, new_x_max, new_y_min, new_y_max);
+                }
+            }
+        }
+
+        self.selection = null;
+    }
+
+    fn applyZoom(self: *Chart, x_min: f64, x_max: f64, y_min: f64, y_max: f64) void {
+        // Update axis scale configs to use manual domain
+        if (self.x_axis_config) |*cfg| {
+            cfg.scale.domain = .{ .manual = .{ x_min, x_max } };
+        } else {
+            self.x_axis_config = .{
+                .scale = .{ .domain = .{ .manual = .{ x_min, x_max } } },
+            };
+        }
+
+        if (self.y_axis_config) |*cfg| {
+            cfg.scale.domain = .{ .manual = .{ y_min, y_max } };
+        } else {
+            self.y_axis_config = .{
+                .scale = .{ .domain = .{ .manual = .{ y_min, y_max } } },
+            };
+        }
+
+        if (self.onendselection) |onendselection| {
+            @call(.auto, onendselection, .{ x_min, x_max, y_min, y_max });
+        }
+
+        // Rebuild chart with new scales
+        self.build() catch {};
+        Vapor.cycle();
+    }
+
+    // Reset zoom to original view
+    pub fn resetZoom(self: *Chart) void {
+        if (self.original_x_domain) |x_dom| {
+            if (self.x_axis_config) |*cfg| {
+                cfg.scale.domain = .{ .manual = x_dom };
+            }
+        }
+        if (self.original_y_domain) |y_dom| {
+            if (self.y_axis_config) |*cfg| {
+                cfg.scale.domain = .{ .manual = y_dom };
+            }
+        }
+
+        self.original_x_domain = null;
+        self.original_y_domain = null;
+
+        self.build() catch {};
+        Vapor.cycle();
+    }
+
+    /// --------------------------------------
+    /// Rendering
+    /// --------------------------------------
     fn mount(self: *Chart) void {
+        std.log.info("mount", .{});
         const offsets = self.container.getOffsets() orelse return;
         self.bounds.offset_x = offsets.offset_left;
         self.bounds.offset_y = offsets.offset_top;
@@ -1562,8 +1856,10 @@ pub const Chart = struct {
                     .width(.percent(100))
                     .height(.percent(100))
                     .onEventCtx(.pointerenter, showTooltip, self)
-                    .onEventCtx(.pointermove, updateTooltip, self)
                     .onEventCtx(.pointerleave, hideTooltip, self)
+                    .onEventCtx(.pointerdown, startSelection, self) // Add this
+                    .onEventCtx(.pointermove, updateSelection, self) // Combined handler
+                    .onEventCtx(.pointerup, endSelection, self) // Add this
                     .children({
                     if (self.tooltip) |*tooltip| {
                         Box()
@@ -1584,7 +1880,9 @@ pub const Chart = struct {
                             .shadow(.glow(4, .transparentizeHex(.hex("#616161"), 0.1)))
                             .zIndex(1000)
                             .children({
-                            Text(tooltip.x_label).font(12, 300, .palette(.text_color)).end();
+                            Text(tooltip.x_label)
+                                .inlineStyle("user-select: none;", .{})
+                                .font(12, 300, .palette(.text_color)).end();
                             var total: f64 = 0;
                             for (tooltip.value) |lg| {
                                 if (lg.value) |val| {
@@ -1600,10 +1898,14 @@ pub const Chart = struct {
                                                 .border(.round(lg.color, .all(2)))
                                                 .background(.{ .color = lg.color })
                                                 .children({});
-                                            Text(lg.title).font(12, 300, .palette(.text_color)).end();
+                                            Text(lg.title)
+                                                .inlineStyle("user-select: none;", .{})
+                                                .font(12, 300, .palette(.text_color)).end();
                                         });
                                         total += val;
-                                        Text(val).font(12, 300, .palette(.text_color)).end();
+                                        Text(val)
+                                            .inlineStyle("user-select: none;", .{})
+                                            .font(12, 300, .palette(.text_color)).end();
                                     });
                                 }
                             }
@@ -1615,12 +1917,42 @@ pub const Chart = struct {
                                     .layout(.left_center)
                                     .spacing(4)
                                     .children({
-                                    Text("Total").font(12, 300, .palette(.text_color)).end();
+                                    Text("Total")
+                                        .inlineStyle("user-select: none;", .{})
+                                        .font(12, 300, .palette(.text_color)).end();
                                 });
-                                Text(total).font(12, 300, .palette(.text_color)).end();
+                                Text(total)
+                                    .inlineStyle("user-select: none;", .{})
+                                    .font(12, 300, .palette(.text_color)).end();
                             });
                         });
+                    } else {
+                        Vapor.Null();
                     }
+
+                    // Selection rectangle overlay
+                    if (self.selection) |sel| {
+                        if (sel.is_dragging) {
+                            // const min_x = @min(sel.start_x, sel.current_x);
+                            // const min_y = @min(sel.start_y, sel.current_y);
+                            const width = @abs(sel.current_x - sel.start_x);
+                            const height = @abs(sel.current_y - sel.start_y);
+
+                            Box()
+                                .pos(.absolute)
+                                .ref(&self.selection_rect)
+                                // .pos(.tl(.px(min_x), .px(min_y), .absolute))
+                                .width(.px(width))
+                                .height(.px(height))
+                                .background(.transparentize(.palette(.border_color_light), 0.7)) // Blue with transparency
+                                .border(.round(.palette(.border_color_light), .all(1)))
+                                // .pointerEvents(.none)  // Don't interfere with mouse events
+                                .children({});
+                        }
+                    } else {
+                        Vapor.Null();
+                    }
+
                     if (self.current_chart_svg) |svg_content| {
                         Vapor.Svg(.{ .svg = svg_content, .override = true })
                             .end();

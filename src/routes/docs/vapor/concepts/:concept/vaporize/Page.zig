@@ -7,10 +7,11 @@ const Text = Vapor.Text;
 const ComplexForm = @import("../../../../../VaporizeComplexForm.zig");
 
 var markdown: Compiler.vaporize.MarkDown(.{
-    .{ .tag = "form", .function = form },
+    .{ .tag = "form", .function = LoginForm },
     .{ .tag = "text_area", .function = text_area },
     .{ .tag = "realtime_markdown", .function = RealtimeMarkdown },
     .{ .tag = "complex_form", .function = complex_form },
+    .{ .tag = "simple_form", .function = SimpleFormComponent },
 }) = .{};
 
 var page: []const u8 = "";
@@ -39,7 +40,37 @@ const Form = struct {
     };
 };
 
-var new_form: Compiler.vaporize.Form(Form) = undefined;
+const SimpleForm = struct {
+    email: []const u8 = "",
+    password: []const u8 = "",
+};
+
+var simple_form: Compiler.vaporize.Form(SimpleForm) = .{};
+
+fn SimpleFormComponent() void {
+    Stack()
+        .direction(.column).layout(.top_center).width(.full).height(.percent(50)).children({
+        Stack()
+            .width(.percent(100)).layout(.center).spacing(16)
+            .background(.palette(.background))
+            .border(.simple(.palette(.text_color)))
+            .children({
+            Stack()
+                .width(.percent(100)).layout(.center).spacing(16).padding(.all(20))
+                .children({
+                simple_form.render();
+            });
+        });
+    });
+}
+
+var new_form: Compiler.vaporize.Form(Form) = .{
+    .on_submit = onSubmit,
+};
+
+fn onSubmit(form: Form) void {
+    Vapor.alert("Form submitted {s}", .{form.email});
+}
 
 pub fn init() void {
     // markdown.compile(vaporize_page) catch unreachable;
@@ -49,6 +80,10 @@ pub fn init() void {
         return;
     };
     ComplexForm.init();
+    simple_form.compile() catch |err| {
+        Vapor.printErr("Failed to compile form: {any}", .{err});
+        return;
+    };
     new_form.compile() catch unreachable;
 }
 
@@ -116,7 +151,7 @@ fn text_area() void {
         .end();
 }
 
-pub fn form() void {
+pub fn LoginForm() void {
     Stack()
         .direction(.column).layout(.top_center).width(.full).height(.percent(50)).children({
         Stack()
@@ -130,7 +165,7 @@ pub fn form() void {
                 .children({
                 Text("SIGN UP").font(84, 900, .palette(.text_color))
                     .padding(.horizontal(12))
-                    .border(.bottom(.palette(.text_color)))
+                    .border(.bottom(1, .palette(.text_color)))
                     .layout(.center)
                     .width(.percent(100))
                     .end();

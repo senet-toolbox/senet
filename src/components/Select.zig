@@ -15,9 +15,11 @@ var background: Vapor.Types.Background = .palette(.background);
 var border: Vapor.Types.BorderGrouped = .round(.palette(.border_color_light), .all(12));
 var group_title_color: Vapor.Types.Color = .hex("#8C8C8C");
 var text_color: Vapor.Types.Color = .palette(.text_color);
-var font_family: []const u8 = "Montserrat";
-var selected_background: Vapor.Types.Background = .transparentizeHex(.palette(.tint), 0.05);
-var selected_border: Vapor.Types.BorderGrouped = .round(.palette(.tint), .all(12));
+var font_family: []const u8 = "Barlow";
+const selected_background: Vapor.Types.Background = .transparentizeHex(.palette(.tint), 0.05);
+const selected_border: Vapor.Types.BorderGrouped = .round(.palette(.tint), .all(12));
+
+const Position = enum { top, bottom };
 
 pub const animateEnter = Vapor.Animation.init("opaque-select-enter")
     .prop(.opacity, 0, 1)
@@ -76,6 +78,12 @@ pub fn Select(comptime T: type) type {
         _did_initialize: bool = false,
         max_height: f32 = 256,
         is_detached: bool = false,
+        _position: Position = .bottom,
+        total_items: usize = 0,
+        border: Vapor.Types.BorderGrouped = .round(.palette(.border_color_light), .all(12)),
+        selected_border: Vapor.Types.BorderGrouped = .round(.palette(.tint), .all(12)),
+        shadow: Vapor.Types.Shadow = .{ .color = .transparentizeHex(.palette(.tint), 0.2), .spread = 3 },
+        height: Vapor.Types.Sizing = .px(36),
         // binded_triggers_ptrs: Vapor.Array(Vapor.Binded),
 
         pub fn init(trigger: []const u8, groups: []const Group) Self {
@@ -103,6 +111,7 @@ pub fn Select(comptime T: type) type {
                 .groups = alloc_groups,
                 ._did_initialize = true,
                 .max_height = max_height,
+                .total_items = total_items,
             };
         }
 
@@ -129,6 +138,7 @@ pub fn Select(comptime T: type) type {
                 .groups = alloc_groups,
                 ._did_initialize = true,
                 .max_height = max_height,
+                .total_items = total_items,
             };
         }
 
@@ -186,7 +196,7 @@ pub fn Select(comptime T: type) type {
                 .duration(100)
                 .hoverBackground(selected_background)
                 .padding(.tblr(6, 6, 6, 24))
-                .border(.round(.transparent, .all(8)))
+                .border(.round(.transparent, if (select.border.radius) |radius| radius else .all(8)))
                 .spacing(8)
                 .children({
                 if (item.icon) |icon| {
@@ -256,9 +266,16 @@ pub fn Select(comptime T: type) type {
 
         fn toggleWithBindedTrigger(select: *Self, binded_trigger: *Vapor.Binded) void {
             const bounds = binded_trigger.getBoundingClientRect() orelse return;
-            select._x = 0;
-            select._y = bounds.height + 4;
-            Vapor.print("Rendering select {any} {any}", .{ select._x, select._y });
+            if (select._position == .top) {
+                Vapor.print("toggleWithBindedTriggerVP", .{});
+                const offsets = binded_trigger.getOffsets() orelse return;
+                select._x = offsets.offset_left;
+                select._y = offsets.offset_top - (@as(f32, @floatFromInt(select.total_items)) * 36) - 16;
+                Vapor.print("Rendering select {any} {any}", .{ (@as(f32, @floatFromInt(select.total_items)) * 36), select._y });
+            } else {
+                select._x = 0;
+                select._y = bounds.height + 4;
+            }
 
             select.toggle();
         }
@@ -269,36 +286,38 @@ pub fn Select(comptime T: type) type {
                 return;
             }
             const offsets = binded_trigger.getOffsets() orelse return;
-            select._x = offsets.offset_left;
-            select._y = offsets.offset_top + offsets.offset_height + 4;
+            if (select._position == .top) {
+                select._x = offsets.offset_left;
+                select._y = offsets.offset_top - @as(f32, @floatFromInt(select.total_items)) * 36;
+            } else {
+                select._x = offsets.offset_left;
+                select._y = offsets.offset_top + offsets.offset_height + 4;
+            }
             Vapor.print("Rendering select {any} {any}", .{ select._x, select._y });
 
             select.toggle();
         }
 
-        fn toggleWithBindedTriggerCtx(select: *Self, binded_trigger: *Vapor.Binded, ctx: ?*anyopaque) void {
+        fn toggleWithBindedTriggerVPCtx(select: *Self, binded_trigger: *Vapor.Binded, callback: anytype, args: anytype) void {
             if (select.is_detached) {
                 select.toggle();
                 return;
             }
-            const bounds = binded_trigger.getBoundingClientRect() orelse return;
-            select._x = bounds.left;
-            select._y = bounds.top + bounds.height + 4;
-            Vapor.print("Bounds {any}", .{bounds});
+            const offsets = binded_trigger.getOffsets() orelse return;
+            select._x = offsets.offset_left;
+            select._y = offsets.offset_top + offsets.offset_height + 4;
             select.toggle();
-            if (select.on_trigger) |on_trigger| {
-                on_trigger(select, ctx);
-            }
+            @call(.auto, callback, args);
         }
 
-        pub fn renderTriggerCtx(select: *Self, ctx: ?*anyopaque) void {
+        pub fn renderTriggerCtx(select: *Self, callback: anytype, args: anytype) void {
             const binded_trigger = select.createBindedTrigger();
             Box()
                 .width(.percent(100))
                 .height(.percent(100))
-                .ref(select.binded_trigger).children({
+                .ref(binded_trigger).children({
                 if (select.trigger_component) |trigger| {
-                    ButtonCtx(toggleWithBindedTriggerCtx, .{ select, binded_trigger, ctx })
+                    ButtonCtx(toggleWithBindedTriggerVPCtx, .{ select, binded_trigger, callback, args })
                         .ariaLabel("Select Dropdown")
                         .background(.transparent)
                         .width(.percent(100))
@@ -362,11 +381,12 @@ pub fn Select(comptime T: type) type {
                     ButtonCtx(toggleWithBindedTrigger, .{ select, binded_trigger })
                         .ariaLabel("Select Dropdown")
                         .width(.percent(100))
-                        .border(if (select._closed) border else selected_border)
+                        .height(select.height)
+                        .border(if (select._closed) select.border else select.selected_border)
                         .background(background)
-                        .padding(.all(8))
-                        .shadow(.{
-                            .color = if (select._closed) .transparent else .transparentizeHex(.palette(.tint), 0.2),
+                        .padding(.xy(8, 0))
+                        .shadow(if (!select._closed) select.shadow else .{
+                            .color = .transparent,
                             .spread = 3,
                         })
                         // .shadow(.{
@@ -376,7 +396,7 @@ pub fn Select(comptime T: type) type {
                         //     .top = if (select._closed) 2 else 0,
                         // })
                         .hover(.{
-                            .border = selected_border,
+                            .border = select.selected_border,
                         })
                         .children({
                         Box()
@@ -415,7 +435,7 @@ pub fn Select(comptime T: type) type {
                         .animationEnter("opaque-select-enter")
                         .animationExit("opaque-select-exit")
                         .width(.percent(100))
-                        .border(border)
+                        .border(select.border)
                         .background(background)
                         .padding(.all(4))
                         .shadow(.{
@@ -458,6 +478,26 @@ pub fn Select(comptime T: type) type {
             }
         }
 
+        pub fn renderPos(select: *Self, position: Position) void {
+            select._position = position;
+            if (!select._did_initialize) {
+                Vapor.printErr("Error: Select component not initialized\n Call Select.init(...) or Select.fromItems(...) before rendering", .{});
+                return;
+            }
+            Stack()
+                .width(.percent(100))
+                .spacing(4)
+                .pos(.relative)
+                .children({
+                select.renderTrigger();
+                // if (!select._closed) {
+                select.renderSelect();
+                // } else {
+                // Vapor.Null();
+                // }
+            });
+        }
+
         pub fn render(select: *Self) void {
             if (!select._did_initialize) {
                 Vapor.printErr("Error: Select component not initialized\n Call Select.init(...) or Select.fromItems(...) before rendering", .{});
@@ -475,6 +515,59 @@ pub fn Select(comptime T: type) type {
                 // Vapor.Null();
                 // }
             });
+        }
+        pub fn renderSelectByComponent(select: *Self, component: *const fn (select: *Self) void) void {
+            Box()
+                .pos(.tl(.px(0), .percent(0), .absolute))
+                // .width(.percent(100))
+                .zIndex(1000)
+                .inlineStyle("transform: translate({d}px, {d}px)", .{ select._x, select._y })
+                .children({
+                if (!select._closed) {
+                    Stack()
+                        .transformOrigin(.top_center)
+                        .animationEnter("opaque-select-enter")
+                        .animationExit("opaque-select-exit")
+                        // .width(.percent(100))
+                        .border(select.border)
+                        .background(background)
+                        .padding(.all(4))
+                        .shadow(.{
+                            .top = 4,
+                            .spread = 2,
+                            .blur = 6,
+                            .color = .transparentizeHex(.black, 0.05),
+                        })
+                        .children({
+                        Stack()
+                            .height(.elastic(36, select.max_height))
+                            .width(.percent(100))
+                            .scroll(.scroll_y())
+                            .children({
+                            component(select);
+                        });
+                    });
+                } else {
+                    Vapor.Null();
+                }
+            });
+            if (!select._closed) {
+                Box()
+                    .id("select-background")
+                    .background(.transparent)
+                    .size(.full)
+                    .pos(.full(.fixed))
+                    .zIndex(999)
+                    .children({
+                    ButtonCtx(toggle, .{select})
+                        .ariaLabel("Close Select Dropdown")
+                        .size(.full)
+                        .pos(.tl(.px(0), .px(0), .fixed))
+                        .end();
+                });
+            } else {
+                Vapor.Null();
+            }
         }
     };
 }

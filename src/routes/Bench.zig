@@ -24,8 +24,8 @@ var last_time_ms: f64 = 0;
 
 // --- INIT ---
 pub fn init() void {
-    rows = Vapor.array(Row, .persist);
     Vapor.Page(.{ .route = "/bench" }, Benchmark, null);
+    rows = Vapor.array(Row, .persist);
 }
 
 // --- HELPERS ---

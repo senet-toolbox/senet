@@ -119,257 +119,6 @@ export function clearIntervalsForRoute(path) {
   }
 }
 
-/**
- * Process input elements based on their type
- * @param {HTMLElement} element - The input element
- * @param {Object} renderCmd - The render command
- */
-function processInputElement(element, renderCmd) {
-  const idPtr = allocString(renderCmd.id);
-  const elementPtr = wasmInstance.getElementPtr(idPtr);
-  if (elementPtr === 0) return;
-  // const elementView = new DataView(
-  //   wasmInstance.memory.buffer,
-  //   elementPtr,
-  //   elementSize,
-  // );
-
-  // const onBlur = wasmInstance.getOnBlurCallback(elementPtr) >>> 0;
-  // if (onBlur > 0) {
-  //   requestAnimationFrame(() => {
-  //     eventHandlers.set(`fb-evt-hd-${onBlur}-${renderCmd.id}`, (event) => {
-  //       eventStorage[onBlur] = event;
-  //       wasmInstance.eventCallback(onBlur);
-  //     });
-  //     element.addEventListener("focusout", (event) => {
-  //       eventHandlers.get(`fb-evt-hd-${onBlur}-${renderCmd.id}`)(event);
-  //     });
-  //   });
-  // }
-
-  let onChange = wasmInstance.getOnChangeCallback(elementPtr) >>> 0;
-  if (onChange > 0) {
-    // element.addEventListener("input", async (event) => {
-    //   event.preventDefault();
-    //   event.stopPropagation();
-    // });
-    requestAnimationFrame(() => {
-      eventHandlers.set(`fb-evt-hd-${onChange}-${renderCmd.id}`, (event) => {
-        eventStorage[onChange] = event;
-        wasmInstance.eventCallback(onChange);
-      });
-      element.addEventListener("input", (event) => {
-        const idPtr = allocString(renderCmd.id);
-        wasmInstance.inputCallback(idPtr);
-        eventHandlers.get(`fb-evt-hd-${onChange}-${renderCmd.id}`)(event);
-      });
-    });
-  } else {
-    element.addEventListener("input", async (event) => {
-      event.preventDefault();
-      const idPtr = allocString(renderCmd.id);
-      wasmInstance.inputCallback(idPtr);
-    });
-  }
-
-  // const onFocus = wasmInstance.getOnChangeCallback(elementPtr) >>> 0;
-  // if (onFocus > 0) {
-  //   requestAnimationFrame(() => {
-  //     eventHandlers.set(`fb-evt-hd-${onFocus}-${renderCmd.id}`, (event) => {
-  //       eventStorage[onFocus] = event;
-  //       wasmInstance.eventCallback(onFocus);
-  //     });
-  //     element.addEventListener("focus", (event) => {
-  //       eventHandlers.get(`fb-evt-hd-${onFocus}-${renderCmd.id}`)(event);
-  //     });
-  //   });
-  // }
-
-  // element.addEventListener("input", async (event) => {
-  //   // if (renderCmd.id === "swap-wasm") {
-  //   //   await hotSwapWasmWithState("/zig-out/bin/fabric.wasm");
-  //   // } else {
-  //   event.preventDefault();
-  //   event.stopPropagation();
-  //   const idPtr = allocString(renderCmd.id);
-  //   wasmInstance.inputCallback(idPtr);
-  //   // }
-  // });
-
-  // const type = wasmInstance.getInputType(nodePtr);
-  // const inputPtr = wasmInstance.createInput(nodePtr);
-  // const inputSize = wasmInstance.getInputSize(nodePtr);
-  // const inputCallback = wasmInstance.getOnInputCallback(nodePtr);
-  // const inputView = new DataView(
-  //   wasmInstance.memory.buffer,
-  //   inputPtr,
-  //   inputSize,
-  // );
-  //
-  // let offset = 0;
-  // offset += 8; // Skip initial bytes
-  //
-  // // Process name attribute
-  // const namePtr = inputView.getUint32(offset, true);
-  // offset += 4;
-  // if (namePtr) {
-  //   const nameLen = inputView.getUint32(offset, true);
-  //   const name = readWasmString(namePtr, nameLen);
-  //   element.name = name;
-  // }
-  // offset += 8;
-  //
-  // // Process type-specific attributes
-  // if (type === 0) {
-  //   // Number input
-  //   const placeholder = inputView.getUint32(offset, true);
-  //   if (placeholder) {
-  //     element.placeholder = placeholder;
-  //   }
-  //   offset += 8;
-  //   const value = inputView.getUint32(offset, true);
-  //   if (value) {
-  //     element.value = value;
-  //   }
-  //   element.type = "number";
-  // } else if (type === 2) {
-  //   // Text input
-  //   const placeholderPtr = inputView.getUint32(offset, true);
-  //   offset += 4;
-  //   if (placeholderPtr) {
-  //     const placeholderLen = inputView.getUint32(offset, true);
-  //     const placeholder = readWasmString(placeholderPtr, placeholderLen);
-  //     element.placeholder = placeholder;
-  //   }
-  //   offset += 8;
-  //   const valuePtr = inputView.getUint32(offset, true);
-  //   offset += 4;
-  //   if (valuePtr) {
-  //     const valueLen = inputView.getUint32(offset, true);
-  //     const value = readWasmString(valuePtr, valueLen);
-  //     element.value = value;
-  //   }
-  //   offset += 8;
-  //   const minLen = inputView.getUint32(offset, true);
-  //   if (minLen) {
-  //     element.ariaValueMin = minLen;
-  //     element.minLength = minLen;
-  //   }
-  //   offset += 8;
-  //   const maxLen = inputView.getUint32(offset, true);
-  //   if (maxLen) {
-  //     element.ariaValueMin = maxLen;
-  //     element.maxLength = maxLen;
-  //   }
-  //
-  //   element.type = "text";
-  // } else if (type === 4) {
-  //   // Radio input
-  //   const valuePtr = inputView.getUint32(offset, true);
-  //   offset += 4;
-  //   if (valuePtr) {
-  //     const valueLen = inputView.getUint32(offset, true);
-  //     const value = readWasmString(valuePtr, valueLen);
-  //     element.value = value;
-  //   }
-  //   element.type = "radio";
-  //
-  //   // Apply checkmark styling if available
-  //   const cssCheckMarkPtr = wasmInstance.getCheckMarkStylePtr(nodePtr);
-  //   if (cssCheckMarkPtr > 0) {
-  //     const cssCheckMarkLen = wasmInstance.getCheckMarkLen();
-  //     const checkMarkCss = readWasmString(cssCheckMarkPtr, cssCheckMarkLen);
-  //     if (checkMarkCss.length > 0) {
-  //       checkMarkStyling(
-  //         renderCmd.id,
-  //         element,
-  //         renderCmd.styleId,
-  //         checkMarkCss,
-  //       );
-  //     }
-  //   }
-  // } else if (type === 5) {
-  //   console.log("Password");
-  //   // Text input
-  //   const placeholderPtr = inputView.getUint32(offset, true);
-  //   offset += 4;
-  //   if (placeholderPtr) {
-  //     const placeholderLen = inputView.getUint32(offset, true);
-  //     const placeholder = readWasmString(placeholderPtr, placeholderLen);
-  //     element.placeholder = placeholder;
-  //   }
-  //   offset += 8;
-  //   const valuePtr = inputView.getUint32(offset, true);
-  //   offset += 4;
-  //   if (valuePtr) {
-  //     const valueLen = inputView.getUint32(offset, true);
-  //     const value = readWasmString(valuePtr, valueLen);
-  //     element.value = value;
-  //   }
-  //   offset += 8;
-  //   const minLen = inputView.getUint32(offset, true);
-  //   if (minLen) {
-  //     element.ariaValueMin = minLen;
-  //     element.minLength = minLen;
-  //   }
-  //   offset += 8;
-  //   const maxLen = inputView.getUint32(offset, true);
-  //   if (maxLen) {
-  //     element.ariaValueMin = maxLen;
-  //     element.maxLength = maxLen;
-  //     console.log(maxLen);
-  //   }
-  //   element.type = "password";
-  // } else if (type === 6) {
-  //   console.log("Email");
-  //   // Text input
-  //   const placeholderPtr = inputView.getUint32(offset, true);
-  //   offset += 4;
-  //   if (placeholderPtr) {
-  //     const placeholderLen = inputView.getUint32(offset, true);
-  //     const placeholder = readWasmString(placeholderPtr, placeholderLen);
-  //     element.placeholder = placeholder;
-  //   }
-  //   offset += 8;
-  //   const valuePtr = inputView.getUint32(offset, true);
-  //   offset += 4;
-  //   if (valuePtr) {
-  //     const valueLen = inputView.getUint32(offset, true);
-  //     const value = readWasmString(valuePtr, valueLen);
-  //     element.value = value;
-  //   }
-  //   offset += 8;
-  //   const minLen = inputView.getUint32(offset, true);
-  //   if (minLen) {
-  //     element.ariaValueMin = minLen;
-  //     element.minLength = minLen;
-  //   }
-  //   offset += 8;
-  //   const maxLen = inputView.getUint32(offset, true);
-  //   if (maxLen) {
-  //     element.ariaValueMin = maxLen;
-  //     element.maxLength = maxLen;
-  //     console.log(maxLen);
-  //   }
-  //   element.type = "email";
-  // } else if (type === 7) {
-  //   element.type = "file";
-  // }
-  // if (inputCallback) {
-  // requestAnimationFrame(() => {
-  //   eventHandlers.set(`fb-evt-hd-${inputCallback}-${renderCmd.id}`, (event) => {
-  //     eventStorage[inputCallback] = event;
-  //     // console.log(event, event.srcElement);
-  //     wasmInstance.eventCallback(inputCallback);
-  //   });
-  //   element.addEventListener(
-  //     "input",
-  //     eventHandlers.get(`fb-evt-hd-${inputCallback}-${renderCmd.id}`),
-  //   );
-  // });
-  // }
-}
-
 export async function animateExitRecursive(el, index, toRemoveMap) {
   if (!el) return;
   el.dataset.removing = "true";
@@ -419,60 +168,111 @@ export async function animateExitRecursive(el, index, toRemoveMap) {
 }
 
 export async function animateExit(el, index = -1, skipAnimation = false) {
-  if (!el) return;
-
+  if (!el || el.dataset.removing === "true") return;
   el.dataset.removing = "true";
 
-  let shouldAnimate = !skipAnimation;
-
-  if (shouldAnimate && index > -1) {
+  // Run exit animation on the ROOT element only
+  if (!skipAnimation && index > -1) {
     const animPtr = wasmInstance.getRemovalAnimationPtr(index);
-
     if (animPtr > 0) {
       const animLen = wasmInstance.getRemovalAnimationLen(index);
       const css = readWasmString(animPtr, animLen);
-
       if (css) {
-        // DEBUG: Check if element is still in DOM
         el.style.animation = css;
-
-        // Force reflow
         void el.offsetWidth;
-
-        // DEBUG: Check computed style
         await new Promise((resolve) => {
-          el.addEventListener(
-            "animationend",
-            () => {
-              resolve();
-            },
-            { once: true },
-          );
+          el.addEventListener("animationend", resolve, { once: true });
+          // Timeout fallback in case animation doesn't fire
+          setTimeout(resolve, 1000);
         });
       }
     }
   }
 
-  // Cleanup children (skip their animations)
-  for (const child of Array.from(el.children)) {
-    await animateExit(child, 0, true);
-  }
+  // Collect ALL descendant IDs before removal
+  const idsToCleanup = collectDescendantIds(el);
 
-  // Cleanup registries
-  domNodeRegistry.delete(el.id);
-  pureNodeRegistry.delete(el.id);
-  loadedSections.delete(el.id);
-  elementCache.delete(el.id);
-
-  const eventData = eventHandlers.get(el.id);
-  if (eventData) {
-    for (const [eventType, handler] of Object.entries(eventData)) {
-      el.removeEventListener(eventType, handler);
-    }
-    eventHandlers.delete(el.id);
-  }
+  // Remove from DOM (children go with it)
   el.remove();
+
+  // NOW clean up registries
+  for (const id of idsToCleanup) {
+    cleanupRegistryEntry(id);
+  }
 }
+
+function collectDescendantIds(el) {
+  const ids = [el.id];
+  const walker = document.createTreeWalker(el, NodeFilter.SHOW_ELEMENT);
+  while (walker.nextNode()) {
+    if (walker.currentNode.id) {
+      ids.push(walker.currentNode.id);
+    }
+  }
+  return ids;
+}
+
+function cleanupRegistryEntry(id) {
+  const entry = domNodeRegistry.get(id);
+  if (entry?.domNode) {
+    // Remove event listeners
+    const eventData = eventHandlers.get(id);
+    if (eventData) {
+      for (const [eventType, handler] of Object.entries(eventData)) {
+        entry.domNode.removeEventListener(eventType, handler);
+      }
+      eventHandlers.delete(id);
+    }
+  }
+
+  domNodeRegistry.delete(id);
+  pureNodeRegistry.delete(id);
+  loadedSections.delete(id);
+  elementCache.delete(id);
+  activeNodeIds.delete(id);
+}
+
+// export async function animateExit(el, index = -1, skipAnimation = false) {
+//   if (!el) return;
+//   el.dataset.removing = "true";
+//
+//   // Only attempt animation if not skipped AND valid index
+//   if (!skipAnimation && index > -1) {
+//     const animPtr = wasmInstance.getRemovalAnimationPtr(index);
+//     if (animPtr > 0) {
+//       const animLen = wasmInstance.getRemovalAnimationLen(index);
+//       const css = readWasmString(animPtr, animLen);
+//       if (css) {
+//         el.style.animation = css;
+//         void el.offsetWidth;
+//         await new Promise((resolve) => {
+//           el.addEventListener("animationend", resolve, { once: true });
+//         });
+//       }
+//     }
+//   }
+//
+//   // Cleanup children - pass -1 to skip index lookup entirely
+//   for (const child of Array.from(el.children)) {
+//     await animateExit(child, -1, true);
+//   }
+//
+//   // Cleanup registries
+//   domNodeRegistry.delete(el.id);
+//   pureNodeRegistry.delete(el.id);
+//   loadedSections.delete(el.id);
+//   elementCache.delete(el.id);
+//
+//   const eventData = eventHandlers.get(el.id);
+//   if (eventData) {
+//     for (const [eventType, handler] of Object.entries(eventData)) {
+//       el.removeEventListener(eventType, handler);
+//     }
+//     eventHandlers.delete(el.id);
+//   }
+//
+//   el.remove();
+// }
 
 export async function recurseDestroy(el, skipAnimation = false) {
   if (!el) return;
@@ -591,223 +391,6 @@ function createLinkElement(element, uinode) {
   return element;
 }
 
-function initJsonEditor(parent, element) {
-  element.style.caretColor = "black";
-  // ——— Setup status/log pane ———
-  const status = document.createElement("div");
-  status.className = "json-editor-status";
-  Object.assign(status.style, {
-    fontFamily: "monospace",
-    fontSize: "0.9em",
-    marginTop: "12px",
-    maxHeight: "160px",
-    minHeight: "60px",
-    width: "100%",
-    overflowY: "auto",
-    padding: "8px",
-    border: "1px solid #27272a",
-    borderRadius: "8px",
-    boxSizing: "border-box",
-  });
-  parent.parentNode.insertBefore(status, element.nextSibling);
-
-  function log(msg, isError = false) {
-    // console[isError ? "error" : "log"](msg);
-    const p = document.createElement("div");
-    p.textContent = msg;
-    p.style.color = isError ? "#FF3838" : "#555";
-    status.appendChild(p);
-    status.scrollTop = status.scrollHeight;
-  }
-
-  function clearStatus() {
-    status.textContent = "";
-  }
-
-  function showError(err) {
-    clearStatus();
-    const msg = err.message || err;
-    const m = msg.match(/position (\d+)/);
-    let info = msg;
-    if (m) {
-      const pos = +m[1];
-      const before = element.value.slice(0, pos);
-      const line = before.split("\n").length;
-      const col = pos - (before.lastIndexOf("\n") + 1);
-      info = `Line ${line}, Col ${col}: ${msg}`;
-      element.setSelectionRange(pos, pos);
-    }
-    log(`❌ ${info}`, true);
-    element.style.borderColor = "#FF3838";
-  }
-
-  // ——— New: detect duplicate keys at the same depth ———
-  function detectDuplicateKeys(str) {
-    const duplicates = [];
-    const seen = Object.create(null); // { depth: { key: true } }
-    let depth = 0;
-    for (let i = 0; i < str.length; i++) {
-      const ch = str[i];
-      if (ch === "{") {
-        depth++;
-      } else if (ch === "}") {
-        // clear seen for this depth when exiting object
-        delete seen[depth];
-        depth = Math.max(depth - 1, 0);
-      } else if (ch === '"') {
-        // read string literal
-        let j = i + 1,
-          esc = false,
-          key = "";
-        while (j < str.length) {
-          const c = str[j];
-          if (!esc && c === "\\") {
-            esc = true;
-            j++;
-          } else if (!esc && c === '"') {
-            break;
-          } else {
-            key += c;
-            esc = false;
-            j++;
-          }
-        }
-        if (str[j] === '"') {
-          // check for colon after it
-          const rest = str.slice(j + 1);
-          if (/^\s*:/.test(rest)) {
-            seen[depth] = seen[depth] || Object.create(null);
-            if (seen[depth][key]) {
-              duplicates.push({ key, position: i });
-            } else {
-              seen[depth][key] = true;
-            }
-          }
-          i = j;
-        }
-      }
-    }
-    return duplicates;
-  }
-
-  // ——— Pretty-print on Ctrl+S, with duplicate-check ———
-  function formatJSON() {
-    clearStatus();
-    const dups = detectDuplicateKeys(element.value);
-    if (dups.length) {
-      const keys = [...new Set(dups.map((d) => d.key))].join(", ");
-      showError(new Error(`Duplicate keys found: ${keys}`));
-      return;
-    }
-    try {
-      const obj = JSON.parse(element.value);
-      element.value = JSON.stringify(obj, null, 2) + "\n";
-      element.style.borderColor = "";
-      log("✅ JSON formatted");
-      element.dispatchEvent(new Event("input", { bubbles: true }));
-    } catch (err) {
-      showError(err);
-    }
-  }
-
-  // ——— Wrap helpers ———
-  function wrapSelection(open, close = open) {
-    const { selectionStart: s, selectionEnd: e, value: v } = element;
-    element.value = v.slice(0, s) + open + v.slice(s, e) + close + v.slice(e);
-    element.setSelectionRange(s + 1, e + 1);
-    element.focus();
-    log(`Wrapped selection with "${open}${close}"`);
-  }
-
-  // ——— Debounced live validation + duplicate-check ———
-  let tid;
-  element.addEventListener("input", () => {
-    clearTimeout(tid);
-    tid = setTimeout(() => {
-      try {
-        const dups = detectDuplicateKeys(element.value);
-        if (dups.length) {
-          const keys = [...new Set(dups.map((d) => d.key))].join(", ");
-          throw new Error(`Duplicate keys found: ${keys}`);
-        }
-        JSON.parse(element.value);
-        element.style.borderColor = "";
-        clearStatus();
-      } catch (err) {
-        showError(err);
-      }
-    }, 300);
-  });
-
-  // ——— Key handling ———
-  const pairs = { "{": "}", "[": "]", '"': '"' };
-  element.addEventListener("keydown", (e) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      const { selectionStart: s, selectionEnd: e0, value: v } = element;
-      const lineStart = v.lastIndexOf("\n", s - 1) + 1;
-      const prefix = v.slice(lineStart, s).match(/^[ \t]*/)[0];
-      const insert = "\n" + prefix;
-      element.value = v.slice(0, s) + insert + v.slice(e0);
-      const pos = s + insert.length;
-      element.setSelectionRange(pos, pos);
-      log("↵ Auto-indented");
-      element.dispatchEvent(new Event("input", { bubbles: true }));
-    } else if (e.key === "Tab") {
-      e.preventDefault();
-      const { selectionStart: s, selectionEnd: e0, value: v } = element;
-      const tab = "  ";
-      element.value = v.slice(0, s) + tab + v.slice(e0);
-      element.setSelectionRange(s + tab.length, s + tab.length);
-      log("⇥ Inserted tab");
-      element.dispatchEvent(new Event("input", { bubbles: true }));
-    } else if (pairs[e.key] && !e.ctrlKey && !e.metaKey) {
-      e.preventDefault();
-      const { selectionStart: s, selectionEnd: e0, value: v } = element;
-      const open = e.key,
-        close = pairs[open];
-      element.value = v.slice(0, s) + open + close + v.slice(e0);
-      element.setSelectionRange(s + 1, s + 1);
-      log(`Auto-paired "${open}${close}"`);
-      element.dispatchEvent(new Event("input", { bubbles: true }));
-    } else if ((e.key === "}" || e.key === "]") && !e.ctrlKey) {
-      // e.preventDefault();
-      // smartOutdent(e.key);
-    } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "s") {
-      e.preventDefault();
-      formatJSON();
-    } else if ((e.ctrlKey || e.metaKey) && e.key === "'") {
-      e.preventDefault();
-      wrapSelection('"');
-    } else if (e.ctrlKey && e.shiftKey && e.key === "{") {
-      e.preventDefault();
-      wrapSelection("{", "}");
-    } else if (e.ctrlKey && e.shiftKey && e.key === "[") {
-      e.preventDefault();
-      wrapSelection("[", "]");
-    }
-  });
-
-  // ——— Paste → pretty-format if valid ———
-  element.addEventListener("paste", (e) => {
-    e.preventDefault();
-    const paste = (e.clipboardData || window.clipboardData).getData("text");
-    try {
-      const obj = JSON.parse(paste);
-      const pretty = JSON.stringify(obj, null, 2) + "\n";
-      const { selectionStart: s, selectionEnd: e0, value: v } = element;
-      element.value = v.slice(0, s) + pretty + v.slice(e0);
-      const pos = s + pretty.length;
-      element.setSelectionRange(pos, pos);
-      log("📋 Pasted & formatted JSON");
-      element.dispatchEvent(new Event("input", { bubbles: true }));
-    } catch {
-      document.execCommand("insertText", false, paste);
-      log("📋 Pasted raw text");
-    }
-  });
-}
-
 function getTextData(route, id) {
   if (text_data !== undefined) {
     if (text_data[route] === undefined) {
@@ -857,6 +440,30 @@ export function attachElementListeners(element, renderCmd) {
 }
 
 /**
+ * Apply accessibility attributes to an element
+ * @param {HTMLElement} element
+ * @param {number} offset - The node offset
+ */
+function applyAccessibility(element, offset) {
+  const ptr = wasmInstance.getAccessibilityAttributes(offset);
+  if (ptr === 0) return;
+
+  const len = wasmInstance.getAccessibilityAttributesLen();
+  if (len === 0) return;
+
+  const attrString = readWasmString(ptr, len);
+
+  // Parse and apply attributes
+  // The string looks like: ' role="dialog" aria-modal="true" aria-label="Search"'
+  const attrRegex = /(\S+)="([^"]*)"/g;
+  let match;
+  while ((match = attrRegex.exec(attrString)) !== null) {
+    const [, name, value] = match;
+    element.setAttribute(name, value);
+  }
+}
+
+/**
  * Create an element based on its type
  * @param {Object} renderCmd - The render command
  * @returns {HTMLElement} - The created element
@@ -886,6 +493,14 @@ export function createElementByType(uinode) {
     case COMPONENT_TYPES.TEXT_AREA:
       const textareaPtr = wasmInstance.getTextFieldParams(uinode.offset) >>> 0;
       element = document.createElement("textarea");
+
+      const textarea_ptr = wasmInstance.getFieldName(uinode.offset) >>> 0;
+      if (textarea_ptr) {
+        const field_len = wasmInstance.getFieldNameLen();
+        const field = readWasmString(textarea_ptr, field_len);
+        element.setAttribute("name", field);
+      }
+
       // element.lang = "json";
       if (textareaPtr) {
         const fieldCount = wasmInstance.getTextFieldCount(uinode.offset);
@@ -899,7 +514,6 @@ export function createElementByType(uinode) {
           fieldCount,
           "getTextFieldDescriptor",
         );
-        console.log(fieldStruct);
         element.value =
           fieldStruct.value !== null
             ? String(fieldStruct.value)
@@ -1228,10 +842,8 @@ export function createElementByType(uinode) {
       break;
 
     case COMPONENT_TYPES.VIDEO:
-      console.log("Video");
       element = document.createElement("video");
       const offset = wasmInstance.getVideo(uinode.offset);
-      console.log("Offset", offset);
       if (offset === 0) break; // Use break, not return
       const videoView = new DataView(wasmInstance.memory.buffer, offset);
       const srcPtr = videoView.getUint32(0, true);
@@ -1239,8 +851,10 @@ export function createElementByType(uinode) {
         const srcLen = videoView.getUint32(4, true);
         element.src = readWasmString(srcPtr, srcLen);
       }
-      console.log("Src", element.src);
       element.autoplay = videoView.getUint8(8) === 1;
+      element.muted = videoView.getUint8(9) === 1;
+      element.loop = videoView.getUint8(10) === 1;
+      element.controls = videoView.getUint8(11) === 1;
       break;
 
     case COMPONENT_TYPES.SPACER:
@@ -1257,6 +871,11 @@ export function createElementByType(uinode) {
 
   if (element) {
     element.id = uinode.id;
+
+    // After creating the element, apply accessibility
+    if (uinode.accessibility) {
+      applyAccessibility(element, uinode.offset);
+    }
   }
   return element;
 }
@@ -1321,7 +940,7 @@ export function updateElement(element, uinode) {
   // Update text content if needed
   if (uinode.changedProps > 0) {
     if (
-      uinode.elemType === COMPONENT_TYPES.TEXT ||
+      (uinode.textLen > 0 && uinode.elemType === COMPONENT_TYPES.TEXT) ||
       uinode.elemType === COMPONENT_TYPES.HEADER ||
       uinode.elemType === COMPONENT_TYPES.ALLOC_TEXT ||
       uinode.elemType === COMPONENT_TYPES.HEADING ||
@@ -1377,6 +996,21 @@ export function updateElement(element, uinode) {
     ) {
       const href = readWasmString(uinode.hrefPtr, uinode.hrefLen);
       element.setAttribute("href", href);
+    } else if (uinode.elemType === COMPONENT_TYPES.VIDEO) {
+      const offset = wasmInstance.getVideo(uinode.offset);
+      const videoView = new DataView(wasmInstance.memory.buffer, offset);
+      const srcPtr = videoView.getUint32(0, true);
+      if (srcPtr) {
+        const srcLen = videoView.getUint32(4, true);
+        element.src = readWasmString(srcPtr, srcLen);
+      }
+      element.autoplay = videoView.getUint8(8) === 1;
+      element.muted = videoView.getUint8(9) === 1;
+      element.loop = videoView.getUint8(10) === 1;
+      element.controls = videoView.getUint8(11) === 1;
+    }
+    if (uinode.accessibility) {
+      applyAccessibility(element, uinode.offset);
     }
   }
 
@@ -1398,7 +1032,10 @@ export function updateElement(element, uinode) {
       element.setAttribute("style", "");
     }
   } else {
-    // element.className = uinode.styleId;
+    const inlineStylePtr = wasmInstance.getInlineStyle(uinode.offset);
+    if (inlineStylePtr === 0) {
+      element.setAttribute("style", "");
+    }
   }
 
   // if (uinode.hoverCss.length > 0) {
@@ -1523,6 +1160,9 @@ export function traverseUINodes(parent, parentUINode) {
       // s = performance.now();
       // element = domNodeRegistry.get(uinode.id)?.domNode;
       element = document.getElementById(uinode.id);
+      // if (uinode.id.startsWith("checkbox-")) {
+      //   console.log("Element", element, domNodeRegistry.get(uinode.id));
+      // }
       // t3 += performance.now() - s;
       if (element && state.initial_render) {
         // Create new element
@@ -1560,6 +1200,7 @@ export function traverseUINodes(parent, parentUINode) {
               hooksDestroyCtx.set(uinode.hash, true);
               break;
             case 2:
+              console.log("hooksCtxCreated", uinode.hash);
               hooksCtxCreated.set(uinode.hash, true);
               break;
           }
@@ -1653,7 +1294,6 @@ export function traverseUINodes(parent, parentUINode) {
         }
 
         if (element.parentNode !== parent || actualNextSibling !== anchor) {
-          console.log("inserting", element, anchor, actualNextSibling, parent);
           parent.insertBefore(element, anchor);
         }
 

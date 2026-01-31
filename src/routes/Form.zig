@@ -1,7 +1,7 @@
 const LoginForm = struct {
-    email: []const u8 = "",
-    password: []const u8 = "",
-    confirm_password: []const u8 = "",
+    email: []const u8,
+    password: []const u8,
+    confirm_password: []const u8,
     const __validations = .{
         .email = Validation{ .field_type = .email },
         .password = Validation{ .field_type = .password },
@@ -9,8 +9,7 @@ const LoginForm = struct {
     };
 };
 
-var vaporizer: Vaporizer = .{};
-var login_form: vaporizer.Form(LoginForm) = .{};
+var login_form: Form(LoginForm) = undefined;
 
 pub fn init() void {
     // compile the struct into a UI form
@@ -18,5 +17,6 @@ pub fn init() void {
 }
 
 fn LoginComponent() void {
+    // render the form
     login_form.render();
 }

@@ -12,6 +12,7 @@ const TextField = Vapor.TextField;
 const TextFmt = Vapor.TextFmt;
 const File = Vapor.FileReader;
 const VirtualList = @import("Virtualize.zig").VirtualList;
+const OverlayManager = @import("../OverlayManager.zig");
 
 pub const animateEnter = Vapor.Animation.init("opaque-table-filter-enter")
     .prop(.opacity, 0, 1)
@@ -54,8 +55,32 @@ var icon_color: Vapor.Types.Color = .palette(.icon_color);
 var tint: Vapor.Types.Background = .transparentizeHex(.palette(.tint), 0.8);
 var checkbox_color_icon: Vapor.Types.Color = .palette(.background);
 var checkbox_color: Vapor.Types.Color = .palette(.text_color);
+pub var background: Vapor.Types.Background = .palette(.background);
 
 const SelectType = Select(usize);
+
+fn TableContext(comptime Id: type) type {
+    return struct {
+        pub fn hash(self: @This(), key: Id) u64 {
+            _ = self;
+            // Use String hashing if Id is a slice, otherwise use AutoHash
+            if (comptime (@typeInfo(Id) == .pointer and @typeInfo(Id).pointer.size == .slice)) {
+                return std.hash.Wyhash.hash(0, key);
+            }
+            var hasher = std.hash.Wyhash.init(0);
+            std.hash.autoHash(&hasher, key);
+            return hasher.final();
+        }
+
+        pub fn eql(self: @This(), a: Id, b: Id) bool {
+            _ = self;
+            if (comptime (@typeInfo(Id) == .pointer and @typeInfo(Id).pointer.size == .slice)) {
+                return std.mem.eql(u8, a, b);
+            }
+            return a == b;
+        }
+    };
+}
 
 pub fn Row(comptime T: type) type {
     return struct {
@@ -69,10 +94,10 @@ pub fn Column(comptime T: type) type {
     return struct {
         title: []const u8,
         key: []const u8,
-        width: f32 = 0,
+        width: ?f32 = null,
         alignment: ?Align = .none,
         sort: ?Sort = null,
-        render: ?*const fn (*Row(T)) void = null,
+        render: ?*const fn (*T) void = null,
         search: bool = false,
         filter: bool = false,
     };
@@ -103,13 +128,20 @@ pub fn Table(comptime T: type, comptime columns: []const Column(T), config: stru
         unreachable;
     };
 
+    const SelectionMode = enum { none, some, all, all_except };
+
     return struct {
         const Self = @This();
         data: []T,
         rows: []Row(T) = undefined,
         filtered_data: Vapor.Array(T),
         per_page: usize = 10,
-        selected_rows: std.AutoHashMap(IdType, void),
+        // selected_rows: std.AutoHashMap(IdType, void),
+        // selected_rows: std.DynamicBitSet,
+        // Replace selected_rows with:
+        selection_mode: SelectionMode = .none,
+        // selection_set: std.AutoHashMap(IdType, void), // meaning depends on mode
+        selection_set: std.HashMap(IdType, void, TableContext(IdType), std.hash_map.default_max_load_percentage),
         file_name: []const u8 = "content",
         display_mode: DisplayMode = .paginated,
         scroll_offset: usize = 0,
@@ -118,6 +150,15 @@ pub fn Table(comptime T: type, comptime columns: []const Column(T), config: stru
         on_select: ?*const fn (item: *T) void = null,
         on_select_all: ?*const fn () void = null,
         action_select: SelectType = undefined,
+
+        // Add to your Table struct
+        focused_row: ?usize = null,
+        focused_col: ?usize = null,
+        table_id: []const u8 = "data-table",
+        total_width_percent: f32 = 100,
+        row_background: ?Vapor.Types.Background = null,
+        row_border: ?Vapor.Types.BorderGrouped = null,
+        row_spacing: ?u8 = null,
 
         const table_columns: []const Column(T) = columns;
         var action_width: f32 = 5;
@@ -153,6 +194,83 @@ pub fn Table(comptime T: type, comptime columns: []const Column(T), config: stru
             table: *Self,
         };
 
+        // Add keyboard handler registration in init or render
+        fn registerKeyboardNav(table: *Self) void {
+            OverlayManager.register(.keydown, handleTableKeyPress, table);
+        }
+
+        fn unregisterKeyboardNav(table: *Self) void {
+            OverlayManager.unregister(.keydown, table);
+        }
+
+        fn handleTableKeyPress(table: *Self, evt: *Vapor.Event) void {
+            const key = evt.key();
+
+            const row_count = table.filtered_data.items.len;
+            const col_count = table_columns.len + 2; // +1 for checkbox, +1 for actions
+
+            if (row_count == 0) return;
+
+            // Initialize focus if not set
+            if (table.focused_row == null) {
+                table.focused_row = 0;
+                table.focused_col = 0;
+            }
+
+            const row = table.focused_row.?;
+            const col = table.focused_col.?;
+
+            if (std.mem.eql(u8, key, "ArrowDown")) {
+                evt.preventDefault();
+                std.log.info("Key pressed: {s}", .{key});
+                if (row + 1 < row_count) {
+                    table.focused_row = row + 1;
+                }
+            } else if (std.mem.eql(u8, key, "ArrowUp")) {
+                evt.preventDefault();
+                if (row > 0) {
+                    table.focused_row = row - 1;
+                }
+            } else if (std.mem.eql(u8, key, "ArrowRight")) {
+                evt.preventDefault();
+                if (col + 1 < col_count) {
+                    table.focused_col = col + 1;
+                }
+            } else if (std.mem.eql(u8, key, "ArrowLeft")) {
+                evt.preventDefault();
+                if (col > 0) {
+                    table.focused_col = col - 1;
+                }
+            } else if (std.mem.eql(u8, key, "Home")) {
+                evt.preventDefault();
+                if (evt.ctrlKey()) {
+                    table.focused_row = 0; // Go to first row
+                }
+                table.focused_col = 0; // Go to first column
+            } else if (std.mem.eql(u8, key, "End")) {
+                evt.preventDefault();
+                if (evt.ctrlKey()) {
+                    table.focused_row = row_count - 1;
+                }
+                table.focused_col = col_count - 1;
+            } else if (std.mem.eql(u8, key, "Space") or std.mem.eql(u8, key, "Enter")) {
+                evt.preventDefault();
+                // If on checkbox column (col 0), toggle selection
+                if (col == 0) {
+                    const data_row = &table.filtered_data.items[row];
+                    table.selectRow(data_row);
+                }
+            } else if (std.mem.eql(u8, key, "PageDown")) {
+                evt.preventDefault();
+                const jump = table.per_page;
+                table.focused_row = @min(row + jump, row_count - 1);
+            } else if (std.mem.eql(u8, key, "PageUp")) {
+                evt.preventDefault();
+                const jump = table.per_page;
+                table.focused_row = if (row >= jump) row - jump else 0;
+            }
+        }
+
         pub fn init(table: *Self, data: []T) void {
             var rows: []Row(T) = undefined;
             rows = Vapor.arena(.persist).alloc(Row(T), data.len) catch |err| blk: {
@@ -167,8 +285,12 @@ pub fn Table(comptime T: type, comptime columns: []const Column(T), config: stru
                 Vapor.printErr("Failed to allocate binded cols: {any}", .{err});
                 break :blk &.{};
             };
+            var total_percent_width: f32 = 100;
             for (0..table_columns.len) |i| {
                 binded_cols[i] = .{};
+                if (table_columns[i].width) |w| {
+                    total_percent_width -= w;
+                }
             }
 
             enum_filters = std.StringHashMap(void).init(Vapor.arena(.persist));
@@ -177,8 +299,14 @@ pub fn Table(comptime T: type, comptime columns: []const Column(T), config: stru
                 .data = data,
                 .rows = rows,
                 .filtered_data = Vapor.array(T, .persist),
-                .selected_rows = std.AutoHashMap(IdType, void).init(Vapor.arena(.persist)),
+                .total_width_percent = total_percent_width,
+                // .selected_rows = std.AutoHashMap(IdType, void).init(Vapor.arena(.persist)),
+                // .selected_rows = try std.DynamicBitSet.initEmpty(Vapor.arena(.persist), data.len),
+                // .selection_set = std.AutoHashMap(IdType, void).init(Vapor.arena(.persist)),
+                .selection_set = std.HashMap(IdType, void, TableContext(IdType), 80).init(Vapor.arena(.persist)),
             };
+
+            search_box.init(Vapor.arena(.persist));
 
             if (config.actions) |c_actions| {
                 actions = c_actions;
@@ -209,7 +337,7 @@ pub fn Table(comptime T: type, comptime columns: []const Column(T), config: stru
         }
 
         fn selectAction(select: *Select(usize), item: *Select(usize).Item) void {
-            const table: *Self = @fieldParentPtr("action_select", select);
+            const table: *Self = @alignCast(@fieldParentPtr("action_select", select));
             const row = &table.data[row_index + current_page * table.per_page];
             if (actions[item.value].on_action) |on_action| {
                 on_action(row);
@@ -224,7 +352,7 @@ pub fn Table(comptime T: type, comptime columns: []const Column(T), config: stru
                 .width(.percent(100))
                 .height(.px(row_height))
                 .padding(.horizontal(8))
-                .border(.bottom(if (!last_row) border_color else .transparent))
+                .border(.bottom(1, if (!last_row) border_color else .transparent))
                 .layout(.x_between_center).children({
                 Box()
                     .width(.percent(checkbox_width))
@@ -243,24 +371,40 @@ pub fn Table(comptime T: type, comptime columns: []const Column(T), config: stru
                 });
                 Box()
                     .width(.percent(row_width))
-                    .layout(.x_even_center).children({
-                    inline for (table_columns) |column| {
+                    .layout(.x_between_center).children({
+                    inline for (table_columns, 0..) |column, col_i| {
+                        const cell_col = col_i + 1; // +1 because checkbox is col 0
                         const name = column.key;
                         const value = @field(row, name);
+                        // _ = cell_col;
                         Box()
-                            .width(.percent(100))
+                            .a11y(Vapor.Accessibility.init()
+                                .setRole(.grid_cell)
+                                .setColIndex(@intCast(cell_col)))
+                            // .id(id) // vice versa for this aswell apparently have both uncommented causes issue
+                            // .tabIndex(if (is_focused_row and table.focused_col == col_i + 1) 0 else -1)
+                            .width(.percent(100 / table_columns.len))
                             .layout(.left_center)
                             .children({
                             switch (@typeInfo(@TypeOf(value))) {
-                                .int => Text(value).end(),
-                                .@"enum" => Text(value).end(),
+                                .float => Text(value)
+                                    .ellipsis(.dot)
+                                    .end(),
+                                .int => Text(value)
+                                    .ellipsis(.dot)
+                                    .end(),
+                                .@"enum" => Text(value)
+                                    .ellipsis(.dot)
+                                    .end(),
                                 .pointer => |ptr| {
                                     if (ptr.size == .slice) {
-                                        Text(value).end();
+                                        Text(value)
+                                            .ellipsis(.dot)
+                                            .end();
                                     }
                                 },
                                 else => {
-                                    Vapor.printErr("Type {any} not supported", .{@typeInfo(@TypeOf(value))});
+                                    Vapor.printErr("Type {any} not supported", .{@TypeOf(value)});
                                 },
                             }
                         });
@@ -369,12 +513,21 @@ pub fn Table(comptime T: type, comptime columns: []const Column(T), config: stru
             }
         }
 
+        pub fn onSearch(table: *Self, search_query: []const u8, column_index: usize) void {
+            clicked_index = column_index;
+            active_filters[clicked_index] = search_query;
+            // Store filter for the clicked column
+            active_filters[clicked_index] = if (search_query.len > 0) search_query else null;
+
+            table.applyFilters();
+        }
+
         fn search(table: *Self, evt: *Vapor.Event) void {
-            const text = evt.text();
-            search_box.text = text;
+            search_box.setText(evt.text());
 
             // Store filter for the clicked column
-            active_filters[clicked_index] = if (text.len > 0) text else null;
+            active_filters[clicked_index] = if (search_box.text.len > 0) search_box.text else null;
+            std.log.info("search {any}", .{active_filters[0]});
 
             table.applyFilters();
         }
@@ -406,27 +559,6 @@ pub fn Table(comptime T: type, comptime columns: []const Column(T), config: stru
             });
         }
 
-        fn selectRow(table: *Self, row: *T) void {
-            const id = row.id;
-            if (table.selected_rows.get(id)) |_| {
-                _ = table.selected_rows.fetchRemove(id);
-                if (table.on_select) |on_select| {
-                    on_select(row);
-                }
-                return;
-            }
-            table.selected_rows.put(id, {}) catch unreachable;
-
-            if (table.on_select) |on_select| {
-                on_select(row);
-            }
-        }
-
-        fn includes(table: *Self, id: IdType) bool {
-            if (table.selected_rows.get(id) != null) return true;
-            return false;
-        }
-
         fn Rows(table: *Self) void {
             if (table.filtered_data.items.len == 0) {
                 Box()
@@ -439,9 +571,9 @@ pub fn Table(comptime T: type, comptime columns: []const Column(T), config: stru
                         .spacing(8)
                         .width(.percent(100))
                         .children({
-                        // Icon(.inbox)
-                        //     .font(32, 300, icon_color)
-                        //     .end();
+                        Icon(.inbox)
+                            .font(32, 300, icon_color)
+                            .end();
                         Text("No results found")
                             .font(14, 400, icon_color)
                             .end();
@@ -469,6 +601,8 @@ pub fn Table(comptime T: type, comptime columns: []const Column(T), config: stru
             Stack()
                 .scroll(.scroll_x()) // Allow horizontal scroll
                 .width(.percent(100))
+                .spacing(if (table.row_spacing) |sp| sp else 0)
+                .a11y(Vapor.Accessibility.init().setRole(.row_group)) // ✓ You have this
                 .children({
                 // If we remove the outer box we get very strange behaviour
                 Box()
@@ -476,21 +610,28 @@ pub fn Table(comptime T: type, comptime columns: []const Column(T), config: stru
                         \\min-width: 128px;
                         \\width: max-content;
                     , .{})
-                    // .width(.percent(14))
                     .pos(.tl(.percent(0), .percent(0), .absolute)) // Position absolute to the top left
-                    // .pos(.relative)
                     .children({
                     if (show_actions) {
                         table.action_select.renderSelect();
                     }
                 });
-                // const fields = @typeInfo(T).@"struct".fields;
                 for (items_to_render, 0..) |*row, i| {
                     const last_row = table.rows.len - 1 == i;
+
+                    const actual_index = current_page * table.per_page + i;
+                    const is_focused_row = table.focused_row == actual_index;
+                    const is_selected = table.includes(row.id);
+
                     Box()
-                        // .width(.percent(100))
+                        .a11y(Vapor.Accessibility.init()
+                            .setRole(.row)
+                            .setRowIndex(@intCast(actual_index + 1)) // Add row index (1-based)
+                            .setSelected(is_selected))
                         .height(.px(row_height))
                         .width(.percent(100))
+                        .background(if (table.row_background) |bg| bg else background)
+                        .border(if (table.row_border) |bg| bg else .bottom(1, if (!last_row) border_color else .transparent))
                         .inlineStyle("min-width: 600px", .{}) // Minimum table width
                         .layout(.x_between_center)
                         .children({
@@ -498,14 +639,16 @@ pub fn Table(comptime T: type, comptime columns: []const Column(T), config: stru
                             .padding(.horizontal(18))
                             .width(.percent(100))
                             .height(.px(row_height))
-                            .background(.palette(.background))
-                            .border(.bottom(if (!last_row) border_color else .transparent))
                             .layout(.x_between_center).children({
                             Box()
+                                .a11y(Vapor.Accessibility.init().setRole(.grid_cell))
+                                // .id(Vapor.fmtln("checkbox-row-{d}-col-0", .{actual_index}))
+                                .tabIndex(if (is_focused_row and table.focused_col == 0) 0 else -1)
                                 .width(.percent(checkbox_width))
                                 .children({
                                 CheckBox(selectRow, .{ table, row })
-                                    // .background(if (table.includes(row.id)) tint else .transparent)
+                                    .a11y(Vapor.Accessibility.checkbox(is_selected)
+                                        .setLabel(Vapor.fmtln("Select row {d}", .{actual_index + 1})))
                                     .border(.solid(.all(1), if (table.includes(row.id)) .transparentizeHex(.palette(.tint), 0.8) else border_color, .all(6)))
                                     .hoverScale()
                                     .layout(.center)
@@ -520,53 +663,72 @@ pub fn Table(comptime T: type, comptime columns: []const Column(T), config: stru
                                             .layout(.center)
                                             .children({});
                                     }
-                                    // Icon(.check)
-                                    //     .font(16, 300, checkbox_color_icon)
-                                    //     .end();
                                 });
                             });
                             Box()
                                 .width(.percent(row_width))
-                                .layout(.x_even_center).children({
-                                inline for (table_columns) |column| {
+                                .layout(.x_between_center).children({
+                                inline for (table_columns, 0..) |column, col_i| {
+                                    const cell_col = col_i + 1; // +1 because checkbox is col 0
                                     const name = column.key;
                                     const value = @field(row, name);
+                                    const width = if (column.width) |w| w else table.total_width_percent / table_columns.len;
+                                    // const id = Vapor.fmtln("table-column-row-{d}-col-{d}", .{ actual_index, col_i });
                                     Box()
-                                        .width(.percent(100))
+                                        .a11y(Vapor.Accessibility.init()
+                                            .setRole(.grid_cell)
+                                            .setColIndex(@intCast(cell_col)))
+                                        // .id(id) // vice versa for this aswell apparently have both uncommented causes issue
+                                        .tabIndex(if (is_focused_row and table.focused_col == col_i + 1) 0 else -1)
+                                        .width(.percent(width))
                                         .layout(.left_center)
                                         .children({
-                                        switch (@typeInfo(@TypeOf(value))) {
-                                            .int => Text(value)
-                                                .ellipsis(.dot)
-                                                .end(),
-                                            .@"enum" => Text(value)
-                                                .ellipsis(.dot)
-                                                .end(),
-                                            .pointer => |ptr| {
-                                                if (ptr.size == .slice) {
-                                                    Text(value)
-                                                        .ellipsis(.dot)
-                                                        .end();
-                                                }
-                                            },
-                                            else => {
-                                                Vapor.printErr("Type {any} not supported", .{@typeInfo(@TypeOf(value))});
-                                            },
+                                        if (column.render) |col_render| {
+                                            @call(.auto, col_render, .{row});
+                                        } else {
+                                            switch (@typeInfo(@TypeOf(value))) {
+                                                .float => Text(value)
+                                                    .ellipsis(.dot)
+                                                    .end(),
+                                                .int => Text(value)
+                                                    .ellipsis(.dot)
+                                                    .end(),
+                                                .@"enum" => Text(value)
+                                                    .ellipsis(.dot)
+                                                    .end(),
+                                                .pointer => |ptr| {
+                                                    if (ptr.size == .slice) {
+                                                        Text(value)
+                                                            .ellipsis(.dot)
+                                                            .end();
+                                                    }
+                                                },
+                                                .@"struct" => {
+                                                    if (@TypeOf(value) == Vapor.DateTime) {
+                                                        const date = value.format(Vapor.arena(.frame)) catch "Error Formatting";
+                                                        Text(date)
+                                                            .ellipsis(.dot)
+                                                            .end();
+                                                    }
+                                                },
+                                                else => {
+                                                    Vapor.printErr("Type {any} not supported", .{@TypeOf(value)});
+                                                },
+                                            }
                                         }
                                     });
                                 }
                             });
-                            ButtonCtx(setRow, .{i})
+                            Box()
+                                .a11y(Vapor.Accessibility.init().setRole(.grid_cell))
+                                // .id(Vapor.fmtln("action-row-{d}-col-{d}", .{ actual_index, table_columns.len + 1 }))
+                                .tabIndex(if (is_focused_row and table.focused_col == table_columns.len + 1) 0 else -1)
                                 .width(.percent(action_width))
                                 .layout(.right_center)
                                 .height(.px(24))
-                                // .pos(.relative)
                                 .children({
-                                // const trigger_index = Vapor.arena(.frame).create(usize) catch unreachable;
-                                // trigger_index.* = i;
                                 if (show_actions) {
-                                    table.action_select.renderTrigger();
-                                    // table.action_select.toggle();
+                                    table.action_select.renderTriggerCtx(setRow, .{i});
                                 }
                             });
                         });
@@ -576,7 +738,6 @@ pub fn Table(comptime T: type, comptime columns: []const Column(T), config: stru
         }
 
         fn setRow(index: usize) void {
-            Vapor.print("setRow", .{});
             row_index = index;
         }
 
@@ -691,7 +852,7 @@ pub fn Table(comptime T: type, comptime columns: []const Column(T), config: stru
                         });
                         TextField(.string)
                             .ref(&search_box)
-                            .val(&search_box.text)
+                            // .bind(&search_box.text)
                             .placeholder("Filter...")
                             .width(.grow)
                             .border(.none)
@@ -700,6 +861,7 @@ pub fn Table(comptime T: type, comptime columns: []const Column(T), config: stru
                             .fontFamily("Montserrat")
                             .background(.transparent)
                             .font(16, 300, icon_color)
+                            .val(&search_box.text)
                             .onEventCtx(.input, search, table)
                             .end();
                         ButtonCtx(clearText, .{table})
@@ -754,6 +916,7 @@ pub fn Table(comptime T: type, comptime columns: []const Column(T), config: stru
             const float_current_page: f32 = @floatFromInt(current_page);
 
             Box()
+                .a11y(Vapor.Accessibility.init().setRole(.navigation).setLabel("Table pagination"))
                 .width(.percent(100))
                 .layout(.x_between_center)
                 .padding(.tblr(8, 8, 18, 18))
@@ -761,15 +924,20 @@ pub fn Table(comptime T: type, comptime columns: []const Column(T), config: stru
                 .layout(.x_between_center)
                 .spacing(8)
                 .children({
-                TextFmt("Page: {d}/{d}", .{ float_current_page + 1, page_count })
-                    .font(16, 300, icon_color)
-                    .end();
+                // Page info as live region
+                Box()
+                    .a11y(.liveRegion(.polite))
+                    .children({
+                    TextFmt("Page {d} of {d}", .{ current_page + 1, page_count })
+                        .end();
+                });
+
                 Box()
                     .spacing(16)
                     .children({
                     if (float_current_page > 0) {
                         ButtonCtx(prevPage, .{table})
-                            .ariaLabel("Previous Page")
+                            .ariaLabel("Go to previous page")
                             .background(.transparent)
                             .cursor(.pointer)
                             .children({
@@ -780,7 +948,7 @@ pub fn Table(comptime T: type, comptime columns: []const Column(T), config: stru
                     }
                     if (float_current_page < page_count - 1) {
                         ButtonCtx(nextPage, .{table})
-                            .ariaLabel("Next Page")
+                            .ariaLabel("Go to next page")
                             .background(.transparent)
                             .cursor(.pointer)
                             .children({
@@ -803,18 +971,115 @@ pub fn Table(comptime T: type, comptime columns: []const Column(T), config: stru
             current_page += 1;
         }
 
+        // fn selectAll(table: *Self) void {
+        //     if (table.selected_rows.count() == table.data.len) {
+        //         table.selected_rows.clearRetainingCapacity();
+        //         return;
+        //     }
+        //     for (table.data) |row| {
+        //         table.selected_rows.put(row.id, {}) catch |err| {
+        //             Vapor.printErrSrc("Failed to put row {any} into selected_rows: {any}", .{ row.id, err }, @src());
+        //             return;
+        //         };
+        //     }
+        //
+        //     if (table.on_select_all) |on_select_all| {
+        //         on_select_all();
+        //     }
+        // }
+
+        // // selectAll becomes O(n/64):
+        // fn selectAll(table: *Self) void {
+        //     if (table.selected_rows.count() == table.data.len) {
+        //         table.selected_rows.setRangeValue(.{ .start = 0, .end = table.data.len }, false);
+        //     } else {
+        //         table.selected_rows.setRangeValue(.{ .start = 0, .end = table.data.len }, true);
+        //     }
+        //     if (table.on_select_all) |on_select_all| {
+        //         on_select_all();
+        //     }
+        // }
+
         fn selectAll(table: *Self) void {
-            if (table.selected_rows.count() == table.data.len - 1) {
-                table.selected_rows.clearRetainingCapacity();
-                return;
-            }
-            for (table.data) |row| {
-                table.selected_rows.put(row.id, {}) catch unreachable;
-            }
+            // O(1) - just flip the mode
+            table.selection_mode = if (table.selection_mode == .all) .none else .all;
+            table.selection_set.clearRetainingCapacity();
 
             if (table.on_select_all) |on_select_all| {
                 on_select_all();
             }
+        }
+
+        fn selectRow(table: *Self, row: *T) void {
+            const id = row.id;
+
+            switch (table.selection_mode) {
+                .none => {
+                    // Start selecting individual rows
+                    table.selection_mode = .some;
+                    table.selection_set.put(id, {}) catch return;
+                },
+                .some => {
+                    if (table.selection_set.contains(id)) {
+                        _ = table.selection_set.remove(id);
+                        if (table.selection_set.count() == 0) {
+                            table.selection_mode = .none;
+                        }
+                    } else {
+                        table.selection_set.put(id, {}) catch return;
+                        // Check if we've selected everything
+                        if (table.selection_set.count() == table.data.len) {
+                            table.selection_mode = .all;
+                            table.selection_set.clearRetainingCapacity();
+                        }
+                    }
+                },
+                .all => {
+                    // Deselecting from "all" - switch to all_except
+                    table.selection_mode = .all_except;
+                    table.selection_set.put(id, {}) catch return;
+                },
+                .all_except => {
+                    if (table.selection_set.contains(id)) {
+                        // Re-selecting an excluded row
+                        _ = table.selection_set.remove(id);
+                        if (table.selection_set.count() == 0) {
+                            table.selection_mode = .all;
+                        }
+                    } else {
+                        // Excluding another row
+                        table.selection_set.put(id, {}) catch return;
+                        // Check if we've deselected everything
+                        if (table.selection_set.count() == table.data.len) {
+                            table.selection_mode = .none;
+                            table.selection_set.clearRetainingCapacity();
+                        }
+                    }
+                },
+            }
+
+            if (table.on_select) |on_select| {
+                on_select(row);
+            }
+        }
+
+        fn includes(table: *Self, id: IdType) bool {
+            return switch (table.selection_mode) {
+                .none => false,
+                .all => true,
+                .some => table.selection_set.contains(id),
+                .all_except => !table.selection_set.contains(id),
+            };
+        }
+
+        // Helper to get actual count
+        fn selectedCount(table: *Self) usize {
+            return switch (table.selection_mode) {
+                .none => 0,
+                .all => table.data.len,
+                .some => table.selection_set.count(),
+                .all_except => table.data.len - table.selection_set.count(),
+            };
         }
 
         const FileType = enum {
@@ -831,8 +1096,8 @@ pub fn Table(comptime T: type, comptime columns: []const Column(T), config: stru
                     var out: std.io.Writer.Allocating = .init(allocator);
                     var downloadable_rows: Vapor.Array(T) = Vapor.array(T, .persist);
 
-                    for (table.data, 0..) |row, i| {
-                        if (table.includes(i)) {
+                    for (table.data) |row| {
+                        if (table.includes(row.id)) {
                             downloadable_rows.append(row) catch unreachable;
                         }
                     }
@@ -878,165 +1143,217 @@ pub fn Table(comptime T: type, comptime columns: []const Column(T), config: stru
                 .hoverScale();
         }
 
+        fn mount(table: *Self) void {
+            table.registerKeyboardNav();
+        }
+
+        fn destroy(table: *Self) void {
+            table.unregisterKeyboardNav();
+        }
+
         pub fn render(table: *Self) void {
+            // const total_rows = table.filtered_data.items.len;
+            // const selected_count = table.selectedCount();
+
             Stack()
                 .width(.percent(100))
-                .height(.percent(100))
+                .height(.fit)
                 .direction(.column)
-                .layout(.top_center)
                 .children({
-                Box()
-                    .width(.percent(100))
-                    .pos(.relative)
-                    .children({
-                    Box()
-                        .scroll(.scroll_x()) // Allow horizontal scroll
-                        .width(.percent(100))
-                        .height(.px(row_height))
-                        .layout(.x_between_center)
-                        .children({
-                        Box()
-                            .height(.px(row_height))
+                Vapor.Static.HooksCtx(.mounted, mount, .{table})({
+                    Vapor.Static.HooksCtx(.destroy, destroy, .{table})({
+                        Stack()
                             .width(.percent(100))
-                            .inlineStyle("min-width: 600px", .{}) // Minimum table width
+                            .height(.fit)
+                            .direction(.column)
+                            .a11y(Vapor.Accessibility.init()
+                                .setRole(.grid) // or .table if non-interactive
+                                .setLabel(table.file_name)
+                                .setActiveDescendant(if (table.focused_row) |row|
+                                Vapor.fmtln("row-{d}-col-{d}", .{ row, table.focused_col orelse 0 })
+                            else
+                                null))
+                            .tabIndex(0) // Make table focusable
                             .children({
+
+                            // // Live region for announcements
+                            // Box()
+                            //     .a11y(.liveRegion(.polite))
+                            //     .inlineStyle("position: absolute; width: 1px; height: 1px; overflow: hidden;", .{})
+                            //     .children({
+                            //     TextFmt("{d} rows, {d} selected", .{ total_rows, selected_count })
+                            //         .end();
+                            // });
+
                             Box()
-                                .padding(.horizontal(18))
                                 .width(.percent(100))
-                                .height(.px(row_height))
-                                .layout(.x_between_center).children({
+                                .pos(.relative)
+                                .children({
                                 Box()
-                                    .width(.percent(checkbox_width))
-                                    .children({
-                                    const active = table.selected_rows.count() == table.data.len - 1;
-                                    CheckBox(selectAll, .{table})
-                                        .hoverScale()
-                                        .border(.solid(.all(1), if (active) .transparentizeHex(.palette(.tint), 0.8) else border_color, .all(6)))
-                                        .layout(.center)
-                                        .children({
-                                        if (table.selected_rows.count() == table.data.len - 1) {
-                                            Box()
-                                                .width(.px(14))
-                                                .height(.px(14))
-                                                .background(if (active) .transparentizeHex(.palette(.tint), 0.8) else .transparent)
-                                                .border(.round(if (active) .transparent else border_color, .all(4)))
-                                                .hoverScale()
-                                                .layout(.center)
-                                                .children({});
-                                        }
-                                    });
-                                });
-                                const fields = @typeInfo(T).@"struct".fields;
-                                Box()
-                                    .width(.percent(row_width))
+                                    .a11y(Vapor.Accessibility.init().setRole(.row_group))
+                                    .scroll(.scroll_x()) // Allow horizontal scroll
+                                    .width(.percent(100))
                                     .height(.px(row_height))
-                                    .layout(.x_even_center).children({
-                                    inline for (table_columns, 0..) |*column, i| {
-                                        Box()
-                                            .ref(&binded_cols[i])
-                                            .width(.percent(100))
-                                            .height(.px(row_height))
-                                            .layout(.left_center)
-                                            .spacing(4)
-                                            .children({
-                                            Text(column.title)
-                                                .fontFamily("Montserrat")
-                                                .font(16, null, null).end();
-
-                                            if (column.sort) |sort_type| {
-                                                CommonToggleFilter(sortColumn, .{ table, sort_type, column.key })
-                                                    .children({
-                                                    switch (sort_type) {
-                                                        .asc => Icon(.sort_alpha_down).font(14, 700, null).end(),
-                                                        .desc => Icon(.sort_alpha_up).font(14, 700, null).end(),
-                                                        else => {},
-                                                    }
-                                                });
-                                            }
-                                            if (column.search) {
-                                                CommonToggleFilter(toggleSearch, .{ table, i })
-                                                    .children({
-                                                    Icon(.search).font(14, 700, null).end();
-                                                });
-                                            }
-                                            if (column.filter) {
-                                                CommonToggleFilter(toggleFilter, .{ table, i })
-                                                    .children({
-                                                    Icon(.funnel).font(14, 700, null).end();
-                                                });
-                                            }
-                                            Box()
-                                                .pos(.tl(.px(0), .percent(0), .absolute))
-                                                .width(.fit)
-                                                .zIndex(1000)
-                                                .inlineStyle("transform: translate({d}px, {d}px)", .{ filter_right, filter_top })
-                                                .children({
-                                                if (column.filter and show_filter and clicked_index == i) {
-                                                    inline for (fields) |field| {
-                                                        const name = field.name;
-                                                        const field_type = field.type;
-                                                        if (std.mem.eql(u8, column.key, name)) {
-                                                            if (@typeInfo(field_type) == .@"enum") {
-                                                                FilterSelect(table, field_type, std.enums.values(field_type));
-                                                            }
-                                                        }
-                                                    }
-                                                }
-                                            });
-
-                                            Box()
-                                                .pos(.tl(.px(0), .percent(0), .absolute))
-                                                .width(.fit)
-                                                .zIndex(1000)
-                                                .inlineStyle("transform: translate({d}px, {d}px)", .{ search_right, search_top })
-                                                .children({
-                                                if (column.search and show_search and clicked_index == i) {
-                                                    Search(table);
-                                                }
-                                            });
-                                        });
-                                    }
-                                });
-                                Box()
-                                    .width(.percent(action_width))
-                                    .layout(.right_center)
-                                    .height(.px(24))
+                                    .layout(.x_between_center)
                                     .children({
                                     Box()
+                                        .a11y(Vapor.Accessibility.init().setRole(.row))
+                                        .height(.px(row_height))
                                         .width(.percent(100))
-                                        .height(.percent(100))
-                                        .layout(.left_center)
-                                        .spacing(8)
+                                        .inlineStyle("min-width: 600px", .{}) // Minimum table width
                                         .children({
-                                        CommonToggleFilter(download, .{ table, .json })
-                                            .layout(.center)
-                                            .cursor(.pointer)
-                                            .padding(.all(0))
-                                            .children({
-                                            Vapor.Icon(.filetype_json)
-                                                .font(18, 300, null)
-                                                .end();
+                                        Box()
+                                            .padding(.horizontal(18))
+                                            .width(.percent(100))
+                                            .height(.px(row_height))
+                                            .layout(.x_between_center).children({
+                                            Box()
+                                                .a11y(Vapor.Accessibility.init()
+                                                    .setRole(.column_header))
+                                                .width(.percent(checkbox_width))
+                                                .children({
+                                                const active = table.selection_mode == .all;
+                                                CheckBox(selectAll, .{table})
+                                                    .a11y(Vapor.Accessibility.checkbox(table.selection_mode == .all)
+                                                        .setLabel("Select all"))
+                                                    .hoverScale()
+                                                    .border(.solid(.all(1), if (active) .transparentizeHex(.palette(.tint), 0.8) else border_color, .all(6)))
+                                                    .layout(.center)
+                                                    .children({
+                                                    if (active) {
+                                                        Box()
+                                                            .width(.px(14))
+                                                            .height(.px(14))
+                                                            .background(if (active) .transparentizeHex(.palette(.tint), 0.8) else .transparent)
+                                                            .border(.round(if (active) .transparent else border_color, .all(4)))
+                                                            .hoverScale()
+                                                            .layout(.center)
+                                                            .children({});
+                                                    }
+                                                });
+                                            });
+                                            const fields = @typeInfo(T).@"struct".fields;
+                                            Box()
+                                                .width(.percent(row_width))
+                                                .height(.px(row_height))
+                                                .layout(.x_between_center).children({
+                                                inline for (table_columns, 0..) |*column, i| {
+                                                    const width = if (column.width) |w| w else table.total_width_percent / table_columns.len;
+                                                    Box()
+                                                        .a11y(Vapor.Accessibility.init()
+                                                            .setRole(.column_header)
+                                                            .setLabel(column.title))
+                                                        .ref(&binded_cols[i])
+                                                        .width(.percent(width))
+                                                        .height(.px(row_height))
+                                                        .layout(.left_center)
+                                                        .spacing(4)
+                                                        .children({
+                                                        Text(column.title)
+                                                            .fontFamily("Montserrat")
+                                                            .font(16, null, null).end();
+
+                                                        if (column.sort) |sort_type| {
+                                                            CommonToggleFilter(sortColumn, .{ table, sort_type, column.key })
+                                                                .ariaLabel(Vapor.fmtln("Sort by {s} {s}", .{ column.title, if (sort_type == .asc) "ascending" else "descending" }))
+                                                                .children({
+                                                                switch (sort_type) {
+                                                                    .asc => Icon(.sort_alpha_down).font(14, 700, null).end(),
+                                                                    .desc => Icon(.sort_alpha_up).font(14, 700, null).end(),
+                                                                    else => {},
+                                                                }
+                                                            });
+                                                        }
+                                                        if (column.search) {
+                                                            CommonToggleFilter(toggleSearch, .{ table, i })
+                                                                .ariaLabel(Vapor.fmtln("Search by {s} ", .{column.title}))
+                                                                .children({
+                                                                Icon(.search).font(14, 700, null).end();
+                                                            });
+                                                        }
+                                                        if (column.filter) {
+                                                            CommonToggleFilter(toggleFilter, .{ table, i })
+                                                                .ariaLabel(Vapor.fmtln("Filter by {s} ", .{column.title}))
+                                                                .children({
+                                                                Icon(.funnel).font(14, 700, null).end();
+                                                            });
+                                                        }
+                                                        Box()
+                                                            .pos(.tl(.px(0), .percent(0), .absolute))
+                                                            .width(.fit)
+                                                            .zIndex(1000)
+                                                            .inlineStyle("transform: translate({d}px, {d}px)", .{ filter_right, filter_top })
+                                                            .children({
+                                                            if (column.filter and show_filter and clicked_index == i) {
+                                                                inline for (fields) |field| {
+                                                                    const name = field.name;
+                                                                    const field_type = field.type;
+                                                                    if (std.mem.eql(u8, column.key, name)) {
+                                                                        if (@typeInfo(field_type) == .@"enum") {
+                                                                            FilterSelect(table, field_type, std.enums.values(field_type));
+                                                                        }
+                                                                    }
+                                                                }
+                                                            }
+                                                        });
+
+                                                        Box()
+                                                            .pos(.tl(.px(0), .percent(0), .absolute))
+                                                            .width(.fit)
+                                                            .zIndex(1000)
+                                                            .inlineStyle("transform: translate({d}px, {d}px)", .{ search_right, search_top })
+                                                            .children({
+                                                            if (column.search and show_search and clicked_index == i) {
+                                                                Search(table);
+                                                            }
+                                                        });
+                                                    });
+                                                }
+                                            });
+                                            Box()
+                                                .a11y(Vapor.Accessibility.init().setRole(.column_header).setLabel("Actions"))
+                                                .width(.percent(action_width))
+                                                .layout(.right_center)
+                                                .height(.px(24))
+                                                .children({
+                                                Box()
+                                                    .width(.percent(100))
+                                                    .height(.percent(100))
+                                                    .layout(.left_center)
+                                                    .spacing(8)
+                                                    .children({
+                                                    CommonToggleFilter(download, .{ table, .json })
+                                                        .layout(.center)
+                                                        .cursor(.pointer)
+                                                        .padding(.all(0))
+                                                        .children({
+                                                        Vapor.Icon(.filetype_json)
+                                                            .font(18, 300, null)
+                                                            .end();
+                                                    });
+                                                });
+                                            });
                                         });
                                     });
                                 });
                             });
+                            if (table.display_mode == .virtual) {
+                                virtual_list.renderWithCtx(@ptrCast(table));
+                                Box()
+                                    .width(.percent(14))
+                                    .pos(.tl(.percent(0), .percent(0), .absolute))
+                                    .children({
+                                    if (show_actions) {
+                                        table.action_select.renderSelect();
+                                    }
+                                });
+                            } else {
+                                table.Rows();
+                            }
                         });
+                        table.Pagination();
                     });
                 });
-                if (table.display_mode == .virtual) {
-                    virtual_list.renderWithCtx(@ptrCast(table));
-                    Box()
-                        .width(.percent(14))
-                        .pos(.tl(.percent(0), .percent(0), .absolute))
-                        .children({
-                        if (show_actions) {
-                            table.action_select.renderSelect();
-                        }
-                    });
-                } else {
-                    table.Rows();
-                    table.Pagination();
-                }
             });
         }
     };

@@ -54,8 +54,9 @@ fn Circle(switch_options: *SwitchOptions) void {
         .children({});
 }
 
-fn toggle(switch_options: *SwitchOptions) void {
+fn toggle(switch_options: *SwitchOptions, callback: anytype, args: anytype) void {
     switch_options.active = !switch_options.active;
+    @call(.auto, callback, args);
 }
 
 fn destroy(switch_options: *SwitchOptions) void {
@@ -63,34 +64,38 @@ fn destroy(switch_options: *SwitchOptions) void {
     _ = switches.remove(hash);
 }
 
-pub fn render(id: []const u8) void {
-    const hash = Vapor.utils.hashKey(id);
+fn Container() Vapor.Builder(.pure) {
+    return Box()
+        .width(.px(42))
+        .border(.{
+            .thickness = .none,
+            .radius = .all(border_radius + 1),
+        })
+        .padding(.all(1))
+        .layout(.center)
+        .inlineStyle(
+        \\background-image: linear-gradient(to bottom, #d5d5d5, #EDEDED);
+        \\box-shadow: 0 1px 1px rgb(255 255 255 / .1);
+    , .{});
+}
+
+pub fn render(aria_label: []const u8, on_change: anytype, args: anytype) void {
+    const container = Container();
+    const uuid = container.getUUID();
+    const hash = Vapor.utils.hashKey(uuid);
     const switch_options = switches.get(hash) orelse blk: {
         const switch_options = Vapor.arena(.persist).create(SwitchOptions) catch unreachable;
-        switch_options.* = .{ .id = id };
+        switch_options.* = .{ .id = uuid };
         switches.put(hash, switch_options) catch unreachable;
         break :blk switch_options;
     };
 
     const background_color = if (switch_options.active) active_background else inactive_background;
     Vapor.Static.HooksCtx(.destroy, destroy, .{switch_options})({
-        Box()
-            .width(.px(42))
-            .border(.{
-                .thickness = .none,
-                .radius = .all(border_radius + 1),
-            })
-            .padding(.all(1))
-            .layout(.center)
-            .inlineStyle(
-                // \\border-radius: .5em;
-                // \\padding: .125em;
-                \\background-image: linear-gradient(to bottom, #d5d5d5, #EDEDED);
-                \\box-shadow: 0 1px 1px rgb(255 255 255 / .1);
-            , .{})
+        container
             .children({
-            ButtonCtx(toggle, .{switch_options})
-                .ariaLabel("Toggle Switch")
+            ButtonCtx(toggle, .{ switch_options, on_change, args })
+                .ariaLabel(aria_label)
                 .width(.percent(100))
                 .border(.{
                     .thickness = .none,

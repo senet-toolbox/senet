@@ -52,7 +52,7 @@ fn init() void {
 
 fn render() void {
     // use it on any element
-    Box().animationEnter(&fadeIn).children({
+    Box().animationEnter("fadeIn").children({
         Text("hello world!").end();
     });
 }
@@ -445,8 +445,8 @@ export fn init() void {
 fn render() void {
     // use animation pointers for enter/exit
     Box()
-        .animationEnter(&anim_enter)
-        .animationExit(&anim_exit)
+        .animationEnter("toast-enter")
+        .animationExit("toast-exit")
         .children({
             Text("i will animate in and out!").end();
     });
@@ -552,7 +552,7 @@ fn toggleModal() void {
 
 fn render() void {
     Center().children({
-        Button(.{ .on_press = toggleModal })
+        Button(toggleModal)
             .hoverAnimation("buttonHover")
             .children({
                 Text("toggle modal").end();
@@ -560,8 +560,8 @@ fn render() void {
 
         if (show_modal) {
             Box()
-                .animationEnter(&modalIn)
-                .animationExit(&modalOut)
+                .animationEnter("modalIn")
+                .animationExit("modalOut")
                 .background(.white)
                 .padding(.all(24))
                 .radius(.all(12))
@@ -665,8 +665,8 @@ fn init() void {
 fn render() void {
     // ✅ use pointer for animationEnter/Exit
     Box()
-        .animationEnter(&fadeIn)
-        .animationExit(&fadeOut)
+        .animationEnter("fadeIn")
+        .animationExit("fadeOut")
         .children({
             Text("animated content").end();
     });

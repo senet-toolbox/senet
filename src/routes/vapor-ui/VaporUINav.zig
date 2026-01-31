@@ -13,7 +13,7 @@ const Center = Static.Center;
 const Icon = Static.Icon;
 const List = Static.List;
 const ListItem = Static.ListItem;
-const CtxButton = Static.CtxButton;
+const ButtonCtx = Vapor.ButtonCtx;
 const RedirectLink = Static.RedirectLink;
 const Button = Static.Button;
 const Theme = @import("theme");
@@ -28,27 +28,28 @@ const ComboBoxDialog = Opaque.ComboBoxDialog;
 pub const MenuItem = Item([]const u8);
 
 var command_palette: CommandPalette = .{};
-var combobox_dialog: ComboBoxDialog([]const u8) = undefined;
+pub var combobox_dialog: ComboBoxDialog([]const u8) = undefined;
 
 pub var menu_items = [_]MenuItem{
-    MenuItem{ .value = "/ui/accordion", .label = "Accordion", .icon = Vapor.IconTokens.arrow_right },
-    MenuItem{ .value = "/ui/alert", .label = "Alert", .icon = Vapor.IconTokens.arrow_right },
-    MenuItem{ .value = "/ui/button", .label = "Button", .icon = Vapor.IconTokens.arrow_right },
-    MenuItem{ .value = "/ui/chart", .label = "Chart", .icon = Vapor.IconTokens.arrow_right },
-    MenuItem{ .value = "/ui/combobox", .label = "Combobox", .icon = Vapor.IconTokens.arrow_right },
-    MenuItem{ .value = "/ui/commandpalette", .label = "CommandPalette", .icon = Vapor.IconTokens.arrow_right },
-    MenuItem{ .value = "/ui/datepicker", .label = "DatePicker", .icon = Vapor.IconTokens.arrow_right },
-    MenuItem{ .value = "/ui/dialog", .label = "Dialog", .icon = Vapor.IconTokens.arrow_right },
-    MenuItem{ .value = "/ui/drawer", .label = "Drawer", .icon = Vapor.IconTokens.arrow_right },
-    MenuItem{ .value = "/ui/group", .label = "Group", .icon = Vapor.IconTokens.arrow_right },
-    MenuItem{ .value = "/ui/select", .label = "Select", .icon = Vapor.IconTokens.arrow_right },
-    MenuItem{ .value = "/ui/slider", .label = "Slider", .icon = Vapor.IconTokens.arrow_right },
-    MenuItem{ .value = "/ui/sheet", .label = "Sheet", .icon = Vapor.IconTokens.arrow_right },
-    MenuItem{ .value = "/ui/switch", .label = "Switch", .icon = Vapor.IconTokens.arrow_right },
-    MenuItem{ .value = "/ui/table", .label = "Table", .icon = Vapor.IconTokens.arrow_right },
-    MenuItem{ .value = "/ui/tabs", .label = "Tabs", .icon = Vapor.IconTokens.arrow_right },
-    MenuItem{ .value = "/ui/textfield", .label = "TextField", .icon = Vapor.IconTokens.arrow_right },
-    MenuItem{ .value = "/ui/toasts", .label = "Toasts", .icon = Vapor.IconTokens.arrow_right },
+    MenuItem{ .value = "/ui/accordion", .label = "Accordion", .icon = Vapor.IconTokens.arrow_right, .link = "/ui/accordion" },
+    MenuItem{ .value = "/ui/alert", .label = "Alert", .icon = Vapor.IconTokens.arrow_right, .link = "/ui/alert" },
+    MenuItem{ .value = "/ui/button", .label = "Button", .icon = Vapor.IconTokens.arrow_right, .link = "/ui/button" },
+    MenuItem{ .value = "/ui/chart", .label = "Chart", .icon = Vapor.IconTokens.arrow_right, .link = "/ui/chart" },
+    MenuItem{ .value = "/ui/combobox", .label = "Combobox", .icon = Vapor.IconTokens.arrow_right, .link = "/ui/combobox" },
+    MenuItem{ .value = "/ui/commandpalette", .label = "CommandPalette", .icon = Vapor.IconTokens.arrow_right, .link = "/ui/commandpalette" },
+    MenuItem{ .value = "/ui/datepicker", .label = "DatePicker", .icon = Vapor.IconTokens.arrow_right, .link = "/ui/datepicker" },
+    MenuItem{ .value = "/ui/dialog", .label = "Dialog", .icon = Vapor.IconTokens.arrow_right, .link = "/ui/dialog" },
+    MenuItem{ .value = "/ui/drawer", .label = "Drawer", .icon = Vapor.IconTokens.arrow_right, .link = "/ui/drawer" },
+    // MenuItem{ .value = "/ui/group", .label = "Group", .icon = Vapor.IconTokens.arrow_right, .link = "/ui/group" },
+    MenuItem{ .value = "/ui/select", .label = "Select", .icon = Vapor.IconTokens.arrow_right, .link = "/ui/select" },
+    MenuItem{ .value = "/ui/sidebar", .label = "Sidebar", .icon = Vapor.IconTokens.arrow_right, .link = "/ui/sidebar" },
+    MenuItem{ .value = "/ui/slider", .label = "Slider", .icon = Vapor.IconTokens.arrow_right, .link = "/ui/slider" },
+    MenuItem{ .value = "/ui/switch", .label = "Switch", .icon = Vapor.IconTokens.arrow_right, .link = "/ui/switch" },
+    MenuItem{ .value = "/ui/table", .label = "Table", .icon = Vapor.IconTokens.arrow_right, .link = "/ui/table" },
+    MenuItem{ .value = "/ui/tabs", .label = "Tabs", .icon = Vapor.IconTokens.arrow_right, .link = "/ui/tabs" },
+    MenuItem{ .value = "/ui/textfield", .label = "TextField", .icon = Vapor.IconTokens.arrow_right, .link = "/ui/textfield" },
+    MenuItem{ .value = "/ui/tooltip", .label = "Tooltip", .icon = Vapor.IconTokens.arrow_right, .link = "/ui/tooltip" },
+    MenuItem{ .value = "/ui/progress", .label = "Progress Bar/Circle", .icon = Vapor.IconTokens.arrow_right, .link = "/ui/progress" },
 };
 
 var nav: Vapor.Binded = .{};
@@ -59,11 +60,11 @@ pub fn init() void {
     combobox_dialog.on_close = closePalette;
     command_palette.on_click = openSearch;
     command_palette.on_escape = closeSearch;
-    OverlayManager.register(.keydown, navigateByNum, &nav);
+    // OverlayManager.register(.keydown, navigateByNum, &nav);
 }
 
-fn navigateByNum(_: *Vapor.Binded, evt: *Vapor.Event) void {
-    evt.preventDefault();
+fn navigateByNum(_: *Vapor.Binded, _: *Vapor.Event) void {
+    // evt.preventDefault();
     Vapor.print("navigateByNum", .{});
     // const key = evt.key();
     // if (std.mem.eql(u8, key, "0")) {
@@ -85,7 +86,7 @@ fn navigateByNum(_: *Vapor.Binded, evt: *Vapor.Event) void {
 
 fn onSelect(item: *ComboBoxDialog([]const u8).ItemT) void {
     const path = item.value;
-    Vapor.Kit.navigate(path);
+    goto(path);
     combobox_dialog.close();
 }
 
@@ -130,19 +131,19 @@ const urls: [4]Url = .{
     //     .title = "[0] = Docs",
     // },
     .{
-        .url = "/vapor-ui/components",
+        .url = "/ui/components",
         .title = "[1] = Components",
     },
     .{
-        .url = "/vapor-ui/templates",
+        .url = "/ui/templates",
         .title = "[2] = Templates",
     },
     .{
-        .url = "/vapor-ui/auth",
+        .url = "/ui/auth",
         .title = "[3] = Authentication",
     },
     .{
-        .url = "/vapor-ui/payment",
+        .url = "/ui/payment",
         .title = "[4] = Payments",
     },
 };
@@ -193,8 +194,26 @@ fn navigate(url: []const u8) void {
     // Vapor.cycle();
 }
 
+pub fn setAttribute(id: []const u8, key: []const u8, value: []const u8) void {
+    if (!Vapor.lib.isWasi) return;
+    Vapor.Wasm.setAttributeWasm(id.ptr, id.len, key.ptr, key.len, value.ptr, value.len);
+}
+
 fn toggleTheme() void {
     Theme.toggleTheme();
+
+    switch (Theme.mode) {
+        .dark => {
+            setAttribute("starDisc", "transform", "translate(22, -13)");
+            setAttribute("gearDisc", "transform", "translate(-22, 13)");
+        },
+        .light => {
+            // OFF - return to original
+            setAttribute("gearDisc", "transform", "translate(0, 0)");
+            setAttribute("starDisc", "transform", "translate(0, 0)");
+        },
+    }
+
     // Vapor.cycle();
 }
 
@@ -209,6 +228,9 @@ pub fn clickEvent(_: *[]const u8, evt: *Vapor.Event) void {
 
 pub fn goto(url: []const u8) void {
     Vapor.Kit.navigate(url);
+    Vapor.Kit.scrollTo(0, 0);
+    const uuid = Vapor.fmtln("menu-{s}", .{url});
+    Vapor.scrollIntoView(uuid, .{ .block = .start });
 }
 
 var mounted: bool = false;
@@ -226,10 +248,32 @@ fn mount() void {
         }
     }
 
+    switch (Theme.mode) {
+        .dark => {
+            setAttribute("starDisc", "transform", "translate(22, -13)");
+            setAttribute("gearDisc", "transform", "translate(-22, 13)");
+        },
+        .light => {
+            // OFF - return to original
+            setAttribute("gearDisc", "transform", "translate(0, 0)");
+            setAttribute("starDisc", "transform", "translate(0, 0)");
+        },
+    }
+
     if (current_menu_item == null) return;
     const uuid = Vapor.fmtln("menu-{s}", .{current_menu_item.?.value});
     Vapor.scrollIntoView(uuid, .{ .block = .start });
+    Vapor.onPopState(handlePopState);
 }
+
+fn handlePopState() void {
+    const current_path = Vapor.Kit.getWindowPath() orelse "/vapor-ui";
+    Vapor.Kit.scrollTo(0, 0);
+    const uuid = Vapor.fmtln("menu-{s}", .{current_path});
+    Vapor.scrollIntoView(uuid, .{ .block = .start });
+}
+
+const theme_svg = @embedFile("nightswitch.svg");
 
 pub fn render() void {
     const current_path = Vapor.Kit.getWindowPath() orelse "/vapor-ui";
@@ -248,8 +292,8 @@ pub fn render() void {
                     .layout = .left_center,
                     .child_gap = 10,
                 })({
-                    CtxButton(goto, .{"/vapor-ui"})
-                        .ariaLabel("home page of tether")
+                    ButtonCtx(goto, .{"/vapor-ui"})
+                        .ariaLabel("navigate home page of tether")
                         // Link(.{ .url = "/", .aria_label = "home page of tether" })
                         .style(&.{
                         .visual = .{ .text_decoration = .none },
@@ -263,7 +307,7 @@ pub fn render() void {
                         })({
                             Graphic(.{ .src = "/assets/vapor_ui.svg" }).style(&.{
                                 .size = .{ .width = .percent(100), .height = .percent(100) },
-                                .visual = .{ .fill = .palette(.text_color), .stroke = .palette(.text_color) },
+                                .visual = .{ .fill = .black, .stroke = .black },
                                 .transition = .{ .duration = 100 },
                                 .interactive = .{ .hover = .{
                                     .fill = .palette(.tint),
@@ -328,27 +372,34 @@ pub fn render() void {
                             .end();
                     });
 
-                    Button(.{ .on_press = toggleTheme, .aria_label = "toggle theme" })
-                        .class("nav-item")
-                        .size(.hw_px(36, 36))
+                    Button(toggleTheme)
+                        .ariaLabel("toggle theme")
+                        // .class("nav-item")
+                        // .size(.hw_px(36, 36))
                         .layout(.center)
-                        .background(.transparentizeHex(.black, 0.8))
-                        .border(.round(.black, .all(8)))
+                        // .background(.transparentizeHex(.black, 0.8))
+                        // .border(.round(.black, .all(8)))
                         .pointer()
                         .hover(.{
-                            .background = .yellow,
-                            .text_color = .black,
+                            // .background = .yellow,
+                            // .text_color = .black,
                         })
                         .children({
-                        Icon(.cloud_moon)
-                            .class("nav-item-icon")
+                        Vapor.Svg(.{ .override = true, .svg = theme_svg })
+                            .size(.hw_px(56, 56))
+                            // .class("nav-item-icon")
                             .inheritHover(&.{.text_color})
                             .font(18, 700, .white)
                             .end();
+                        // Icon(.cloud_moon)
+                        //     .class("nav-item-icon")
+                        //     .inheritHover(&.{.text_color})
+                        //     .font(18, 700, .white)
+                        //     .end();
                     });
                 });
             });
-            if (!std.mem.eql(u8, current_path, "/vapor-ui")) {
+            if (!std.mem.eql(u8, current_path, "/vapor-ui") and !std.mem.eql(u8, current_path, "/ui/components") and !std.mem.eql(u8, current_path, "/ui/templates")) {
                 Box().style(&.{
                     .position = .{ .type = .fixed, .top = .px(60), .left = .percent(2), .z_index = 999 },
                     .size = .hw(.percent(100), .mobile_desktop_percent(100, 14)),
@@ -365,22 +416,23 @@ pub fn render() void {
                     })({
                         for (menu_items) |item| {
                             const uuid = Vapor.fmtln("menu-{s}", .{item.value});
+                            const active = std.mem.eql(u8, current_path, item.value);
+                            const inline_style = if (active)
+                                \\background:
+                                \\linear-gradient(rgba(var(--background)), rgba(var(--background))) padding-box,
+                                \\linear-gradient(to top right, rgba(var(--tint)), rgba(var(--background)) 20%, rgba(var(--background)) 80%, rgba(var(--tint))) border-box;
+                            else
+                                "";
                             ListItem()
                                 .id(uuid)
-                                .style(&.{
-                                .size = .hw(.fit, .percent(100)),
-                                .visual = .{
-                                    .background = if (std.mem.eql(u8, current_path, item.value)) .transparentizeHex(.palette(.tint), 0.1) else .transparent,
-                                    .border = .r(1, if (std.mem.eql(u8, current_path, item.value)) .palette(.tint) else .transparent),
-                                    .layer = if (std.mem.eql(u8, current_path, item.value)) .dot(0.5, 6, .transparentizeHex(.palette(.tint), 0.3)) else null,
-                                },
-                                .interactive = .{
-                                    .hover = .{
-                                        .background = if (std.mem.eql(u8, current_path, item.value)) .transparentizeHex(.palette(.tint), 0.1) else .palette(.highlight_color),
-                                    },
-                                },
-                            })({
-                                CtxButton(goto, .{item.value}).style(&.{
+                                .border(.sharp(.all(1), .transparent))
+                                .inlineStyle("{s}", .{inline_style})
+                                .size(.hw(.fit, .percent(100)))
+                                .hoverBackground(if (active) .transparentizeHex(.palette(.tint), 0.1) else .palette(.highlight_color))
+                                .children({
+                                ButtonCtx(goto, .{item.value})
+                                    .ariaLabel(Vapor.fmtln("navigate to {s}", .{item.value}))
+                                    .style(&.{
                                     .visual = .{
                                         .text_decoration = .none,
                                         .cursor = .pointer,
@@ -430,7 +482,9 @@ pub fn render() void {
                     });
                 });
                 Box().style(&.{ .layout = .right_center })({
-                    Button(.{ .on_press = openMenu }).style(&.{
+                    Button(openMenu)
+                        .ariaLabel("open menu")
+                        .style(&.{
                         .size = .hw(.px(36), .px(48)),
                         .visual = .bg(.palette(.background)),
                     })({
@@ -440,7 +494,9 @@ pub fn render() void {
                         });
                     });
 
-                    Button(.{ .on_press = toggleTheme }).style(&.{
+                    Button(toggleTheme)
+                        .ariaLabel("toggle theme")
+                        .style(&.{
                         .visual = .{ .cursor = .pointer, .background = .palette(.background) },
                         .size = .hw(.px(36), .px(48)),
                     })({
@@ -449,7 +505,7 @@ pub fn render() void {
                         });
                     });
 
-                    Button(.{ .on_press = openMenu }).style(&.{
+                    Button(openMenu).style(&.{
                         .size = .hw(.px(36), .px(48)),
                         .visual = .bg(.palette(.background)),
                     })({
@@ -467,43 +523,8 @@ pub fn render() void {
                     });
                 });
             });
-            // if (menu) {
-            //     Box().style(&.{
-            //         .position = .{ .type = .fixed, .top = .px(80), .left = .px(0), .z_index = 999 },
-            //         .size = .w(.percent(100)),
-            //         // .visual = .{ .background = Theme.background, .border = .tb(.hex("#E4E4E4")) },
-            //     })({
-            //         List().style(&.{
-            //             .list_style = .none,
-            //             .direction = .column,
-            //             .padding = .tblr(16, 16, 8, 8),
-            //             .child_gap = 16,
-            //             .size = .w(.percent(100)),
-            //         })({
-            //             for (urls) |item| {
-            //                 ListItem().style(&.{
-            //                     .size = .w(.percent(70)),
-            //                 })({
-            //                     CtxButton(navigate, .{item.url}).style(&.{
-            //                         .size = .w(.percent(100)),
-            //                         .layout = .left_center,
-            //                         .child_gap = 12,
-            //                         .padding = .tblr(10, 10, 8, 8),
-            //                         .visual = .{ .cursor = .pointer, .background = .white },
-            //                     })({
-            //                         Text(item.label).style(&.{
-            //                             .font_family = "Montserrat",
-            //                             .visual = .font(18, 300, .hex("#262626")),
-            //                         });
-            //                     });
-            //                 });
-            //             }
-            //         });
-            //     });
-            // }
         }
     });
-    combobox_dialog.render();
 }
 
 const Styles = struct {
@@ -511,12 +532,10 @@ const Styles = struct {
         .list_style = .none,
         .size = .{ .width = .auto, .height = .px(30) },
         .layout = .{ .y = .center, .x = .start },
-        .visual = .{ .border = .bottom(.transparent) },
-        // .transition = .{ .duration = 100 },
-        // .border_color = if (std.mem.eql(u8, current_path, url.url)) text_color else .transparent,
+        .visual = .{ .border = .bottom(1, .transparent) },
         .interactive = .{
             .hover = .{
-                .border = .bottom(.palette(.text_color)),
+                .border = .bottom(1, .palette(.text_color)),
             },
         },
     };

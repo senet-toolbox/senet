@@ -11,6 +11,7 @@ import {
   afterHooksHandlers,
   observers,
   timeouts,
+  sockets,
 } from "./maps.js";
 
 import {
@@ -216,7 +217,11 @@ export class DynamicStructReader {
             nextDescriptor.size,
             nextDescriptor.canBeNull,
           );
-          fieldValue = readWasmString(ptr, len);
+          if (len === 0) {
+            fieldValue = "";
+          } else {
+            fieldValue = readWasmString(ptr, len);
+          }
           i++;
         } else {
           fieldValue = ptr;
@@ -306,11 +311,11 @@ export class WasmObjectBuilder {
     const handle = this.wasm.startObject();
 
     for (const [key, value] of Object.entries(obj)) {
-      const keyPtr = allocString(key);
+      const keyPtr = allocStringFrame(key);
 
       switch (typeof value) {
         case "string":
-          const strPtr = allocString(value);
+          const strPtr = allocStringFrame(value);
           this.wasm.addStringField(handle, keyPtr, strPtr);
           break;
         case "number":
@@ -355,6 +360,15 @@ export const env = {
   // ==========================================================================
   // Core / System
   // ==========================================================================
+
+  jsPanic: (ptr, len) => {
+    if (!requireWasm()) return;
+    const msg = new TextDecoder().decode(
+      new Uint8Array(wasmInstance.memory.buffer, ptr, len),
+    );
+    console.error("ZIG PANIC: " + msg);
+    throw new Error(msg);
+  },
 
   requestRerenderWasm: () => {
     requestRerender();
@@ -417,6 +431,21 @@ export const env = {
     console.warn(str, style1, style2);
   },
 
+  consoleLogColoredErrorWasm: (
+    ptr,
+    len,
+    stylePtr1,
+    styleLen1,
+    stylePtr2,
+    styleLen2,
+  ) => {
+    if (!requireWasm()) return;
+    const str = readWasmString(ptr, len);
+    const style1 = readWasmString(stylePtr1, styleLen1);
+    const style2 = readWasmString(stylePtr2, styleLen2);
+    console.log(str, style1, style2);
+  },
+
   alertWasm: (ptr, len) => {
     const memory = new Uint8Array(wasmInstance.memory.buffer);
     const str = new TextDecoder().decode(memory.subarray(ptr, ptr + len));
@@ -438,16 +467,11 @@ export const env = {
       wasmInstance.eventCallback(event_id);
     };
 
-    // if (eventData === undefined) {
-    //   eventData = {};
-    //   eventData[event_type] = handler;
-    //   document.addEventListener(event_type, handler);
-    // } else {
-    //   if (eventData[event_type] === undefined) {
-    //     eventData[event_type] = handler;
+    if (eventData === undefined) {
+      eventData = {};
+    }
+    eventData[event_type] = handler;
     document.addEventListener(event_type, handler);
-    // }
-    // }
     eventHandlers.set("vapor-document", eventData);
   },
 
@@ -462,6 +486,11 @@ export const env = {
       wasmInstance.eventInstCallback(event_id);
     };
 
+    if (eventData === undefined) {
+      eventData = {};
+    }
+    eventData[event_type] = handler;
+
     document.addEventListener(event_type, handler);
     eventHandlers.set("vapor-document", eventData);
   },
@@ -470,6 +499,7 @@ export const env = {
     if (!requireWasm()) return;
     const eventType = readWasmString(ptr, len);
     const eventData = eventHandlers.get("vapor-document");
+    console.log("removeEventListener", eventData);
     if (!eventData) return;
 
     const handler = eventData[eventType];
@@ -524,6 +554,13 @@ export const env = {
         eventHandlers.set(elementId, eventData);
       }
     }
+  },
+
+  runOnAnimationFrameWasm: (onid) => {
+    if (!requireWasm()) return;
+    requestAnimationFrame(() => {
+      wasmInstance.callAnimationFrameCallback(onid);
+    });
   },
 
   createElementEventInstListener: (idPtr, idLen, ptr, len, onid) => {
@@ -596,7 +633,7 @@ export const env = {
     id = id >>> 0;
     const event = eventStorage[id];
     const keyValue = event[key];
-    return allocString(keyValue);
+    return allocStringFrame(keyValue);
   },
 
   getEventDataInputWasm: (id) => {
@@ -604,7 +641,7 @@ export const env = {
     id = id >>> 0;
     const event = eventStorage[id];
     const value = event.target.value;
-    return allocString(value);
+    return allocStringFrame(value);
   },
 
   getEventDataNumberWasm: (onid, ptr, len) => {
@@ -643,11 +680,13 @@ export const env = {
     id = id >>> 0;
     const event = eventStorage[id];
     const formData = new FormData(event.target);
-    console.log(formData);
+    // Option 1: Log all entries
+    for (let [key, value] of formData.entries()) {
+      console.log(key, value);
+    }
     const data = Object.fromEntries(formData.entries());
     const builder = new WasmObjectBuilder(wasmInstance, wasmInstance.memory);
     const handle = builder.passObject(data);
-    console.log(data);
 
     return handle;
   },
@@ -658,7 +697,7 @@ export const env = {
     const key = new TextDecoder().decode(memory.subarray(ptr, ptr + len));
     const event = eventStorage[id];
     const keyValue = event[key];
-    return allocString(keyValue);
+    return allocStringFrame(keyValue);
   },
 
   // ==========================================================================
@@ -723,6 +762,26 @@ export const env = {
     const element = document.getElementById(id);
     if (element === null) {
       console.log("Is Null");
+      return;
+    }
+    element[attribute] = value;
+  },
+
+  mutateDomElementStringWasm: (
+    idPtr,
+    idLen,
+    attributePtr,
+    attributeLen,
+    valuePtr,
+    valueLen,
+  ) => {
+    if (!requireWasm()) return;
+    const id = readWasmString(idPtr, idLen);
+    const attribute = readWasmString(attributePtr, attributeLen);
+    const value = readWasmString(valuePtr, valueLen);
+    const element = document.getElementById(id);
+    if (element === null) {
+      console.warn("Cannot Set Attribute, Element Is Null");
       return;
     }
     element[attribute] = value;
@@ -989,7 +1048,7 @@ export const env = {
     if (element === null) {
       return 0;
     }
-    const ptr = allocString(element.id);
+    const ptr = allocStringFrame(element.id);
     return ptr;
   },
 
@@ -1043,7 +1102,7 @@ export const env = {
     const id = new TextDecoder().decode(memory.subarray(ptr, ptr + len));
     const element = document.getElementById(id);
     const value = element.value;
-    return allocString(value);
+    return allocStringFrame(value);
   },
 
   setInputValueWasm: (ptr, len, textPtr, textLen) => {
@@ -1211,6 +1270,15 @@ export const env = {
 
   timeoutCtx: (ms, id) => {
     const callbackId = id >>> 0;
+
+    // Cancel existing timeout/interval if one exists with this ID
+    const existingTimeoutId = timeouts.get(callbackId);
+    if (existingTimeoutId !== undefined) {
+      console.warn(`Interval ${callbackId} already exists, replacing it`);
+      clearTimeout(existingTimeoutId);
+      clearInterval(existingTimeoutId);
+    }
+
     const timeoutId = setTimeout(() => {
       try {
         wasmInstance.callbackCtx(callbackId, null);
@@ -1220,7 +1288,6 @@ export const env = {
         timeouts.delete(callbackId);
       }
     }, ms);
-
     timeouts.set(callbackId, timeoutId);
     return timeoutId;
   },
@@ -1228,22 +1295,30 @@ export const env = {
   cancelTimeoutWasm: (id) => {
     const callbackId = id >>> 0;
     const timeoutId = timeouts.get(callbackId);
+    timeouts.delete(callbackId);
+    clearInterval(timeoutId);
     clearTimeout(timeoutId);
   },
 
-  createInterval: (namePtr, nameLen, delay) => {
-    const name = readWasmString(namePtr, nameLen);
-    setInterval(() => {
-      const ptr = allocString(name);
-      wasmInstance.timeOutCtxCallback(ptr);
-    }, delay);
-  },
+  createInterval: (id, delay) => {
+    console.warn("WE NEED TO CREATE A SEPERATE HASHMAP FOR THE INTERVALS");
+    const callbackId = id >>> 0;
 
-  tick: (id) => {
-    while (true) {
-      console.log("tick");
+    // Cancel existing interval if one exists with this ID
+    const existingTimeoutId = timeouts.get(callbackId);
+    if (existingTimeoutId !== undefined) {
+      console.warn(`Interval ${callbackId} already exists, replacing it`);
+      clearInterval(existingTimeoutId);
     }
-    return false;
+
+    const timeoutId = setInterval(() => {
+      try {
+        wasmInstance.callbackCtx(callbackId, null);
+      } catch (e) {
+        // Ignore errors
+      }
+    }, delay);
+    timeouts.set(callbackId, timeoutId);
   },
 
   // ==========================================================================
@@ -1251,15 +1326,15 @@ export const env = {
   // ==========================================================================
 
   getWindowInformationWasm: () => {
-    return allocString(window.location.pathname);
+    return allocStringFrame(window.location.pathname);
   },
 
   getWindowParamsWasm: () => {
-    return allocString(window.location.search);
+    return allocStringFrame(window.location.search);
   },
 
   getWindowHashWasm: () => {
-    return allocString(window.location.hash);
+    return allocStringFrame(window.location.hash);
   },
 
   setWindowHashWasm: (hashPtr, hashLen) => {
@@ -1405,7 +1480,7 @@ export const env = {
     const key = readWasmString(ptr, len);
     const value = localStorage.getItem(key);
     if (value === null) return null;
-    return allocString(value);
+    return allocStringFrame(value);
   },
 
   setLocalStorageNumberWasm: (ptr, len, value) => {
@@ -1455,13 +1530,13 @@ export const env = {
   },
 
   getCookiesWasm: () => {
-    return allocString(document.cookie);
+    return allocStringFrame(document.cookie);
   },
 
   getCookieWasm: (cookieStrPtr, cookieStrLen) => {
     const cookie = readWasmString(cookieStrPtr, cookieStrLen);
     const match = document.cookie.match(new RegExp(`(^| )${cookie}=([^;]+)`));
-    return match ? allocString(decodeURIComponent(match[2])) : null;
+    return match ? allocStringFrame(decodeURIComponent(match[2])) : null;
   },
 
   // ==========================================================================
@@ -1470,8 +1545,7 @@ export const env = {
 
   copyTextWasm: (ptr, len) => {
     if (!requireWasm()) return;
-    const memory = new Uint8Array(wasmInstance.memory.buffer);
-    const text = new TextDecoder().decode(memory.subarray(ptr, ptr + len));
+    const text = readWasmString(ptr, len);
 
     if (navigator.clipboard && window.isSecureContext) {
       navigator.clipboard.writeText(text).catch((err) => {
@@ -1484,7 +1558,7 @@ export const env = {
     navigator.clipboard
       .readText()
       .then((text) => {
-        const ptr = allocString(text);
+        const ptr = allocStringFrame(text);
         wasmInstance.resumeCallback(callbackId, ptr);
       })
       .catch((err) => {
@@ -1495,6 +1569,42 @@ export const env = {
   // ==========================================================================
   // Network / Fetch
   // ==========================================================================
+
+  createWss: (port, onid, query_ptr, query_len) => {
+    const query = readWasmString(query_ptr, query_len);
+    const id = onid >>> 0;
+    const url = `ws://localhost:${port}${query}`;
+    const socket = new WebSocket(url);
+    socket.onopen = function (event) {
+      wasmInstance.onWssConnection(id);
+    };
+    socket.onmessage = function (event) {
+      const ptr = allocStringFrame(event.data);
+      wasmInstance.onWssMessage(id, ptr);
+    };
+    socket.onclose = function (event) {
+      wasmInstance.onWssClose(id);
+    };
+    sockets.set(id, socket);
+  },
+
+  sendWss: (onid, dataPtr, dataLen) => {
+    const id = onid >>> 0;
+    const data = readWasmString(dataPtr, dataLen);
+    const socket = sockets.get(id);
+
+    if (!socket) {
+      console.error("Socket not found for id:", id);
+      return;
+    }
+
+    if (socket.readyState !== WebSocket.OPEN) {
+      console.error("Socket not open, state:", socket.readyState);
+      return;
+    }
+
+    socket.send(data);
+  },
 
   fetchWasm: (urlPtr, urlLen, callback_id, httpPtr, httpLen) => {
     const url = readWasmString(urlPtr, urlLen);
@@ -1518,7 +1628,7 @@ export const env = {
       .then((text) => {
         response.body = text;
         const respString = JSON.stringify({ ok: response });
-        const ptr = allocString(respString);
+        const ptr = allocStringFrame(respString);
         wasmInstance.resumeCallback(callback_id, ptr);
       })
       .catch((err) => {
@@ -1727,7 +1837,7 @@ export const env = {
     const video = document.getElementById(id);
     return video.currentTime;
   },
-  frame_arena_init: () => { },
+  frame_arena_init: () => {},
   scrollIntoViewWasm: (idPtr, idLen, behavior_enum, block_enum) => {
     const id = readWasmString(idPtr, idLen);
     const element = document.getElementById(id);
@@ -1765,13 +1875,60 @@ export const env = {
     }
     element.scrollIntoView({ block, behavior });
   },
+
+  scrollToBehaviorWasm: (
+    idPtr,
+    idLen,
+    top,
+    left,
+    behavior_enum,
+    block_enum,
+  ) => {
+    const id = readWasmString(idPtr, idLen);
+    const element = document.getElementById(id);
+    if (element === null) {
+      console.log("Element Is Null");
+      return;
+    }
+    let behavior = "auto";
+    let block = "start";
+
+    switch (behavior_enum) {
+      case 0:
+        behavior = "auto";
+        break;
+      case 1:
+        behavior = "smooth";
+        break;
+      case 2:
+        behavior = "instant";
+        break;
+    }
+    switch (block_enum) {
+      case 0:
+        block = "start";
+        break;
+      case 1:
+        block = "center";
+        break;
+      case 2:
+        block = "end";
+        break;
+      case 3:
+        block = "nearest";
+        break;
+    }
+
+    element.scrollTo({ top, left, behavior: "smooth" });
+  },
+
   setAttributeWasm: (idPtr, idLen, keyPtr, keyLen, valuePtr, valueLen) => {
     const id = readWasmString(idPtr, idLen);
     const key = readWasmString(keyPtr, keyLen);
     const value = readWasmString(valuePtr, valueLen);
     const element = document.getElementById(id);
     if (element === null) {
-      console.log("Element Is Null");
+      console.warn("Cannot Set Attribute, Element Is Null", id);
       return;
     }
     element.setAttribute(key, value);

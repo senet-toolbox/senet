@@ -371,7 +371,7 @@ pub fn init() void {
 
 ### \* is a pointer
 
-````zig
+```zig
 const House = struct {
     plumbing: [16]u32,
     electrical_wiring: [16]u32,
@@ -397,7 +397,8 @@ pub fn init() void {
         .walls = walls,
         .roof = roof,
     };
-}```
+}
+```
 
 In the above example, we use the `*` to refer to the actual memory that is allocated. This is called a pointer, just like how in real life, we have an address to a house, we have
 an address to our memory slices. In the case above, we have an address to a slice memory, that is a string ([]const u8), and a bool (\*bool).
@@ -419,7 +420,7 @@ pub fn init() void {
     const address: *House = Vapor.arena(.persist).create(House) catch {};
     const house = address.*;
 }
-````
+```
 
 ### Error Handling
 

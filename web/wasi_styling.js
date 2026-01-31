@@ -69,7 +69,10 @@ export function updateComponentStyle(
   styleString,
   element,
 ) {
-  if (specified_className.length === 0) return;
+  if (specified_className.length === 0) {
+    element.setAttribute("class", "");
+    return;
+  };
 
   // Fast path: if we've seen this exact styleId combo before, just set class and return
   if (processedStyleIds.has(specified_className)) {
@@ -200,13 +203,15 @@ export function updateComponentStyle(
       const hasInteractive = className.startsWith("intr_");
       const hasMapa = className.startsWith("mapa_");
       const hasAnimation = className.startsWith("anim_");
+      const hasTransform = className.startsWith("tran_");
       const hasAny =
         hasVisual ||
         hasPosition ||
         hasLayout ||
         hasInteractive ||
         hasMapa ||
-        hasAnimation;
+        hasAnimation ||
+        hasTransform;
       // This means we have named class set by the user
       if (!hasAny) {
         const ruleIndex = styleRuleCache.get(`.${className}`);

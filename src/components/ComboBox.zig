@@ -222,12 +222,15 @@ pub fn ComboBox(comptime T: type) type {
         }
 
         fn toggleWithBindedTrigger(combobox: *Self, binded_trigger: *Vapor.Binded) void {
-            const bounds = binded_trigger.getBoundingClientRect() orelse return;
-            combobox._x = 0;
-            combobox._y = bounds.height + 4;
-            combobox._width = bounds.width;
-            Vapor.print("Bounds {any}", .{bounds});
-            Vapor.print("Toggle {any} {any}", .{ combobox._x, combobox._y });
+            // const bounds = binded_trigger.getBoundingClientRect() orelse return;
+            // combobox._x = 0;
+            // combobox._y = bounds.height + 4;
+            // combobox.toggle();
+
+            const offsets = binded_trigger.getOffsets() orelse return;
+            combobox._x = offsets.offset_left;
+            combobox._y = offsets.offset_top + offsets.offset_height + 4;
+            combobox._width = offsets.offset_width;
             combobox.toggle();
         }
 
@@ -464,6 +467,8 @@ pub fn ComboBox(comptime T: type) type {
                         .pos(.tl(.px(0), .px(0), .fixed))
                         .end();
                 });
+            } else {
+                Vapor.Null();
             }
             Stack()
                 .width(.percent(100))
@@ -472,9 +477,7 @@ pub fn ComboBox(comptime T: type) type {
                 .pos(.relative)
                 .children({
                 combobox.renderTrigger();
-                if (!combobox._closed) {
-                    renderComboBox(combobox);
-                }
+                renderComboBox(combobox);
             });
         }
     };

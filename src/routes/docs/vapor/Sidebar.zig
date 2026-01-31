@@ -1,23 +1,14 @@
 const std = @import("std");
-const Fabric = @import("fabric");
-const Static = Fabric.Static;
-const Pure = Fabric.Pure;
-const Types = Fabric.Types;
-const Dynamic = Fabric.Dynamic;
-const Element = Fabric.Element;
-const Sheet = @import("Sheet.zig").Sheet;
-const Signal = Fabric.Signal;
-const Kit = Fabric.Kit;
-const println = Fabric.println;
-
-var theme_background: [4]u8 = undefined;
-var border_color: [4]u8 = undefined;
-var text_color: [4]u8 = undefined;
-var dark_text: [4]u8 = undefined;
-var secondary: [4]u8 = undefined;
-var tint: [4]u8 = undefined;
-var alternate_tint: [4]u8 = undefined;
-var sheet: Sheet(*SideBar, list) = undefined;
+const Vapor = @import("vapor");
+const Box = Vapor.Box;
+const Text = Vapor.Text;
+const ButtonCtx = Vapor.CtxButton;
+const Icon = Vapor.Icon;
+const List = Vapor.List;
+const ListItem = Vapor.ListItem;
+const CtxButton = Vapor.CtxButton;
+const RedirectLink = Vapor.RedirectLink;
+const Button = Vapor.Button;
 
 const SideBar = @This();
 
@@ -75,60 +66,77 @@ const menu_items: []const MenuItem = &.{
     },
 };
 
-pub fn init(sidebar: *SideBar) void {
-    sheet.init(&Fabric.lib.allocator_global);
-    sidebar.* = .{};
+pub fn init() void {
+    // sheet.init(&Fabric.lib.allocator_global);
+    // sidebar.* = .{};
 }
 
 pub fn show() void {
-    sheet.toggle();
+    // sheet.toggle();
 }
 
-fn list(_: *SideBar) void {
-    Static.List(.{
-        .list_style = .none,
-        .display = .flex,
-        .direction = .column,
-        .padding = .{ .top = 16, .bottom = 16, .right = 16, .left = 16 },
-        .child_gap = 16,
-        .width = .percent(100),
+fn goto(url: []const u8) void {
+    Vapor.Kit.navigate(url);
+    // sheet.toggle();
+}
+
+fn render() void {
+    const current_path = Vapor.Kit.getWindowPath();
+    Box().style(&.{
+        .position = .{ .type = .fixed, .top = .px(60), .left = .percent(2), .z_index = 999 },
+        .size = .hw(.percent(100), .mobile_desktop_percent(100, 14)),
     })({
-        for (menu_items) |item| {
-            Static.ListItem(.{
-                .width = .percent(100),
-                .border_radius = .all(4),
-                .hover = .{
-                    .background = .hex("#121212"),
-                },
-            })({
-                Static.Link(.{ .url = item.link, .aria_lable = item.title }, .{
-                    .text_decoration = .none,
-                    .width = .percent(100),
-                    .display = .flex,
-                    .child_alignment = .{ .x = .start, .y = .center },
-                    .child_gap = 12,
-                    .padding = .{ .top = 10, .bottom = 10, .right = 8, .left = 8 },
-                    .cursor = .pointer,
+        List().style(&.{
+            .list_style = .none,
+            .direction = .column,
+            .padding = .{ .top = 16, .bottom = 64, .right = 8, .left = 8 },
+            .child_gap = 12,
+            .size = .hw(.percent(95), .percent(100)),
+            .scroll = .scroll_y(),
+            .show_scrollbar = false,
+            .layout = .{},
+        })({
+            for (menu_items) |item| {
+                const uuid = Vapor.fmtln("menu-{s}", .{item.link});
+                ListItem()
+                    .id(uuid)
+                    .style(&.{
+                    .size = .hw(.fit, .percent(100)),
+                    .visual = .{
+                        .background = if (std.mem.eql(u8, current_path, item.link)) .transparentizeHex(.palette(.tint), 0.1) else .transparent,
+                        .border = .r(1, if (std.mem.eql(u8, current_path, item.link)) .palette(.tint) else .transparent),
+                        .layer = if (std.mem.eql(u8, current_path, item.link)) .dot(0.5, 6, .transparentizeHex(.palette(.tint), 0.3)) else null,
+                    },
+                    .interactive = .{
+                        .hover = .{
+                            .background = if (std.mem.eql(u8, current_path, item.link)) .transparentizeHex(.palette(.tint), 0.1) else .palette(.highlight_color),
+                        },
+                    },
                 })({
-                    // Static.Icon(item.icon, .{
-                    //     .font_size = 14,
-                    // });
-                    Static.Text(item.title, .{
-                        .font_size = 14,
+                    CtxButton(goto, .{item.link}).style(&.{
+                        .visual = .{
+                            .text_decoration = .none,
+                            .cursor = .pointer,
+                            .background = .transparent,
+                        },
+                        .size = .w(.percent(100)),
+                        .layout = .left_center,
+                        .child_gap = 12,
+                        .padding = .tblr(10, 10, 8, 8),
+                    })({
+                        // Icon(item.icon).style(&.{
+                        //     // .visual = .{ .text_color = if (std.mem.eql(u8, current_path, item.link)) .palette(.tint) else .palette(.text_color) },
+                        // });
+                        Text(item.label).style(&.{
+                            .visual = .{
+                                .text_color = if (std.mem.eql(u8, current_path, item.link)) .palette(.tint) else .palette(.text_color),
+                                .font_size = 14,
+                            },
+                            .font_family = "Montserrat",
+                        });
                     });
                 });
-            });
-        }
-    });
-}
-
-pub fn render(sidebar: *SideBar) void {
-    Static.Block(.{
-        .padding = .{
-            .top = 120,
-        },
-        .width = .percent(100),
-    })({
-        sheet.render(sidebar);
+            }
+        });
     });
 }

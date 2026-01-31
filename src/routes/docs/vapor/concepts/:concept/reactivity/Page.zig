@@ -14,6 +14,7 @@ const Stack = Vapor.Stack;
 var markdown: Compiler.vaporize.MarkDown(.{
     .{ .tag = "counter", .function = counter },
     .{ .tag = "cycle_example", .function = cycleExample },
+    .{ .tag = "graphics", .function = graphics },
 }) = .{};
 var page: []const u8 = "";
 var content: Content.new("") = .{};
@@ -31,6 +32,23 @@ fn increment_cycle() void {
     count2 += 1;
 }
 
+fn graphics() void {
+    Box().style(&.{
+        .size = .{ .width = .percent(100), .height = .percent(100) },
+        .padding = .tb(48, 48),
+        .layout = .center,
+    })({
+        Vapor.Graphic(.{ .src = "/assets/event_state_diagram.svg" })
+            .fill(.palette(.text_color))
+            .stroke(.palette(.text_color))
+            .layout(.center)
+            .width(.percent(70))
+            .height(.percent(70))
+            .aspectRatio(.landscape)
+            .end();
+    });
+}
+
 var color: Vapor.Types.Color = .palette(.text_color);
 var changed_color: bool = false;
 fn changeColors(_: *Vapor.Event) void {
@@ -44,7 +62,7 @@ fn changeColors(_: *Vapor.Event) void {
 
 fn counter() void {
     Box().margin(.tb(12, 32)).spacing(48).width(.percent(100)).layout(.center).children({
-        Button(.{ .on_press = increment })
+        Button(increment)
             .shadow(.card(color))
             .padding(.all(8))
             .border(.simple(color))
@@ -69,7 +87,7 @@ fn counter() void {
 
 fn cycleExample() void {
     Stack().margin(.tb(12, 32)).spacing(48).width(.percent(100)).layout(.center).children({
-        Button(.{ .on_press = increment_cycle })
+        Button(increment_cycle)
             .shadow(.card(color))
             .padding(.all(8))
             .border(.simple(color))
@@ -93,7 +111,6 @@ fn cycleExample() void {
 pub fn init() void {
     content.init();
     Vapor.Kit.fetch("/src/routes/docs/vapor/concepts/:concept/reactivity/reactivity_page.md", handlePage, .{ .method = .GET });
-    // markdown.compile(@embedFile("reactivity_page.md")) catch unreachable;
 }
 
 fn handlePage(resp: Vapor.Kit.Response) void {

@@ -2,20 +2,20 @@
 <html lang="en">
 
 <head>
-  <title>Tether</title>
+  <title>Senet</title>
   <meta charset="utf-8" />
   <meta name="google-site-verification" content="12aR_338F0VaglKbfvPLczdZV_Ej6AVx9Ef7M4ULfLU" />
   <meta name="description"
-    content="Tether website includes documentation on all three components Fabric, Tether, and Treehouse. As well as instructions on installation and use cases." />
+    content="Senet website includes documentation on all three components Vapor, Reverb, and Canopy. As well as instructions on installation and use cases." />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="icon" href="/assets/icon.svg" type="image/svg+xml" />
   <link rel="preload" href="/zig-out/bin/vapor.wasm" as="fetch" type="application/wasm" crossorigin />
   <!-- <script src="https://unpkg.com/lucide@latest"></script> -->
 
   <!-- Preconnect stays the same -->
-  <link href="https://fonts.googleapis.com" />
-  <link href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://cdn.jsdelivr.net" crossorigin />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
 
   <!-- Load fonts async with media trick -->
   <link
@@ -27,6 +27,12 @@
 
   <link rel="preload" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" as="style"
     onload="this.rel='stylesheet'" />
+
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400..900&display=swap" rel="stylesheet" />
+
+  <link
+    href="https://fonts.googleapis.com/css2?family=Barlow:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap"
+    rel="stylesheet" />
 
   <!-- Font Awesome - non-blocking -->
   <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" as="style"
@@ -50,9 +56,10 @@
     body {
       margin: 0;
       padding: 0;
-      font-family: Montserrat;
-      font-weight: 400;
-      height: 100vh;
+      /* font-family: Montserrat; */
+      font-family: "Barlow", sans-serif;
+      font-optical-sizing: auto;
+      height: 100dvh;
       width: 100%;
       box-sizing: border-box;
       flex-shrink: 0;
@@ -90,14 +97,17 @@
       font-size-adjust: 0.5;
     }
 
-    textarea {
-      line-height: 1.5;
-      font-size-adjust: 0.5;
-    }
-
     table {
       border-collapse: separate;
       border-spacing: 0;
+    }
+
+    div {
+      min-width: 0;
+    }
+
+    button p {
+      font-family: inherit;
     }
 
     input[type="file"]::file-selector-button {
@@ -105,6 +115,7 @@
       color: transparent;
       border: none;
     }
+
 
     input:-webkit-autofill {
       -webkit-box-shadow: 0 0 0 1000px transparent inset;
@@ -182,17 +193,43 @@
         transform: rotate(360deg);
       }
     }
+
+    /* The gear disc - moves DOWN and LEFT when switched ON */
+    #gearDisc {
+      transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    /* The star disc - moves UP and RIGHT when switched ON */
+    #starDisc {
+      transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    /* .scroll-container { */
+    /*   height: 60vh; */
+    /*   overflow-y: scroll; */
+    /*   background: #eee; */
+    /*   border: 2px solid red; */
+    /* } */
+    /**/
+    /* .item { */
+    /*   height: 800px; */
+    /*   display: flex; */
+    /*   align-items: center; */
+    /*   justify-content: center; */
+    /*   font-size: 48px; */
+    /*   border-bottom: 1px solid #ccc; */
+    /* } */
   </style>
-  <link rel="stylesheet" href="/static/style_variables.css" />
+  <!-- <link rel="stylesheet" href="/static/style_variables.css" /> -->
 </head>
 
 <body>
-  <div class="stats" id="stats">
-    FPS: <span id="fps">0</span><br />
-    Frame Time: <span id="frameTime">0</span>ms<br />
-    Render Time: <span id="renderTime">0</span>ms<br />
-    Total Render Time: <span id="totalRenderTime">0</span>ms<br />
-  </div>
+  <!-- <div class="stats" id="stats"> -->
+  <!--   FPS: <span id="fps">0</span><br /> -->
+  <!--   Frame Time: <span id="frameTime">0</span>ms<br /> -->
+  <!--   Render Time: <span id="renderTime">0</span>ms<br /> -->
+  <!--   Total Render Time: <span id="totalRenderTime">0</span>ms<br /> -->
+  <!-- </div> -->
   <div id="reload-indicator" class="reload-indicator">
     <div class="reload-spinner"></div>
     <span>Reloading... <span id="reload-timer">0.0</span>s</span>

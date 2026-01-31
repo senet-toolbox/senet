@@ -11,7 +11,7 @@ const Image = Static.Image;
 const Text = Static.Text;
 const Page = Vapor.Page;
 const Pure = Vapor.Pure;
-const HtmlText = Custom.Chain.HtmlText;
+const HtmlText = Vapor.Html;
 const Graphic = Static.Graphic;
 const List = Static.List;
 const ListItem = Static.ListItem;
@@ -64,149 +64,68 @@ pub fn render() void {
     Center().style(&.{
         .size = .w(.percent(100)),
         .padding = .{ .top = 120, .bottom = 80 },
-    })({
+    }).children({
         Box().style(&.{
             .child_gap = 24,
             .direction = .column,
             .size = .w(.mobile_desktop_percent(100, 60)),
             .padding = .horizontal(12),
-        })({
-            Text("What is Tether?").style(heading);
+        }).children({
+            Text("What is Senet?").style(heading).end();
             Text(
-                \\To put simply, Tether is an exposed set of frameworks, that gives developers the ability 
+                \\To put simply, Senet is a toolbox of frameworks and libraries, that give developers the ability 
                 \\to Build full-stack applications with zero dependencies, zero configuration, and complete control. 
-            ).style(&.{ .visual = .font(18, null, .palette(.text_color)) });
+            ).style(&.{ .visual = .font(18, null, .palette(.text_color)) }).end();
 
-            Text("How the Internet works").style(heading);
             HtmlText(
-                \\At their core every website is just a text document. We store this document on the server and send it to the client, when they ask for it.
-                \\Your browser takes request this document which is in a langauge known as 
-                \\<a href="https://developer.mozilla.org/en-US/docs/Web/HTML">HTML</a> 
-                \\and then draws the buttons, rectangles, and text onto your screen. This is how it worked in the beginning.
-            ).style(muted_text);
-            // Image(.{ .src = "/assets/theinternet.webp" }).style(&.{
-            //     .size = .w(.percent(100)),
-            // });
-            Graphic(.{ .src = "src/assets/theinternet.svg" }).style(&.{
-                .size = .hw(.percent(100), .percent(100)),
-                .visual = .{ .fill = .palette(.text_color), .stroke = .palette(.text_color) },
-            });
+                \\Senet was created out of personal frustration with the current state of web development. But also out of desire to create a solid foundation for which,
+                \\future applications can be built on. You can use each component of Senet <code>[Vapor, Reverb, Canopy]</code> seperatley or together.
+            ).style(muted_text).end();
 
-            Text("And then theres today...").style(&.{
-                .visual = heading.visual,
-                .margin = .{ .top = 100 },
-            });
-            Text("This is in essence, the current state of Web development, it doesn't make sense, and it's just getting worse. ").style(muted_text);
-            Center().style(&.{ .size = .hw_percent(100, 100) })({
-                Graphic(.{ .src = "src/assets/webdev.svg" }).style(&.{
-                    .size = .hw(.percent(100), .percent(60)),
-                    .visual = .{ .fill = .palette(.text_color), .stroke = .palette(.text_color) },
-                });
-            });
+            Text("{Vapor}").style(heading).end();
+            HtmlText(
+                \\Vapor is a programming first frontend framework. Instead of using gimmicks like <strong>useState</strong> or <strong>useEffect</strong>,
+                \\We write normal code, with variables, functions, and types. 
+                \\These functions are used to create components, and variables are used to update the state of the component.
+            ).style(muted_text).end();
 
-            Text("Hitting Reset").style(&.{
-                .margin = .{ .top = 24 },
-                .visual = subheading.visual,
-            });
-            Text("Tether is a toolkit first, framework second")
+            Text("Vapor state persists by default, navigation does not reset state")
+                .fontStyle(.italic)
                 .font(18, null, .palette(.tint))
                 .end();
 
+            Text("{Reverb}").style(heading).end();
             HtmlText(
-                \\It's a modular, flexible system that exposes all its APIs to developers. 
-                \\Unlike common frameworks like <strong>React</strong> or <strong>Vue</strong>, Tether eliminates the need to deal with evolving opinions that change over time.
-                \\Many frameworks have altered their core APIs and designs, leading to complexity, legacy system support burdens, 
-                \\and the never-ending cycle of learning and relearning changes.
-            ).style(muted_text);
+                \\Reverb is a simple, backend web framework, which exposes a a set of production grade libraries, but also gives the developer
+                \\the ability to use high performance surgical tools, like the Atomic Lock-Free Thread Pool <code>[Scheduler]</code>.
+            ).style(muted_text).end();
 
-            HtmlText(
-                \\<strong style="color: rgb(var(--tint))">Tether</strong> takes the approach of <strong>exposure</strong> and <strong>explicitness</strong>. 
-                \\Every single component in Tether 
-                \\is available to the developer. There's no transpilation engine <i>magic</i>, no strange state 
-                \\machinery—just simple APIs you can touch and understand. 
-                \\The aim is to provide developers with a <strong>toolbox</strong> of functionality they can deep dive into and customize when needed.
-            ).style(muted_text);
+            Text("Reverb uses an express like syntax, but with a more modern feel")
+                .fontStyle(.italic)
+                .font(18, null, .palette(.tint))
+                .end();
+
+            Text("{Canopy}").style(heading).end();
 
             HtmlText(
-                \\<strong>For example:</strong> 
-            ).style(muted_text);
+                \\Runs as a in memory cache at the front and a persistent database at the back. By default, it uses the RESP3 protocol, and has a similar API to SQL, 
+                \\for creating and managing tables. Canopy also takes a more built-in approach, to creating custom selection queries. Instead of using SQL, Canopy uses a 
+                \\Canopy exposes a variety of functions that intercept different stages of a request lifecycle. This allows for developers to build custom logic within 
+                \\the database itself, rather than executing within a runtime environment. This means we can write Zig to create filter, search, join, or anything else we need.
+            ).style(muted_text).end();
+
+            Text("Canopy uses Zig itself to create logic functions")
+                .fontStyle(.italic)
+                .font(18, null, .palette(.tint))
+                .end();
+
+            Text("{Samples}").style(heading).end();
             HtmlText(
-                \\Vapor's state management is a single <code style="color: rgb(var(--tint))">global_rerender</code> variable of type <code style="color: rgb(var(--tint))">bool</code>. 
-                \\That's it. You can use the built-in <code style="color: rgb(var(--tint))">Signal(T)</code> type that Vapor exposes, 
-                \\build your own, or simply 
-                \\call the <code style="color: rgb(var(--tint))">cycle()</code> to update your UI. Until then, you 
-                \\can utilize Tether's in-house solutions with no setup, configuration files, or complexity. Just
-                \\install and start building. All you need is <code style="color: rgb(var(--tint))">ZIG</code>.
-            ).style(muted_text);
-
-            Text("Modular by Design").style(subheading);
-
-            HtmlText(
-                \\Tether's modularity means you can install Vapor, Tether, or Treehouse as independent entities. 
-                \\There's no requirement to use all three or just one. The libraries themselves are modular—choose 
-                \\to install OAuth, Markdown parser, UI component libraries, or any specific functionality you need. Tether serves 
-                \\as both package management system and toolkit.
-            ).style(muted_text);
-
-            Text("What Tether Eliminates").style(subheading);
-
-            List().layout(.left_center).direction(.column).spacing(8).children({
-                ListItem().style(&.{})({
-                    HtmlText(
-                        \\Tether ships with <strong>zero dependencies</strong> and eliminates the need for:
-                    ).style(muted_text);
-                });
-                ListItem().style(&.{})({
-                    HtmlText(
-                        \\<strong>Languages & Runtimes:</strong> No JavaScript, HTML, CSS, React, TSX, Python, Swift, Node.js
-                    ).style(muted_text);
-                });
-                ListItem().style(&.{})({
-                    HtmlText(
-                        \\<strong>Frameworks & Platforms:</strong> No Vercel, Next.js, Nuxt.js, multi-language systems
-                    ).style(muted_text);
-                });
-                ListItem().style(&.{})({
-                    HtmlText(
-                        \\<strong>Infrastructure:</strong> No Docker, Redis, Dragonfly
-                    ).style(muted_text);
-                });
-                ListItem().style(&.{})({
-                    HtmlText(
-                        \\<strong>Package Management:</strong> No npm, pip, dependency hell
-                    ).style(muted_text);
-                });
-                ListItem().style(&.{})({
-                    HtmlText(
-                        \\<strong>Build Tools:</strong> No transpilation, platform-specific code, configuration magic
-                    ).style(muted_text);
-                });
-            });
-            Text("But that doesn't mean you can't...").style(subheading);
-            HtmlText(
-                \\<strong>Install Libs:</strong> Use your favorite JS Library if you want, This is even done in NightWatch with chart.js 
-                \\<a href="/docs/vapor/concepts/jslibs">NightWatch Example</a>
-            ).style(muted_text);
-
-            HtmlText(
-                \\<strong>Use C or Objc:</strong> Embed your favorite C or Objc Libs, or even Zig itself
-            ).style(muted_text);
-
-            HtmlText(
-                \\<strong>Adapt and Build:</strong> Scrap it all and use the core codebase to build your own Renderer, and Web Server 
-            ).style(muted_text);
-
-            Text("The Core Promise ").style(&.{
-                .visual = .font(24, 500, .palette(.text_color)),
-                .margin = .{ .top = 32 },
-                .font_family = "IBM Plex Sans",
-            });
-
-            HtmlText(
-                \\Tether provides the productivity benefits of modern frameworks while maintaining the control 
-                \\and transparency of lower-level tools. It's built for developers who want to focus on solving 
-                \\problems rather than wrestling with tooling, dependencies, and ever-changing framework opinions.
-            ).style(muted_text);
+                \\Below is a set of sample applications, that were built with Senet, they are all single file, and can be downloaded and run.
+            ).style(muted_text).end();
+            Image(.{ .src = "/assets/ryven.webp" }).style(&.{
+                .size = .w(.percent(100)),
+            }).end();
         });
     });
 }

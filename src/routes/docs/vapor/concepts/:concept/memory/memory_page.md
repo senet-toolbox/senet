@@ -2,10 +2,6 @@
 
 # Memory
 
-{#memory}
-
-# Memory
-
 ### You Probably Don't Need This Section
 
 **Seriously.** Look at the Tic-Tac-Toe tutorial—150 lines, zero memory management. For most Vapor apps:

@@ -115,6 +115,26 @@ pub const menu_items: []const MenuItem = &.{
             },
         },
     },
+    MenuItem{ // Components
+        .id = "components",
+        .title = "Components",
+        .link = "/docs/vapor/concepts/components",
+        .icon = .cubes_stacked,
+        .tags = &.{
+            Tag{
+                .keywords = &.{ "components", "ui", "reusable", "state" },
+                .sub_title = "Components",
+                .url = "/docs/vapor/concepts/components/#components",
+                .description = "Components are the building blocks of your application.",
+            },
+        },
+        .sections = &.{
+            &.{ .title = "Components", .link = "components" },
+            &.{ .title = "Global Components", .link = "global-components" },
+            &.{ .title = "Instance Components", .link = "instance-components" },
+            &.{ .title = "Function Components", .link = "function-components" },
+        },
+    },
 
     MenuItem{ // New to Zig
         .id = "dont-know-zig",
@@ -169,6 +189,7 @@ pub const menu_items: []const MenuItem = &.{
             },
         },
     },
+
     MenuItem{
         .id = "routing",
         .title = "Routing",
@@ -187,6 +208,26 @@ pub const menu_items: []const MenuItem = &.{
             },
         },
     },
+
+    MenuItem{
+        .id = "styling",
+        .title = "Styling",
+        .link = "/docs/vapor/concepts/styling",
+        .sections = &.{
+            &.{ .title = "Styling", .link = "styling" },
+            &.{ .title = "New Approach", .link = "new-approach" },
+            &.{ .title = "Layout", .link = "layout" },
+            &.{ .title = "Two types of styling", .link = "two-types-of-styling" },
+            &.{ .title = "Builder functions", .link = "builder-functions" },
+            &.{ .title = "Builder patterns", .link = "builder-patterns" },
+            &.{ .title = "Style", .link = "style-struct" },
+            &.{ .title = "Taking it further", .link = "taking-it-even-further" },
+            &.{ .title = "Structs powerful!", .link = "structs-are-insanely-powerful" },
+            &.{ .title = "Code Block", .link = "code-block" },
+        },
+        .icon = .paint_bucket, // Circular arrows for reactive updates
+    },
+
     MenuItem{
         .id = "reactivity",
         .title = "Reactivity",
@@ -216,24 +257,52 @@ pub const menu_items: []const MenuItem = &.{
             },
         },
     },
+
     MenuItem{
-        .id = "styling",
-        .title = "Styling",
-        .link = "/docs/vapor/concepts/styling",
-        .sections = &.{
-            &.{ .title = "Styling", .link = "styling" },
-            &.{ .title = "New Approach", .link = "new-approach" },
-            &.{ .title = "Layout", .link = "layout" },
-            &.{ .title = "Two types of styling", .link = "two-types-of-styling" },
-            &.{ .title = "Builder functions", .link = "builder-functions" },
-            &.{ .title = "Builder patterns", .link = "builder-patterns" },
-            &.{ .title = "Style", .link = "style-struct" },
-            &.{ .title = "Taking it further", .link = "taking-it-even-further" },
-            &.{ .title = "Structs powerful!", .link = "structs-are-insanely-powerful" },
-            &.{ .title = "Code Block", .link = "code-block" },
+        .id = "common-patterns",
+        .title = "Common Patterns",
+        .link = "/docs/vapor/concepts/common-patterns",
+        .icon = .filetype_js,
+        .tags = &.{
+            Tag{
+                .keywords = &.{ "common", "patterns", "ui", "hooks", "mounted", "unmounted", "initialization", "custom", "components" },
+                .sub_title = "Common Patterns",
+                .url = "/docs/vapor/concepts/common-patterns/#common-patterns",
+                .description = "Common Patterns",
+            },
         },
-        .icon = .paint_bucket, // Circular arrows for reactive updates
+        .sections = &.{
+            &.{ .title = "Common Patterns", .link = "common-patterns" },
+            &.{ .title = "Form Handling & User Input", .link = "form-handling" },
+            &.{ .title = "Keyboard Events in Forms", .link = "keyboard-events-in-forms" },
+            &.{ .title = "Todo List Example", .link = "todo-list-example" },
+        },
     },
+
+    MenuItem{
+        .id = "gotchas",
+        .title = "Gotchas",
+        .link = "/docs/vapor/concepts/gotchas",
+        .icon = .exclamation_circle,
+        .tags = &.{
+            Tag{
+                .keywords = &.{ "gotchas", "common", "mistakes", "pitfalls", "avoid", "vapor" },
+                .sub_title = "Gotchas",
+                .url = "/docs/vapor/concepts/gotchas/#gotchas",
+                .description = "Gotchas & Common Mistakes",
+            },
+        },
+        .sections = &.{
+            &.{ .title = "Gotchas", .link = "gotchas" },
+            &.{ .title = "String Slices Are References, Not Copies", .link = "string-slice-gotcha" },
+            &.{ .title = "Style Struct vs Builder Chain Syntax", .link = "style-syntax-gotcha" },
+            &.{ .title = "Event Handler Signatures", .link = "event-handler-gotcha" },
+            &.{ .title = "State Inside Render Functions", .link = "state-in-render-gotcha" },
+            &.{ .title = "Color vs Background Types", .link = "color-type-gotcha" },
+            &.{ .title = "Loop Index vs Value", .link = "loop-index-gotcha" },
+        },
+    },
+
     MenuItem{ // Vaporize
         .id = "Vaporize",
         .title = "Vaporize",
@@ -550,7 +619,7 @@ pub const menu_items: []const MenuItem = &.{
                 .keywords = &.{ "metal", "docker" },
                 .sub_title = "No more Docker",
                 .url = "/docs/metal/#introduction",
-                .description = "Tether, and all its sub frameworks run on metal, no docker...",
+                .description = "Senet, and all its sub frameworks run on metal, no docker...",
             },
         },
     },
@@ -694,55 +763,57 @@ fn list() void {
             .visual = .{
                 .blur = 3,
             },
-        })({
+        }).children({
             Box().style(&.{
                 .layout = .x_between_center,
                 .child_gap = 8,
                 .size = .h(.percent(100)),
-            })({
-                Button(.{ .on_press = home, })
+            }).children({
+                Button(home)
                     // Link(.{ .url = "/", .aria_label = "home page of tether" })
                     .style(&.{
-                    .visual = .{ .text_decoration = .none, .cursor = .pointer },
-                })({
+                        .visual = .{ .text_decoration = .none, .cursor = .pointer },
+                    }).children({
                     Image(.{ .src = "/assets/circlelogo.webp", .alt = "tether logo" }).style(&.{
                         .layout = .center,
                         .size = .square_px(42),
-                    });
+                    }).end();
                 });
-                Text("Tether").style(&.{
+                Text("Senet").style(&.{
                     .visual = .{ .font_weight = 500, .font_size = 18 },
-                });
+                }).end();
                 Box().style(&.{
                     .visual = .{ .border = .l(1, .rgb(0, 0, 0)) },
                     .size = .{ .height = .px(24) },
-                })({});
+                }).children({});
                 Text("Docs").style(&.{
                     .visual = .{ .font_weight = 700, .font_size = 18 },
-                });
+                }).end();
             });
             if (!Vapor.isMobile()) {
-                Button(.{ .on_press = openDialog, .aria_label = "search-dialog" }).baseStyle(&.{
-                    .layout = .x_between_center,
-                    .size = .hw(.px(38), .percent(50)),
-                    .padding = .tblr(4, 4, 8, 8),
-                    .visual = .{ .border = .simple(.hex("#E1E1E1")), .background = .transparent, .cursor = .pointer },
-                    .interactive = .{ .hover = .{
-                        .border = .simple(.palette(.tint)),
-                    } },
-                }).background(.palette(.background)).children({
-                    Box().style(&.{ .layout = .left_center, .child_gap = 24 })({
+                Button(openDialog)
+                    .ariaLabel("search-dialog")
+                    .baseStyle(&.{
+                        .layout = .x_between_center,
+                        .size = .hw(.px(38), .percent(50)),
+                        .padding = .tblr(4, 4, 8, 8),
+                        .visual = .{ .border = .simple(.hex("#E1E1E1")), .background = .transparent, .cursor = .pointer },
+                        .interactive = .{ .hover = .{
+                            .border = .simple(.palette(.tint)),
+                        } },
+                    }).background(.palette(.background)).children({
+                    Box().style(&.{ .layout = .left_center, .child_gap = 24 }).children({
                         Icon(.search).style(&.{
                             .visual = .{ .font_size = 16, .text_color = .palette(.icon_color) },
-                        });
+                        }).end();
                         Text("Search...").style(&.{
                             .visual = .{ .font_size = 16, .text_color = .palette(.icon_color) },
                             .font_family = "Montserrat, sans-serif",
-                        });
+                        }).end();
                     });
                     Icon(.command).style(&.{
                         .visual = .{ .font_size = 16, .text_color = .palette(.icon_color) },
-                    });
+                    }).end();
                 });
                 // Box().plain();
                 Box().style(&.{
@@ -750,14 +821,16 @@ fn list() void {
                     .layout = .right_center,
                     .padding = .horizontal(12),
                     .child_gap = 24,
-                })({
-                    Button(.{ .on_press = toggleTheme, .aria_label = "toggle theme" }).style(&.{
-                        .visual = .{ .background = .transparent, .cursor = .pointer },
-                    })({
+                }).children({
+                    Button(toggleTheme)
+                        .ariaLabel("toggle theme")
+                        .style(&.{
+                            .visual = .{ .background = .transparent, .cursor = .pointer },
+                        }).children({
                         Icon(.cloud_moon).style(&.{
                             .visual = .{ .font_size = 24, .text_color = .palette(.icon_color) },
                             .interactive = .{ .hover = .{ .text_color = .palette(.tint) } },
-                        });
+                        }).end();
                     });
                 });
             }
@@ -765,7 +838,7 @@ fn list() void {
         Box().style(&.{
             .position = .{ .type = .fixed, .top = if (Vapor.isMobile()) .percent(8) else .percent(8), .left = .percent(8), .z_index = 999 },
             .size = .hw(.percent(100), .mobile_desktop_percent(100, 14)),
-        })({
+        }).children({
             List().style(&.{
                 .list_style = .none,
                 .direction = .column,
@@ -775,24 +848,24 @@ fn list() void {
                 .scroll = .scroll_y(),
                 .show_scrollbar = false,
                 .layout = .{},
-            })({
+            }).children({
                 for (menu_items) |item| {
                     const uuid = Vapor.fmtln("menu-{s}", .{item.link});
                     ListItem()
                         .id(uuid)
                         .style(&.{
-                        .size = .hw(.fit, .percent(100)),
-                        .visual = .{
-                            .background = if (std.mem.eql(u8, current_path, item.link)) .transparentizeHex(.palette(.tint), 0.1) else .transparent,
-                            .border = .r(1, if (std.mem.eql(u8, current_path, item.link)) .palette(.tint) else .transparent),
-                            .layer = if (std.mem.eql(u8, current_path, item.link)) .dot(0.5, 6, .transparentizeHex(.palette(.tint), 0.3)) else null,
-                        },
-                        .interactive = .{
-                            .hover = .{
-                                .background = if (std.mem.eql(u8, current_path, item.link)) .transparentizeHex(.palette(.tint), 0.1) else .palette(.highlight_color),
+                            .size = .hw(.fit, .percent(100)),
+                            .visual = .{
+                                .background = if (std.mem.eql(u8, current_path, item.link)) .transparentizeHex(.palette(.tint), 0.1) else .transparent,
+                                .border = .r(1, if (std.mem.eql(u8, current_path, item.link)) .palette(.tint) else .transparent),
+                                .layer = if (std.mem.eql(u8, current_path, item.link)) .dot(0.5, 6, .transparentizeHex(.palette(.tint), 0.3)) else null,
                             },
-                        },
-                    })({
+                            .interactive = .{
+                                .hover = .{
+                                    .background = if (std.mem.eql(u8, current_path, item.link)) .transparentizeHex(.palette(.tint), 0.1) else .palette(.highlight_color),
+                                },
+                            },
+                        }).children({
                         CtxButton(goto, .{item.link}).style(&.{
                             .visual = .{
                                 .text_decoration = .none,
@@ -803,17 +876,17 @@ fn list() void {
                             .layout = .left_center,
                             .child_gap = 12,
                             .padding = .tblr(10, 10, 8, 8),
-                        })({
+                        }).children({
                             Icon(item.icon).style(&.{
                                 .visual = .{ .text_color = if (std.mem.eql(u8, current_path, item.link)) .palette(.tint) else .palette(.text_color) },
-                            });
+                            }).end();
                             Text(item.title).style(&.{
                                 .visual = .{
                                     .text_color = if (std.mem.eql(u8, current_path, item.link)) .palette(.tint) else .palette(.text_color),
                                     .font_size = 14,
                                 },
                                 .font_family = "Montserrat",
-                            });
+                            }).end();
                         });
                     });
                 }
@@ -822,11 +895,11 @@ fn list() void {
         Stack().style(&.{
             .position = .{ .type = .fixed, .top = if (Vapor.isMobile()) .percent(8) else .percent(8), .right = .percent(2), .z_index = 999 },
             .size = .hw(.percent(100), .mobile_desktop_percent(100, 14)),
-        })({
+        }).children({
             Box().style(&.{
                 .layout = .left_center,
                 .child_gap = 8,
-            })({
+            }).children({
                 Icon(.list_task).font(20, 500, .palette(.text_color)).end();
                 Text("On this page").font(16, 500, .palette(.text_color)).end();
             });
@@ -839,7 +912,7 @@ fn list() void {
                 .scroll = .scroll_y(),
                 .show_scrollbar = false,
                 .layout = .{},
-            })({
+            }).children({
                 if (current_menu_item) |current| {
                     for (current.sections) |section| {
                         const url = Vapor.fmtln("#{s}", .{section.link});
@@ -875,7 +948,7 @@ pub fn render() void {
         .position = .nav,
         .size = .hw(.percent(100), .mobile_desktop_percent(100, 14)),
         .padding = .{ .bottom = 128 },
-    })({
+    }).children({
         list();
     });
 }

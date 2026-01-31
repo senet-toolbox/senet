@@ -70,7 +70,7 @@ pub fn render() void {
         .child_gap = 32,
     })({
         if (getPrevPath()) |item| {
-            Button(.{ .on_press = gotoPrevRoute })
+            Button(gotoPrevRoute)
                 .class("prev-btn")
                 .size(.hw(.px(128), .percent(50)))
                 .border(.simple(.palette(.border_color_light)))
@@ -114,7 +114,7 @@ pub fn render() void {
             });
         }
         if (getNextPathItem()) |item| {
-            Button(.{ .on_press = gotoNextRoute })
+            Button(gotoNextRoute)
                 .class("next-btn")
                 .size(.hw(.px(128), .percent(50)))
                 .border(.simple(.palette(.border_color_light)))

@@ -71,8 +71,6 @@ var text_color: Vapor.Types.Color = .palette(.text_color);
 var total_height: f32 = 0;
 
 // State
-title: []const u8,
-description: []const u8,
 toast_type: ToastType = .info,
 is_visible: bool = false,
 auto_close: bool = true,
@@ -84,6 +82,10 @@ right: f32 = 24,
 width: f32 = 280,
 scale_val: f16 = 1.0,
 height: f32 = 52,
+_title_buffer: [128]u8 = undefined,
+_title_buffer_len: usize = 0,
+_description_buffer: [256]u8 = undefined,
+_description_buffer_len: usize = 0,
 
 // Define animations (using your API style)
 const anim_enter = Animation.init("opaque-toast-enter")
@@ -197,12 +199,31 @@ pub fn init(title: []const u8, description: []const u8, toast_type: ToastType) T
     const id = next_toast_id;
     next_toast_id += 1;
 
-    return Toast{
-        .title = title,
-        .description = description,
+    if (title.len > 128) return {
+        std.log.err("Title too long", .{});
+        return Toast{
+            .toast_type = toast_type,
+            .id = id,
+        };
+    };
+    if (description.len > 256) return {
+        std.log.err("Description too long", .{});
+        return Toast{
+            .toast_type = toast_type,
+            .id = id,
+        };
+    };
+
+    var toast: Toast = undefined;
+    toast = Toast{
         .toast_type = toast_type,
         .id = id,
+        ._title_buffer_len = title.len,
+        ._description_buffer_len = description.len,
     };
+    @memcpy(toast._title_buffer[0..title.len], title);
+    @memcpy(toast._description_buffer[0..description.len], description);
+    return toast;
 }
 
 pub fn show(toast: *Toast) void {
@@ -238,8 +259,7 @@ fn movePreviousUp() void {
 
 fn removeOldestToast(_: void) void {
     if (toasts.items.len == 0) return;
-    const toast = toasts.orderedRemove(0);
-    Vapor.print("Removed {d}", .{toast.id});
+    _ = toasts.orderedRemove(0);
     movePreviousDown();
 }
 
@@ -336,6 +356,7 @@ pub fn renderStackAt(position: StackPosition) void {
     };
 
     Box()
+        .id("opaque-toast-stack")
         .pos(fixed_pos)
         .layout(layout_alignment)
         .spacing(12)
@@ -452,10 +473,10 @@ fn renderToast(toast: *Toast, index: usize, position: StackPosition) void {
             .layout(.left_center)
             .width(.grow)
             .children({
-            Text(toast.title)
+            Text(toast._title_buffer[0..toast._title_buffer_len])
                 .font(14, 600, getTextColor(toast.toast_type))
                 .end();
-            Text(toast.description)
+            Text(toast._description_buffer[0..toast._description_buffer_len])
                 .ellipsis(.dot)
                 .font(13, 400, getTextColor(toast.toast_type))
                 .end();

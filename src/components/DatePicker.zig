@@ -323,12 +323,12 @@ pub fn render(date_picker: *DatePicker) void {
                 Box()
                     .width(.percent(58))
                     .children({
-                    date_picker.months_select.render();
+                    date_picker.months_select.renderPos(.bottom);
                 });
                 Box()
                     .width(.percent(38))
                     .children({
-                    date_picker.years_select.render();
+                    date_picker.years_select.renderPos(.bottom);
                 });
             });
 

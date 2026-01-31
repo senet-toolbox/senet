@@ -113,7 +113,7 @@ pub fn render() void {
     Box().style(&.{
         .child_gap = 24,
         .direction = .column,
-        .size = .w(.percent(100)),
+        .size = .hw(.percent(100), .percent(100)),
     })({
         Text("Just let me build!!!").style(&.{
             .visual = .font(32, 700, .palette(.text_color)),

@@ -2,7 +2,7 @@ const Vapor = @import("vapor");
 const std = @import("std");
 const Box = Vapor.Box;
 const Text = Vapor.Text;
-const TextField = Vapor.TextField;
+const TextArea = Vapor.TextArea;
 const Stack = Vapor.Stack;
 const Center = Vapor.Center;
 const Icon = Vapor.Icon;
@@ -18,6 +18,7 @@ pub const FieldType = enum {
     telephone,
     cvv,
     expiry,
+    float,
 };
 
 var background: Vapor.Types.Background = .palette(.background);
@@ -30,6 +31,7 @@ const FieldValue = union(enum) {
     email: *[]const u8,
     credit_card: *[]const u8,
     telephone: *[]const u8,
+    float: *f32,
 };
 
 pub fn new() void {
@@ -52,6 +54,7 @@ fn getPtrId(val: FieldValue) usize {
         .email => |ptr| @intFromPtr(ptr),
         .credit_card => |ptr| @intFromPtr(ptr),
         .telephone => |ptr| @intFromPtr(ptr),
+        .float => |ptr| @intFromPtr(ptr),
     };
 }
 
@@ -93,6 +96,7 @@ pub fn formatCreditCard(input: []const u8, buf: []u8) []u8 {
 
 pub fn creditCardCallback(callback: Callback, evt: *Vapor.Event) void {
     const credit_card_buf = callback.value.credit_card;
+    credit_card_buf.* = evt.text();
     const text = evt.text();
     if (text.len == 0) return;
     if (text.len > 16) return;
@@ -161,6 +165,7 @@ pub fn formatPhone(input: []const u8, buf: []u8) []u8 {
 
 fn telephoneCallback(callback: Callback, evt: *Vapor.Event) void {
     const telephone_buf = callback.value.telephone;
+    telephone_buf.* = evt.text();
     const text = evt.text();
     if (text.len == 0) return;
     if (text.len > 10) return;
@@ -179,6 +184,18 @@ fn stringCallback(callback: Callback, evt: *Vapor.Event) void {
 
     if (callback.on_change) |on_change| {
         on_change(evt);
+    }
+}
+
+fn stringEnterCallback(callback: Callback, evt: *Vapor.Event) void {
+    if (Vapor.Kit.throttle(60)) return;
+    const key = evt.key();
+    if (std.mem.eql(u8, key, "Enter")) {
+        evt.preventDefault();
+        evt.stopPropagation();
+        if (callback.on_enter) |on_enter| {
+            on_enter(evt);
+        }
     }
 }
 
@@ -212,6 +229,16 @@ fn numberCallback(callback: Callback, evt: *Vapor.Event) void {
     }
 }
 
+fn floatCallback(callback: Callback, evt: *Vapor.Event) void {
+    const float_buf = callback.value.float;
+    const float = evt.float() catch 0;
+    float_buf.* = float;
+
+    if (callback.on_change) |on_change| {
+        on_change(evt);
+    }
+}
+
 const Field = @This();
 label: ?[]const u8 = null,
 field_name: []const u8 = "",
@@ -222,10 +249,12 @@ value: ?FieldValue = null,
 config: Vapor.Types.TextFieldConfig = .{},
 default_value: ?DefaultValue = null,
 on_change: ?*const fn (evt: *Vapor.Event) void = null,
+on_enter: ?*const fn (evt: *Vapor.Event) void = null,
 id: ?[]const u8 = null,
+placeholder: ?DefaultValue = null,
 
 fn handleFocus(id: []const u8, _: *Vapor.Event) void {
-    // Vapor.print("Focus: {s}\n", .{id});
+    Vapor.print("Focus: {s}\n", .{id});
     if (focus_states != null) {
         // We only track the active focus.
         // Optional: You could clear other keys here if you want strictly one focus.
@@ -234,8 +263,8 @@ fn handleFocus(id: []const u8, _: *Vapor.Event) void {
 }
 
 fn handleBlur(id: []const u8, _: *Vapor.Event) void {
+    Vapor.print("Blur: {s}\n", .{id});
     if (focus_states != null) {
-        // Vapor.print("Blur: {s}\n", .{id});
         focus_states.?.put(id, false) catch unreachable;
     }
 }
@@ -248,6 +277,7 @@ fn getFieldType(field_value: FieldType) Vapor.Types.InputTypes {
         .email => .email,
         .credit_card => .string,
         .telephone => .string,
+        .float => .float,
         else => .string,
     };
 }
@@ -260,17 +290,18 @@ fn getFieldTypeFromValue(field_value: FieldValue) FieldType {
         .number => .number,
         .password => .password,
         .credit_card => .credit_card,
+        .float => .float,
         else => .string,
     };
 }
 
-fn ErasedField(field: Field) Vapor.TextFieldBuilder(.pure) {
-    const field_type = getFieldType(field.type);
-
-    return TextField(field_type)
-        .fieldName(field.field_name)
+fn ErasedField() Vapor.TextFieldBuilder(.pure) {
+    return TextArea()
+        .height(.elastic(36, 256))
         .font(14, 300, null)
         .padding(.tblr(8, 8, 12, 12))
+        .resize(.none)
+        .inlineStyle("field-sizing: content;", .{})
         .outline(.none)
         .background(.transparent)
         .fontFamily("Montserrat")
@@ -278,7 +309,22 @@ fn ErasedField(field: Field) Vapor.TextFieldBuilder(.pure) {
 }
 
 fn destroy(stable_id: []const u8) void {
-    _ = focus_states.?.remove(stable_id);
+    _ = focus_states.?.fetchRemove(stable_id); // Don't early return
+
+    const field_value = field_values.fetchRemove(stable_id) orelse return;
+    Vapor.arena(.persist).free(field_value.key);
+
+    // Destroy the inner allocated pointer
+    switch (field_value.value) {
+        .string => |ptr| Vapor.arena(.persist).destroy(ptr),
+        .password => |ptr| Vapor.arena(.persist).destroy(ptr),
+        .email => |ptr| Vapor.arena(.persist).destroy(ptr),
+        .credit_card => |ptr| Vapor.arena(.persist).destroy(ptr),
+        .telephone => |ptr| Vapor.arena(.persist).destroy(ptr),
+        .number => |ptr| Vapor.arena(.persist).destroy(ptr),
+        .bool => |ptr| Vapor.arena(.persist).destroy(ptr),
+        .float => |ptr| Vapor.arena(.persist).destroy(ptr),
+    }
 }
 
 fn checkLength(value: FieldValue) bool {
@@ -293,6 +339,11 @@ fn checkLength(value: FieldValue) bool {
                 return true;
             }
         },
+        .float => |v| {
+            if (v.* > 0) {
+                return true;
+            }
+        },
         else => {},
     }
     return false;
@@ -302,17 +353,28 @@ fn Container() Vapor.Builder(.pure) {
     return Stack()
         .width(.percent(100))
         .spacing(8)
-        .pos(.relative)
-        .height(.px(36));
+        .height(.grow)
+        .pos(.relative);
 }
 
 pub const DefaultValue = union(enum) {
     string: []const u8,
     number: i32,
     bool: bool,
+    float: f32,
 };
 
+fn insertValue(stable_id: []const u8, value: FieldValue) void {
+    _ = field_values.get(stable_id) orelse {
+        const stable_id_alloc = Vapor.arena(.persist).alloc(u8, stable_id.len) catch unreachable;
+        @memcpy(stable_id_alloc, stable_id);
+        field_values.put(stable_id_alloc, value) catch unreachable;
+        focus_states.?.put(stable_id_alloc, false) catch unreachable;
+    };
+}
+
 fn createValue(stable_id: []const u8, field_type: FieldType, default_value: ?DefaultValue) FieldValue {
+    Vapor.print("createValue {s}", .{stable_id});
     return field_values.get(stable_id) orelse {
         const stable_id_alloc = Vapor.arena(.persist).alloc(u8, stable_id.len) catch unreachable;
         @memcpy(stable_id_alloc, stable_id);
@@ -363,6 +425,14 @@ fn createValue(stable_id: []const u8, field_type: FieldType, default_value: ?Def
                 focus_states.?.put(stable_id_alloc, false) catch unreachable;
                 return value;
             },
+            .float => {
+                const float_field = Vapor.arena(.persist).create(f32) catch unreachable;
+                float_field.* = if (default_value) |default| default.float else 0;
+                const value = FieldValue{ .float = float_field };
+                field_values.put(stable_id_alloc, value) catch unreachable;
+                focus_states.?.put(stable_id_alloc, false) catch unreachable;
+                return value;
+            },
             .telephone => {
                 const telephone_field = Vapor.arena(.persist).create([]const u8) catch unreachable;
                 telephone_field.* = if (default_value) |default| default.string else "";
@@ -377,141 +447,45 @@ fn createValue(stable_id: []const u8, field_type: FieldType, default_value: ?Def
 
 const Callback = struct {
     value: FieldValue,
-    on_change: ?*const fn (evt: *Vapor.Event) void,
+    on_change: ?*const fn (evt: *Vapor.Event) void = null,
+    on_enter: ?*const fn (evt: *Vapor.Event) void = null,
 };
 
 pub fn render(field: Field) void {
-    const container = Container();
-    const stable_id = if (field.id) |id| id else container.getUUID();
-    const value = field.value orelse createValue(stable_id, field.type, field.default_value);
-    var field_type = field.type;
+    const text_field: Vapor.TextFieldBuilder(.pure) = ErasedField();
+    const stable_id = text_field.getUUID();
+    var value: FieldValue = undefined;
     if (field.value) |v| {
-        field_type = getFieldTypeFromValue(v);
+        insertValue(stable_id, v);
+        value = v;
+    } else {
+        value = createValue(stable_id, field.type, field.default_value);
     }
 
     // 1. Check focus state
-    const is_focused = if (focus_states) |fs| fs.get(stable_id) orelse false else false;
+    const is_focused = if (focus_states) |fs| fs.get(stable_id) orelse blk: {
+        std.log.info("stable_id {s} doesnt exist", .{stable_id});
+        break :blk false;
+    } else blk: {
+        break :blk false;
+    };
 
-    // 2. Animation / Style variables
-    const trans: f32 = if (is_focused or field.trans_label or checkLength(value)) -50 else 50;
-    const scale: f32 = if (is_focused or field.trans_label or checkLength(value)) 0.9 else 1;
-    // Adjust label left position if there is a left icon so it doesn't clash
-    const label_left: f32 = if (is_focused or field.trans_label) 12 + 12 else 12;
-
-    const z_index: f32 = if (is_focused) 10 else 0;
-    const text_color: Vapor.Types.Color = if (is_focused) .palette(.tint) else .transparentizeHex(.palette(.text_color), 0.5);
-
-    // 3. Calculate Input Padding based on icons
-    // We reserve ~40px of space if an icon is present
-
-    container.border(.round(if (is_focused) .palette(.tint) else .palette(.border_color_light), .all(12)))
+    text_field
+        .border(.round(if (is_focused) .palette(.tint) else .palette(.border_color_light), .all(12)))
+        .outline(.none)
+        .background(background)
         .shadow(.{
             .color = if (is_focused) .transparentizeHex(.palette(.tint), 0.2) else .transparent,
             .spread = 3,
         })
-        .children({
-        Vapor.Static.HooksCtx(.destroy, destroy, .{stable_id})({
-            // --- 3. RENDER LABEL ---
-            if (field.label) |label| {
-                Label(label)
-                    .background(background)
-                    .pos(.{ .left = .px(label_left), .type = .absolute })
-                    .padding(.horizontal(2))
-                    .transition(.{
-                        .properties = &.{ .transform, .scale, .left },
-                        .duration = 100,
-                        .timing = .easeInOut,
-                    })
-                    .inlineStyle("transform: translateY({d}%) scale({d}); z-index: {d};", .{ trans, scale, z_index })
-                    .font(14, 300, text_color)
-                    .fontFamily("Montserrat")
-                    .end();
-            }
-
-            // --- 4. RENDER INPUT FIELD ---
-            switch (field_type) {
-                .string => {
-                    const text_field: Vapor.TextFieldBuilder(.pure) = ErasedField(field);
-                    text_field
-                        // OVERRIDE Padding here to account for icons
-                        .pos(.absolute)
-                        .onEventCtx(.focus, handleFocus, stable_id)
-                        .onEventCtx(.blur, handleBlur, stable_id)
-                        .onEventCtx(.input, stringCallback, Callback{ .value = value, .on_change = field.on_change })
-                        .border(.none)
-                        .width(.percent(100))
-                        .val(value.string)
-                        .end();
-                },
-                .telephone => {
-                    const text_field: Vapor.TextFieldBuilder(.pure) = ErasedField(field);
-                    text_field
-                        // OVERRIDE Padding here to account for icons
-                        .pos(.absolute)
-                        .onEventCtx(.focus, handleFocus, stable_id)
-                        .onEventCtx(.blur, handleBlur, stable_id)
-                        .border(.none)
-                        .width(.percent(100))
-                        .onEventCtx(.input, telephoneCallback, Callback{ .value = value, .on_change = field.on_change })
-                        .val(value.telephone)
-                        .end();
-                },
-                .credit_card => {
-                    const text_field: Vapor.TextFieldBuilder(.pure) = ErasedField(field);
-                    text_field
-                        // OVERRIDE Padding here to account for icons
-                        .pos(.absolute)
-                        .onEventCtx(.focus, handleFocus, stable_id)
-                        .onEventCtx(.blur, handleBlur, stable_id)
-                        .border(.none)
-                        .width(.percent(100))
-                        .onEventCtx(.input, creditCardCallback, Callback{ .value = value, .on_change = field.on_change })
-                        .val(value.credit_card)
-                        .config(.{ .max = 19 })
-                        .end();
-                },
-                .email => {
-                    const text_field: Vapor.TextFieldBuilder(.pure) = ErasedField(field);
-                    text_field
-                        // OVERRIDE Padding here to account for icons
-                        .pos(.absolute)
-                        .onEventCtx(.focus, handleFocus, stable_id)
-                        .onEventCtx(.blur, handleBlur, stable_id)
-                        .width(.percent(100))
-                        .onEventCtx(.input, emailCallback, Callback{ .value = value, .on_change = field.on_change })
-                        .border(.none)
-                        .val(value.email)
-                        .end();
-                },
-                .password => {
-                    const text_field: Vapor.TextFieldBuilder(.pure) = ErasedField(field);
-                    text_field
-                        // OVERRIDE Padding here to account for icons
-                        .pos(.absolute)
-                        .onEventCtx(.focus, handleFocus, stable_id)
-                        .onEventCtx(.blur, handleBlur, stable_id)
-                        .width(.percent(100))
-                        .onEventCtx(.input, passwordCallback, Callback{ .value = value, .on_change = field.on_change })
-                        .border(.none)
-                        .val(value.password)
-                        .end();
-                },
-                .number => {
-                    const text_field: Vapor.TextFieldBuilder(.pure) = ErasedField(field);
-                    text_field
-                        // OVERRIDE Padding here to account for icons
-                        .pos(.absolute)
-                        .onEventCtx(.focus, handleFocus, stable_id)
-                        .onEventCtx(.blur, handleBlur, stable_id)
-                        .border(.none)
-                        .width(.percent(100))
-                        .onEventCtx(.input, numberCallback, Callback{ .value = value, .on_change = field.on_change })
-                        .border(.none)
-                        .config(field.config)
-                        .end();
-                },
-                else => {},
-            }
-        });
-    });
+        // OVERRIDE Padding here to account for icons
+        .onEventCtx(.focus, handleFocus, stable_id)
+        .onEventCtx(.blur, handleBlur, stable_id)
+        .onEventCtx(.input, stringCallback, Callback{ .value = value, .on_change = field.on_change })
+        .onEventCtx(.keydown, stringEnterCallback, Callback{ .value = value, .on_enter = field.on_enter })
+        .width(.percent(100))
+        .val(value.string)
+        .placeholder(if (field.placeholder) |placeholder| placeholder.string else "")
+        .end();
+    // });
 }

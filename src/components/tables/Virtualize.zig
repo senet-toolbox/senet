@@ -25,12 +25,12 @@ pub fn VirtualList(comptime T: type) type {
         };
 
         const Self = @This();
-        data: []const T,
+        data: []const T = undefined,
         render: ?*const fn (T, usize) void = null,
         render_ctx: ?*const fn (T, usize, ?*anyopaque) void = null,
-        item_height: f32,
-        item_width: f32,
-        _internal_slice: []T,
+        item_height: f32 = 0,
+        item_width: f32 = 0,
+        _internal_slice: []T = undefined,
 
         // We only need the outer scrollable container and the list spacer
         inner_container: Binded = undefined,
@@ -39,13 +39,13 @@ pub fn VirtualList(comptime T: type) type {
         container_height: f32 = 0,
         needs_virtualization: bool = false,
 
-        visible_count: usize,
-        buffer_zone: usize,
+        visible_count: usize = 0,
+        buffer_zone: usize = 0,
         current_window_start: usize = 0,
 
         // Tracking for render logic
         prev_scroll_top: f32 = 0,
-        initial_index: usize,
+        initial_index: usize = 0,
 
         ctx: ?*anyopaque = null,
 
@@ -53,6 +53,8 @@ pub fn VirtualList(comptime T: type) type {
             const calculated_item_height = options.item_height.size.min;
             const calculated_item_width = options.item_width.size.min;
             const container_height = if (options.container_height) |height| height else Vapor.lib.browser_height;
+
+            // return Self{};
 
             var item_height: f32 = 0;
             var item_width: f32 = 0;

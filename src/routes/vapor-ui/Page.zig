@@ -1,3 +1,4 @@
+const std = @import("std");
 const Vapor = @import("vapor");
 const Opaque = @import("../../components/Opaque.zig");
 const Templates = @import("../../components/templates/Dashboard.zig");
@@ -26,6 +27,17 @@ const DatePickerPage = @import("../../routes/ui/datepicker/DatePickerPage.zig");
 const DrawerPage = @import("../../routes/ui/drawer/DrawerPage.zig");
 const ToastPage = @import("../../routes/ui/toasts/ToastPage.zig");
 const TextFieldPage = @import("../../routes/ui/textfield/TextFieldPage.zig");
+const ToolTipPage = @import("../../routes/ui/tooltip/ToolTipPage.zig");
+// const CheckBoxPage = @import("../../routes/ui/checkbox/CheckBoxPage.zig");
+const SwitchPage = @import("../../routes/ui/switch/SwitchPage.zig");
+const ProgressPage = @import("../../routes/ui/progress/ProgressPage.zig");
+const SideBarPage = @import("../../routes/ui/sidebar/SideBarPage.zig");
+const SliderPage = @import("../../routes/ui/slider/SliderPage.zig");
+const ComponentsPage = @import("../../routes/ui/components/ComponentsPage.zig");
+const TemplatesPage = @import("../../routes/ui/templates/TemplatesPage.zig");
+const Toast = @import("../../components/Toast.zig");
+const Chat = @import("../../components//templates/Chat.zig");
+const Ecommerce = @import("../../components/templates/Ecommerce.zig");
 
 var login: Login = .{
     .login_title = "Login into Acorn",
@@ -39,10 +51,23 @@ var stripe: Stripe = .{
     .subtitle = "Payment to your account",
 };
 
+pub fn vaporUILayout(page: *const fn () void) void {
+    // VaporUINav.render();
+    Vapor.Spacer(60).end();
+    page();
+    VaporUINav.combobox_dialog.render();
+    Toast.renderStack();
+}
+
 pub fn init() void {
     VaporUINav.init();
-    Vapor.lib.registerLayout("/ui", layout, .{}) catch unreachable;
-    KanbanBoard.init();
+    Vapor.lib.registerLayout("/ui", vaporUILayout, .{ .reset = true }) catch unreachable;
+    Vapor.lib.registerLayout("/vapor-ui", vaporUILayout, .{ .reset = true }) catch unreachable;
+    // TemplatesPage.init();
+
+    // Chat.init();
+    // KanbanBoard.init();
+    Ecommerce.init();
     // Templates.init();
     // Payment.init();
     // stripe.init();
@@ -51,52 +76,69 @@ pub fn init() void {
     //     .github = .{ .client_id = "495370952740521..." },
     //     .apple = .{ .client_id = "1434343434343..." },
     // });
+    // AccordionPage.init();
+    // AlertPage.init();
     // ChartPage.init();
     // ComboBoxPage.init();
     // SelectPage.init();
-    // AccordionPage.init();
-    // AlertPage.init();
     // DatePickerPage.init();
     // DrawerPage.init();
     // DialogPage.init();
     // TablePage.init();
     // ButtonPage.init();
     // CommandPalettePage.init();
-    TextFieldPage.init();
+    // TextFieldPage.init();
+    // ToolTipPage.init();
+    // SwitchPage.init();
+    // ProgressPage.init();
     // ToastPage.init();
-    Vapor.Page(.{ .src = @src() }, render, null);
+    // SideBarPage.init();
+    // SliderPage.init();
+    // ComponentsPage.init();
+    // Vapor.Page(.{ .src = @src() }, render, null);
 }
 
 fn layout(page: *const fn () void) void {
+    const current_path = Vapor.Kit.getWindowPath() orelse "/";
     VaporUINav.render();
+    Vapor.Spacer(60).end();
     page();
-    Box()
-        .width(.percent(100))
-        .layout(.top_center)
-        .padding(.b(32))
-        .children({
+    if (!std.mem.eql(u8, current_path, "/ui/components")) {
         Box()
-            .width(.percent(50))
+            .width(.percent(100))
+            .layout(.top_center)
+            .padding(.b(32))
             .children({
-            Footer.render();
+            Box()
+                .width(.percent(50))
+                .children({
+                Footer.render();
+            });
         });
-    });
+    }
+}
+
+fn setTab(tabs: *Tabs) void {
+    Vapor.print("setTab {s}", .{tabs.active_tab orelse ""});
+    Vapor.lib.store("active_tab", tabs.active_tab orelse "");
 }
 
 pub fn render() void {
+    const stored_tab = Vapor.lib.getStore([]const u8, "active_tab");
     Vapor.Stack()
         .width(.percent(100))
         .layout(.top_center)
         .children({
         Vapor.Stack()
             .layout(.center)
-            .height(.px(512))
+            .height(.px(256))
             .width(.percent(100))
             .children({
             Text("vapor-ui ⇒").style(&.{
                 .visual = .font(12, 500, .hex("#6f6f6f")),
                 .font_family = "IBM Plex Mono,monospace",
             });
+
             Text("vapor-ui")
                 .font(72, 700, .palette(.text_color))
                 .end();
@@ -112,45 +154,55 @@ pub fn render() void {
             .spacing(24)
             .width(.percent(90))
             .children({
-            const index = Tabs.NavBar("vapor-ui", &.{ "Components", "Templates", "Authentication", "Payments", "Stripe" });
+            const index = Tabs.create("vapor-ui", &.{ "Components", "Templates", "Kanban", "Authentication", "Payments", "Stripe" })
+                .default(stored_tab)
+                .onClick(setTab)
+                .render();
             switch (index) {
                 0 => {
-                    // Opaque.View();
-                    KanbanBoard.render();
-                },
-                1 => {
-                    // KanbanBoard.render();
-                    // Templates.render();
-                },
-                2 => {
                     Box()
-                        .width(.percent(100))
-                        .layout(.center)
+                        .a11y(.tabPanel("Components")) // Add this - references the tab button
+                        .id("tabpanel-Components")
+                        .size(.full)
                         .children({
-                        Box()
-                            .direction(.column)
-                            .width(.percent(50))
-                            .children({
-                            login.render();
-                        });
+                        Opaque.View();
                     });
                 },
-                3 => {
-                    Payment.render();
-                },
-                4 => {
-                    Box()
-                        .width(.percent(100))
-                        .layout(.center)
-                        .children({
-                        Box()
-                            .direction(.column)
-                            .width(.percent(50))
-                            .children({
-                            stripe.render();
-                        });
-                    });
-                },
+                // 1 => {
+                // Templates.render();
+                //     },
+                //     // 2 => {
+                // KanbanBoard.render();
+                //     // },
+                //     // 3 => {
+                //     //     Box()
+                //     //         .width(.percent(100))
+                //     //         .layout(.center)
+                //     //         .children({
+                //     //         Box()
+                //     //             .direction(.column)
+                //     //             .width(.percent(50))
+                //     //             .children({
+                //     //             login.render();
+                //     //         });
+                //     //     });
+                //     // },
+                //     // 4 => {
+                //     //     Payment.render();
+                //     // },
+                //     // 5 => {
+                //     //     Box()
+                //     //         .width(.percent(100))
+                //     //         .layout(.center)
+                //     //         .children({
+                //     //         Box()
+                //     //             .direction(.column)
+                //     //             .width(.percent(50))
+                //     //             .children({
+                //     //             stripe.render();
+                //     //         });
+                //     //     });
+                //     // },
 
                 else => {},
             }

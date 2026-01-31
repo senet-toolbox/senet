@@ -203,8 +203,7 @@ pub fn render() void {
     if (show) {
         Static.HooksCtx(.mounted, mount, .{})({
             Static.HooksCtx(.destroy, destroy, .{})({
-                Static.Center()
-                    .style(&.{
+                Static.Center().style(&.{
                     .position = .{
                         .type = .fixed,
                         .top = .percent(0),
@@ -215,35 +214,35 @@ pub fn render() void {
                     },
                     .size = .square_percent(100),
                     .direction = .row,
-                })({
+                }).children({
                     // Static.Box().bind(&background).style(&.{
-                    Static.Button(.{ .on_press = close })
+                    Static.Button(close)
                         .style(&.{
-                        .position = .{
-                            .type = .fixed,
-                            .top = .px(0),
-                            .right = .px(0),
-                            .left = .px(0),
-                            .bottom = .px(0),
-                            .z_index = 1100,
-                        },
-                        .visual = .{ .background = .transparentizeHex(.hex("#000000"), if (Theme.mode == .light) 0.1 else 0.7) },
-                    })({});
+                            .position = .{
+                                .type = .fixed,
+                                .top = .px(0),
+                                .right = .px(0),
+                                .left = .px(0),
+                                .bottom = .px(0),
+                                .z_index = 1100,
+                            },
+                            .visual = .{ .background = .transparentizeHex(.hex("#000000"), if (Theme.mode == .light) 0.1 else 0.7) },
+                        }).children({});
                     Static.Box()
                         // .ref(&binded)
                         .style(&.{
-                        .size = .{ .width = .mobile_desktop_percent(90, 40), .height = .percent(80) },
-                        .visual = .{
-                            .border = .simple(.palette(.text_color)),
-                            // .border_radius = .all(8),
-                            .background = .palette(.background),
-                        },
-                        .padding = .all(12),
-                        .direction = .column,
-                        .layout = .top_center,
-                        .child_gap = 8,
-                        .position = .{ .type = .relative, .z_index = 1101 },
-                    })({
+                            .size = .{ .width = .mobile_desktop_percent(90, 40), .height = .percent(80) },
+                            .visual = .{
+                                .border = .simple(.palette(.text_color)),
+                                // .border_radius = .all(8),
+                                .background = .palette(.background),
+                            },
+                            .padding = .all(12),
+                            .direction = .column,
+                            .layout = .top_center,
+                            .child_gap = 8,
+                            .position = .{ .type = .relative, .z_index = 1101 },
+                        }).children({
                         Static.Box().style(&.{
                             .size = .{ .width = .percent(100) },
                             .layout = .x_between_center,
@@ -254,34 +253,34 @@ pub fn render() void {
                                 },
                             },
                             .visual = .{ .border = .simple(.hex("#E1E1E1")), .cursor = .pointer, .background = .palette(.background) },
-                        })({
+                        }).children({
                             Static.Icon(.search).style(&.{
                                 .visual = .{ .font_size = 16 },
-                            });
+                            }).end();
                             TextField(.string)
                                 .ref(&search_box)
                                 .onChange(search).style(&.{
-                                .size = .hw(.px(38), .grow),
-                                .padding = .tblr(4, 4, 8, 8),
-                                .visual = .{
-                                    .border = .none,
-                                    .font_size = 18,
-                                    .background = .transparent,
-                                    .text_color = .palette(.text_color),
-                                    .outline = .none,
-                                },
-                                .font_family = "IBM Plex Mono,monospace",
-                            });
+                                    .size = .hw(.px(38), .grow),
+                                    .padding = .tblr(4, 4, 8, 8),
+                                    .visual = .{
+                                        .border = .none,
+                                        .font_size = 18,
+                                        .background = .transparent,
+                                        .text_color = .palette(.text_color),
+                                        .outline = .none,
+                                    },
+                                    .font_family = "IBM Plex Mono,monospace",
+                                }).end();
                             Static.Icon(.command).style(&.{
                                 .visual = .{ .font_size = 16 },
-                            });
+                            }).end();
                         });
 
                         TextFmt("Results {d}", .{3}).style(&.{
                             .visual = .{ .font_weight = 700, .font_size = 14 },
                             .size = .{ .width = .percent(100) },
                             .margin = .{ .top = 20 },
-                        });
+                        }).end();
                         Static.List().style(&.{
                             .direction = .column,
                             .size = .{ .width = .percent(100), .height = .percent(100) },
@@ -289,7 +288,7 @@ pub fn render() void {
                             .padding = .all(0),
                             .scroll = .scroll_y(),
                             .child_gap = 16,
-                        })({
+                        }).children({
                             uuids.clearRetainingCapacity();
                             for (dynamic_menu_items.items, 0..) |item, j| {
                                 const border: Vapor.Types.BorderGrouped = if (j != 0) .sharp(.tblr(1, 1, 1, 1), .palette(.text_color)) else .simple(.palette(.text_color));
@@ -299,20 +298,20 @@ pub fn render() void {
                                     .onHoverCtx(onHover, item)
                                     .onLeave(onLeave)
                                     .style(&.{
-                                    .size = .{ .width = .percent(100), .height = .fit },
-                                    .visual = .{
-                                        .cursor = .pointer,
-                                        .border = border,
-                                    },
-                                    .margin = .b(-1),
-                                    .padding = .tblr(8, 8, 8, 8),
-                                    .interactive = .{
-                                        .hover = .{
-                                            .border = .simple(.palette(.tint)),
+                                        .size = .{ .width = .percent(100), .height = .fit },
+                                        .visual = .{
+                                            .cursor = .pointer,
+                                            .border = border,
                                         },
-                                        .hover_position = .{ .z_index = 1000, .type = .relative },
-                                    },
-                                })({
+                                        .margin = .b(-1),
+                                        .padding = .tblr(8, 8, 8, 8),
+                                        .interactive = .{
+                                            .hover = .{
+                                                .border = .simple(.palette(.tint)),
+                                            },
+                                            .hover_position = .{ .z_index = 1000, .type = .relative },
+                                        },
+                                    }).children({
                                     const text_color: Vapor.Types.Color = if (current_item) |c_item| if (std.mem.eql(u8, c_item.id, item.id)) .palette(.tint) else .palette(.text_color) else .palette(.text_color);
                                     // Static.Link(.{ .url = item.link, .aria_label = item.title })
                                     //     .textDecoration(.none)
@@ -345,11 +344,11 @@ pub fn render() void {
                                         Static.Text(item.title).style(&.{
                                             .visual = .{ .font_size = 18, .text_color = text_color, .font_weight = 700 },
                                             .font_family = "IBM Plex Mono,monospace",
-                                        });
+                                        }).end();
                                         Static.Text(item.link).style(&.{
                                             .visual = .{ .font_size = 12, .text_color = text_color },
                                             .font_family = "IBM Plex Mono,monospace",
-                                        });
+                                        }).end();
                                         // });
                                         for (item.tags) |tag| {
                                             Static.Link(.{ .aria_label = tag.sub_title, .url = tag.url }).style(&.{
@@ -358,23 +357,23 @@ pub fn render() void {
                                                 .visual = .{
                                                     .cursor = .pointer,
                                                     .text_decoration = .none,
-                                                    .border = .bottom(.transparent),
+                                                    .border = .bottom(1, .transparent),
                                                 },
                                                 .direction = .column,
                                                 .font_family = "Montserrat",
                                                 // .padding = .horizontal(8),
                                                 .interactive = .{
                                                     .hover = .{
-                                                        .border = .bottom(.palette(.tint)),
+                                                        .border = .bottom(1, .palette(.tint)),
                                                     },
                                                 },
-                                            })({
+                                            }).children({
                                                 Static.Text(tag.sub_title).style(&.{
                                                     .visual = .{ .font_size = 14, .font_weight = 700, .text_color = text_color },
-                                                });
+                                                }).end();
                                                 Static.Text(tag.description).style(&.{
                                                     .visual = .{ .font_size = 14, .text_color = text_color },
-                                                });
+                                                }).end();
                                             });
                                         }
                                     });

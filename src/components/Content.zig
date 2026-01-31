@@ -50,24 +50,9 @@ pub fn new(default_text: []const u8) type {
     return struct {
         const Self = @This();
         var copied: bool = false;
-        var relative_path: []const u8 = "/";
         content_text: []const u8 = default_text,
 
-        pub fn init(_: *Self) void {
-            relative_path = Vapor.Kit.getWindowPath() orelse "";
-        }
-
-        fn mount() void {
-            Vapor.print("Mounted ---- ", .{});
-            // const ids = Vapor.queryComponentIds(.Heading) catch unreachable;
-            // boxes = Vapor.lib.frame_arena.persistentAllocator().alloc(BoxNumber, ids.len) catch unreachable;
-            // for (ids, 0..) |id, i| {
-            //     const bounds = Vapor.getBoundingClientRect(id) orelse unreachable;
-            //     const box_id = std.fmt.allocPrint(Vapor.lib.frame_arena.persistentAllocator(), "box-{d}", .{i}) catch unreachable;
-            //     boxes[i] = .{ .id = box_id, .number = i, .bounds = bounds };
-            // }
-            // Vapor.cycle();
-        }
+        pub fn init(_: *Self) void {}
 
         fn toggleIcon(_: void) void {
             copied = false;
@@ -82,11 +67,6 @@ pub fn new(default_text: []const u8) type {
         }
 
         pub fn content(self: *Self, render: *const fn () void) void {
-            // const current_path = Vapor.Kit.getWindowPath();
-            // if (!std.mem.eql(u8, current_path, relative_path)) {
-            //     Vapor.print("Path changed current: {s} relative: {s}", .{ current_path, relative_path });
-            //     Vapor.onEnd(reinit);
-            // }
 
             // Hooks(.{ .mounted = mount })({
             Box().style(&.{

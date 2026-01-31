@@ -134,6 +134,9 @@ fn render() void {
             .padding(.b(120))
             .children({
 
+            sectionTitle("Toast Usage");
+            sectionDesc("⚠️ Only call renderStack() once in your app, or layouts, Toasts are a global component.");
+
             // ================================================================
             // SECTION: Toast Types
             // ================================================================

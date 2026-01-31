@@ -226,9 +226,9 @@ pub const Draggable = struct {
         // if (self.config.revert_on_invalid_drop and drop_target == null) {
         //     self.revertPosition();
         // } else {
-            // Save current position as new base
-            self.current_x = self.x;
-            self.current_y = self.y;
+        // Save current position as new base
+        self.current_x = self.x;
+        self.current_y = self.y;
         // }
 
         // User callback

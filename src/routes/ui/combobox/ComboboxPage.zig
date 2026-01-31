@@ -6,7 +6,9 @@ const Stack = Vapor.Stack;
 const Icon = Vapor.Icon;
 const Opaque = @import("../../../components/Opaque.zig");
 const Button = Opaque.Button;
-
+const ComboBox = Opaque.ComboBox;
+const Vaporize = @import("vaporize");
+const SyntaxHighlighter = Vaporize.SyntaxHighlighter;
 
 // ============================================================================
 // THEME
@@ -58,7 +60,21 @@ fn section_description(desc: []const u8) void {
 // MAIN RENDER
 // ============================================================================
 
+const Status = enum {
+    pending,
+    success,
+    err,
+};
+
+var combobox: ComboBox(Status) = undefined;
 pub fn init() void {
+    combobox = .fromItems(&.{
+        .{ .value = Status.pending, .label = "Pending" },
+        .{ .value = Status.success, .label = "Success" },
+        .{ .value = Status.err, .label = "Error" },
+    });
+    combobox.trigger = "Status";
+
     Vapor.Page(.{ .src = @src() }, render, null);
 }
 
@@ -74,253 +90,115 @@ fn Card() Vapor.Builder(.pure) {
         .spacing(16);
 }
 
-pub fn render() void {
+// ============================================================================
+// UI COMPONENTS
+// ============================================================================
+
+fn sectionTitle(title: []const u8) void {
+    Text(title)
+        .font(24, 600, Theme.text)
+        .fontFamily("IBM Plex Mono,monospace")
+        .margin(.t(48))
+        .end();
+}
+
+fn sectionDesc(desc: []const u8) void {
+    Text(desc)
+        .font(14, 400, Theme.text_muted)
+        .fontFamily("IBM Plex Mono,monospace")
+        .margin(.b(16))
+        .end();
+}
+
+fn exampleLabel(label: []const u8) void {
+    Text(label)
+        .font(14, 500, Theme.text_muted)
+        .fontFamily("IBM Plex Mono,monospace")
+        .margin(.t(24))
+        .end();
+}
+
+fn PreviewCard() Vapor.Builder(.pure) {
+    return Stack()
+        .background(.transparentizeHex(.palette(.background), 0.5))
+        .border(.round(.palette(.border_color_light), .all(12)))
+        .width(.percent(100))
+        .height(.px(160))
+        .padding(.all(24))
+        .direction(.column)
+        .layout(.center)
+        .spacing(16);
+}
+
+fn CodeBlock(highlighter: *SyntaxHighlighter) void {
+    Box()
+        .scroll(.scroll_y())
+        .size(.hw(.mobile_desktop(.fit, .px(512)), .mobile_desktop_percent(100, 100)))
+        .border(.simple(.palette(.text_color)))
+        .children({
+        highlighter.render() catch unreachable;
+    });
+}
+
+// ============================================================================
+// TEXT FIELD INSTANCES
+// ============================================================================
+
+fn render() void {
     Box()
         .width(.percent(100))
         .layout(.top_center)
         .direction(.column)
         .children({
+
+        // Hero
         Vapor.Stack()
             .layout(.center)
             .height(.px(512))
             .width(.percent(100))
             .children({
-            Text("button-ui ⇒").style(&.{
+            Text("combobox-ui ⇒").style(&.{
                 .visual = .font(12, 500, .hex("#6f6f6f")),
                 .font_family = "IBM Plex Mono,monospace",
             });
-            Text("button-ui")
+            Text("combobox-ui")
                 .font(72, 700, .palette(.text_color))
                 .end();
-            Text("A collection of ready-to-use button components built on top of Vapor. Copy and paste into your apps.")
+            Text("A collection of ready-to-use combobox components built on top of Vapor, copy and paste into your apps.")
                 .font(16, 300, .palette(.text_color))
                 .end();
         });
 
+        // Content
         Stack()
-            .width(.px(720))
+            .width(.percent(50))
             .height(.percent(100))
             .spacing(12)
+            .padding(.b(120))
             .children({
-            // Page Title
-            Text("Button")
-                .font(36, 700, Theme.text)
-                .fontFamily("IBM Plex Mono,monospace")
-                .end();
 
-            Text("Displays a button or a component that looks like a button.")
-                .font(16, 400, Theme.text_muted)
-                .fontFamily("IBM Plex Mono,monospace")
-                .margin(.b(24))
-                .end();
+            // ============================================================
+            // BASIC
+            // ============================================================
+            exampleLabel("Basic");
+            sectionDesc("A simple combobox with the default string type.");
+            PreviewCard().children({
+                combobox.render();
+            });
+            // CodeBlock(&hl_basic);
 
-            // Preview Section
-
-            // Primary
-            Text("Primary")
-                .font(14, 500, Theme.text_muted)
-                .fontFamily("IBM Plex Mono,monospace")
-                .end();
-            Card().children({
-                Button(Vapor.print, .{ "Primary button clicked", .{} })
-                    .background(.palette(.tint))
-                    .children({
-                    Text("Button")
-                        .fontFamily("Montserrat")
-                        .font(14, 500, .palette(.background)).end();
-                });
+            // ============================================================
+            // BASIC
+            // ============================================================
+            exampleLabel("Email and Password");
+            sectionDesc("A Email and Password combobox with specific combobox types.");
+            PreviewCard().children({
             });
 
-            // Secondary
-            Text("Secondary")
-                .font(14, 500, Theme.text_muted)
-                .fontFamily("IBM Plex Mono,monospace")
-                .end();
-            Card().children({
-                Button(Vapor.print, .{ "Secondary button clicked", .{} })
-                    .background(.transparent)
-                    .border(.round(.palette(.border_color_light), .all(8)))
-                    .children({
-                    Text("Secondary")
-                        .fontFamily("Montserrat")
-                        .font(14, 500, .palette(.text_color)).end();
-                });
-            });
-
-            // Outline
-            Text("Outline")
-                .font(14, 500, Theme.text_muted)
-                .fontFamily("IBM Plex Mono,monospace")
-                .end();
-            Card().children({
-                Button(Vapor.print, .{ "Outline button clicked", .{} })
-                    .background(.transparent)
-                    .border(.round(.palette(.tint), .all(8)))
-                    .children({
-                    Text("Outline")
-                        .fontFamily("Montserrat")
-                        .font(14, 500, .palette(.tint)).end();
-                });
-            });
-
-            // Ghost
-            Text("Ghost")
-                .font(14, 500, Theme.text_muted)
-                .fontFamily("IBM Plex Mono,monospace")
-                .end();
-            Card().children({
-                Button(Vapor.print, .{ "Ghost button clicked", .{} })
-                    .background(.transparent)
-                    .children({
-                    Text("Ghost")
-                        .fontFamily("Montserrat")
-                        .font(14, 500, .palette(.text_color)).end();
-                });
-            });
-
-            // Destructive
-            Text("Destructive")
-                .font(14, 500, Theme.text_muted)
-                .fontFamily("IBM Plex Mono,monospace")
-                .end();
-            Card().children({
-                Button(Vapor.print, .{ "Destructive button clicked", .{} })
-                    .background(.hex("#ef4444"))
-                    .children({
-                    Text("Delete")
-                        .fontFamily("Montserrat")
-                        .font(14, 500, .white).end();
-                });
-            });
-
-            // With Icon
-            Text("With Icon")
-                .font(14, 500, Theme.text_muted)
-                .fontFamily("IBM Plex Mono,monospace")
-                .end();
-            Card().children({
-                Button(Vapor.print, .{ "Button with icon clicked", .{} })
-                    .background(.palette(.tint))
-                    .children({
-                    Icon(.envelope)
-                        .font(14, 500, .palette(.background))
-                        .end();
-                    Text("Login with Email")
-                        .fontFamily("Montserrat")
-                        .font(14, 500, .palette(.background)).end();
-                });
-            });
-
-            // Icon Only
-            Text("Icon")
-                .font(14, 500, Theme.text_muted)
-                .fontFamily("IBM Plex Mono,monospace")
-                .end();
-            Card().children({
-                Button(Vapor.print, .{ "Icon button clicked", .{} })
-                    .background(.transparent)
-                    .border(.round(.palette(.border_color_light), .all(8)))
-                    .children({
-                    Icon(.chevron_right)
-                        .font(16, 500, .palette(.text_color))
-                        .end();
-                });
-            });
-
-            // Loading
-            Text("Loading")
-                .font(14, 500, Theme.text_muted)
-                .fontFamily("IBM Plex Mono,monospace")
-                .end();
-            Card().children({
-                Button(Vapor.print, .{ "Loading button clicked", .{} })
-                    .background(.palette(.tint))
-                    .children({
-                    Icon(.arrow_clockwise)
-                        .font(14, 500, .palette(.background))
-                        .end();
-                    Text("Please wait")
-                        .fontFamily("Montserrat")
-                        .font(14, 500, .palette(.background)).end();
-                });
-            });
-
-            // Installation Section
-            section_title("Installation");
-            section_description("Install the button component from your command line.");
-
-            code_snippet("vapor add button");
-
-            // Usage Section
-            section_title("Usage");
-            section_description("Import and use the Button component in your code.");
-
-            code_snippet("const Button = @import(\"components/Button.zig\").Button;");
-
-            // Examples Section
-            section_title("Examples");
-
-            // Primary Button
-            Text("Primary")
-                .font(18, 500, Theme.text)
-                .fontFamily("IBM Plex Mono,monospace")
-                .margin(.t(16))
-                .end();
-
-            code_snippet(
-                \\Button(handleClick, .{})
-                \\    .background(.palette(.tint))
-                \\    .children({
-                \\        Text("Primary").end();
-                \\    });
-            );
-
-            // Secondary Button
-            Text("Secondary")
-                .font(18, 500, Theme.text)
-                .fontFamily("IBM Plex Mono,monospace")
-                .margin(.t(16))
-                .end();
-
-            code_snippet(
-                \\Button(handleClick, .{})
-                \\    .background(.transparent)
-                \\    .border(.round(.palette(.border_color_light), .all(8)))
-                \\    .children({
-                \\        Text("Secondary").end();
-                \\    });
-            );
-
-            // With Icon
-            Text("With Icon")
-                .font(18, 500, Theme.text)
-                .fontFamily("IBM Plex Mono,monospace")
-                .margin(.t(16))
-                .end();
-
-            code_snippet(
-                \\Button(handleClick, .{})
-                \\    .children({
-                \\        Icon(.arrow_right).end();
-                \\        Text("Continue").end();
-                \\    });
-            );
-
-            // API Reference Section
-            section_title("API Reference");
-            section_description("The Button component accepts the following properties.");
-
-            code_snippet(
-                \\// Handler and arguments
-                \\Button(handler_fn, .{ arg1, arg2 })
-                \\
-                \\// Styling
-                \\.background(.palette(.tint))
-                \\.border(.round(.palette(.border_color_light), .all(8)))
-                \\.padding(.xy(16, 10))
-                \\.layout(.center)
-                \\.spacing(8)
-            );
+            // Field.render(.{ .label = "Password", .value = .{ .password = &password }, .trans_label = true });
+            // Field.render(.{ .label = "Phone Number", .value = .{ .number = &phonenumber }, .trans_label = true });
+            // Field.render(.{ .label = "Card Number", .value = .{ .number = &cardnumber }, .trans_label = true });
+            // Field.render(.{ .label = "Card Number", .value = .{ .number = &cardnumber }, .trans_label = true });
         });
     });
 }

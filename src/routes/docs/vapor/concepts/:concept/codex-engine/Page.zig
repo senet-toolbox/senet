@@ -50,7 +50,7 @@ pub fn zoom() void {
 }
 
 pub fn compiler_image() void {
-    Button(.{ .on_press = zoom })
+    Button(zoom)
         .pos(.{ .type = pos_type, .left = .percent(0), .top = .percent(0) })
         .layout(.center)
         .zIndex(999)

@@ -38,6 +38,9 @@ const DontKnowZig = @import("dont-know-zig/Page.zig");
 const ThemeAndIcons = @import("theme-and-icons/Page.zig");
 const Opaque = @import("opaque/Page.zig");
 const ApiCheatSheet = @import("api/Page.zig");
+const Components = @import("components/Page.zig");
+const CommonPatterns = @import("common-patterns/Page.zig");
+const Gotchas = @import("gotchas/Page.zig");
 
 var sheet: Sheet(void, Menu.render) = undefined;
 
@@ -45,6 +48,7 @@ const Routes = enum {
     basics,
     @"new-to-zig",
     vaporize,
+    components,
     routing,
     layout,
     reactivity,
@@ -69,6 +73,8 @@ const Routes = enum {
     @"codex-engine",
     @"dont-know-zig",
     @"theme-and-icons",
+    @"common-patterns",
+    gotchas,
     todo,
     api,
 };
@@ -104,6 +110,9 @@ pub fn init() void {
     DontKnowZig.init();
     ThemeAndIcons.init();
     ApiCheatSheet.init();
+    Components.init();
+    CommonPatterns.init();
+    Gotchas.init();
     Page(.{ .route = "/docs/vapor/concepts/:concept/" }, render, null);
 }
 
@@ -139,6 +148,15 @@ fn getRender(path: []const u8) ?*const fn () void {
                 },
                 .@"opaque" => {
                     return Opaque.render;
+                },
+                .components => {
+                    return Components.render;
+                },
+                .@"common-patterns" => {
+                    return CommonPatterns.render;
+                },
+                .gotchas => {
+                    return Gotchas.render;
                 },
                 // // .introduction => {
                 // //     return Introduction.render;

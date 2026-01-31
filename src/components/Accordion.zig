@@ -37,10 +37,8 @@ pub const AccordionItem = struct {
     }
 
     fn mount(accordon_item: *AccordionItem) void {
-        Vapor.print("Accordion: mount", .{});
         const full_height = accordon_item.binded.getAttributeNumber("scrollHeight") + 52;
         accordon_item.calculated_height = @floatFromInt(full_height);
-        Vapor.print("Full height: {any}", .{full_height});
     }
 
     pub fn render(accordon_item: *AccordionItem) void {

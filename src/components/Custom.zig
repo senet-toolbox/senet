@@ -130,11 +130,10 @@ pub fn code_snippet_single(text: []const u8) void {
             .shadow = .card(.palette(.tint)),
         },
         .padding = .all(8),
-        .size = .square_percent(100),
         .child_gap = 16,
         .layout = .flex,
         .interactive = .{
-            .hover = .{ .text_color = .palette(.tint), .border = .{ .color = .palette(.tint) } },
+            .hover = .{ .text_color = .palette(.tint), .border = .simple(.palette(.tint)) },
         },
         .position = .relative,
     })({

@@ -46,6 +46,7 @@ const VaporUI = @import("routes/vapor-ui/Page.zig");
 const KeyStone = Vapor.KeyStone;
 const Bench = @import("routes/Bench.zig");
 const OverlayManager = @import("components/OverlayManager.zig");
+const AcornDashboard = @import("routes/acorn/Dashboard.zig");
 // const Content = @import("components/Content.zig");
 // const Draggable = Vapor.Draggable;
 //
@@ -61,10 +62,8 @@ const Label = Vapor.Label;
 //
 fn registerLayouts() !void {
     initLayouts();
-    // try Vapor.lib.registerLayout("/", layout, .{});
-    // try Vapor.lib.registerLayout("/docs", layoutDocs, .{ .reset = true });
-    try Vapor.lib.registerLayout("/vapor-ui", vaporUILayout, .{ .reset = true });
-    // try Vapor.lib.registerLayout("/ui", vaporUILayout, .{ .reset = true });
+    try Vapor.lib.registerLayout("/", layout, .{});
+    try Vapor.lib.registerLayout("/docs", layoutDocs, .{ .reset = true });
 }
 
 //
@@ -83,12 +82,7 @@ fn initLayouts() void {
 
 pub fn layout(page: *const fn () void) void {
     Navbar.render();
-    page();
-}
-
-pub fn vaporUILayout(page: *const fn () void) void {
-    VaporUILayout.render();
-    Vapor.Spacer(60).end();
+    Vapor.Spacer(64).end();
     page();
 }
 
@@ -703,29 +697,37 @@ fn LoginPage() void {
     });
 }
 
+fn returnError() void {
+    std.log.info("Hello from Zig!", .{});
+    std.log.err("An error occurred: {d}", .{42});
+    std.log.debug("Debug value: {s}", .{"test"});
+    // unreachable;
+}
+
 fn initPages() void {
-    VaporUI.init();
+    // VaporUI.init();
     // KeyStone.init(.{ .google = .{ .client_id = "868061436260-4irmgvghqm8107i21iodr88r8uu10g5u.apps.googleusercontent.com" } });
     // KeyStone.onAuthChange(onAuthChange);
 
+    AcornDashboard.init();
     // SyncEngine.init();
     // TestPage.init();
     // Bench.init();
     // JsonEditor.init();
     // FilePage.init();
-    // RootPage.init();
     // Vapor.Page(.{ .route = "/" }, RootPage.render, null);
+    // RootPage.init();
     // VaporDocs.init();
     // VaporDocsConcepts.init();
-    // // // // LegoCity.init();
-    // // // // Vapor.Page(.{ .route = "/lego-city" }, LegoCity.render, null);
-    // // // // Vapor.Page(.{ .route = "/error" }, ErrorPage, null); // Weird bug where if you put any route before the "/" it loads that route instead of the root
+    // // LegoCity.init();
+    // // Vapor.Page(.{ .route = "/lego-city" }, LegoCity.render, null);
+    // // Vapor.Page(.{ .route = "/error" }, ErrorPage, null); // Weird bug where if you put any route before the "/" it loads that route instead of the root
     // MetalDocs.init();
     // Huh.init();
     // Install.init();
-
+    //
     // Vapor.Page(.{ .route = "/login" }, LoginPage, null);
-    // // payment.init();
+    // // // payment.init();
     // Vapor.Page(.{ .route = "/payment" }, Payment.render, null);
     // Vapor.Page(.{ .route = "/auth" }, Profile.render, null);
 
@@ -992,7 +994,7 @@ fn App() void {
                 .children({
                 Text("SIGN UP").font(84, 900, .palette(.text_color))
                     .padding(.horizontal(12))
-                    .border(.bottom(.palette(.text_color)))
+                    .border(.bottom(1, .palette(.text_color)))
                     .layout(.center)
                     .width(.percent(100))
                     .end();
@@ -1095,7 +1097,7 @@ const style_config = Vaporize.StyleConfig{
         .layout = .left_center,
         .visual = .{
             .background = .palette(.tint),
-            .border = .bottom(.palette(.border_color)),
+            .border = .bottom(1, .palette(.border_color)),
             .text_color = .palette(.alternate_text_color),
         },
     },
@@ -1105,7 +1107,7 @@ const style_config = Vaporize.StyleConfig{
         .layout = .left_center,
         .visual = .{
             .background = .transparent,
-            .border = .bottom(.palette(.border_color)),
+            .border = .bottom(1, .palette(.border_color)),
             .text_color = .palette(.text_color),
         },
     },
@@ -1114,6 +1116,7 @@ const style_config = Vaporize.StyleConfig{
 // var new_form2: vaporize.comptimeForm(Form2) = undefined;
 pub var vaporize: Vaporize.Compiler = undefined;
 
+const TodoItem = @import("haiku3-5.zig");
 pub export fn init() void {
     // InitializeVapor
     Vapor.init(.{
@@ -1121,27 +1124,75 @@ pub export fn init() void {
         .page_node_count = 10_240,
     });
 
+    // Initialize todo list
+    // TodoItem.init();
+
     OverlayManager.init();
     Opaque.new();
-    Opaque.init();
-    //
+    // Opaque.init();
+
     // vaporize = Vaporize.init(Vapor.arena(.persist), style_config) catch unreachable; // this causes issues
     // initHooks();
-    //
+
     // Global style variables
     Vapor.setGlobalStyleVariables(.{ // Adds 11kb
-        .themes = &[_]Vapor.ThemeDefinition{
+        .themes = &.{
             Vapor.ThemeDefinition{ .name = "light", .theme = Theme.Light, .default = true },
             Vapor.ThemeDefinition{ .name = "dark", .theme = Theme.Dark },
         },
     });
 
-    // Initialize your root component or app
-    registerLayouts() catch |err| {
-        Vapor.lib.printlnSrcErr("Failed to register layout {any}", .{err}, @src());
-    };
+    // // Initialize your root component or app
+    // registerLayouts() catch |err| {
+    //     Vapor.lib.printlnSrcErr("Failed to register layout {any}", .{err}, @src());
+    // };
     initPages();
     // Vapor.Page(.{ .route = "/fjlskfj" }, App2, null);
 }
 
 pub fn main() void {}
+
+// // Import a JS function to handle the panic message
+// extern fn jsPanic(ptr: [*]const u8, len: usize) noreturn;
+//
+// pub const panic = myPanic;
+//
+// fn myPanic(msg: []const u8, _: ?*std.builtin.StackTrace, _: ?usize) noreturn {
+//     // Pass the message to JS before crashing
+//     jsPanic(msg.ptr, msg.len);
+//     // Ensure the Wasm execution actually stops
+//     @trap();
+// }
+
+pub const std_options = std.Options{
+    .log_level = .debug,
+    .logFn = Vapor.lib.log,
+};
+
+// pub const std_options = std.Options{
+//     // Set the log level (optional, defaults to .info in safe modes)
+//     .log_level = .debug,
+//
+//     // Override the log function
+//     .logFn = log,
+// };
+//
+// pub fn log(
+//     comptime level: std.log.Level,
+//     comptime scope: @Type(.enum_literal),
+//     comptime format: []const u8,
+//     args: anytype,
+// ) void {
+//     if (Vapor.lib.isWasi and Vapor.lib.build_options.enable_debug) {
+//         const allocator = Vapor.arena(.persist);
+//         const buf = std.fmt.allocPrint(allocator, format, args) catch return;
+//         const buf_with_src = std.fmt.allocPrint(allocator, "[{any}] [{any}] {s}", .{ level, scope, buf[0..] }) catch return;
+//         _ = Vapor.Wasm.consoleLogWasm(buf_with_src.ptr, buf_with_src.len);
+//         Vapor.arena(.persist).free(buf_with_src);
+//         Vapor.arena(.persist).free(buf);
+//     } else if (!Vapor.lib.isWasi) {
+//         std.debug.print(format, args);
+//     }
+//     // Implementation that calls a 'jsLog' extern function
+//     // similar to the panic handler above.
+// }

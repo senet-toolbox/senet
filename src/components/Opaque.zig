@@ -14,6 +14,8 @@ const ButtonStruct = @import("Button.zig");
 const ComboBoxDialogStruct = @import("ComboBoxDialog.zig");
 const CommandPaletteStruct = @import("CommandPalette.zig");
 const SwitchStruct = @import("Switch.zig");
+const DynamicTableStruct = @import("tables/DynamicTable.zig");
+const PopOverStruct = @import("PopOver.zig");
 const Stack = Vapor.Stack;
 const Center = Vapor.Center;
 const Box = Vapor.Box;
@@ -23,13 +25,123 @@ const Label = Vapor.Label;
 const TextFmt = Vapor.TextFmt;
 const ButtonCtx = Vapor.CtxButton;
 const GroupStruct = @import("Group.zig");
-const TextArea = Vapor.TextArea;
+// const TextArea = Vapor.TextArea;
+const TextAreaStruct = @import("TextArea.zig");
 const FileUpload = @import("FileUpload.zig");
 const DatePickerStruct = @import("DatePicker.zig");
 const TabsStruct = @import("Tabs.zig");
 const OverlayManager = @import("OverlayManager.zig");
-const Slider = @import("Slider.zig");
+const SliderStruct = @import("Slider.zig");
 const Item = @import("OpaqueTypes.zig").Item;
+const SideBarStruct = @import("SideBar.zig");
+const ProgressCircleStruct = @import("ProgressCircle.zig");
+const ProgressBarStruct = @import("ProgressBar.zig");
+const Theme = @import("theme");
+
+const Shadow = Vapor.Types.NewShadow;
+const Color = Vapor.Types.Color;
+
+// @keyframes look-around {
+//    0%,
+//    16.6%,
+//    100% {
+//      transform: translateX(-1.5px) translateY(0);
+//    }
+//    25%,
+//    41.6% {
+//      transform: translateX(1.5px) translateY(0);
+//    }
+//    50%,
+//    66.6% {
+//      transform: translateX(0) translateY(-1.5px);
+//    }
+//    75%,
+//    91.6% {
+//      transform: translateX(0) translateY(0);
+//    }
+//  }
+//
+//
+
+pub const look_around = Vapor.Animation.init("look-around")
+    .at(0).setAll(.{ .translateX = -1.5, .translateY = 0 })
+    .at(16.6).setAll(.{ .translateX = -1.5, .translateY = 0 })
+    .at(25).setAll(.{ .translateX = 1.5, .translateY = 0 })
+    .at(41.6).setAll(.{ .translateX = 1.5, .translateY = 0 })
+    .at(50).setAll(.{ .translateX = 0, .translateY = -1.5 })
+    .at(66.6).setAll(.{ .translateX = 0, .translateY = -1.5 })
+    .at(75).setAll(.{ .translateX = 0, .translateY = 0 })
+    .at(91.6).setAll(.{ .translateX = 0, .translateY = 0 })
+    .at(100).setAll(.{ .translateX = -1.5, .translateY = 0 })
+    .easing(.easeInOut)
+    .duration(2400)
+    .infinite();
+
+pub const text_glitch_chromatic = Vapor.Animation.init("text-glitch-chromatic")
+    .duration(100)
+    .iterations(3)
+    .easing(.linear)
+
+    // 0% - clean
+    .at(0)
+    .set(.translateX, 0)
+    .set(.opacity, 1)
+    .setShadow(.textShadow, Shadow.init()) // No shadow
+
+    // 20% - RGB split left
+    .at(20)
+    .set(.translateX, -8)
+    .set(.skewX, -10)
+    .setShadow(.textShadow, Shadow.init()
+        .drop(-4, 0, 0, .red) // Red left
+        .drop(4, 0, 0, .cyan) // Cyan right
+    )
+
+    // 40% - RGB split right + flicker
+    .at(40)
+    .set(.translateX, 10)
+    .set(.opacity, 0.6)
+    .setShadow(.textShadow, Shadow.init()
+        .drop(6, 2, 0, .green) // Green offset
+        .drop(-6, -2, 0, .magenta) // Magenta opposite
+    )
+
+    // 60% - intense split
+    .at(60)
+    .set(.translateX, -6)
+    .set(.translateY, -4)
+    .set(.opacity, 1)
+    .setShadow(.textShadow, Shadow.init()
+        .drop(-8, 0, 2, .red) // Red offset
+        .drop(8, 0, 2, .cyan))
+
+    // 80% - settling
+    .at(80)
+    .set(.translateX, 3)
+    .set(.skewX, -3)
+    .setShadow(.textShadow, Shadow.init()
+        .drop(-2, 0, 0, .red)
+        .drop(2, 0, 0, .cyan))
+
+    // 100% - clean
+    .at(100)
+    .set(.translateX, 0)
+    .set(.translateY, 0)
+    .set(.skewX, 0)
+    .set(.opacity, 1)
+    .setShadow(.textShadow, Shadow.init()); // Clear shadows
+
+// After - using setAll + autoReset
+pub const text_glitch: Vapor.Animation = Vapor.Animation.init("text-glitch")
+    .duration(100)
+    .iterations(3)
+    .at(10).setAll(.{ .translateX = -8, .skewX = -12, .opacity = 0.9 })
+    .at(25).setAll(.{ .translateX = 12, .translateY = -4, .skewX = 15, .opacity = 0 })
+    .at(40).setAll(.{ .translateX = -6, .translateY = 6, .skewX = -8, .opacity = 1 })
+    .at(55).setAll(.{ .translateX = 4, .translateY = -2, .opacity = 0.5 })
+    .at(70).setAll(.{ .translateX = -10, .skewX = 10, .opacity = 0.8 })
+    .at(85).setAll(.{ .translateX = 3, .translateY = 2, .skewX = -3, .opacity = 1 })
+    .autoReset(); // Automatically adds 100% with all props reset
 
 pub const glitch = Vapor.Animation.init("glitch")
     .duration(200)
@@ -66,6 +178,18 @@ pub const blink = Vapor.Animation.init("blink")
     .at(50)
     .set(.opacity, 0);
 
+pub const fade_in = Vapor.Animation.init("opaque-fade-in")
+    .prop(.opacity, 0, 1)
+    .duration(150)
+    .easing(.easeInOut)
+    .fill(.forwards);
+
+pub const fade_out = Vapor.Animation.init("opaque-fade-out")
+    .prop(.opacity, 1, 0)
+    .duration(150)
+    .easing(.easeInOut)
+    .fill(.forwards);
+
 const Opaque = @This();
 pub fn new() void {
     SelectStruct.new();
@@ -73,20 +197,28 @@ pub fn new() void {
     SheetStruct.new();
     ToastStruct.new();
     FieldStruct.new();
+    TextAreaStruct.new();
     TooltipStruct.new();
     ComboBoxStruct.new();
     SwitchStruct.new();
     GroupStruct.new();
     glitch.build();
+    text_glitch.build();
     blink.build();
+    fade_in.build();
+    fade_out.build();
+    text_glitch_chromatic.build();
+    look_around.build();
     Tabs.new();
-    Slider.new();
+    SliderStruct.new();
     TableStruct.new();
+    PopOverStruct.new();
 }
 
 pub const Table = TableStruct.Table;
 pub const Column = TableStruct.Column;
 pub const Action = TableStruct.Action;
+pub const Row = TableStruct.Row;
 
 pub const Select = SelectStruct.Select;
 
@@ -119,6 +251,27 @@ pub const Group = GroupStruct;
 pub const Tabs = TabsStruct;
 
 pub const DatePicker = DatePickerStruct;
+
+pub const ProgressCircle = ProgressCircleStruct.ProgressCircle;
+
+pub const ProgressBar = ProgressBarStruct.ProgressBar;
+
+pub const SideBar = SideBarStruct;
+
+pub const Slider = SliderStruct;
+
+pub const TextArea = TextAreaStruct;
+
+pub const DynamicTable = DynamicTableStruct.DynamicTable;
+pub const DynamicRow = DynamicTableStruct.DynamicRow;
+pub const PopOver = PopOverStruct;
+
+// pub fn LinearGradient(direction: Vapor.Types.GradientDirection, colors: []const Color) Vapor.Builder(.pure) {
+//     return Box()
+//         .pos(.bl(.px(0), .px(0), .absolute)) // bottom-left
+//         .layer(.gradient(.linear, direction, colors))
+//         .inlineStyle("pointer-events: none;", .{});
+// }
 
 const Status = enum {
     pending,
@@ -396,67 +549,66 @@ fn initTableData() void {
 }
 
 pub fn init() void {
-    Opaque.new();
     data = Vapor.array(Data, .persist);
     initTableData();
     table.init(data.items);
     table.on_select = onSelect;
-    status_select = .fromItems(&status_options);
-    status_select.on_select = onStatusSelect;
-    chart = Chart.init(Vapor.arena(.persist), .{
-        .height = 300 / 1,
-        .width = 600 / 1,
-        // .margin = .{ .top = 0, .bottom = 0, .left = 0, .right = 0 }, // Defaults
-        .palette = .{ .colors = &.{ "#3b82f6", "#ef4444" } },
-    });
+    // status_select = .fromItems(&status_options);
+    // status_select.on_select = onStatusSelect;
+    // chart = Chart.init(Vapor.arena(.persist), .{
+    //     .height = 300 / 1,
+    //     .width = 600 / 1,
+    //     // .margin = .{ .top = 0, .bottom = 0, .left = 0, .right = 0 }, // Defaults
+    //     .palette = .{ .colors = &.{ "#3b82f6", "#ef4444" } },
+    // });
+    //
+    // const sales = [_]Chart.Point{
+    //     .{ .x = 1, .y = 90 },
+    //     .{ .x = 2, .y = 70 },
+    //     .{ .x = 3, .y = 45 },
+    //     .{ .x = 4, .y = 50 },
+    //     .{ .x = 5, .y = 65 },
+    //     .{ .x = 6, .y = 55 },
+    //     .{ .x = 7, .y = 75 },
+    //     .{ .x = 8, .y = 85 },
+    //     .{ .x = 9, .y = 95 },
+    //     .{ .x = 10, .y = 100 },
+    // };
+    //
+    // const costs = [_]Chart.Point{
+    //     .{ .x = 1, .y = 20 },
+    //     .{ .x = 2, .y = 35 },
+    //     .{ .x = 3, .y = 30 },
+    //     .{ .x = 4, .y = 50 },
+    //     .{ .x = 5, .y = 45 },
+    //     .{ .x = 6, .y = 55 },
+    //     .{ .x = 7, .y = 75 },
+    //     .{ .x = 8, .y = 85 },
+    //     .{ .x = 9, .y = 95 },
+    //     .{ .x = 10, .y = 100 },
+    // };
 
-    const sales = [_]Chart.Point{
-        .{ .x = 1, .y = 90 },
-        .{ .x = 2, .y = 70 },
-        .{ .x = 3, .y = 45 },
-        .{ .x = 4, .y = 50 },
-        .{ .x = 5, .y = 65 },
-        .{ .x = 6, .y = 55 },
-        .{ .x = 7, .y = 75 },
-        .{ .x = 8, .y = 85 },
-        .{ .x = 9, .y = 95 },
-        .{ .x = 10, .y = 100 },
-    };
+    // chart.addSeries(.bar, "Sales", &sales, .{ .color = .palette(.chart_bar_color) }) catch unreachable;
+    // chart.addSeries(.line_smooth, "Costs", &costs, .{ .color = .palette(.tint) }) catch unreachable;
+    //
+    // chart.xAxis(.{ .label = "Month", .tick_count = 6 });
+    // chart.yAxis(.{ .label = "USD ($)", .tick_count = 5 });
+    // chart.legend(.{ .position = .top_left });
+    // chart.build() catch unreachable;
+    // sheet = Sheet.init(.bottom);
+    // sheet.content = sample;
+    // alert = Alert.init(content);
 
-    const costs = [_]Chart.Point{
-        .{ .x = 1, .y = 20 },
-        .{ .x = 2, .y = 35 },
-        .{ .x = 3, .y = 30 },
-        .{ .x = 4, .y = 50 },
-        .{ .x = 5, .y = 45 },
-        .{ .x = 6, .y = 55 },
-        .{ .x = 7, .y = 75 },
-        .{ .x = 8, .y = 85 },
-        .{ .x = 9, .y = 95 },
-        .{ .x = 10, .y = 100 },
-    };
-
-    chart.addSeries(.bar, "Sales", &sales, .{ .color = .palette(.chart_bar_color) }) catch unreachable;
-    chart.addSeries(.line_smooth, "Costs", &costs, .{ .color = .palette(.tint) }) catch unreachable;
-
-    chart.xAxis(.{ .label = "Month", .tick_count = 6 });
-    chart.yAxis(.{ .label = "USD ($)", .tick_count = 5 });
-    chart.legend(.{ .position = .top_left });
-    chart.build() catch unreachable;
-    sheet = Sheet.init(.bottom);
-    sheet.content = sample;
-    alert = Alert.init(content);
-
-    combobox = .fromItems(&combobox_options);
-    combobox_dialog = .fromItems(menu_items);
-    combobox_dialog.on_mount = openPalette;
-    combobox_dialog.on_close = closePalette;
-    command_palette.on_click = openSearch;
-    months_select = .fromItems(&months);
-    years_select = .fromItems(&years);
-    accordion = Accordion.init(&items);
-
-    date_picker.init();
+    // combobox = .fromItems(&combobox_options);
+    // combobox_dialog = .fromItems(menu_items);
+    // combobox_dialog.on_mount = openPalette;
+    // combobox_dialog.on_close = closePalette;
+    // command_palette.on_click = openSearch;
+    // months_select = .fromItems(&months);
+    // years_select = .fromItems(&years);
+    // accordion = Accordion.init(&items);
+    //
+    // date_picker.init();
 }
 
 fn openPalette() void {}
@@ -612,13 +764,15 @@ fn onHover(_: *Vapor.Event) void {
 }
 
 pub fn TabsView() void {
-    Tabs.render();
+    Tabs.renderSample();
 }
 
 pub fn View() void {
     Vapor.Stack()
+        .width(.percent(100))
         .children({
         Vapor.Box()
+            .width(.percent(100))
             .spacing(16)
             .padding(.all(32))
             .children({
@@ -633,407 +787,413 @@ pub fn View() void {
                     .children({
                     table.render();
                 });
-                Group.render(.{ .label = "https://example.com", .value = .{ .string = &text }, .icon_left = .plus, .icon_right = .soundwave });
-
-                Box()
-                    .direction(.row)
-                    .padding(.all(16))
-                    .layout(.top_center)
-                    .spacing(16)
-                    .width(.percent(100)).height(.percent(100)).children({
-                    date_picker.render();
-                    Box()
-                        .width(.percent(100))
-                        .children({
-                        Tabs.render();
-                    });
-                });
-                Box()
-                    .width(.percent(100))
-                    .spacing(8)
-                    .children({
-                    Box()
-                        .width(.percent(90))
-                        .border(.round(.palette(.border_color_light), .all(12)))
-                        .padding(.all(16))
-                        .direction(.column)
-                        .spacing(16)
-                        .background(.palette(.background))
-                        .children({
-                        Stack().children({
-                            Box()
-                                .width(.percent(100))
-                                .layout(.x_between_center)
-                                .children({
-                                Text("Billing Information")
-                                    .font(18, 300, .palette(.text_color))
-                                    .end();
-                                Switch.render("file-switch");
-                            });
-                            Text("Billing information is required to process your payment. Use the following information to complete your purchase.")
-                                .font(12, 300, .palette(.text_color))
-                                .end();
-                        });
-                        Box()
-                            .width(.percent(100))
-                            .layout(.x_between_center)
-                            .children({
-                            Button(Vapor.print, .{ "{s}", .{"hello"} })
-                                .ariaLabel("Print Hello")
-                                .width(.px(36))
-                                .height(.px(36))
-                                .border(.round(.palette(.border_color_light), .all(99)))
-                                .layout(.center)
-                                .children({
-                                Vapor.Icon(.plus)
-                                    .font(24, 300, .palette(.text_color))
-                                    .end();
-                            });
-                            Vapor.Stack()
-                                .width(.percent(90))
-                                .children({
-                                Field.render(.{ .label = "Add File", .value = .{ .string = &file_text } });
-                            });
-                        });
-                        Stack()
-                            .width(.percent(100))
-                            .spacing(8)
-                            .children({
-                            Text("Payment Method")
-                                .font(18, 300, .palette(.text_color))
-                                .end();
-                            Field.render(.{ .label = "Card Number", .value = .{ .string = &card_number } });
-                        });
-                        Box()
-                            .width(.percent(100))
-                            .layout(.x_between_center)
-                            .spacing(16)
-                            .children({
-                            Stack()
-                                .width(.percent(60))
-                                .spacing(4)
-                                .children({
-                                Text("Month")
-                                    .font(16, 300, .palette(.text_color))
-                                    .end();
-                                months_select.render();
-                            });
-                            Stack()
-                                .width(.percent(30))
-                                .spacing(4)
-                                .children({
-                                Text("Year")
-                                    .font(16, 300, .palette(.text_color))
-                                    .end();
-                                years_select.render();
-                            });
-                        });
-                        Box()
-                            .width(.percent(100))
-                            .height(.fit)
-                            .layout(.right_center)
-                            .children({
-                            Button(addSuccessToast, .{})
-                                .ariaLabel("Success Toast")
-                                .background(.transparentizeHex(.palette(.tint), 0.7))
-                                .border(.round(.palette(.tint), .all(12)))
-                                .children({
-                                Text("Success")
-                                    .font(14, 300, .palette(.alternate_text_color))
-                                    .fontFamily("IBM Plex Sans,monospace")
-                                    .end();
-                                Vapor.Icon(.send)
-                                    .font(16, 700, .palette(.alternate_text_color))
-                                    .end();
-                            });
-                        });
-                    });
-                    Vapor.Stack()
-                        .width(.percent(8))
-                        .layout(.top_center)
-                        .padding(.tb(8, 8))
-                        .border(.round(.palette(.border_color_light), .all(12)))
-                        .background(.palette(.background))
-                        .spacing(8)
-                        .children({
-                        Button(Vapor.print, .{ "{s}", .{"hello"} })
-                            .ariaLabel("Print Hello")
-                            .width(.px(32))
-                            .height(.px(32))
-                            .border(.round(.palette(.border_color_light), .all(99)))
-                            .layout(.center)
-                            .hover(.{
-                                .transform = .scaleDecimal(1.1),
-                                .text_color = .palette(.tint),
-                                .border = .round(.palette(.tint), .all(99)),
-                            })
-                            .children({
-                            Vapor.Icon(.cloud)
-                                .font(16, 300, null)
-                                .end();
-                        });
-                        Button(Vapor.print, .{ "{s}", .{"hello"} })
-                            .ariaLabel("Print Hello")
-                            .width(.px(32))
-                            .height(.px(32))
-                            .border(.round(.palette(.border_color_light), .all(99)))
-                            .layout(.center)
-                            .hover(.{
-                                .transform = .scaleDecimal(1.1),
-                                .text_color = .palette(.tint),
-                                .border = .round(.palette(.tint), .all(99)),
-                            })
-                            .children({
-                            Vapor.Icon(.motherboard)
-                                .font(16, 300, null)
-                                .end();
-                        });
-                        Button(Vapor.print, .{ "{s}", .{"hello"} })
-                            .ariaLabel("Print Hello")
-                            .width(.px(32))
-                            .height(.px(32))
-                            .border(.round(.palette(.border_color_light), .all(99)))
-                            .layout(.center)
-                            .hover(.{
-                                .transform = .scaleDecimal(1.1),
-                                .text_color = .palette(.tint),
-                                .border = .round(.palette(.tint), .all(99)),
-                            })
-                            .children({
-                            Vapor.Icon(.github)
-                                .font(16, 300, null)
-                                .end();
-                        });
-                        Button(Vapor.print, .{ "{s}", .{"hello"} })
-                            .ariaLabel("Print Hello")
-                            .width(.px(32))
-                            .height(.px(32))
-                            .border(.round(.palette(.border_color_light), .all(99)))
-                            .layout(.center)
-                            .hover(.{
-                                .transform = .scaleDecimal(1.1),
-                                .text_color = .palette(.tint),
-                                .border = .round(.palette(.tint), .all(99)),
-                            })
-                            .children({
-                            Vapor.Icon(.heart_balloon)
-                                .font(16, 300, null)
-                                .end();
-                        });
-                    });
-                });
+                // Group.render(.{ .label = "https://example.com", .value = .{ .string = &text }, .icon_left = .plus, .icon_right = .soundwave });
+                //
+                // Box()
+                //     .direction(.row)
+                //     .padding(.all(16))
+                //     .layout(.top_center)
+                //     .spacing(16)
+                //     .width(.percent(100)).height(.percent(100)).children({
+                //     date_picker.render();
+                //     Box()
+                //         .width(.percent(100))
+                //         .children({
+                //         Tabs.renderSample();
+                //     });
+                // });
+                // Box()
+                //     .width(.percent(100))
+                //     .spacing(8)
+                //     .children({
+                //     Box()
+                //         .width(.percent(90))
+                //         .border(.round(.palette(.border_color_light), .all(12)))
+                //         .padding(.all(16))
+                //         .direction(.column)
+                //         .spacing(16)
+                //         .background(.palette(.background))
+                //         .children({
+                //         Stack().children({
+                //             Box()
+                //                 .width(.percent(100))
+                //                 .layout(.x_between_center)
+                //                 .children({
+                //                 Text("Billing Information")
+                //                     .font(18, 300, .palette(.text_color))
+                //                     .end();
+                //                 Switch.render("file-switch", Vapor.alert, .{ "{s}", .{"Im a switch"} });
+                //             });
+                //             Text("Billing information is required to process your payment. Use the following information to complete your purchase.")
+                //                 .font(12, 300, .palette(.text_color))
+                //                 .end();
+                //         });
+                //         Box()
+                //             .width(.percent(100))
+                //             .layout(.x_between_center)
+                //             .children({
+                //             Button(Vapor.print, .{ "{s}", .{"hello"} })
+                //                 .ariaLabel("Print Hello")
+                //                 .width(.px(36))
+                //                 .height(.px(36))
+                //                 .border(.round(.palette(.border_color_light), .all(99)))
+                //                 .layout(.center)
+                //                 .children({
+                //                 Vapor.Icon(.plus)
+                //                     .font(24, 300, .palette(.text_color))
+                //                     .end();
+                //             });
+                //             Vapor.Stack()
+                //                 .width(.percent(90))
+                //                 .children({
+                //                 Field.render(.{ .label = "Add File", .value = .{ .string = &file_text } });
+                //             });
+                //         });
+                //         Stack()
+                //             .width(.percent(100))
+                //             .spacing(8)
+                //             .children({
+                //             Text("Payment Method")
+                //                 .font(18, 300, .palette(.text_color))
+                //                 .end();
+                //             Field.render(.{ .label = "Card Number", .value = .{ .string = &card_number } });
+                //         });
+                //         Box()
+                //             .width(.percent(100))
+                //             .layout(.x_between_center)
+                //             .spacing(16)
+                //             .children({
+                //             Stack()
+                //                 .width(.percent(60))
+                //                 .spacing(4)
+                //                 .children({
+                //                 Text("Month")
+                //                     .font(16, 300, .palette(.text_color))
+                //                     .end();
+                //                 months_select.render();
+                //             });
+                //             Stack()
+                //                 .width(.percent(30))
+                //                 .spacing(4)
+                //                 .children({
+                //                 Text("Year")
+                //                     .font(16, 300, .palette(.text_color))
+                //                     .end();
+                //                 years_select.render();
+                //             });
+                //         });
+                //         Box()
+                //             .width(.percent(100))
+                //             .height(.fit)
+                //             .layout(.right_center)
+                //             .children({
+                //             Button(addSuccessToast, .{})
+                //                 .ariaLabel("Success Toast")
+                //                 .background(.transparentizeHex(.palette(.tint), 0.7))
+                //                 .border(.round(.palette(.tint), .all(12)))
+                //                 .children({
+                //                 Text("Success")
+                //                     .font(14, 300, .palette(.alternate_text_color))
+                //                     .fontFamily("IBM Plex Sans,monospace")
+                //                     .end();
+                //                 Vapor.Icon(.send)
+                //                     .font(16, 700, .palette(.alternate_text_color))
+                //                     .end();
+                //             });
+                //         });
+                //     });
+                //     Vapor.Stack()
+                //         .width(.percent(8))
+                //         .layout(.top_center)
+                //         .padding(.tb(8, 8))
+                //         .border(.round(.palette(.border_color_light), .all(12)))
+                //         .background(.palette(.background))
+                //         .spacing(8)
+                //         .children({
+                //         Button(Vapor.print, .{ "{s}", .{"hello"} })
+                //             .ariaLabel("Print Hello")
+                //             .width(.px(32))
+                //             .height(.px(32))
+                //             .border(.round(.palette(.border_color_light), .all(99)))
+                //             .layout(.center)
+                //             .hover(.{
+                //                 .transform = .scaleDecimal(1.1),
+                //                 .text_color = .palette(.tint),
+                //                 .border = .round(.palette(.tint), .all(99)),
+                //             })
+                //             .children({
+                //             Vapor.Icon(.cloud)
+                //                 .font(16, 300, null)
+                //                 .end();
+                //         });
+                //         Button(Vapor.print, .{ "{s}", .{"hello"} })
+                //             .ariaLabel("Print Hello")
+                //             .width(.px(32))
+                //             .height(.px(32))
+                //             .border(.round(.palette(.border_color_light), .all(99)))
+                //             .layout(.center)
+                //             .hover(.{
+                //                 .transform = .scaleDecimal(1.1),
+                //                 .text_color = .palette(.tint),
+                //                 .border = .round(.palette(.tint), .all(99)),
+                //             })
+                //             .children({
+                //             Vapor.Icon(.motherboard)
+                //                 .font(16, 300, null)
+                //                 .end();
+                //         });
+                //         Button(Vapor.print, .{ "{s}", .{"hello"} })
+                //             .ariaLabel("Print Hello")
+                //             .width(.px(32))
+                //             .height(.px(32))
+                //             .border(.round(.palette(.border_color_light), .all(99)))
+                //             .layout(.center)
+                //             .hover(.{
+                //                 .transform = .scaleDecimal(1.1),
+                //                 .text_color = .palette(.tint),
+                //                 .border = .round(.palette(.tint), .all(99)),
+                //             })
+                //             .children({
+                //             Vapor.Icon(.github)
+                //                 .font(16, 300, null)
+                //                 .end();
+                //         });
+                //         Button(Vapor.print, .{ "{s}", .{"hello"} })
+                //             .ariaLabel("Print Hello")
+                //             .width(.px(32))
+                //             .height(.px(32))
+                //             .border(.round(.palette(.border_color_light), .all(99)))
+                //             .layout(.center)
+                //             .hover(.{
+                //                 .transform = .scaleDecimal(1.1),
+                //                 .text_color = .palette(.tint),
+                //                 .border = .round(.palette(.tint), .all(99)),
+                //             })
+                //             .children({
+                //             Vapor.Icon(.heart_balloon)
+                //                 .font(16, 300, null)
+                //                 .end();
+                //         });
+                //     });
+                // });
             });
-            Vapor.Stack()
-                .width(.percent(60))
-                .spacing(16)
-                .children({
-                chart.render();
-                Box()
-                    .width(.percent(100))
-                    .height(.fit)
-                    .layout(.right_center)
-                    .children({
-                    Button(regenerate, .{})
-                        .ariaLabel("Regenerate Chart")
-                        .hover(.{ .background = .yellow, .animation = "glitch" })
-                        .border(.round(.palette(.text_color), .all(12)))
-                        .onHover(onHover)
-                        .spacing(16)
-                        .children({
-                        Text("//")
-                            .font(16, 300, .palette(.text_color))
-                            .fontFamily("IBM Plex Sans,monospace")
-                            .end();
-                        Text("Re-generate")
-                            .font(16, 300, .palette(.text_color))
-                            .fontFamily("IBM Plex Sans,monospace")
-                            .end();
-                        Text("_ ↺")
-                            .animation(if (hovered) "blink" else null)
-                            .font(16, 300, .palette(.text_color))
-                            .fontFamily("IBM Plex Sans,monospace")
-                            .end();
-                    });
-                });
-                Box()
-                    .width(.percent(100))
-                    .height(.px(72))
-                    .layout(.center)
-                    .spacing(16)
-                    // .baseStyle(&.{
-                    //     .visual = .{
-                    //         .layers = &.{
-                    //             .gradient(.linear, .to_bottom, &.{ .transparent, .transparentizeHex(.palette(.tint), 0.1), .palette(.background) }),
-                    //             .grid(14, 1, .transparentizeHex(.palette(.tint), 0.05)),
-                    //             // .dot(0.5, 6, .transparentizeHex(.palette(.tint), 0.4)),
-                    //         },
-                    //     },
-                    // })
-                    .children({
-                    Button(Sheet.open, .{&sheet})
-                        .ariaLabel("Open Sheet")
-                        .width(.px(200))
-                        .background(.transparentizeHex(.palette(.tint), 0.7))
-                        .border(.round(.palette(.tint), .all(12)))
-                        .children({
-                        Text("Open Drawer")
-                            .font(16, 300, .palette(.alternate_text_color))
-                            .fontFamily("IBM Plex Sans,monospace")
-                            .end();
-                        Vapor.Icon(.arrow_right)
-                            .font(16, 700, .palette(.alternate_text_color))
-                            .end();
-                    });
-                    combobox.render();
-                });
-                accordion.render();
-                Box()
-                    .width(.percent(100))
-                    .height(.px(128))
-                    .border(.round(.palette(.border_color_light), .all(12)))
-                    .padding(.all(16))
-                    .direction(.column)
-                    .spacing(8)
-                    .children({
-                    Box()
-                        .width(.percent(100))
-                        .layout(.x_between_center)
-                        .children({
-                        Text("Enable Developer Mode")
-                            .font(18, 300, .palette(.text_color))
-                            .end();
-                        Switch.render("test-switch");
-                    });
-                    Text("Switch to developer mode to see developer tools, and debug your application.")
-                        .font(12, 300, .palette(.text_color))
-                        .end();
-                });
-
-                Box()
-                    .width(.percent(100))
-                    .height(.px(256))
-                    .border(.round(.palette(.border_color_light), .all(12)))
-                    .padding(.all(16))
-                    .direction(.column)
-                    .spacing(8)
-                    .children({
-                    Text("Bug Fixes")
-                        .font(24, 300, .palette(.text_color))
-                        .end();
-
-                    Text("Record any bugs you find, and we will fix them ASAP!")
-                        .font(14, 300, .palette(.text_color))
-                        .end();
-
-                    TextArea()
-                        .ariaLabel("Text Area")
-                        .width(.percent(100))
-                        .height(.percent(100))
-                        .outline(.none)
-                        .border(.solid(.tblr(1, 3, 1, 1), .palette(.border_color_light), .all(6)))
-                        .padding(.all(8))
-                        .font(16, 300, .palette(.text_color))
-                        .fontFamily("IBM Plex Sans,monospace")
-                        .resize(.none)
-                        .end();
-
-                    Box()
-                        .width(.percent(100))
-                        .height(.fit)
-                        .layout(.right_center)
-                        .children({
-                        Button(addSuccessToast, .{})
-                            .ariaLabel("Success Toast")
-                            .hover(.{ .background = .yellow, .animation = "glitch" })
-                            .border(.round(.palette(.text_color), .all(12)))
-                            .onHover(onHover)
-                            .spacing(16)
-                            .children({
-                            Text("//")
-                                .font(16, 300, .palette(.text_color))
-                                .fontFamily("IBM Plex Sans,monospace")
-                                .end();
-                            Text("Glitch")
-                                .font(16, 300, .palette(.text_color))
-                                .fontFamily("IBM Plex Sans,monospace")
-                                .end();
-                            Text("_ ⇒")
-                                .animation(if (hovered) "blink" else null)
-                                .font(16, 300, .palette(.text_color))
-                                .fontFamily("IBM Plex Sans,monospace")
-                                .end();
-                        });
-                    });
-                });
-                Button(ComboBoxDialog([]const u8).open, .{&combobox_dialog})
-                    .ariaLabel("Open ComboBox Dialog")
-                    .children({
-                    Text("Open Dialog")
-                        .font(14, 300, .palette(.text_color))
-                        .fontFamily("IBM Plex Sans,monospace")
-                        .end();
-                });
-
-                Box()
-                    .width(.percent(70))
-                    // .height(.px(256))
-                    .border(.round(.palette(.border_color_light), .all(12)))
-                    .padding(.all(16))
-                    .direction(.column)
-                    .spacing(16)
-                    .children({
-                    Stack()
-                        .width(.percent(100))
-                        .layout(.top_left)
-                        .spacing(8)
-                        .children({
-                        Text("Profile")
-                            .font(18, 300, .palette(.text_color))
-                            .end();
-                        Text("Upload your profile picture")
-                            .font(12, 300, .palette(.text_color))
-                            .end();
-                    });
-
-                    Stack()
-                        .layout(.center)
-                        .width(.percent(100))
-                        .children({
-                        Box()
-                            .pos(.relative)
-                            .width(.px(256))
-                            .height(.px(256))
-                            .children({
-                            if (file_upload.image_src.len > 0) {
-                                Vapor.Image(.{ .src = file_upload.image_src })
-                                    .pos(.absolute)
-                                    .width(.px(256))
-                                    .height(.px(256))
-                                    // .newShadow(Vapor.Types.NewShadow.init()
-                                    // .drop(0, 1, 3, .transparentizeHex(.black, 0.1)))
-                                    .border(.round(.transparent, .all(12)))
-                                    .outline(.none)
-                                    .end();
-                            }
-                            Box()
-                                .pos(.absolute)
-                                .width(.px(256))
-                                .height(.px(256))
-                                .children({
-                                file_upload.render();
-                            });
-                        });
-                    });
-                    Field.render(.{ .label = "Email", .value = .{ .string = &text }, .trans_label = true });
-                    Field.render(.{ .label = "Password", .value = .{ .password = &password }, .trans_label = true });
-                    Slider.render(.{});
-                });
-            });
+            // Vapor.Stack()
+            //     .width(.percent(60))
+            //     .spacing(16)
+            //     .children({
+            //     chart.render();
+            //     Box()
+            //         .width(.percent(100))
+            //         .height(.fit)
+            //         .layout(.right_center)
+            //         .children({
+            //         Button(regenerate, .{})
+            //             .ariaLabel("Regenerate Chart")
+            //             .hover(.{
+            //                 .background = if (Theme.mode == .light) .yellow else .palette(.danger),
+            //                 .animation = "glitch",
+            //             })
+            //             .border(.round(.palette(.text_color), .all(12)))
+            //             .onHover(onHover)
+            //             .spacing(16)
+            //             .children({
+            //             Text("//")
+            //                 .font(16, 300, .palette(.text_color))
+            //                 .fontFamily("IBM Plex Sans,monospace")
+            //                 .end();
+            //             Text("Re-generate")
+            //                 .font(16, 300, .palette(.text_color))
+            //                 .fontFamily("IBM Plex Sans,monospace")
+            //                 .end();
+            //             Text("_ ↺")
+            //                 .animation(if (hovered) "blink" else null)
+            //                 .font(16, 300, .palette(.text_color))
+            //                 .fontFamily("IBM Plex Sans,monospace")
+            //                 .end();
+            //         });
+            //     });
+            //     Box()
+            //         .width(.percent(100))
+            //         .height(.px(72))
+            //         .layout(.center)
+            //         .spacing(16)
+            //         // .baseStyle(&.{
+            //         //     .visual = .{
+            //         //         .layers = &.{
+            //         //             .gradient(.linear, .to_bottom, &.{ .transparent, .transparentizeHex(.palette(.tint), 0.1), .palette(.background) }),
+            //         //             .grid(14, 1, .transparentizeHex(.palette(.tint), 0.05)),
+            //         //             // .dot(0.5, 6, .transparentizeHex(.palette(.tint), 0.4)),
+            //         //         },
+            //         //     },
+            //         // })
+            //         .children({
+            //         Button(Sheet.open, .{&sheet})
+            //             .ariaLabel("Open Sheet")
+            //             .width(.px(200))
+            //             .background(.transparentizeHex(.palette(.tint), 0.7))
+            //             .border(.round(.palette(.tint), .all(12)))
+            //             .children({
+            //             Text("Open Drawer")
+            //                 .font(16, 300, .palette(.alternate_text_color))
+            //                 .fontFamily("IBM Plex Sans,monospace")
+            //                 .end();
+            //             Vapor.Icon(.arrow_right)
+            //                 .font(16, 700, .palette(.alternate_text_color))
+            //                 .end();
+            //         });
+            //         combobox.render();
+            //     });
+            //     accordion.render();
+            //     Box()
+            //         .width(.percent(100))
+            //         .height(.px(128))
+            //         .border(.round(.palette(.border_color_light), .all(12)))
+            //         .padding(.all(16))
+            //         .direction(.column)
+            //         .spacing(8)
+            //         .children({
+            //         Box()
+            //             .width(.percent(100))
+            //             .layout(.x_between_center)
+            //             .children({
+            //             Text("Enable Developer Mode")
+            //                 .font(18, 300, .palette(.text_color))
+            //                 .end();
+            //             Switch.render("test-switch", Vapor.alert, .{ "{s}", .{"Im a switch"} });
+            //         });
+            //         Text("Switch to developer mode to see developer tools, and debug your application.")
+            //             .font(12, 300, .palette(.text_color))
+            //             .end();
+            //     });
+            //
+            //     Box()
+            //         .width(.percent(100))
+            //         .height(.px(256))
+            //         .border(.round(.palette(.border_color_light), .all(12)))
+            //         .padding(.all(16))
+            //         .direction(.column)
+            //         .spacing(8)
+            //         .children({
+            //         Text("Bug Fixes")
+            //             .font(24, 300, .palette(.text_color))
+            //             .end();
+            //
+            //         Text("Record any bugs you find, and we will fix them ASAP!")
+            //             .font(14, 300, .palette(.text_color))
+            //             .end();
+            //
+            //         TextArea()
+            //             .ariaLabel("Text Area")
+            //             .width(.percent(100))
+            //             .height(.percent(100))
+            //             .outline(.none)
+            //             .border(.solid(.tblr(1, 3, 1, 1), .palette(.border_color_light), .all(6)))
+            //             .padding(.all(8))
+            //             .font(16, 300, .palette(.text_color))
+            //             .fontFamily("IBM Plex Sans,monospace")
+            //             .resize(.none)
+            //             .end();
+            //
+            //         Box()
+            //             .width(.percent(100))
+            //             .height(.fit)
+            //             .layout(.right_center)
+            //             .children({
+            //             Button(addSuccessToast, .{})
+            //                 .ariaLabel("Success Toast")
+            //                 .hover(.{
+            //                     .background = if (Theme.mode == .light) .yellow else .palette(.danger),
+            //                     .animation = "glitch",
+            //                 })
+            //                 .border(.round(.palette(.text_color), .all(12)))
+            //                 .onHover(onHover)
+            //                 .spacing(16)
+            //                 .children({
+            //                 Text("//")
+            //                     .font(16, 300, .palette(.text_color))
+            //                     .fontFamily("IBM Plex Sans,monospace")
+            //                     .end();
+            //                 Text("Glitch")
+            //                     .font(16, 300, .palette(.text_color))
+            //                     .fontFamily("IBM Plex Sans,monospace")
+            //                     .end();
+            //                 Text("_ ⇒")
+            //                     .animation(if (hovered) "blink" else null)
+            //                     .font(16, 300, .palette(.text_color))
+            //                     .fontFamily("IBM Plex Sans,monospace")
+            //                     .end();
+            //             });
+            //         });
+            //     });
+            //     Button(ComboBoxDialog([]const u8).open, .{&combobox_dialog})
+            //         .ariaLabel("Open ComboBox Dialog")
+            //         .children({
+            //         Text("Open Dialog")
+            //             .font(14, 300, .palette(.text_color))
+            //             .fontFamily("IBM Plex Sans,monospace")
+            //             .end();
+            //     });
+            //
+            //     Box()
+            //         .width(.percent(70))
+            //         // .height(.px(256))
+            //         .border(.round(.palette(.border_color_light), .all(12)))
+            //         .padding(.all(16))
+            //         .direction(.column)
+            //         .spacing(16)
+            //         .children({
+            //         Stack()
+            //             .width(.percent(100))
+            //             .layout(.top_left)
+            //             .spacing(8)
+            //             .children({
+            //             Text("Profile")
+            //                 .font(18, 300, .palette(.text_color))
+            //                 .end();
+            //             Text("Upload your profile picture")
+            //                 .font(12, 300, .palette(.text_color))
+            //                 .end();
+            //         });
+            //
+            //         Stack()
+            //             .layout(.center)
+            //             .width(.percent(100))
+            //             .children({
+            //             Box()
+            //                 .pos(.relative)
+            //                 .width(.px(256))
+            //                 .height(.px(256))
+            //                 .children({
+            //                 if (file_upload.image_src.len > 0) {
+            //                     Vapor.Image(.{ .src = file_upload.image_src })
+            //                         .pos(.absolute)
+            //                         .width(.px(256))
+            //                         .height(.px(256))
+            //                         // .newShadow(Vapor.Types.NewShadow.init()
+            //                         // .drop(0, 1, 3, .transparentizeHex(.black, 0.1)))
+            //                         .border(.round(.transparent, .all(12)))
+            //                         .outline(.none)
+            //                         .end();
+            //                 }
+            //                 Box()
+            //                     .pos(.absolute)
+            //                     .width(.px(256))
+            //                     .height(.px(256))
+            //                     .children({
+            //                     file_upload.render();
+            //                 });
+            //             });
+            //         });
+            //         Field.render(.{ .label = "Email", .value = .{ .string = &text }, .trans_label = true });
+            //         Field.render(.{ .label = "Password", .value = .{ .password = &password }, .trans_label = true });
+            //         Slider.render(.{});
+            //     });
+            // });
         });
-        sheet.render();
-        alert.render();
-        combobox_dialog.render();
-        Toast.renderStack();
+        // sheet.render();
+        // alert.render();
+        // combobox_dialog.render();
+        // Toast.renderStack();
     });
 }
 

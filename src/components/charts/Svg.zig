@@ -79,6 +79,7 @@ pub const Svg = struct {
         if (opts.stroke) |s| try w.print(" stroke=\"{s}\"", .{convertColor(s)});
         if (opts.stroke_width) |sw| try w.print(" stroke-width=\"{d:.2}\"", .{sw});
         if (opts.rx) |r| try w.print(" rx=\"{d:.2}\"", .{r});
+        if (opts.opacity) |o| try w.print(" opacity=\"{d:.2}\"", .{o});
         try w.writeAll("/>\n");
     }
 
@@ -134,6 +135,7 @@ pub const Svg = struct {
         rx: ?f64 = null,
         border: ?Vapor.Types.BorderGrouped = null,
         stroke_width: ?f32 = null,
+        opacity: ?f64 = null,
     };
 
     pub const CircleOpts = struct {
