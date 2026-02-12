@@ -92,18 +92,18 @@ fn render() void {
     Center().height(.percent(100)).background(.hex("#ecf0f1")).children({
         Box().direction(.column).layout(.center).spacing(16).children({
             // Title
-            Text("Tic-Tac-Toe").style(&title_style);
+            Text("Tic-Tac-Toe").style(&title_style).end();
 
             // Status message
             renderStatus();
 
             // Game board
-            Box().style(&board_container_style)({
+            Box().style(&board_container_style).children({
                 renderBoard();
             });
 
             // Reset button
-            Button(resetGame).style(&reset_button_style)({
+            Button(resetGame).style(&reset_button_style).children({
                 Text("New Game").end();
             });
         });
@@ -112,8 +112,6 @@ fn render() void {
 ```
 
 Notice how we break the UI into smaller functions: `renderStatus()` and `renderBoard()`. This keeps our code organized and readable.
-
-Also note that `.style(&some_style)` doesn't need `.children({})` - it directly takes the block with `({})`.
 
 {#board-grid}
 
@@ -152,7 +150,7 @@ fn renderCell(index: usize) void {
     }
 
     if (is_winning) {
-        cell = cell.animation(&win_animation);
+        cell = cell.animation("win-pulse");
     }
 
     cell.children({
@@ -345,7 +343,6 @@ const reset_button_style = Vapor.Style{
 - `.margin = .b(10)` - shorthand for bottom margin (also `.t()`, `.l()`, `.r()`)
 - `.size = .square_px(90)` - creates a 90x90 pixel square
 - `.border = .solid(.all(4), .hex("#color"), .all(12))` - thickness, color, radius
-- When using `.style(&some_style)`, you don't chain `.children({})` - use `({})` directly
 
 {#winning-animation}
 
@@ -390,7 +387,7 @@ if (is_winning) {
 // For newly placed pieces
 Text(if (is_x) "X" else "O")
     .font(44, 700, if (is_x) .hex("#e74c3c") else .hex("#3498db"))
-    .animationEnter(&place_animation)
+    .animationEnter("place")
     .end();
 ```
 
@@ -494,24 +491,34 @@ pub fn init() void {
 // RENDER FUNCTIONS
 // ============================================
 fn render() void {
-    Center().height(.percent(100)).background(.hex("#ecf0f1")).children({
-        Box().direction(.column).layout(.center).spacing(16).children({
-            // Title
-            Text("Tic-Tac-Toe").style(&title_style);
+    Center()
+        .height(.percent(100))
+        .background(.hex("#ecf0f1"))
+        .children({
+            Box()
+                .direction(.column)
+                .layout(.center)
+                .spacing(16)
+                .children({
+                    // Title
+                    Text("Tic-Tac-Toe")
+                        .style(&title_style).end();
 
-            // Status message
-            renderStatus();
+                    // Status
+                    renderStatus();
 
-            // Game board
-            Box().style(&board_container_style)({
-                renderBoard();
+                    // Board
+                    Box()
+                        .style(&board_container_style).children({
+                            renderBoard();
+                    });
+
+                    // Reset Button
+                    Button(resetGame)
+                        .style(&reset_button_style).children({
+                            Text("New Game").end();
+                    });
             });
-
-            // Reset button
-            Button(resetGame).style(&reset_button_style)({
-                Text("New Game").end();
-            });
-        });
     });
 }
 
@@ -538,10 +545,13 @@ fn renderStatus() void {
 }
 
 fn renderBoard() void {
-    Box().width(.px(306)).wrap(.wrap).children({
-        for (0..9) |i| {
-            renderCell(i);
-        }
+    Box()
+        .width(.px(306))
+        .wrap(.wrap)
+        .children({
+            for (0..9) |i| {
+                renderCell(i);
+            }
     });
 }
 
@@ -567,14 +577,14 @@ fn renderCell(index: usize) void {
     }
 
     if (is_winning) {
-        cell = cell.animation(&win_animation);
+        cell = cell.animation("win-pulse");
     }
 
     cell.children({
         if (cell_value) |is_x| {
             Text(if (is_x) "X" else "O")
                 .font(44, 700, if (is_x) .hex("#e74c3c") else .hex("#3498db"))
-                .animationEnter(&place_animation)
+                .animationEnter("place")
                 .end();
         }
     });
@@ -653,6 +663,7 @@ fn resetGame() void {
     winner = null;
     winning_line = null;
 }
+
 ```
 
 ```tsx
@@ -832,14 +843,14 @@ export default TicTacToe;
 
 Congratulations! You've built a complete Tic-Tac-Toe game and learned:
 
-| Concept                   | What You Did                                                |
-| ------------------------- | ----------------------------------------------------------- |
-| **State Management**      | Variables outside `render()` persist between updates        |
-| **Event Handling**        | `Button(fn)` and `ButtonCtx(fn, .{args})`  |
-| **Conditional Rendering** | Standard Zig `if` statements in UI code                     |
-| **Loops**                 | Zig `for` loops to generate repeated UI elements            |
-| **Styling**               | Builder pattern and Style structs with `.style(&style)({})` |
-| **Animations**            | Declarative animations with `Animation.init()`              |
+| Concept                   | What You Did                                         |
+| ------------------------- | ---------------------------------------------------- |
+| **State Management**      | Variables outside `render()` persist between updates |
+| **Event Handling**        | `Button(fn)` and `ButtonCtx(fn, .{args})`            |
+| **Conditional Rendering** | Standard Zig `if` statements in UI code              |
+| **Loops**                 | Zig `for` loops to generate repeated UI elements     |
+| **Styling**               | Builder pattern and Style structs                    |
+| **Animations**            | Declarative animations with `Animation.init()`       |
 
 {#api-quick-reference}
 
@@ -848,7 +859,6 @@ Congratulations! You've built a complete Tic-Tac-Toe game and learned:
 | Pattern                                      | Usage                                                 |
 | -------------------------------------------- | ----------------------------------------------------- |
 | `ButtonCtx(fn, .{args})`                     | Button with context passed to handler                 |
-| `.style(&style_struct)({})`                  | Apply style and children (no `.children()`)           |
 | `.margin(.b(10))`                            | Bottom margin shorthand (also `.t()`, `.l()`, `.r()`) |
 | `.size = .square_px(90)`                     | 90x90 pixel square                                    |
 | `Vapor.Types.Background`                     | Type for background colors                            |

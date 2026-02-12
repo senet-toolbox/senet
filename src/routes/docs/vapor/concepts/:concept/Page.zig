@@ -54,22 +54,14 @@ const Routes = enum {
     reactivity,
     animation,
     performance,
-    @"opaque",
-    // // authentication,
-    // // introduction,
     kit,
     project,
     events,
-    // // // jslibs,
-    // // // bridge,
     justletmebuild,
     styling,
     hooks,
     memory,
-    // // // keystone,
     tutorials,
-    // csr_vs_ssr,
-    // @"ui-inversion",
     @"codex-engine",
     @"dont-know-zig",
     @"theme-and-icons",
@@ -81,6 +73,8 @@ const Routes = enum {
 
 // Initialization
 pub fn init() void {
+    Page(.{ .route = "/docs/vapor/concepts/:concept/" }, render, null);
+
     Basics.init();
     Animation.init();
     Vaporize.init();
@@ -89,7 +83,7 @@ pub fn init() void {
     Reactivity.init();
     Kit.init();
     NewToZig.init();
-    Opaque.init();
+    // Opaque.init();
     // // // Gotchas.init();
     // // // JSLibs.init();
     Events.init();
@@ -113,7 +107,6 @@ pub fn init() void {
     Components.init();
     CommonPatterns.init();
     Gotchas.init();
-    Page(.{ .route = "/docs/vapor/concepts/:concept/" }, render, null);
 }
 
 fn getRender(path: []const u8) ?*const fn () void {
@@ -146,9 +139,9 @@ fn getRender(path: []const u8) ?*const fn () void {
                 .@"dont-know-zig" => {
                     return DontKnowZig.render;
                 },
-                .@"opaque" => {
-                    return Opaque.render;
-                },
+                // .@"opaque" => {
+                //     return Opaque.render;
+                // },
                 .components => {
                     return Components.render;
                 },
@@ -223,17 +216,17 @@ pub fn render() void {
         .layout = .x_between,
         .direction = .column,
         .size = .square_percent(100),
-    })({
+    }).children({
         Box().style(&.{
             .padding = .horizontal(12),
             .direction = .row,
             .size = .w(.percent(100)),
-        })({
+        }).children({
             Center().style(&.{
                 .size = .w(.percent(100)),
                 .padding = .{ .top = 60, .bottom = 120 },
                 .direction = .column,
-            })({
+            }).children({
                 Box().style(&.{
                     .size = .w(.mobile_desktop_percent(100, 50)),
                     // .width = .mobile_desktop_percent(100, 64),
@@ -242,7 +235,7 @@ pub fn render() void {
                     .direction = .column,
                     .padding = .{ .bottom = 80 },
                     .margin = .tb(32, 32),
-                })({
+                }).children({
                     render_page();
                     Footer.render();
                 });

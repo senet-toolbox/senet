@@ -68,7 +68,7 @@ pub fn render() void {
         .size = .w(.percent(100)),
         .layout = .{ .x = .end, .y = .center },
         .child_gap = 32,
-    })({
+    }).children({ 
         if (getPrevPath()) |item| {
             Button(gotoPrevRoute)
                 .class("prev-btn")
@@ -100,7 +100,7 @@ pub fn render() void {
                     .end();
                 Center().style(&.{
                     .child_gap = 12,
-                })({
+                }).children({ 
                     Text(item.label)
                         .baseStyle(&.{
                             .visual = .{
@@ -143,7 +143,7 @@ pub fn render() void {
                     .end();
                 Center().style(&.{
                     .child_gap = 12,
-                })({
+                }).children({ 
                     Text(item.label)
                         .baseStyle(&.{
                             .visual = .{

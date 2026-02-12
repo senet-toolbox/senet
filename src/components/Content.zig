@@ -81,57 +81,59 @@ pub fn new(default_text: []const u8) type {
                     },
                 },
                 .position = .relative,
-            })({
-                List().layout(.{}).pos(.tr(.px(0), .px(0), .absolute)).children({
-                    for (boxes) |box| {
-                        const color: Vapor.Types.Color = if (box.active) .palette(.tint) else .palette(.border_color_light);
-                        ListItem().id(box.id)
-                            // .pos(.tl(.px(box.bounds.top + (box.bounds.height - 56) / 2), .px(box.bounds.left - 56 - 12), .absolute)).zIndex(999)
-                            // .pos(.tr(.px(box.bounds.top + (box.bounds.height - 56) / 2 - 90), .px(-56), .absolute)).zIndex(999)
-                            .pos(.tr(.px(box.bounds.top - 80), .px(-56), .absolute)).zIndex(999)
-                            .width(.px(56))
-                            .height(.px(56))
-                            .border(.simple(color))
-                            .layout(.center)
-                            .children({
-                            TextFmt("{d}", .{box.number}).font(18, 300, color).end();
-                        });
-                    }
-                });
+            }).children({
+                if (Vapor.isDesktop()) {
+                    List().layout(.{}).pos(.tr(.px(0), .px(0), .absolute)).children({
+                        for (boxes) |box| {
+                            const color: Vapor.Types.Color = if (box.active) .palette(.tint) else .palette(.border_color_light);
+                            ListItem().id(box.id)
+                                // .pos(.tl(.px(box.bounds.top + (box.bounds.height - 56) / 2), .px(box.bounds.left - 56 - 12), .absolute)).zIndex(999)
+                                // .pos(.tr(.px(box.bounds.top + (box.bounds.height - 56) / 2 - 90), .px(-56), .absolute)).zIndex(999)
+                                .pos(.tr(.px(box.bounds.top - 80), .px(-56), .absolute)).zIndex(999)
+                                .width(.px(56))
+                                .height(.px(56))
+                                .border(.simple(color))
+                                .layout(.center)
+                                .children({
+                                TextFmt("{d}", .{box.number}).font(18, 300, color).end();
+                            });
+                        }
+                    });
+                }
 
                 Box().style(&.{
                     .size = .w(.percent(100)),
                     .child_gap = 16,
                     .direction = .column,
                     .layout = .{ .x = .start, .y = .start },
-                })({
+                }).children({
                     Box().style(&.{
                         .size = .w(.percent(100)),
                         .layout = .x_between_center,
-                    })({
+                    }).children({
                         Text("Getting Started").style(&.{
                             .visual = .font(16, 600, null),
                             .font_family = "IBM Plex Sans",
                             .size = .w(.grow),
-                        });
+                        }).end();
                         CtxButton(copy, .{self})
                             .ariaLabel("copy-markdown")
                             .style(&.{
-                            .visual = .{ .background = .transparent, .cursor = .pointer },
-                            .size = .w(.fit),
-                            .child_gap = 12,
-                            .padding = .tb(8, 8),
-                            .layout = .right_center,
-                            .interactive = .{ .hover = .{ .text_color = .palette(.tint) } },
-                        })({
+                                .visual = .{ .background = .transparent, .cursor = .pointer },
+                                .size = .w(.fit),
+                                .child_gap = 12,
+                                .padding = .tb(8, 8),
+                                .layout = .right_center,
+                                .interactive = .{ .hover = .{ .text_color = .palette(.tint) } },
+                            }).children({
                             if (copied) {
                                 Icon(.check).style(&.{
                                     .visual = .{ .font_size = 16 },
-                                });
+                                }).end();
                             } else {
                                 Icon(.clipboard).style(&.{
                                     .visual = .{ .font_size = 16 },
-                                });
+                                }).end();
                             }
                         });
                     });
@@ -140,7 +142,7 @@ pub fn new(default_text: []const u8) type {
                         .direction = .column,
                         .size = .hw(.percent(100), .percent(100)),
                         .layout = .{},
-                    })({
+                    }).children({
                         render();
                     });
                 });

@@ -71,7 +71,7 @@ pub fn render() void {
         .size = .w(.percent(100)),
         .layout = .x_between_center,
         .child_gap = 32,
-    })({
+    }).children({
         if (getPrevPath()) |item| {
             Button(gotoPrevRoute)
                 .class("prev-btn")
@@ -86,24 +86,42 @@ pub fn render() void {
                 .hover(.{
                     .border = .{ .color = .palette(.tint), .thickness = .all(1) },
                     .text_color = .palette(.tint),
+                    .fill = .palette(.tint),
                 })
                 .children({
-                Icon(item.icon)
-                    .class("btn-icon")
-                    .fontSize(18)
-                    .height(.px(32))
-                    .font(18, null, .palette(.text_color))
-                    .width(.px(32))
-                    .inheritHover(&.{ .border, .text_color })
-                    .layout(.center)
-                    .border(.{
-                        .color = .palette(.border_color_light),
-                        .thickness = .all(1),
-                    })
-                    .end();
+                if (item.icon == Vapor.IconTokens.cubes_stacked or item.icon == Vapor.IconTokens.microscope or item.icon == Vapor.IconTokens.react) {
+                    Vapor.Svg(.{ .svg = item.icon.svg.?, .override = true })
+                        .class("btn-svg")
+                        .fontSize(18)
+                        .height(.px(32))
+                        .padding(.all(4))
+                        .font(18, null, .palette(.text_color))
+                        .width(.px(32))
+                        .inheritHover(&.{ .border, .text_color, .fill })
+                        .layout(.center)
+                        .border(.{
+                            .color = .palette(.border_color_light),
+                            .thickness = .all(1),
+                        })
+                        .end();
+                } else {
+                    Icon(item.icon)
+                        .class("btn-icon")
+                        .fontSize(18)
+                        .height(.px(32))
+                        .font(18, null, .palette(.text_color))
+                        .width(.px(32))
+                        .inheritHover(&.{ .border, .text_color, .fill })
+                        .layout(.center)
+                        .border(.{
+                            .color = .palette(.border_color_light),
+                            .thickness = .all(1),
+                        })
+                        .end();
+                }
                 Center().style(&.{
                     .child_gap = 12,
-                })({
+                }).children({
                     Text(item.title)
                         .baseStyle(&.{
                             .visual = .{
@@ -130,23 +148,41 @@ pub fn render() void {
                 .hover(.{
                     .border = .{ .color = .palette(.tint), .thickness = .all(1) },
                     .text_color = .palette(.tint),
+                    .fill = .palette(.tint),
                 })
                 .children({
-                Icon(item.icon)
-                    .class("btn-icon")
-                    .font(18, null, .palette(.text_color))
-                    .height(.px(32))
-                    .width(.px(32))
-                    .inheritHover(&.{ .border, .text_color })
-                    .layout(.center)
-                    .border(.{
-                        .color = .palette(.border_color_light),
-                        .thickness = .all(1),
-                    })
-                    .end();
+                if (item.icon == Vapor.IconTokens.cubes_stacked or item.icon == Vapor.IconTokens.microscope or item.icon == Vapor.IconTokens.react) {
+                    Vapor.Svg(.{ .svg = item.icon.svg.?, .override = true })
+                        .class("btn-svg")
+                        .fontSize(18)
+                        .height(.px(32))
+                        .padding(.all(4))
+                        .font(18, null, .palette(.text_color))
+                        .width(.px(32))
+                        .inheritHover(&.{ .border, .text_color, .fill })
+                        .layout(.center)
+                        .border(.{
+                            .color = .palette(.border_color_light),
+                            .thickness = .all(1),
+                        })
+                        .end();
+                } else {
+                    Icon(item.icon)
+                        .class("btn-icon")
+                        .font(18, null, .palette(.text_color))
+                        .height(.px(32))
+                        .width(.px(32))
+                        .inheritHover(&.{ .border, .text_color, .fill })
+                        .layout(.center)
+                        .border(.{
+                            .color = .palette(.border_color_light),
+                            .thickness = .all(1),
+                        })
+                        .end();
+                }
                 Center().style(&.{
                     .child_gap = 12,
-                })({
+                }).children({
                     Text(item.title)
                         .baseStyle(&.{
                             .visual = .{

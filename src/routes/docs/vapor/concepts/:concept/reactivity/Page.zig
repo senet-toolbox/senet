@@ -37,7 +37,7 @@ fn graphics() void {
         .size = .{ .width = .percent(100), .height = .percent(100) },
         .padding = .tb(48, 48),
         .layout = .center,
-    })({
+    }).children({
         Vapor.Graphic(.{ .src = "/assets/event_state_diagram.svg" })
             .fill(.palette(.text_color))
             .stroke(.palette(.text_color))
@@ -110,12 +110,12 @@ fn cycleExample() void {
 
 pub fn init() void {
     content.init();
-    Vapor.Kit.fetch("/src/routes/docs/vapor/concepts/:concept/reactivity/reactivity_page.md", handlePage, .{ .method = .GET });
+    Vapor.Kit.fetch("/documents/reactivity_page.md", handlePage, .{ .method = .GET });
 }
 
 fn handlePage(resp: Vapor.Kit.Response) void {
     switch (resp) {
-        .ok => |data| {
+        .Ok => |data| {
             content.content_text = data.body;
             page = data.body;
             markdown.compile(page) catch |err| {
@@ -124,7 +124,7 @@ fn handlePage(resp: Vapor.Kit.Response) void {
             };
             markdown_loaded = true;
         },
-        .err => |err| {
+        .Err => |err| {
             Vapor.printErr("Failed to fetch: {s}", .{err.message});
             return;
         },

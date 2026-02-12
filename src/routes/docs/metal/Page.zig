@@ -90,30 +90,30 @@ pub fn render() void {
         .padding = .horizontal(12),
         .direction = if (!Vapor.isMobile()) .row else .column,
         .size = .hw(.percent(100), .percent(100)),
-    })({
+    }).children({
         Box().style(&.{
             .size = .hw(.percent(100), .percent(100)),
             .layout = .top_center,
-        })({
+        }).children({
             Box().style(&.{
                 .size = .w(.mobile_desktop_percent(100, 48)),
                 .child_gap = 16,
                 .direction = .column,
                 .layout = .{ .x = .start, .y = .start },
                 .padding = .tb(80, 80),
-            })({
+            }).children({
                 Box().style(&.{
                     .child_gap = 16,
                     .direction = .column,
                     .margin = .{ .bottom = 32 },
                     .size = .w(.percent(100)),
-                })({
+                }).children({
                     Box().style(&.{
                         .layout = .x_between_center,
                         .margin = .{ .top = 0, .bottom = 32 },
                         .child_gap = 32,
-                    })({
-                        // Center.style(&.{ .size = .w(.percent(50)), .margin = .{ .top = 32 } })({
+                    }).children({
+                        // Center.style(&.{ .size = .w(.percent(50)), .margin = .{ .top = 32 } }).children({
                         //     Graphic(.{ .src = "/src/routes/docs/metal/metal.svg" }).style(&.{
                         //         .layout = .center,
                         //         .size = .w(.percent(90)),
@@ -121,7 +121,7 @@ pub fn render() void {
                         // });
                         Stack().style(&.{
                             .size = .w(.percent(100)),
-                        })({
+                        }).children({
                             Text("Metal")
                                 .font(224, 700, .palette(.text_color))
                                 .ml(-16)
@@ -147,8 +147,8 @@ pub fn render() void {
                         .margin = .{ .bottom = 32 },
                         .size = .w(.mobile_desktop_percent(100, 100)),
                         .padding = .horizontal(12),
-                    })({
-                        code_snippet("curl -sSL https://raw.githubusercontent.com/tether-labs/metal/main/install.sh | bash");
+                    }).children({
+                        code_snippet("curl -sSL https://raw.githubusercontent.com/senet-toolbox/metal/main/install.sh | bash");
                         code_snippet("metal create myapp");
                         code_snippet("my-app && metal run web");
                     });
@@ -156,7 +156,7 @@ pub fn render() void {
                     Text("It runs on my Machine!").style(&.{
                         .visual = .font(24, 500, .palette(.text_color)),
                         .font_family = "IBM Plex Sans",
-                    });
+                    }).end();
 
                     Txt(
                         \\As we all know, switching machines, or having to reinstall megabytes of dependencies is a pain,
@@ -172,7 +172,7 @@ pub fn render() void {
                     Text("Binary").style(&.{
                         .visual = .font(24, 500, .palette(.text_color)),
                         .font_family = "IBM Plex Sans",
-                    });
+                    }).end();
 
                     HtmlText(
                         \\Metal is how Vapor, Reverb and Canopy, compile and build the binaries. Depending on persmissions,
@@ -189,22 +189,22 @@ pub fn render() void {
                         Text("Total file count").style(&.{
                             .visual = .font(24, 500, .palette(.text_color)),
                             .font_family = "IBM Plex Sans",
-                        });
+                        }).end();
                         List().direction(.column).children({
-                            ListItem().style(&.{})({
+                            ListItem().style(&.{}).children({
                                 Text("Vapor: server.exe, vapor.wasm, bundle.min.js").style(&.{
                                     .visual = .font(16, null, null),
-                                });
+                                }).end();
                             });
-                            ListItem().style(&.{})({
+                            ListItem().style(&.{}).children({
                                 Text("Reverb: server.exe").style(&.{
                                     .visual = .font(16, null, null),
-                                });
+                                }).end();
                             });
-                            ListItem().style(&.{})({
+                            ListItem().style(&.{}).children({
                                 Text("Canopy: server.exe").style(&.{
                                     .visual = .font(16, null, null),
-                                });
+                                }).end();
                             });
                         });
                     });
@@ -212,7 +212,7 @@ pub fn render() void {
                     Text("Caveat").style(&.{
                         .visual = .font(24, 500, .palette(.text_color)),
                         .font_family = "IBM Plex Sans",
-                    });
+                    }).end();
 
                     Txt(
                         \\Alot of people are going to tell you that, Yes WASM is faster, but the overhead, between JS bridging to WASM, kills

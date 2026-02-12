@@ -286,20 +286,20 @@ fn render() void {
                 .children({
                     // Title
                     Text("Tic-Tac-Toe")
-                        .style(&title_style);
+                        .style(&title_style).end();
 
                     // Status
                     renderStatus();
 
                     // Board
                     Box()
-                        .style(&board_container_style)({
+                        .style(&board_container_style).children({
                             renderBoard();
                     });
 
                     // Reset Button
-                    Button(.{ .on_press = resetGame })
-                        .style(&reset_button_style)({
+                    Button(resetGame)
+                        .style(&reset_button_style).children({
                             Text("New Game").end();
                     });
             });
@@ -361,14 +361,14 @@ fn renderCell(index: usize) void {
     }
 
     if (is_winning) {
-        cell = cell.animation(&win_animation);
+        cell = cell.animation("win-pulse");
     }
 
     cell.children({
         if (cell_value) |is_x| {
             Text(if (is_x) "X" else "O")
                 .font(44, 700, if (is_x) .hex("#e74c3c") else .hex("#3498db"))
-                .animationEnter(&place_animation)
+                .animationEnter("place")
                 .end();
         }
     });

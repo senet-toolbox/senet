@@ -26,6 +26,11 @@ const Action = Opaque.Action;
 const DynamicTable = Opaque.DynamicTable;
 const DynamicRow = Opaque.DynamicRow;
 const PopOver = Opaque.PopOver;
+const DataColumn = Opaque.DataColumn;
+const ColumnType = Opaque.ColumnType;
+const Value = Opaque.Value;
+const RyvenButton = @import("../../components/RyvenButton.zig").Button;
+const Wrap = @import("../../components/RyvenButton.zig").Wrap;
 
 const Select = Opaque.Select;
 
@@ -37,9 +42,48 @@ const Select = Opaque.Select;
 // INITIALIZATION
 // ============================================================================
 
-const columns: []const []const u8 = &.{ "ID", "Name", "Email" };
+const columns: []const DataColumn = &.{
+    DataColumn{
+        .name = "ID",
+        .primary = true,
+        .type = .uuid,
+    },
+    DataColumn{
+        .name = "Name",
+        .type = .string,
+    },
+    DataColumn{
+        .name = "Email",
+        .type = .string,
+    },
+    DataColumn{
+        .name = "Age",
+        .type = .int,
+    },
+    DataColumn{
+        .name = "Salary",
+        .type = .float,
+    },
+    DataColumn{
+        .name = "Is Active",
+        .type = .boolean,
+    },
+    DataColumn{
+        .name = "Created At",
+        .type = .datetime,
+    },
+    DataColumn{
+        .name = "Updated At",
+        .type = .datetime,
+    },
+    DataColumn{
+        .name = "equipment",
+        .type = .array,
+    },
+};
 var table: DynamicTable(columns, .{}) = undefined;
 var search_query: []const u8 = "";
+var query: []const u8 = "";
 var select_columns: Select([]const u8) = undefined;
 var search_select_columns: Select([]const u8) = undefined;
 
@@ -103,14 +147,30 @@ pub fn init() void {
         var row: DynamicRow = undefined;
         // std.StringHashMap(Value).init(Vapor.arena(.persist));
         row = DynamicRow.init(Vapor.arena(.persist));
-        row.put("ID", .{ .string = Vapor.fmtln("{d}", .{i}) }) catch unreachable;
-        row.put("Name", .{ .string = Vapor.fmtln("Vic {d}", .{i}) }) catch unreachable;
-        row.put("Email", .{ .string = Vapor.fmtln("vic{d}@example.com", .{i}) }) catch unreachable;
+        // row.put("ID", .{ .string = Vapor.fmtln("{d}", .{i}) }) catch unreachable;
+        // row.put("Name", .{ .string = Vapor.fmtln("Vic {d}", .{i}) }) catch unreachable;
+        // row.put("Email", .{ .string = Vapor.fmtln("vic{d}@example.com", .{i}) }) catch unreachable;
+
+        const id = std.fmt.allocPrint(Vapor.arena(.persist), "{d}", .{i}) catch unreachable;
+        row.put("ID", .{ .string = id }) catch unreachable;
+
+        const name = std.fmt.allocPrint(Vapor.arena(.persist), "Vic {d}", .{i}) catch unreachable;
+        row.put("Name", .{ .string = name }) catch unreachable;
+
+        const email = std.fmt.allocPrint(Vapor.arena(.persist), "vic{d}@example.com", .{i}) catch unreachable;
+        row.put("Email", .{ .string = email }) catch unreachable;
+
+        row.put("Age", .{ .int = @intCast(i) }) catch unreachable;
+        row.put("Salary", .{ .float = @floatFromInt(i) }) catch unreachable;
+        row.put("Is Active", .{ .boolean = true }) catch unreachable;
+        row.put("Created At", .{ .datetime = Vapor.DateTime.now() }) catch unreachable;
+        row.put("Updated At", .{ .datetime = Vapor.DateTime.now() }) catch unreachable;
+        row.put("equipment", .{ .array = &[_]Value{ .{ .string = "laptop" }, .{ .string = "desktop" } } }) catch unreachable;
         data.append(row) catch unreachable;
     }
 
     table.init(data.items);
-    table.per_page = 12;
+    table.per_page = 18;
     // table.display_mode = .virtual;
 }
 
@@ -122,7 +182,7 @@ fn onSearch(evt: *Vapor.Event) void {
 
 fn onSelect(_: *Select([]const u8), item: *Select([]const u8).Item) void {
     for (columns, 0..) |column, i| {
-        if (std.mem.eql(u8, column, item.value)) {
+        if (std.mem.eql(u8, column.name, item.value)) {
             selected_column = i;
         }
     }
@@ -175,18 +235,27 @@ fn InsertComponent(select: *Select(Insert)) void {
 
 fn FilterBtn() void {
     Box()
-        .width(.px(32))
-        .height(.px(32))
-        .border(.sharp(.all(1), .palette(.border_color_light)))
-        .layout(.center)
-        .hover(.{
-            .background = .palette(.tint),
-            .text_color = .palette(.background),
-        })
+        .background(.transparent)
         .children({
-        Icon(.funnel)
-            .font(14, 300, null)
-            .end();
+        Box()
+            .width(.px(32))
+            .height(.px(32))
+            .background(if (filtering) .hex("#222160") else .transparent)
+            .edges("divider")
+            .border(.sharp(.all(1), .palette(.border_color_light)))
+            .textColor(if (filtering) .white else .palette(.text_color))
+            .layout(.center)
+            .hover(.{
+                .background = .palette(.tint),
+                .text_color = .palette(.background),
+                .border_color = .palette(.tint),
+            })
+            // .edges("button")
+            .children({
+            Icon(.funnel)
+                .font(14, 300, null)
+                .end();
+        });
     });
 }
 
@@ -227,14 +296,17 @@ fn FilterSelectComponent() void {
                 Box()
                     .width(.px(32))
                     .height(.px(32))
-                    .border(.sharp(.all(1), .palette(.border_color_light)))
+                    .background(.transparent)
+                    // .border(.sharp(.all(1), .palette(.border_color_light)))
                     .layout(.center)
                     .hover(.{
                         .background = .palette(.tint),
                         .text_color = .palette(.background),
                     })
+                    // .edges("button")
                     .children({
                     Text(option)
+                        .layout(.left_center)
                         .font(14, 300, null)
                         .end();
                 });
@@ -245,7 +317,7 @@ fn FilterSelectComponent() void {
 
 fn FilterComponent() void {
     Box()
-        .border(.sharp(.all(1), .palette(.border_color_light)))
+        // .border(.sharp(.all(1), .palette(.border_color_light)))
         .background(.palette(.background))
         .margin(.l(-32))
         .width(.px(400))
@@ -266,11 +338,16 @@ fn FilterComponent() void {
                 .end();
 
             Box().width(.grow).children({
-                Field.create(.{ .label = "Search...", .value = .{ .string = &search_query }, .on_change = onSearch })
+                Field.create(.{ .label = "value", .value = .{ .string = &query }, .on_change = onSearch })
                     .Component(FieldComp);
             });
         });
     });
+}
+
+var filtering: bool = false;
+fn onFilterTrigger() void {
+    filtering = !filtering;
 }
 
 // ============================================================================
@@ -279,6 +356,7 @@ fn FilterComponent() void {
 pub fn render() void {
     Stack()
         .width(.percent(100))
+
         // .height(.percent(50))
         .padding(.all(28))
         .scroll(.none())
@@ -289,7 +367,7 @@ pub fn render() void {
             .layout(.left_center)
             .spacing(8)
             .children({
-            PopOver.create(.{ .position = .bottom_right })
+            PopOver.create(.{ .position = .bottom_right, .on_trigger = onFilterTrigger })
                 .Trigger(FilterBtn, .{})
                 .Component(FilterComponent, .{})
                 .end();

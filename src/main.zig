@@ -81,14 +81,13 @@ fn initLayouts() void {
 }
 
 pub fn layout(page: *const fn () void) void {
-    Navbar.render();
-    Vapor.Spacer(64).end();
     page();
+    Navbar.render();
 }
 
 pub fn layoutDocs(page: *const fn () void) void {
-    DocsNavbar.render();
     page();
+    DocsNavbar.render();
 }
 //
 // fn layoutAcorn(page: *const fn () void) void {
@@ -709,22 +708,24 @@ fn initPages() void {
     // KeyStone.init(.{ .google = .{ .client_id = "868061436260-4irmgvghqm8107i21iodr88r8uu10g5u.apps.googleusercontent.com" } });
     // KeyStone.onAuthChange(onAuthChange);
 
-    AcornDashboard.init();
+    // AcornDashboard.init();
+    // Vapor.Page(.{ .route = "/" }, SyncEngine.CrudRender, null);
     // SyncEngine.init();
+
     // TestPage.init();
     // Bench.init();
     // JsonEditor.init();
     // FilePage.init();
-    // Vapor.Page(.{ .route = "/" }, RootPage.render, null);
-    // RootPage.init();
-    // VaporDocs.init();
-    // VaporDocsConcepts.init();
+    Vapor.Page(.{ .route = "/" }, RootPage.render, null);
+    RootPage.init();
+    VaporDocs.init();
+    VaporDocsConcepts.init();
     // // LegoCity.init();
     // // Vapor.Page(.{ .route = "/lego-city" }, LegoCity.render, null);
     // // Vapor.Page(.{ .route = "/error" }, ErrorPage, null); // Weird bug where if you put any route before the "/" it loads that route instead of the root
-    // MetalDocs.init();
-    // Huh.init();
-    // Install.init();
+    MetalDocs.init();
+    Huh.init();
+    Install.init();
     //
     // Vapor.Page(.{ .route = "/login" }, LoginPage, null);
     // // // payment.init();
@@ -1128,10 +1129,11 @@ pub export fn init() void {
     // TodoItem.init();
 
     OverlayManager.init();
-    Opaque.new();
+    Opaque.initAnimations();
+    // Opaque.new();
     // Opaque.init();
 
-    // vaporize = Vaporize.init(Vapor.arena(.persist), style_config) catch unreachable; // this causes issues
+    vaporize = Vaporize.init(Vapor.arena(.persist), .{}) catch unreachable; // this causes issues
     // initHooks();
 
     // Global style variables
@@ -1142,10 +1144,10 @@ pub export fn init() void {
         },
     });
 
-    // // Initialize your root component or app
-    // registerLayouts() catch |err| {
-    //     Vapor.lib.printlnSrcErr("Failed to register layout {any}", .{err}, @src());
-    // };
+    // Initialize your root component or app
+    registerLayouts() catch |err| {
+        Vapor.lib.printlnSrcErr("Failed to register layout {any}", .{err}, @src());
+    };
     initPages();
     // Vapor.Page(.{ .route = "/fjlskfj" }, App2, null);
 }

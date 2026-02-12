@@ -12,11 +12,6 @@ var highlighter: SyntaxHighlighter = undefined;
 
 var line_height: f32 = 22.5;
 
-// Line height
-// const font_size: f32 = 15.0;
-// const line_height_multiplier: f32 = 1.5;
-// const calculated_line_height: f32 = font_size * line_height_multiplier;
-
 var container_height: f32 = 22.5 * 12;
 
 var buffer: [8192]u8 = undefined;
@@ -26,7 +21,8 @@ var arena: std.heap.ArenaAllocator = undefined;
 pub fn init() void {
     arena = std.heap.ArenaAllocator.init(std.heap.wasm_allocator);
     highlighter = SyntaxHighlighter.init(arena.allocator());
-    parse();
+    highlighter.parse(text) catch unreachable;
+    highlighter.validateJSON() catch unreachable;
 
     text = std.fmt.bufPrint(&buffer, "{s}", .{text}) catch unreachable;
 }
@@ -54,7 +50,7 @@ fn onChange(evt: *Vapor.Event) void {
 
 pub fn parse() void {
     // _ = arena.reset(.retain_capacity);
-    highlighter.parse(text) catch unreachable;
+    highlighter.recompile(text) catch unreachable;
     highlighter.validateJSON() catch unreachable;
 }
 
@@ -427,7 +423,6 @@ var binded_highlighter: Vapor.Binded = .{};
 
 var copied: bool = false;
 fn copy() void {
-    Vapor.print("Copying {s}", .{text});
     Vapor.Clipboard.copy(text);
     copied = true;
     Vapor.registerCtxTimeout("json_editor_copy", 1000, toggleIcon, .{{}});
@@ -452,7 +447,7 @@ pub fn render() void {
             Text("JSON")
                 .font(16, 600, .white)
                 .end();
-            Vapor.Button(.{ .on_press = copy })
+            Vapor.Button(copy)
                 .cursor(.pointer)
                 .background(.transparent)
                 .size(.square_px(24))
@@ -472,7 +467,7 @@ pub fn render() void {
             .pos(.relative)
             .layout(.center)
             .spacing(16)
-            .background(.palette(.background))
+            .background(.hex("#282828"))
             .children({
             Box()
                 .ref(&binded_highlighter)
@@ -480,7 +475,7 @@ pub fn render() void {
                 .width(.percent(100))
                 .padding(.horizontal(12))
                 .scroll(.scroll_y())
-                .border(.simple(.palette(.text_color)))
+                // .border(.simple(.palette(.text_color)))
                 // .background(.hex("#1e1e1e"))
                 .pos(.tl(.percent(0), .percent(0), .absolute)).children({
                 highlighter.renderAST(highlighter.root) catch unreachable;
@@ -503,10 +498,11 @@ pub fn render() void {
                     .border(.simple(.transparent))
                     .height(.percent(100))
                     .whitespace(.pre)
-                    .padding(.tblr(12, 0, 36, 0))
-                    .caret(.{ .type = .block, .color = .palette(.text_color) })
-                    .font(15, null, .transparent)
+                    .padding(.tblr(12, 0, 48, 0))
                     .fontFamily("DM Mono, monospace")
+                    .caret(.{ .type = .block, .color = .white })
+                    .textDecoration(.none)
+                    .font(15, 400, .transparent)
                     .onScroll(onScroll)
                     .onChange(onChange)
                     .onKeyDown(onKeyDown)

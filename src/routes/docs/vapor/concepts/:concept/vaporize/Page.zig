@@ -45,7 +45,7 @@ const SimpleForm = struct {
     password: []const u8 = "",
 };
 
-var simple_form: Compiler.vaporize.Form(SimpleForm) = .{};
+var simple_form: Vaporize.Form(SimpleForm) = .{};
 
 fn SimpleFormComponent() void {
     Stack()
@@ -64,7 +64,7 @@ fn SimpleFormComponent() void {
     });
 }
 
-var new_form: Compiler.vaporize.Form(Form) = .{
+var new_form: Vaporize.Form(Form) = .{
     .on_submit = onSubmit,
 };
 
@@ -74,7 +74,7 @@ fn onSubmit(form: Form) void {
 
 pub fn init() void {
     // markdown.compile(vaporize_page) catch unreachable;
-    Vapor.Kit.fetch("/src/routes/docs/vapor/concepts/:concept/vaporize/vaporize_page.md", handlePage, .{ .method = .GET });
+    Vapor.Kit.fetch("/documents/vaporize_page.md", handlePage, .{ .method = .GET });
     generated_markdown.compile(table) catch |err| {
         Vapor.printErr("Failed to compile markdown: {any} invalid input", .{err});
         return;
@@ -89,7 +89,7 @@ pub fn init() void {
 
 fn handlePage(resp: Vapor.Kit.Response) void {
     switch (resp) {
-        .ok => |data| {
+        .Ok => |data| {
             content.content_text = data.body;
             page = data.body;
             markdown.compile(page) catch |err| {
@@ -98,7 +98,7 @@ fn handlePage(resp: Vapor.Kit.Response) void {
             };
             markdown_loaded = true;
         },
-        .err => |err| {
+        .Err => |err| {
             Vapor.printErr("Failed to fetch: {s}", .{err.message});
             return;
         },
@@ -107,7 +107,7 @@ fn handlePage(resp: Vapor.Kit.Response) void {
 }
 
 fn onChange(evt: *Vapor.Event) void {
-    generated_markdown.compile(evt.text()) catch |err| {
+    generated_markdown.recompile(evt.text()) catch |err| {
         Vapor.printErr("Failed to compile markdown: {any} invalid input", .{err});
         return;
     };

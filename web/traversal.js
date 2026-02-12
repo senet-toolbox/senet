@@ -357,7 +357,7 @@ function createLinkElement(element, uinode) {
     element.ariaLabel = readWasmString(label, length);
   }
 
-  element.addEventListener("click", function(event) {
+  element.addEventListener("click", function (event) {
     event.preventDefault();
 
     const clickedHref = event.currentTarget.href;
@@ -855,6 +855,10 @@ export function createElementByType(uinode) {
       element.muted = videoView.getUint8(9) === 1;
       element.loop = videoView.getUint8(10) === 1;
       element.controls = videoView.getUint8(11) === 1;
+      element.setAttribute(
+        "loading",
+        videoView.getUint8(12) === 1 ? "lazy" : "eager",
+      );
       break;
 
     case COMPONENT_TYPES.SPACER:
@@ -940,7 +944,7 @@ export function updateElement(element, uinode) {
   // Update text content if needed
   if (uinode.changedProps > 0) {
     if (
-      (uinode.textLen > 0 && uinode.elemType === COMPONENT_TYPES.TEXT) ||
+      (uinode.textLen >= 0 && uinode.elemType === COMPONENT_TYPES.TEXT) ||
       uinode.elemType === COMPONENT_TYPES.HEADER ||
       uinode.elemType === COMPONENT_TYPES.ALLOC_TEXT ||
       uinode.elemType === COMPONENT_TYPES.HEADING ||
@@ -981,8 +985,6 @@ export function updateElement(element, uinode) {
       element.innerHTML = text;
     } else if (uinode.elemType === COMPONENT_TYPES.IMAGE) {
       const src = readWasmString(uinode.hrefPtr, uinode.hrefLen);
-      console.log("Image", src);
-      console.log("Image", element);
       element.src = src;
     } else if (uinode.elemType === COMPONENT_TYPES.SVG) {
       const svgString = readWasmString(uinode.textPtr, uinode.textLen);
@@ -1008,6 +1010,10 @@ export function updateElement(element, uinode) {
       element.muted = videoView.getUint8(9) === 1;
       element.loop = videoView.getUint8(10) === 1;
       element.controls = videoView.getUint8(11) === 1;
+      element.setAttribute(
+        "loading",
+        videoView.getUint8(12) === 1 ? "lazy" : "eager",
+      );
     }
     if (uinode.accessibility) {
       applyAccessibility(element, uinode.offset);

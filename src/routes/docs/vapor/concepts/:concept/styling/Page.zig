@@ -29,12 +29,12 @@ var markdown: Compiler.vaporize.MarkDown(.{
 var page: []const u8 = "";
 var markdown_loaded: bool = false;
 pub fn init() void {
-    Vapor.Kit.fetch("/src/routes/docs/vapor/concepts/:concept/styling/styling_page.md", handlePage, .{ .method = .GET });
+    Vapor.Kit.fetch("/documents/styling_page.md", handlePage, .{ .method = .GET });
 }
 
 fn handlePage(resp: Vapor.Kit.Response) void {
     switch (resp) {
-        .ok => |data| {
+        .Ok => |data| {
             content.content_text = data.body;
             page = data.body;
             markdown.compile(page) catch |err| {
@@ -43,7 +43,7 @@ fn handlePage(resp: Vapor.Kit.Response) void {
             };
             markdown_loaded = true;
         },
-        .err => |err| {
+        .Err => |err| {
             Vapor.printErr("Failed to fetch: {s}", .{err.message});
             return;
         },
@@ -108,7 +108,7 @@ fn samples() void {
                 .font(48, 700, .white).fontFamily("Montserrat").end();
         });
 
-        Box().style(&common_style)({
+        Box().style(&common_style).children({
             Text("Top right Text").fontSize(14).end();
         });
 
@@ -117,12 +117,12 @@ fn samples() void {
             Text("Top left Text").fontSize(14).end();
         });
 
-        Button(clicked).style(&pill_button_base)({
+        Button(clicked).style(&pill_button_base).children({
             Text("Click Me").fontSize(18).end();
         });
 
         // Here we merge the pill style,
-        Button(clicked).style(&mergedStyle())({
+        Button(clicked).style(&mergedStyle()).children({
             Text("Click Me").fontSize(18).end();
         });
     });

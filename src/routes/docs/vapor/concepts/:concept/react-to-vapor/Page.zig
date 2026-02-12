@@ -17,12 +17,12 @@ var generated_markdown: Compiler.vaporize.MarkDown(.{}) = .{};
 pub fn init() void {
     Page(.{ .route = "react-to-vapor" }, render, null);
 
-    Vapor.Kit.fetch("/src/routes/docs/vapor/concepts/:concept/react-to-vapor/react_to_vapor_page.md", handlePage, .{ .method = .GET });
+    Vapor.Kit.fetch("/documents/react_to_vapor_page.md", handlePage, .{ .method = .GET });
 }
 
 fn handlePage(resp: Vapor.Kit.Response) void {
     switch (resp) {
-        .ok => |data| {
+        .Ok => |data| {
             content.content_text = data.body;
             page = data.body;
             markdown.compile(page) catch |err| {
@@ -31,7 +31,7 @@ fn handlePage(resp: Vapor.Kit.Response) void {
             };
             markdown_loaded = true;
         },
-        .err => |err| {
+        .Err => |err| {
             Vapor.printErr("Failed to fetch: {s}", .{err.message});
             return;
         },
@@ -58,19 +58,19 @@ pub fn render() void {
             },
         },
         .position = .relative,
-    })({
+    }).children({
         Box().style(&.{
             .size = .w(.percent(80)),
             .child_gap = 16,
             .direction = .column,
             .layout = .{ .x = .start, .y = .start },
-        })({
+        }).children({
             Box().style(&.{
                 .child_gap = 4,
                 .direction = .column,
                 .size = .hw(.percent(100), .percent(100)),
                 .layout = .{},
-            })({
+            }).children({
                 component();
             });
         });

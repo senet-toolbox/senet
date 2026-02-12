@@ -1,3 +1,7 @@
+# Vapor Framework Context for LLM Assistance
+
+Paste this into your conversation when asking for help with Vapor code.
+
 # Vapor Framework - Complete Development Guide
 
 ## Overview
@@ -36,22 +40,16 @@ fn render() void {
 
 ### 2. String Copying
 
-User input from TextField points to a reusable buffer. You MUST copy it before storing.
+User input from TextField points to a reusable buffer. It uses a String Table under the hood.
 
 ```zig
 var input_text: []const u8 = "";
 var saved_items: [100][]const u8 = undefined;
 var item_count: usize = 0;
 
-// ❌ WRONG - input_text will be overwritten
-fn saveWrong() void {
-    saved_items[item_count] = input_text;
-}
-
 // ✅ CORRECT - copy to persistent memory
 fn saveCorrect() void {
-    const copy = Vapor.arena(.persist).dupe(u8, input_text) catch return;
-    saved_items[item_count] = copy;
+    saved_items[item_count] = input_text;
     item_count += 1;
     input_text = "";
 }
@@ -331,7 +329,7 @@ TextField(.string)
 
 // Input types
 TextField(.string)     // Text
-TextField(.int)        // Numbers  
+TextField(.int)        // Numbers
 TextField(.password)   // Password
 TextField(.email)      // Email
 ```
@@ -651,7 +649,7 @@ fn setMessage(new_message: []const u8) void {
 fn render() void {
     Text(count).end();
     Text(message).end();
-    
+
     Button(increment).children({
         Text("Add").end();
     });
@@ -687,10 +685,10 @@ fn addToCart(product: *const Product) void {
             return;
         }
     }
-    
+
     // Copy strings to same arena as array
     const name_copy = Vapor.arena(.persist).dupe(u8, product.name) catch return;
-    cart.append(.{ 
+    cart.append(.{
         .id = product.id,
         .name = name_copy,
         .price = product.price,
@@ -819,12 +817,12 @@ Box()
 
 ### Handler Signature Reference
 
-| Pattern | Handler Signature |
-|---------|------------------|
-| `Button(fn)` | `fn() void` |
-| `ButtonCtx(fn, .{a, b})` | `fn(A, B) void` |
-| `.onChange(fn)` | `fn(*Vapor.Event) void` |
-| `.onEvent(.event, fn)` | `fn(*Vapor.Event) void` |
+| Pattern                        | Handler Signature            |
+| ------------------------------ | ---------------------------- |
+| `Button(fn)`                   | `fn() void`                  |
+| `ButtonCtx(fn, .{a, b})`       | `fn(A, B) void`              |
+| `.onChange(fn)`                | `fn(*Vapor.Event) void`      |
+| `.onEvent(.event, fn)`         | `fn(*Vapor.Event) void`      |
 | `.onEventCtx(.event, fn, ctx)` | `fn(Ctx, *Vapor.Event) void` |
 
 ---
@@ -867,7 +865,7 @@ pub fn init() void {
     fade_in.build();
     slide_up.build();
     pulse_glow.build();
-    
+
     Vapor.Page(.{ .src = @src() }, render, null);
 }
 
@@ -877,7 +875,7 @@ fn render() void {
         .children({
             Text("Animated Content").end();
         });
-    
+
     // Continuous animation
     Box()
         .animation("pulse-glow")
@@ -899,14 +897,14 @@ const Theme = struct {
     const bg_card = Vapor.Types.Background.palette(.background);
     const bg_elevated = Vapor.Types.Background.palette(.background);
     const bg_hover = Vapor.Types.Background.hex("#3f3f46");
-    
+
     const border = Vapor.Types.Color.hex("#27272a");
     const border_light = Vapor.Types.Color.hex("#3f3f46");
-    
+
     const text = Vapor.Types.Color.palette(.text_color);
     const text_secondary = Vapor.Types.Color.hex("#a1a1aa");
     const text_muted = Vapor.Types.Color.hex("#71717a");
-    
+
     const accent = Vapor.Types.Color.hex("#6366f1");
     const success = Vapor.Types.Color.hex("#10b981");
     const warning = Vapor.Types.Color.hex("#f59e0b");
@@ -937,19 +935,19 @@ fn renderProductCard(product: *const Product) void {
             .height(.px(180))
             .radius(.all(8))
             .end();
-        
+
         // Title
         Text(product.name)
             .font(16, 600, Theme.text)
             .fontFamily("Montserrat")
             .end();
-        
+
         // Price
         TextFmt("${d}.00", .{product.price})
             .font(20, 700, Theme.accent)
             .fontFamily("Montserrat")
             .end();
-        
+
         // Add to cart button
         ButtonCtx(addToCart, .{product})
             .width(.percent(100))
@@ -992,7 +990,7 @@ fn renderNavBar() void {
                 .fontFamily("Montserrat")
                 .end();
         });
-        
+
         // Nav links
         Box()
             .layout(.center)
@@ -1003,7 +1001,7 @@ fn renderNavBar() void {
             renderNavLink("About", false);
             renderNavLink("Contact", false);
         });
-        
+
         // Actions
         Box()
             .layout(.right_center)
@@ -1017,7 +1015,7 @@ fn renderNavBar() void {
                 .children({
                 Icon(.search).font(18, 400, Theme.text_secondary).end();
             });
-            
+
             // Cart
             Button(openCart, .{})
                 .width(.px(40))
@@ -1051,7 +1049,7 @@ fn renderNavLink(label: []const u8, is_active: bool) void {
         .pointer()
         .children({
         Text(label)
-            .font(14, if (is_active) 600 else 400, 
+            .font(14, if (is_active) 600 else 400,
                 if (is_active) .palette(.tint) else Theme.text_secondary)
             .fontFamily("Montserrat")
             .end();
@@ -1089,7 +1087,7 @@ fn renderSidebar() void {
                 .fontFamily("Montserrat")
                 .end();
         });
-        
+
         // Menu items
         Stack()
             .width(.percent(100))
@@ -1100,15 +1098,15 @@ fn renderSidebar() void {
                 .fontFamily("Montserrat")
                 .margin(.b(8))
                 .end();
-            
+
             for (nav_items) |nav_item| {
                 renderSidebarItem(nav_item);
             }
         });
-        
+
         // Spacer
         Box().height(.grow).children({});
-        
+
         // User profile
         Box()
             .width(.percent(100))
@@ -1140,7 +1138,7 @@ fn renderSidebar() void {
 
 fn renderSidebarItem(item: NavItem) void {
     const is_active = selected_nav == item;
-    
+
     ButtonCtx(selectNav, .{item})
         .width(.percent(100))
         .padding(.xy(14, 10))
@@ -1158,7 +1156,7 @@ fn renderSidebarItem(item: NavItem) void {
             .font(16, 400, if (is_active) .palette(.tint) else Theme.text_secondary)
             .end();
         Text(item.label())
-            .font(14, if (is_active) 500 else 400, 
+            .font(14, if (is_active) 500 else 400,
                 if (is_active) .palette(.tint) else Theme.text_secondary)
             .fontFamily("Montserrat")
             .end();
@@ -1211,13 +1209,13 @@ fn renderModalContent(_: *Alert) void {
                 Icon(.x_lg).font(16, 400, Theme.text_secondary).end();
             });
         });
-        
+
         // Content
         Text("Modal content goes here...")
             .font(14, 400, Theme.text_secondary)
             .fontFamily("Montserrat")
             .end();
-        
+
         // Actions
         Box()
             .layout(.right_center)
@@ -1248,7 +1246,7 @@ fn renderModalContent(_: *Alert) void {
 
 fn render() void {
     // ... main content ...
-    
+
     // Render modal overlay
     modal.render();
 }
@@ -1298,7 +1296,7 @@ fn renderCartContent(_: *Sheet) void {
                 Icon(.x_lg).font(16, 400, Theme.text_secondary).end();
             });
         });
-        
+
         // Cart items
         Stack()
             .width(.percent(100))
@@ -1310,7 +1308,7 @@ fn renderCartContent(_: *Sheet) void {
                 renderCartItem(&item, i);
             }
         });
-        
+
         // Total and checkout
         Box()
             .width(.percent(100))
@@ -1331,7 +1329,7 @@ fn renderCartContent(_: *Sheet) void {
                     .fontFamily("Montserrat")
                     .end();
             });
-            
+
             Button(checkout, .{})
                 .width(.percent(100))
                 .padding(.xy(20, 14))
@@ -1350,7 +1348,7 @@ fn renderCartContent(_: *Sheet) void {
 
 fn render() void {
     // ... main content ...
-    
+
     // Render sheet
     cart_sheet.render();
 }
@@ -1368,31 +1366,31 @@ pub fn init() void {
 
 fn addToCart(product: *const Product) void {
     // ... add logic ...
-    Toast.success(.{ 
-        .title = "Added to Cart", 
-        .description = "Item has been added to your cart" 
+    Toast.success(.{
+        .title = "Added to Cart",
+        .description = "Item has been added to your cart"
     });
 }
 
 fn removeFromCart(index: usize) void {
     // ... remove logic ...
-    Toast.warning(.{ 
-        .title = "Item Removed", 
-        .description = "Item has been removed from your cart" 
+    Toast.warning(.{
+        .title = "Item Removed",
+        .description = "Item has been removed from your cart"
     });
 }
 
 fn showError() void {
-    Toast.err(.{ 
-        .title = "Error", 
-        .description = "Something went wrong" 
+    Toast.err(.{
+        .title = "Error",
+        .description = "Something went wrong"
     });
 }
 
 fn showInfo() void {
-    Toast.info(.{ 
-        .title = "Info", 
-        .description = "Here's some information" 
+    Toast.info(.{
+        .title = "Info",
+        .description = "Here's some information"
     });
 }
 ```
@@ -1408,7 +1406,7 @@ const SortOption = enum {
     price_high,
     newest,
     popular,
-    
+
     pub fn label(self: SortOption) []const u8 {
         return switch (self) {
             .price_low => "Price: Low to High",
@@ -1431,7 +1429,7 @@ var sort_options = [_]Select(SortOption).Item{
 
 pub fn init() void {
     SelectStruct.new();
-    
+
     sort_select = .fromItems(&sort_options);
     sort_select.trigger = "Sort By";
     sort_select.on_select = handleSortChange;
@@ -1553,7 +1551,7 @@ fn render() void {
             renderProductCard(product);
         }
     }
-    
+
     // Conditional styling
     Box()
         .background(if (is_selected) .palette(.tint) else .transparent)
@@ -1592,12 +1590,12 @@ fn matchesFilter(product: *const Product) bool {
         const query_lower = std.ascii.allocLowerString(Vapor.arena(.frame), search_query) catch return true;
         if (std.mem.indexOf(u8, name_lower, query_lower) == null) return false;
     }
-    
+
     // Category filter
     if (selected_category) |cat| {
         if (product.category != cat) return false;
     }
-    
+
     // Price filter
     switch (price_filter) {
         .all => {},
@@ -1605,7 +1603,7 @@ fn matchesFilter(product: *const Product) bool {
         .range_50_100 => if (product.price < 50 or product.price > 100) return false,
         .over_100 => if (product.price <= 100) return false,
     }
-    
+
     return true;
 }
 
@@ -1651,7 +1649,7 @@ fn goToPage(page: usize) void {
 
 fn renderPagination() void {
     const total_pages = getTotalPages();
-    
+
     Box()
         .layout(.center)
         .spacing(8)
@@ -1666,7 +1664,7 @@ fn renderPagination() void {
                 .font(14, 400, if (current_page == 0) Theme.text_muted else .palette(.background))
                 .end();
         });
-        
+
         // Page numbers
         for (0..total_pages) |i| {
             ButtonCtx(goToPage, .{i})
@@ -1681,7 +1679,7 @@ fn renderPagination() void {
                     .end();
             });
         }
-        
+
         // Next button
         Button(nextPage, .{})
             .padding(.xy(12, 8))
@@ -1713,12 +1711,12 @@ const FormErrors = struct {
 fn validateForm() bool {
     form_errors = .{};
     var is_valid = true;
-    
+
     if (form_name.len == 0) {
         form_errors.name = "Name is required";
         is_valid = false;
     }
-    
+
     if (form_email.len == 0) {
         form_errors.email = "Email is required";
         is_valid = false;
@@ -1726,21 +1724,21 @@ fn validateForm() bool {
         form_errors.email = "Invalid email address";
         is_valid = false;
     }
-    
+
     if (form_message.len == 0) {
         form_errors.message = "Message is required";
         is_valid = false;
     }
-    
+
     return is_valid;
 }
 
 fn submitForm() void {
     if (!validateForm()) return;
-    
+
     // Process form...
     Toast.success(.{ .title = "Success", .description = "Form submitted successfully" });
-    
+
     // Clear form
     form_name = "";
     form_email = "";
@@ -1748,8 +1746,8 @@ fn submitForm() void {
 }
 
 fn renderFormField(
-    label: []const u8, 
-    value: *[]const u8, 
+    label: []const u8,
+    value: *[]const u8,
     error_msg: ?[]const u8,
     field_type: enum { text, email }
 ) void {
@@ -1760,17 +1758,17 @@ fn renderFormField(
             .font(14, 500, Theme.text)
             .fontFamily("Montserrat")
             .end();
-        
+
         TextField(if (field_type == .email) .email else .string)
             .bind(value)
             .width(.percent(100))
             .padding(.all(12))
             .border(.round(
-                if (error_msg != null) Theme.danger else .palette(.border_color_light), 
+                if (error_msg != null) Theme.danger else .palette(.border_color_light),
                 .all(8)
             ))
             .end();
-        
+
         if (error_msg) |err| {
             Text(err)
                 .font(12, 400, Theme.danger)
@@ -1787,28 +1785,28 @@ fn renderFormField(
 
 ### Syntax Patterns
 
-| Element Type | Builder Chain | Style Struct |
-|--------------|---------------|--------------|
-| Container (Box, Stack, Center) | `.children({})` | `.style(&s)({})` |
-| Button | `.children({})` | `.style(&s)({})` |
-| Leaf (Text, TextField, Icon, Image) | `.end()` | `.end()` |
+| Element Type                        | Builder Chain   | Style Struct     |
+| ----------------------------------- | --------------- | ---------------- |
+| Container (Box, Stack, Center)      | `.children({})` | `.style(&s)({})` |
+| Button                              | `.children({})` | `.style(&s)({})` |
+| Leaf (Text, TextField, Icon, Image) | `.end()`        | `.end()`         |
 
 ### Handler Signatures
 
-| Pattern | Signature |
-|---------|-----------|
-| `Button(fn)` | `fn() void` |
-| `ButtonCtx(fn, .{a, b})` | `fn(A, B) void` |
-| `.onEvent(.event, fn)` | `fn(*Vapor.Event) void` |
+| Pattern                        | Signature                    |
+| ------------------------------ | ---------------------------- |
+| `Button(fn)`                   | `fn() void`                  |
+| `ButtonCtx(fn, .{a, b})`       | `fn(A, B) void`              |
+| `.onEvent(.event, fn)`         | `fn(*Vapor.Event) void`      |
 | `.onEventCtx(.event, fn, ctx)` | `fn(Ctx, *Vapor.Event) void` |
 
 ### Arena Selection
 
-| Arena | Lifetime | Use For |
-|-------|----------|---------|
-| `.persist` | Session | User data, cart, saved items |
-| `.view` | Until route change | Page-specific data |
-| `.frame` | Single render | Formatted strings, temporary data |
+| Arena      | Lifetime           | Use For                           |
+| ---------- | ------------------ | --------------------------------- |
+| `.persist` | Session            | User data, cart, saved items      |
+| `.view`    | Until route change | Page-specific data                |
+| `.frame`   | Single render      | Formatted strings, temporary data |
 
 ### Common Layout Patterns
 
@@ -1867,55 +1865,154 @@ Box().layout(.top_left).children({
 ## Common Mistakes to Avoid
 
 ### ❌ State inside render
+
 ```zig
 fn render() void {
     var count: u32 = 0;  // WRONG! Always 0
 }
 ```
+
 ✅ Fix: Declare outside render
 
 ### ❌ Not copying user input
+
 ```zig
 fn save() void {
     saved = input_text;  // WRONG! Points to reusable buffer
 }
 ```
+
 ✅ Fix: `saved = Vapor.arena(.persist).dupe(u8, input_text) catch return;`
 
-### ❌ .children() after .style()
-```zig
-Box().style(&s).children({ })  // WRONG!
-```
-✅ Fix: `Box().style(&s)({ })`
-
 ### ❌ Wrong loop syntax
+
 ```zig
 for (items) |_, i| { }  // WRONG!
 ```
+
 ✅ Fix: `for (items, 0..) |item, i| { }`
 
 ### ❌ Forgetting .end() on leaf elements
+
 ```zig
 Text("Hello")  // WRONG! Missing .end()
 ```
+
 ✅ Fix: `Text("Hello").end()`
 
 ### ❌ Using Button with args
+
 ```zig
 Button(handler, .{arg})  // WRONG! Doesn't exist
 ```
+
 ✅ Fix: `ButtonCtx(handler, .{arg})`
 
 ### ❌ Missing imports
+
 ```zig
 Box().children({ })  // WRONG! Box not imported
 ```
+
 ✅ Fix: Add `const Box = Vapor.Box;`
 
 ### ❌ Mismatched arena lifetimes
+
 ```zig
 var todos = Vapor.array(TodoItem, .persist);
 const text = Vapor.arena(.frame).dupe(u8, input) catch return;
 todos.append(.{ .text = text }) catch return;  // Dangling pointer!
 ```
+
 ✅ Fix: Use same arena: `Vapor.arena(.persist).dupe(...)`
+
+```zig
+// LLM: Generate Vapor code like this:
+   var count: i32 = 0;
+   fn increment() void { count += 1; }
+   fn render() void {
+       Button(increment).children({ Text("Click").end(); });
+   }
+
+   // LLM: NOT like this (React patterns):
+   // ❌ const [count, setCount] = useState(0)
+   // ❌ onClick={() => setCount(c => c + 1)}
+   // ❌ <button>Click</button>
+```
+
+**Explicit "When user asks X, respond with Y" guidance:**
+
+```bash
+   When asked to create a form:
+   - Use `var field: []const u8 = ""` for each field
+   - Use `TextField(.string).bind(&field).end()`
+
+   When asked to create a list with delete:
+   - Use `Vapor.Array(T)` initialized in `init()`
+   - Use `ButtonCtx(deleteItem, .{index})` for delete buttons
+   - Use `for (items.items, 0..) |item, i|` for iteration
+```
+
+## Common Errors
+
+```bash
+error: expected type 'usize', found 'i32'
+    items[index]
+          ^~~~~
+```
+
+**Fix:** Use `usize` instead of `i32` for indexing
+
+```zig
+// ❌ Wrong
+var index: i32 = 0;
+items[index]
+
+// ✅ Fix - use usize for indexing
+var index: usize = 0;
+items[index]
+
+// ✅ Or cast when needed
+items[@as(usize, @intCast(index))]
+```
+
+---
+
+#### Index out of bounds
+
+```zig
+error: index 12 outside array of length 10
+    buffer[12] = 'x';
+    ~~~~~~^^^^
+```
+
+```zig
+// ❌ Wrong
+var buffer: [10]u8 = undefined;
+buffer[12] = 'x';
+
+// ✅ Fix - ensure index is within bounds
+var buffer: [15]u8 = undefined;
+buffer[12] = 'x';
+```
+
+---
+
+#### Expected block, found expression
+
+```bash
+error: expected block after 'for' expression
+    for (items) |item| item.render();
+                       ^~~~
+```
+
+```zig
+// ❌ Wrong - using .frame arena for persistent data
+var items = Vapor.array(Item, .frame); // Cleared on navigation!
+
+// ✅ Fix - use .persist for data that survives navigation
+var items = Vapor.array(Item, .persist);
+
+// ✅ Or .view if it should reset on navigation but persist during page lifetime
+var items = Vapor.array(Item, .view);
+```

@@ -13,6 +13,7 @@ const TextFmt = Vapor.TextFmt;
 const File = Vapor.FileReader;
 const VirtualList = @import("Virtualize.zig").VirtualList;
 const OverlayManager = @import("../OverlayManager.zig");
+const Number = Vapor.Number;
 
 pub const animateEnter = Vapor.Animation.init("opaque-table-filter-enter")
     .prop(.opacity, 0, 1)
@@ -387,13 +388,13 @@ pub fn Table(comptime T: type, comptime columns: []const Column(T), config: stru
                             .layout(.left_center)
                             .children({
                             switch (@typeInfo(@TypeOf(value))) {
-                                .float => Text(value)
+                                .float => Number(value)
                                     .ellipsis(.dot)
                                     .end(),
-                                .int => Text(value)
+                                .int => Number(value)
                                     .ellipsis(.dot)
                                     .end(),
-                                .@"enum" => Text(value)
+                                .@"enum" => Text(@tagName(value))
                                     .ellipsis(.dot)
                                     .end(),
                                 .pointer => |ptr| {
@@ -687,13 +688,13 @@ pub fn Table(comptime T: type, comptime columns: []const Column(T), config: stru
                                             @call(.auto, col_render, .{row});
                                         } else {
                                             switch (@typeInfo(@TypeOf(value))) {
-                                                .float => Text(value)
+                                                .float => Number(value)
                                                     .ellipsis(.dot)
                                                     .end(),
-                                                .int => Text(value)
+                                                .int => Number(value)
                                                     .ellipsis(.dot)
                                                     .end(),
-                                                .@"enum" => Text(value)
+                                                .@"enum" => Text(@tagName(value))
                                                     .ellipsis(.dot)
                                                     .end(),
                                                 .pointer => |ptr| {

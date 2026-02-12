@@ -681,9 +681,6 @@ export const env = {
     const event = eventStorage[id];
     const formData = new FormData(event.target);
     // Option 1: Log all entries
-    for (let [key, value] of formData.entries()) {
-      console.log(key, value);
-    }
     const data = Object.fromEntries(formData.entries());
     const builder = new WasmObjectBuilder(wasmInstance, wasmInstance.memory);
     const handle = builder.passObject(data);
@@ -1122,6 +1119,21 @@ export const env = {
       return;
     }
     element.setSelectionRange(pos, pos);
+  },
+
+  replaceRangeWasm: (idPtr, idLen, start, end, textPtr, textLen) => {
+    const id = readWasmString(idPtr >>> 0, idLen);
+    const element = document.getElementById(id);
+    if (!element) return;
+
+    element.focus();
+    element.selectionStart = start;
+    element.selectionEnd = end;
+    document.execCommand(
+      "insertText",
+      false,
+      readWasmString(textPtr >>> 0, textLen),
+    );
   },
 
   selectionWasm: (idPtr, idLen) => {
@@ -1575,14 +1587,14 @@ export const env = {
     const id = onid >>> 0;
     const url = `ws://localhost:${port}${query}`;
     const socket = new WebSocket(url);
-    socket.onopen = function (event) {
+    socket.onopen = function(event) {
       wasmInstance.onWssConnection(id);
     };
-    socket.onmessage = function (event) {
+    socket.onmessage = function(event) {
       const ptr = allocStringFrame(event.data);
       wasmInstance.onWssMessage(id, ptr);
     };
-    socket.onclose = function (event) {
+    socket.onclose = function(event) {
       wasmInstance.onWssClose(id);
     };
     sockets.set(id, socket);
@@ -1611,36 +1623,88 @@ export const env = {
     const data = readWasmString(httpPtr, httpLen);
     const Request = JSON.parse(data);
 
-    // Stringify body if it's an object
     if (Request.body && typeof Request.body === "object") {
       Request.body = JSON.stringify(Request.body);
     }
 
-    const response = {};
+    const startTime = performance.now();
+
     fetch(url, Request)
-      .then((res) => {
-        response.code = res.status;
-        response.message = res.statusText;
-        response.type = res.type;
-        response.ok = res.ok;
-        return res.text();
-      })
-      .then((text) => {
-        response.body = text;
-        const respString = JSON.stringify({ ok: response });
+      .then(async (res) => {
+        const elapsed = Math.round(performance.now() - startTime);
+        const headers = {};
+        res.headers.forEach((value, key) => {
+          headers[key] = value;
+        });
+
+        const body = await res.text();
+
+        let response = {
+          code: res.status,
+          message: res.statusText,
+          type: res.type,
+          ok: res.ok,
+          url: res.url,
+          redirected: res.redirected,
+          body: body,
+          headers: headers,
+          content_type: res.headers.get("content-type") || "",
+          content_length: body.length,
+          elapsed_ms: elapsed,
+        };
+
+        if (!res.ok) {
+          // Add error fields so it matches ErrResponse
+          response.error_kind = "http";
+          response.error_name = "HttpError";
+        }
+
+        const tag = res.ok ? "Ok" : "Err";
+        const respString = JSON.stringify({ [tag]: response });
         const ptr = allocStringFrame(respString);
         wasmInstance.resumeCallback(callback_id, ptr);
       })
       .catch((err) => {
-        console.error("Fetch failed:", err);
-        response.code = 0;
-        response.type = "error";
-        response.message = err.message;
-        response.ok = false;
+        const elapsed = Math.round(performance.now() - startTime);
 
-        const respString = JSON.stringify({ err: response });
-        const ptr = allocString(respString);
-        console.log("Fetch error", err);
+        // Classify the network error
+        let error_kind = "unknown";
+        const msg = err.message.toLowerCase();
+        if (err.name === "AbortError" || msg.includes("abort")) {
+          error_kind = "aborted";
+        } else if (
+          err.name === "TypeError" &&
+          msg.includes("failed to fetch")
+        ) {
+          error_kind = "network";
+        } else if (msg.includes("timeout")) {
+          error_kind = "timeout";
+        } else if (msg.includes("cors")) {
+          error_kind = "cors";
+        } else if (msg.includes("dns") || msg.includes("not found")) {
+          error_kind = "dns";
+        } else if (msg.includes("ssl") || msg.includes("cert")) {
+          error_kind = "tls";
+        }
+
+        const response = {
+          code: 0,
+          type: "error",
+          message: err.message,
+          ok: false,
+          url: url,
+          redirected: false,
+          body: "",
+          headers: {},
+          content_type: "",
+          content_length: 0,
+          elapsed_ms: elapsed,
+          error_kind: error_kind,
+          error_name: err.name || "Error",
+        };
+
+        const respString = JSON.stringify({ Err: response });
+        const ptr = allocStringFrame(respString);
         wasmInstance.resumeCallback(callback_id, ptr);
       });
   },
@@ -1837,7 +1901,7 @@ export const env = {
     const video = document.getElementById(id);
     return video.currentTime;
   },
-  frame_arena_init: () => {},
+  frame_arena_init: () => { },
   scrollIntoViewWasm: (idPtr, idLen, behavior_enum, block_enum) => {
     const id = readWasmString(idPtr, idLen);
     const element = document.getElementById(id);

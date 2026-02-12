@@ -72,8 +72,8 @@ const Notification = struct {
             Box()
                 .pos(.tr(.px(20), .px(18), .absolute))
                 .border(.round(.transparent, .all(8)))
-                .animationEnter(&slide_in)
-                .animationExit(&slide_out)
+                .animationEnter("slideAndFadeIn")
+                .animationExit("slideAndFadeOut")
                 .padding(.tblr(8, 8, 8, 8))
                 .width(.percent(20))
                 .background(.palette(.text_color))
@@ -110,7 +110,8 @@ pub fn init() void {
     highlighter = SyntaxHighlighter.init(Vapor.arena(.persist));
     highlighter.parse(response) catch unreachable;
 
-    JSONEditor.text = Vapor.lib.getStore([]const u8, "editor") orelse "";
+    // JSONEditor.text = Vapor.lib.getStore([]const u8, "editor") orelse "hello";
+    JSONEditor.text = "hello";
     JSONEditor.init();
     JSONEditor.on_change = setLocalStorage;
 
@@ -127,10 +128,10 @@ fn setLocalStorage(_: *Vapor.Event) void {
 }
 
 // These are provided by the host, which bridges to the cache module
-extern "env" fn db_getWasm(file_ptr: [*]const u8, file_len: usize, key_ptr: [*]const u8, key_len: usize, out_ptr: [*]u8, out_max: usize) i32;
-extern "env" fn db_setWasm(file_ptr: [*]const u8, file_len: usize, key_ptr: [*]const u8, key_len: usize, val_ptr: [*]const u8, val_len: usize) i32;
-extern "env" fn db_clearWasm() i32;
-extern "env" fn db_openWasm(filename_ptr: [*]const u8, filename_len: usize) i32;
+// extern "env" fn db_getWasm(file_ptr: [*]const u8, file_len: usize, key_ptr: [*]const u8, key_len: usize, out_ptr: [*]u8, out_max: usize) i32;
+// extern "env" fn db_setWasm(file_ptr: [*]const u8, file_len: usize, key_ptr: [*]const u8, key_len: usize, val_ptr: [*]const u8, val_len: usize) i32;
+// extern "env" fn db_clearWasm() i32;
+// extern "env" fn db_openWasm(filename_ptr: [*]const u8, filename_len: usize) i32;
 
 fn openIndexDB() void {
     // Open database
@@ -145,7 +146,7 @@ fn queueCreateObjectStore() void {
 
 pub fn open(filename: []const u8) bool {
     file = filename;
-    return db_openWasm(filename.ptr, filename.len) == 0;
+    // return db_openWasm(filename.ptr, filename.len) == 0;
 }
 
 pub var input_key: []const u8 = "";
@@ -174,16 +175,16 @@ export fn addError(ptr: [*:0]u8) void {
     };
 }
 
-pub fn set(key: []const u8, value: []const u8) bool {
-    return db_setWasm(file.ptr, file.len, key.ptr, key.len, value.ptr, value.len) == 0;
-}
+// pub fn set(key: []const u8, value: []const u8) bool {
+//     return db_setWasm(file.ptr, file.len, key.ptr, key.len, value.ptr, value.len) == 0;
+// }
 
-export fn do_sync() i32 {
-    // Example sync operation
-    const yes = set("last_sync", "2024-01-15T10:30:00Z");
-    if (!yes) return -1;
-    return 0;
-}
+// export fn do_sync() i32 {
+//     // Example sync operation
+//     const yes = set("last_sync", "2024-01-15T10:30:00Z");
+//     if (!yes) return -1;
+//     return 0;
+// }
 
 fn sendData() void {
     _ = SyncEngine.set("last_sync", "2024-01-15T10:30:00Z");
@@ -198,12 +199,12 @@ fn openDB() void {
     _ = SyncEngine.open("mydata.db");
 }
 
-fn clearData() void {
-    _ = db_clearWasm();
-}
+// fn clearData() void {
+//     _ = db_clearWasm();
+// }
 
 fn CrudButton(func: fn () void, text: []const u8) void {
-    return Button(.{ .on_press = func })
+    return Button(func)
         .background(.palette(.background))
         .border(.simple(.black))
         .padding(.all(8))
@@ -272,140 +273,140 @@ fn ErrorOps() void {
 }
 
 pub fn CrudRender() void {
-    Stack().width(.percent(100))
-        .padding(.horizontal(12))
-        .height(.percent(100))
-        .width(.percent(100))
-        .children({
-        Box()
-            .width(.percent(100))
-            .height(.px(64))
-            .layout(.x_between_center)
-            .children({
-            Box()
-                .width(.percent(20))
-                .height(.px(64))
-                .layout(.left_center)
-                .spacing(8)
-                .children({
-                Text("SYNC ENGINE")
-                    .font(24, 600, .palette(.text_color))
-                    .end();
-                Box()
-                    .padding(.tblr(2, 2, 4, 4))
-                    // .border(.simple(.palette(.text_color)))
-                    .children({
-                    TextFmt("{any}", .{status})
-                        .font(24, 600, .hex("#243D5B"))
-                        .end();
-                });
-            });
-            PendingOps();
-            // ErrorOps();
-            Notification.render();
-        });
-        Center().size(.full)
-            .spacing(32)
-            .children({
-            Stack()
-                .layout(.top_center)
-                .spacing(16)
-                .size(.hw_percent(80, 40)).children({
-                Stack()
-                    .height(.fit)
-                    .width(.percent(100))
-                    .children({
-                    Stack()
-                        .width(.percent(100))
-                        .mb(8)
-                        .children({
-                        Box()
-                            .width(.percent(100))
-                            .padding(.horizontal(12))
-                            .height(.px(48))
-                            .background(.hex("#1e1e1e"))
-                            .layout(.left_center)
-                            .children({
-                            Vapor.Label("Key")
-                                .font(16, 700, .white)
-                                .end();
-                        });
-                        TextField(.string).bind(&input_key)
-                            .width(.percent(100))
-                            .placeholder("Enter key")
-                            .fontFamily("IBM Plex Sans")
-                            .border(.simple(.palette(.text_color)))
-                            .outline(.none)
-                            .font(16, 300, .palette(.text_color))
-                            .padding(.all(8))
-                            .end();
-                    });
-
+    // Stack().width(.percent(100))
+    //     .padding(.horizontal(12))
+    //     .height(.percent(100))
+    //     .width(.percent(100))
+    //     .children({
+    //     Box()
+    //         .width(.percent(100))
+    //         .height(.px(64))
+    //         .layout(.x_between_center)
+    //         .children({
+    //         Box()
+    //             .width(.percent(20))
+    //             .height(.px(64))
+    //             .layout(.left_center)
+    //             .spacing(8)
+    //             .children({
+    //             Text("SYNC ENGINE")
+    //                 .font(24, 600, .palette(.text_color))
+    //                 .end();
+    //             Box()
+    //                 .padding(.tblr(2, 2, 4, 4))
+    //                 // .border(.simple(.palette(.text_color)))
+    //                 .children({
+    //                 TextFmt("{any}", .{status})
+    //                     .font(24, 600, .hex("#243D5B"))
+    //                     .end();
+    //             });
+    //         });
+    //         PendingOps();
+    //         // ErrorOps();
+    //         Notification.render();
+    //     });
+    //     Center().size(.full)
+    //         .spacing(32)
+    //         .children({
+    //         Stack()
+    //             .layout(.top_center)
+    //             .spacing(16)
+    //             .size(.hw_percent(80, 40)).children({
+    //             Stack()
+    //                 .height(.fit)
+    //                 .width(.percent(100))
+    //                 .children({
+    //                 Stack()
+    //                     .width(.percent(100))
+    //                     .mb(8)
+    //                     .children({
+    //                     Box()
+    //                         .width(.percent(100))
+    //                         .padding(.horizontal(12))
+    //                         .height(.px(48))
+    //                         .background(.hex("#1e1e1e"))
+    //                         .layout(.left_center)
+    //                         .children({
+    //                         Vapor.Label("Key")
+    //                             .font(16, 700, .white)
+    //                             .end();
+    //                     });
+    //                     TextField(.string).bind(&input_key)
+    //                         .width(.percent(100))
+    //                         .placeholder("Enter key")
+    //                         .fontFamily("IBM Plex Sans")
+    //                         .border(.simple(.palette(.text_color)))
+    //                         .outline(.none)
+    //                         .font(16, 300, .palette(.text_color))
+    //                         .padding(.all(8))
+    //                         .end();
+    //                 });
+    //
                     JSONEditor.render();
-                });
-                crud();
-                Vapor.Stack()
-                    .width(.percent(100))
-                    .children({
-                    Box()
-                        .children({
-                        Text("DB OPS")
-                            .font(16, 600, .palette(.text_color))
-                            .end();
-                    });
-                    Box()
-                        .layer(.grid(14, 1, .palette(.grid_color)))
-                        .border(.simple(.black))
-                        .padding(.all(16))
-                        .width(.percent(100))
-                        .spacing(8)
-                        .height(.fit)
-                        .layout(.x_even_center)
-                        .children({
-                        CrudButton(clearData, "Clear data");
-                        CrudButton(openIndexDB, "Open IndexDB");
-                        CrudButton(queueCreateObjectStore, "Queue Object Store");
-                    });
-                });
-            });
-            Stack()
-                .width(.percent(40))
-                .height(.percent(80))
-                .children({
-                Box()
-                    .width(.percent(100))
-                    .padding(.horizontal(12))
-                    .height(.px(48))
-                    .background(.hex("#1e1e1e"))
-                    .layout(.x_between_center)
-                    .children({
-                    Text("Response")
-                        .font(16, 600, .white)
-                        .end();
-                    Vapor.Button(.{ .on_press = copyValue })
-                        .cursor(.pointer)
-                        .background(.transparent)
-                        .size(.square_px(24))
-                        .children({
-                        if (copied) {
-                            Vapor.Image(.{ .src = "/assets/check.svg" })
-                                .end();
-                        } else {
-                            Vapor.Image(.{ .src = "/assets/copy.svg" })
-                                .end();
-                        }
-                    });
-                });
-
-                Box()
-                    .height(.percent(80))
-                    .scroll(.scroll_y())
-                    .padding(.horizontal(12))
-                    .border(.simple(.palette(.text_color)))
-                    .children({
-                    highlighter.renderAST(highlighter.root) catch unreachable;
-                });
-            });
-        });
-    });
+    //             });
+    //             crud();
+    //             Vapor.Stack()
+    //                 .width(.percent(100))
+    //                 .children({
+    //                 Box()
+    //                     .children({
+    //                     Text("DB OPS")
+    //                         .font(16, 600, .palette(.text_color))
+    //                         .end();
+    //                 });
+    //                 Box()
+    //                     .layer(.grid(14, 1, .palette(.grid_color)))
+    //                     .border(.simple(.black))
+    //                     .padding(.all(16))
+    //                     .width(.percent(100))
+    //                     .spacing(8)
+    //                     .height(.fit)
+    //                     .layout(.x_even_center)
+    //                     .children({
+    //                     CrudButton(clearData, "Clear data");
+    //                     CrudButton(openIndexDB, "Open IndexDB");
+    //                     CrudButton(queueCreateObjectStore, "Queue Object Store");
+    //                 });
+    //             });
+    //         });
+    //         Stack()
+    //             .width(.percent(40))
+    //             .height(.percent(80))
+    //             .children({
+    //             Box()
+    //                 .width(.percent(100))
+    //                 .padding(.horizontal(12))
+    //                 .height(.px(48))
+    //                 .background(.hex("#1e1e1e"))
+    //                 .layout(.x_between_center)
+    //                 .children({
+    //                 Text("Response")
+    //                     .font(16, 600, .white)
+    //                     .end();
+    //                 Vapor.Button(copyValue)
+    //                     .cursor(.pointer)
+    //                     .background(.transparent)
+    //                     .size(.square_px(24))
+    //                     .children({
+    //                     if (copied) {
+    //                         Vapor.Image(.{ .src = "/assets/check.svg" })
+    //                             .end();
+    //                     } else {
+    //                         Vapor.Image(.{ .src = "/assets/copy.svg" })
+    //                             .end();
+    //                     }
+    //                 });
+    //             });
+    //
+    //             Box()
+    //                 .height(.percent(80))
+    //                 .scroll(.scroll_y())
+    //                 .padding(.horizontal(12))
+    //                 .border(.simple(.palette(.text_color)))
+    //                 .children({
+    //                 highlighter.renderAST(highlighter.root) catch unreachable;
+    //             });
+    //         });
+    //     });
+    // });
 }

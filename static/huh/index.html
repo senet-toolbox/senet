@@ -2,48 +2,45 @@
 <html lang="en">
 
 <head>
-  <title>Tether</title>
+  <title>Senet</title>
   <meta charset="utf-8" />
   <meta name="google-site-verification" content="12aR_338F0VaglKbfvPLczdZV_Ej6AVx9Ef7M4ULfLU" />
   <meta name="description"
-    content="Tether website includes documentation on all three components Fabric, Tether, and Treehouse. As well as instructions on installation and use cases." />
+    content="Senet website includes documentation on all three components Vapor, Reverb, and Canopy. As well as instructions on installation and use cases." />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="icon" href="/assets/icon.svg" type="image/svg+xml" />
   <link rel="preload" href="/zig-out/bin/vapor.wasm" as="fetch" type="application/wasm" crossorigin />
-  <!-- <script src="https://unpkg.com/lucide@latest"></script> -->
 
   <!-- Preconnect stays the same -->
-  <link href="https://fonts.googleapis.com" />
-  <link href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://cdn.jsdelivr.net" crossorigin />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
 
   <!-- Load fonts async with media trick -->
-  <link
-    href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300;1,400;1,500&display=swap"
-    rel="stylesheet" media="print" onload="this.media='all'" />
+  <!-- <link -->
+  <!--   href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300;1,400;1,500&display=swap" -->
+  <!--   rel="stylesheet" media="print" onload="this.media='all'" /> -->
   <link
     href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,100..700;1,100..700&family=Montserrat:wght@400;700&display=swap"
     rel="stylesheet" media="print" onload="this.media='all'" />
 
-  <link rel="preload" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" as="style"
-    onload="this.rel='stylesheet'" />
+  <!-- <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400..900&display=swap" rel="stylesheet" /> -->
+  <!---->
+  <!-- <link -->
+  <!--   href="https://fonts.googleapis.com/css2?family=Barlow:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" -->
+  <!--   rel="stylesheet" /> -->
 
   <!-- Font Awesome - non-blocking -->
-  <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" as="style"
-    onload="this.rel='stylesheet'" />
-  <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/brands.min.css" as="style"
-    onload="this.rel='stylesheet'" />
+  <!-- <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" as="style" -->
+  <!--   onload="this.rel='stylesheet'" /> -->
+  <!-- <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/brands.min.css" as="style" -->
+  <!--   onload="this.rel='stylesheet'" /> -->
 
-  <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/fontawesome.min.css"
-    as="style" onload="this.rel='stylesheet'" />
-
-  <!-- Fallback for no-JS -->
-  <noscript>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/brands.min.css" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/fontawesome.min.css" />
-  </noscript>
+  <!-- <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/fontawesome.min.css" -->
+  <!--   as="style" onload="this.rel='stylesheet'" /> -->
 
   <script type="module" src="/web/wasi_obj.js"></script>
+  <link rel="stylesheet" href="/assets/css/bootstrap-icons.css" />
   <!-- <script type="module" src="/web/bundle.min.js"></script> -->
 
   <style>
@@ -51,8 +48,9 @@
       margin: 0;
       padding: 0;
       font-family: Montserrat;
-      font-weight: 400;
-      height: 100vh;
+      /* font-family: "Barlow", sans-serif; */
+      font-optical-sizing: auto;
+      height: 100dvh;
       width: 100%;
       box-sizing: border-box;
       flex-shrink: 0;
@@ -85,11 +83,7 @@
     h3,
     h4,
     h5,
-    h6 {
-      line-height: 1.5;
-      font-size-adjust: 0.5;
-    }
-
+    h6,
     textarea {
       line-height: 1.5;
       font-size-adjust: 0.5;
@@ -100,11 +94,20 @@
       border-spacing: 0;
     }
 
+    div {
+      min-width: 0;
+    }
+
+    button p {
+      font-family: inherit;
+    }
+
     input[type="file"]::file-selector-button {
       background: transparent;
       color: transparent;
       border: none;
     }
+
 
     input:-webkit-autofill {
       -webkit-box-shadow: 0 0 0 1000px transparent inset;
@@ -133,7 +136,7 @@
       padding: 10px;
       font-family: monospace;
       font-size: 14px;
-      z-index: 10000;
+      z-index: 9998;
       /* background-color: rgba(var(--background)); */
       background-color: rgb(var(--background));
       background-image: radial-gradient(circle, rgb(var(--text_color)) 0.5px, transparent 0px);
@@ -182,177 +185,126 @@
         transform: rotate(360deg);
       }
     }
+
+    /* The gear disc - moves DOWN and LEFT when switched ON */
+    #gearDisc {
+      transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    /* The star disc - moves UP and RIGHT when switched ON */
+    #starDisc {
+      transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
   </style>
   <!-- <link rel="stylesheet" href="/static/style_variables.css" /> -->
   <link rel="stylesheet" href="/static/huh/style.css" />
 </head></head>
 
 <body>
-  <div class="stats" id="stats">
-    FPS: <span id="fps">0</span><br />
-    Frame Time: <span id="frameTime">0</span>ms<br />
-    Render Time: <span id="renderTime">0</span>ms<br />
-    Total Render Time: <span id="totalRenderTime">0</span>ms<br />
-  </div>
+  <!-- <div class="stats" id="stats"> -->
+  <!--   FPS: <span id="fps">0</span><br /> -->
+  <!--   Frame Time: <span id="frameTime">0</span>ms<br /> -->
+  <!--   Render Time: <span id="renderTime">0</span>ms<br /> -->
+  <!--   Total Render Time: <span id="totalRenderTime">0</span>ms<br /> -->
+  <!-- </div> -->
   <div id="reload-indicator" class="reload-indicator">
     <div class="reload-spinner"></div>
     <span>Reloading... <span id="reload-timer">0.0</span>s</span>
   </div>
-  <div id="contents" style="display: contents"><div  id="nav" class="lay_ZIMNZ2 pos_4TxA5 mapa_obiMi2 vis_OFwEv2 ">
-<div  id="Flex_dJmM34-gk" class="lay_dkXDo pos_PNZMO3 mapa_CrkEb2 vis_l45j63 ">
-<a  id="Link_720Rw3-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_l45j63 " aria-label="home page of tether" href="/">
-<div  id="Flex_h5xw31-gk" class="lay_O2QQV3 pos_PNZMO3 mapa_3GodU4 vis_Uf2Rg3 intr_H2bu52 ">
-<img  id="Flex_EX6Hx2-gk" class="lay_kSFpR4 pos_PNZMO3 mapa_CrkEb2 vis_6awG34 intr_WimxZ2 " src="/src/assets/logonormal.svg">
-</img>
-</div>
-</a>
-<ul  id="List_WJAtf3-gk" class="lay_5BnP5 pos_PNZMO3 mapa_CrkEb2 vis_l45j63 ">
-<li  id="List_yVsYK1-gk" class="lay_1EjZF4 pos_PNZMO3 mapa_CrkEb2 vis_rKome4 intr_LqG6z1 "">
-<a  id="Link_z1Q4r1-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_l45j63 " aria-label="[0] = Vapor" href="/docs/vapor">
-<p  id="Text_UoAkR1-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_dcWfU ">[0] = Vapor</p>
-</a>
-</li>
-<li  id="List_1RvS3-gk" class="lay_1EjZF4 pos_PNZMO3 mapa_CrkEb2 vis_rKome4 intr_LqG6z1 "">
-<a  id="Link_PL5at2-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_l45j63 " aria-label="[1] = Reverb" href="/docs/reverb">
-<p  id="Text_YogLd4-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_dcWfU ">[1] = Reverb</p>
-</a>
-</li>
-<li  id="List_YEuwe-gk" class="lay_1EjZF4 pos_PNZMO3 mapa_CrkEb2 vis_rKome4 intr_LqG6z1 "">
-<a  id="Link_cyIGU3-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_l45j63 " aria-label="[2] = Canopy" href="/docs/treehouse">
-<p  id="Text_avzEv-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_dcWfU ">[2] = Canopy</p>
-</a>
-</li>
-<li  id="List_gPzmN4-gk" class="lay_1EjZF4 pos_PNZMO3 mapa_CrkEb2 vis_rKome4 intr_LqG6z1 "">
-<a  id="Link_gMzyz2-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_l45j63 " aria-label="Metal" href="/docs/metal">
-<p  id="Text_x4fu54-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_dcWfU ">Metal</p>
-</a>
-</li>
-<li  id="List_kXFGP4-gk" class="lay_1EjZF4 pos_PNZMO3 mapa_CrkEb2 vis_rKome4 intr_LqG6z1 "">
-<a  id="Link_ispuy3-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_l45j63 " aria-label="About Me" href="/about">
-<p  id="Text_wDhLT2-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_dcWfU ">About Me</p>
-</a>
-</li>
-</ul>
-</div>
-<div  id="Flex_Rl3Ew3-gk" class="lay_ZlFHe2 pos_PNZMO3 mapa_CrkEb2 vis_l45j63 ">
-<button  id="Butt_2N0oT2-gk" class="lay_3TLYe1 pos_PNZMO3 mapa_4hFg71 vis_dXrHv intr_Lkq7v2 " aria-label="search-dialog">
-<div  id="Flex_KPxId2-gk" class="lay_cC6BZ2 pos_PNZMO3 mapa_CrkEb2 vis_l45j63 ">
-<i  id="Flex_c4Ll94-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_8D1Uq2 " href="bi bi-search">
-</i>
-<p  id="Text_xYR7-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_0FkHP1 ">Search...</p>
-</div>
-<i  id="Flex_lH2tS3-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_8D1Uq2 " href="bi bi-command">
-</i>
-</button>
-<a  id="Redi_poLKx3-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_l45j63 " aria-label="redirect link to tether github repo" href="https://github.com/vic-Rokx/vapor">
-<i  id="Flex_9t3X11-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_HLq704 intr_gziX93 " href="bi bi-github">
-</i>
-</a>
-<a  id="Redi_wLsFc3-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_l45j63 " aria-label="redirect link to discord" href="https://github.com/vic-Rokx/vapor">
-<i  id="Flex_q31zd2-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_HLq704 intr_gziX93 " href="bi bi-discord">
-</i>
-</a>
-<a  id="Redi_Fj1Al-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_l45j63 " aria-label="redirect link to ziglang" href="https://ziglang.org/">
-<img  id="Flex_DJ5vk1-gk" class="lay_I5plQ pos_PNZMO3 mapa_CrkEb2 vis_HdklG3 intr_uRNHg3 " src="/src/assets/zig_simple.svg">
-</img>
-</a>
-<button  id="Butt_ywmYV1-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_gec173 " aria-label="toggle theme">
-<i  id="Flex_Lfs562-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_HLq704 intr_gziX93 " href="bi bi-cloud-moon">
-</i>
-</button>
-</div>
-</div>
-
-
-<div  id="Flex_SVd4c3-gk" class="lay_2TkWG4 pos_PNZMO3 mapa_FH1H21 vis_l45j63 ">
-<div  id="Flex_E8QIA2-gk" class="lay_QKdQC pos_PNZMO3 mapa_TK4ER4 vis_l45j63 ">
-<p  id="Text_KQD2P-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_PmTzl2 ">What is Tether?</p>
-<p  id="Text_TNxZQ3-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_AWbMo3 ">To put simply, Tether is an exposed set of frameworks, that gives developers the ability 
+  <div id="contents" style="display: contents"><div  id="Flex_S7ezG2-gk" class="lay_fRVCe3 pos_e8wtf3 mapa_FH1H21 vis_RGZTP ">
+<div  id="Flex_nuQjl1-gk" class="lay_gqOKT3 pos_e8wtf3 mapa_TK4ER4 vis_RGZTP ">
+<p  id="Text_bxNPe-gk" class="lay_C7CDC1 pos_e8wtf3 mapa_CrkEb2 vis_PVgpR1 ">What is Senet?</p>
+<p  id="Text_HguQc-gk" class="lay_C7CDC1 pos_e8wtf3 mapa_CrkEb2 vis_NSGDS1 ">To put simply, Senet is a toolbox of frameworks and libraries, that give developers the ability 
 to Build full-stack applications with zero dependencies, zero configuration, and complete control. </p>
-<p  id="Text_BnUQG4-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_PmTzl2 ">How the Internet works</p>
-<p  id="Html_rr7vc1-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_42sMN4 ">At their core every website is just a text document. We store this document on the server and send it to the client, when they ask for it.
-Your browser takes request this document which is in a langauge known as 
-<a href="https://developer.mozilla.org/en-US/docs/Web/HTML">HTML</a> 
-and then draws the buttons, rectangles, and text onto your screen. This is how it worked in the beginning.</p>
+<p  id="Html_Gzcct3-gk" class="lay_C7CDC1 pos_e8wtf3 mapa_CrkEb2 vis_Ei5cO3 ">Senet was created out of personal frustration with the current state of web development. But also out of desire to create a solid foundation for which,
+future applications can be built on. You can use each component of Senet <code>[Vapor, Reverb, Canopy]</code> seperatley or together.</p>
 
-<img  id="Flex_3zRqY3-gk" class="lay_kSFpR4 pos_PNZMO3 mapa_CrkEb2 vis_V0NmV " src="src/assets/theinternet.svg">
-</img>
-<p  id="Text_LTLCs3-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_esMkV vis_AEuOs ">And then theres today...</p>
-<p  id="Text_sPU7F3-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_42sMN4 ">This is in essence, the current state of Web development, it doesn't make sense, and it's just getting worse. </p>
-<div  id="Flex_WqQH31-gk" class="lay_Vknxi1 pos_PNZMO3 mapa_CrkEb2 vis_l45j63 ">
-<img  id="Flex_WlgwY1-gk" class="lay_Om00V1 pos_PNZMO3 mapa_CrkEb2 vis_V0NmV " src="src/assets/webdev.svg">
+<p  id="Text_nz0RD-gk" class="lay_C7CDC1 pos_e8wtf3 mapa_CrkEb2 vis_PVgpR1 ">{Vapor}</p>
+<p  id="Html_9zK7X3-gk" class="lay_C7CDC1 pos_e8wtf3 mapa_CrkEb2 vis_Ei5cO3 ">Vapor is a programming first frontend framework. Instead of using gimmicks like <strong>useState</strong> or <strong>useEffect</strong>,
+We write normal code, with variables, functions, and types. 
+These functions are used to create components, and variables are used to update the state of the component.</p>
+
+<p  id="Text_CGlZW3-gk" class="lay_C7CDC1 pos_e8wtf3 mapa_CrkEb2 vis_5PNOC2 ">Vapor state persists by default, navigation does not reset state</p>
+<p  id="Text_wr8NJ2-gk" class="lay_C7CDC1 pos_e8wtf3 mapa_CrkEb2 vis_PVgpR1 ">{Reverb}</p>
+<p  id="Html_WPCXU-gk" class="lay_C7CDC1 pos_e8wtf3 mapa_CrkEb2 vis_Ei5cO3 ">Reverb is a simple, backend web framework, which exposes a a set of production grade libraries, but also gives the developer
+the ability to use high performance surgical tools, like the Atomic Lock-Free Thread Pool <code>[Scheduler]</code>.</p>
+
+<p  id="Text_OlnpH4-gk" class="lay_C7CDC1 pos_e8wtf3 mapa_CrkEb2 vis_5PNOC2 ">Reverb uses an express like syntax, but with a more modern feel</p>
+<p  id="Text_d4FXj3-gk" class="lay_C7CDC1 pos_e8wtf3 mapa_CrkEb2 vis_PVgpR1 ">{Canopy}</p>
+<p  id="Html_ctsQW2-gk" class="lay_C7CDC1 pos_e8wtf3 mapa_CrkEb2 vis_Ei5cO3 ">Runs as a in memory cache at the front and a persistent database at the back. By default, it uses the RESP3 protocol, and has a similar API to SQL, 
+for creating and managing tables. Canopy also takes a more built-in approach, to creating custom selection queries. Instead of using SQL, Canopy uses a 
+Canopy exposes a variety of functions that intercept different stages of a request lifecycle. This allows for developers to build custom logic within 
+the database itself, rather than executing within a runtime environment. This means we can write Zig to create filter, search, join, or anything else we need.</p>
+
+<p  id="Text_mMpp23-gk" class="lay_C7CDC1 pos_e8wtf3 mapa_CrkEb2 vis_5PNOC2 ">Canopy uses Zig itself to create logic functions</p>
+<p  id="Text_YTuO1-gk" class="lay_C7CDC1 pos_e8wtf3 mapa_CrkEb2 vis_PVgpR1 ">{Samples}</p>
+<p  id="Html_tfUmA4-gk" class="lay_C7CDC1 pos_e8wtf3 mapa_CrkEb2 vis_Ei5cO3 ">Below is a set of sample applications, that were built with Senet, they are all single file, and can be downloaded and run.</p>
+
+<img  id="Imag_VBBQO2-gk" class="lay_rRxTK2 pos_e8wtf3 mapa_CrkEb2 vis_RGZTP " src="/assets/ryven.webp">
 </img>
 </div>
-<p  id="Text_pbAsn1-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_9SPU2 vis_sbl7X2 ">Hitting Reset</p>
-<p  id="Text_32e2T3-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_zCrwD1 ">Tether is a toolkit first, framework second</p>
-<p  id="Html_qB3eC1-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_42sMN4 ">It's a modular, flexible system that exposes all its APIs to developers. 
-Unlike common frameworks like <strong>React</strong> or <strong>Vue</strong>, Tether eliminates the need to deal with evolving opinions that change over time.
-Many frameworks have altered their core APIs and designs, leading to complexity, legacy system support burdens, 
-and the never-ending cycle of learning and relearning changes.</p>
-
-<p  id="Html_qC4h74-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_42sMN4 "><strong style="color: rgb(var(--tint))">Tether</strong> takes the approach of <strong>exposure</strong> and <strong>explicitness</strong>. 
-Every single component in Tether 
-is available to the developer. There's no transpilation engine <i>magic</i>, no strange state 
-machinery—just simple APIs you can touch and understand. 
-The aim is to provide developers with a <strong>toolbox</strong> of functionality they can deep dive into and customize when needed.</p>
-
-<p  id="Html_FMrzu2-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_42sMN4 "><strong>For example:</strong> </p>
-
-<p  id="Html_ss0Ud2-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_42sMN4 ">Vapor's state management is a single <code style="color: rgb(var(--tint))">global_rerender</code> variable of type <code style="color: rgb(var(--tint))">bool</code>. 
-That's it. You can use the built-in <code style="color: rgb(var(--tint))">Signal(T)</code> type that Vapor exposes, 
-build your own, or simply 
-call the <code style="color: rgb(var(--tint))">cycle()</code> to update your UI. Until then, you 
-can utilize Tether's in-house solutions with no setup, configuration files, or complexity. Just
-install and start building. All you need is <code style="color: rgb(var(--tint))">ZIG</code>.</p>
-
-<p  id="Text_2mc853-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_7ALiQ4 ">Modular by Design</p>
-<p  id="Html_2XNa01-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_42sMN4 ">Tether's modularity means you can install Vapor, Tether, or Treehouse as independent entities. 
-There's no requirement to use all three or just one. The libraries themselves are modular—choose 
-to install OAuth, Markdown parser, UI component libraries, or any specific functionality you need. Tether serves 
-as both package management system and toolkit.</p>
-
-<p  id="Text_YpUvb-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_7ALiQ4 ">What Tether Eliminates</p>
-<ul  id="List_UVPw14-gk" class="lay_eCOuQ1 pos_PNZMO3 mapa_CrkEb2 vis_l45j63 ">
-<li  id="List_PPGj94-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_l45j63 "">
-<p  id="Html_KE0cS4-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_42sMN4 ">Tether ships with <strong>zero dependencies</strong> and eliminates the need for:</p>
-
+</div>
+<div  id="nav" class="lay_HJ8Qx1 pos_SdsMW2 mapa_obiMi2 vis_fPPE04 ">
+<div  id="Flex_fuXr62-gk" class="lay_R1pCS4 pos_e8wtf3 mapa_CrkEb2 vis_RGZTP ">
+<button  id="CtxB_HDrlP3-gk" class="lay_C7CDC1 pos_e8wtf3 mapa_CrkEb2 vis_jdJWy ">
+<div  id="Flex_D2v2g1-gk" class="lay_Y1qMH pos_e8wtf3 mapa_3GodU4 vis_CLxLk2 intr_ZyucX ">
+<div  id="Grap_LAeYA3-gk" class="lay_O3nsY4 pos_e8wtf3 mapa_CrkEb2 vis_cnK6Z3 intr_U7b0M2 ">
+</div>
+</div>
+</button>
+<ul  id="List_xzQGR3-gk" class="lay_E37W34 pos_e8wtf3 mapa_CrkEb2 vis_RGZTP ">
+<li  id="List_GWwh42-gk" class="lay_tnlGg2 pos_e8wtf3 mapa_CrkEb2 vis_VCuhC3 intr_HeHdO3 "">
+<a  id="Link_NKFIf2-gk" class="lay_C7CDC1 pos_e8wtf3 mapa_CrkEb2 vis_RGZTP " aria-label="[0] = Vapor" href="/docs/vapor">
+<p  id="Text_T1O9Z1-gk" class="lay_C7CDC1 pos_e8wtf3 mapa_CrkEb2 vis_9SR5C2 ">[0] = Vapor</p>
+</a>
 </li>
-<li  id="List_Vm2EN-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_l45j63 "">
-<p  id="Html_kYIfd-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_42sMN4 "><strong>Languages & Runtimes:</strong> No JavaScript, HTML, CSS, React, TSX, Python, Swift, Node.js</p>
-
+<li  id="List_l33Tx3-gk" class="lay_tnlGg2 pos_e8wtf3 mapa_CrkEb2 vis_VCuhC3 intr_HeHdO3 "">
+<a  id="Link_8nPHa1-gk" class="lay_C7CDC1 pos_e8wtf3 mapa_CrkEb2 vis_RGZTP " aria-label="[1] = Reverb" href="/docs/reverb">
+<p  id="Text_P2VJu-gk" class="lay_C7CDC1 pos_e8wtf3 mapa_CrkEb2 vis_9SR5C2 ">[1] = Reverb</p>
+</a>
 </li>
-<li  id="List_60EQn1-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_l45j63 "">
-<p  id="Html_zNvlL-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_42sMN4 "><strong>Frameworks & Platforms:</strong> No Vercel, Next.js, Nuxt.js, multi-language systems</p>
-
+<li  id="List_q8Ucq-gk" class="lay_tnlGg2 pos_e8wtf3 mapa_CrkEb2 vis_VCuhC3 intr_HeHdO3 "">
+<a  id="Link_eqZ0W4-gk" class="lay_C7CDC1 pos_e8wtf3 mapa_CrkEb2 vis_RGZTP " aria-label="[2] = Canopy" href="/docs/treehouse">
+<p  id="Text_PUd0h3-gk" class="lay_C7CDC1 pos_e8wtf3 mapa_CrkEb2 vis_9SR5C2 ">[2] = Canopy</p>
+</a>
 </li>
-<li  id="List_rorLs-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_l45j63 "">
-<p  id="Html_VMQC91-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_42sMN4 "><strong>Infrastructure:</strong> No Docker, Redis, Dragonfly</p>
-
-</li>
-<li  id="List_D1Vqz-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_l45j63 "">
-<p  id="Html_3iWmQ1-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_42sMN4 "><strong>Package Management:</strong> No npm, pip, dependency hell</p>
-
-</li>
-<li  id="List_W6m213-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_l45j63 "">
-<p  id="Html_2IaKN-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_42sMN4 "><strong>Build Tools:</strong> No transpilation, platform-specific code, configuration magic</p>
-
+<li  id="List_K0AD6-gk" class="lay_tnlGg2 pos_e8wtf3 mapa_CrkEb2 vis_VCuhC3 intr_HeHdO3 "">
+<a  id="Link_R7dHs-gk" class="lay_C7CDC1 pos_e8wtf3 mapa_CrkEb2 vis_RGZTP " aria-label="Metal" href="/docs/metal">
+<p  id="Text_shGhX3-gk" class="lay_C7CDC1 pos_e8wtf3 mapa_CrkEb2 vis_9SR5C2 ">Metal</p>
+</a>
 </li>
 </ul>
-<p  id="Text_zCogY2-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_7ALiQ4 ">But that doesn't mean you can't...</p>
-<p  id="Html_GxGQN1-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_42sMN4 "><strong>Install Libs:</strong> Use your favorite JS Library if you want, This is even done in NightWatch with chart.js 
-<a href="/docs/vapor/concepts/jslibs">NightWatch Example</a></p>
-
-<p  id="Html_Th0yO-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_42sMN4 "><strong>Use C or Objc:</strong> Embed your favorite C or Objc Libs, or even Zig itself</p>
-
-<p  id="Html_bJDof1-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_42sMN4 "><strong>Adapt and Build:</strong> Scrap it all and use the core codebase to build your own Renderer, and Web Server </p>
-
-<p  id="Text_pKYs23-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_ZJums2 vis_7ALiQ4 ">The Core Promise </p>
-<p  id="Html_1BTA12-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_42sMN4 ">Tether provides the productivity benefits of modern frameworks while maintaining the control 
-and transparency of lower-level tools. It's built for developers who want to focus on solving 
-problems rather than wrestling with tooling, dependencies, and ever-changing framework opinions.</p>
-
+</div>
+<div  id="Flex_rkECq2-gk" class="lay_7u3d2 pos_e8wtf3 mapa_CrkEb2 vis_RGZTP ">
+<button  id="Butt_6oK4k-gk" class="lay_Ohp1Q4 pos_e8wtf3 mapa_4hFg71 vis_29zhJ1 intr_t723d3 ">
+<div  id="Flex_HpX443-gk" class="lay_vSb0O4 pos_e8wtf3 mapa_CrkEb2 vis_RGZTP ">
+<i  id="Icon_bqHCu2-gk" class="bi bi-search lay_C7CDC1 pos_e8wtf3 mapa_CrkEb2 vis_4g32b1 ">
+</i>
+<p  id="Text_oEo1U2-gk" class="lay_C7CDC1 pos_e8wtf3 mapa_CrkEb2 vis_X6gDk ">Search...</p>
+</div>
+<i  id="Icon_sHAuv3-gk" class="bi bi-command lay_C7CDC1 pos_e8wtf3 mapa_CrkEb2 vis_4g32b1 ">
+</i>
+</button>
+<a  id="Redi_XP5t71-gk" class="lay_C7CDC1 pos_e8wtf3 mapa_CrkEb2 vis_RGZTP " aria-label="redirect link to tether github repo" href="https://github.com/vic-Rokx/vapor">
+<i  id="Icon_NWXB81-gk" class="bi bi-github lay_C7CDC1 pos_e8wtf3 mapa_CrkEb2 vis_mfMw54 intr_sN9sA4 ">
+</i>
+</a>
+<a  id="Redi_EKVG14-gk" class="lay_C7CDC1 pos_e8wtf3 mapa_CrkEb2 vis_RGZTP " aria-label="redirect link to discord" href="https://github.com/vic-Rokx/vapor">
+<i  id="Icon_YgQ7G3-gk" class="bi bi-discord lay_C7CDC1 pos_e8wtf3 mapa_CrkEb2 vis_mfMw54 intr_sN9sA4 ">
+</i>
+</a>
+<a  id="Redi_jLwir2-gk" class="lay_C7CDC1 pos_e8wtf3 mapa_CrkEb2 vis_RGZTP " aria-label="redirect link to ziglang" href="https://ziglang.org/">
+<div  id="Grap_uHCJR1-gk" class="lay_dAbxQ1 pos_e8wtf3 mapa_CrkEb2 vis_jjYET4 intr_0MyT64 ">
+</div>
+</a>
+<button  id="Butt_soymL1-gk" class="lay_C7CDC1 pos_e8wtf3 mapa_CrkEb2 vis_zrABW3 ">
+<i  id="Icon_ah67n2-gk" class="bi bi-cloud-moon lay_C7CDC1 pos_e8wtf3 mapa_CrkEb2 vis_mfMw54 intr_sN9sA4 ">
+</i>
+</button>
 </div>
 </div>
+
+
 </div>
 </body>
 </html>

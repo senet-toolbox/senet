@@ -48,27 +48,37 @@ var months: []const []const u8 = &.{
 };
 
 const DatePicker = @This();
+_allocator: *std.mem.Allocator = undefined,
+
+// State/Data
 current_date: DateTime,
 start_date: ?DateTime = null,
 _viewed_date: DateTime = undefined,
 _selected_date: DateTime = undefined,
 _all_dates: []DateTime = undefined,
+
+// Dimensions
 _container_width: f32 = 256,
 _container_height: f32 = 260,
 _cell_dim: f32 = 32,
-_allocator: *std.mem.Allocator = undefined,
-tint: Vapor.Types.Background = .palette(.tint),
-background: Vapor.Types.Background = .palette(.background),
-selected_text_color: Vapor.Types.Color = .white,
-text_color: Vapor.Types.Color = .palette(.text_color),
-border_color: Vapor.Types.Color = .palette(.text_color),
+
+// Select options
 months_select: Select(DateTime) = undefined,
 years_select: Select(i32) = undefined,
+
+// Event handlers
 on_date_select: ?*const fn (date: DateTime) void = null,
 on_year_select: ?*const fn (year: i32) void = null,
 on_month_select: ?*const fn (month: i32) void = null,
 on_next_month: ?*const fn () void = null,
 on_prev_month: ?*const fn () void = null,
+
+// Colors
+tint: Vapor.Types.Background = .palette(.tint),
+background: Vapor.Types.Background = .palette(.background),
+selected_text_color: Vapor.Types.Color = .white,
+text_color: Vapor.Types.Color = .palette(.text_color),
+border_color: Vapor.Types.Color = .palette(.text_color),
 
 pub fn init(date_picker: *DatePicker) void {
     var allocator = Vapor.arena(.persist);
@@ -128,7 +138,6 @@ pub fn init(date_picker: *DatePicker) void {
 }
 
 fn selectMonth(select: *Select(DateTime), item: *Select(DateTime).Item) void {
-    // if (ctx == null) return;
     const date_picker: *DatePicker = @alignCast(@fieldParentPtr("months_select", select));
     date_picker._viewed_date = item.value;
     date_picker.updateViewedDate();
@@ -184,11 +193,6 @@ fn isSelectedShadow(date_picker: *DatePicker, date_time: DateTime) Vapor.Types.S
 }
 
 fn isSelectedText(date_picker: *DatePicker, date_time: DateTime) Vapor.Types.Color {
-    // if (date_picker._selected_date.day == date_time.day and date_picker._selected_date.month == date_time.month) {
-    //     return date_picker.selected_text_color;
-    // } else {
-    //     return date_picker.text_color;
-    // }
     if (DateTime.isWithinMonth(date_time, date_picker._viewed_date.month, date_picker._viewed_date.year)) {
         return date_picker.text_color;
     } else {
@@ -205,11 +209,6 @@ fn isSelected(date_picker: *DatePicker, date_time: DateTime) bool {
 }
 
 fn isSelectedBackground(date_picker: *DatePicker, date_time: DateTime) Vapor.Types.Background {
-    // if (date_picker._selected_date.day == date_time.day and date_picker._selected_date.month == date_time.month) {
-    //     return date_picker.background;
-    // } else if (date_time.day == date_picker.current_date.day and date_time.month == date_picker.current_date.month) {
-    //     return date_picker.background;
-    // }
     if (DateTime.isWithinMonth(date_time, date_picker._viewed_date.month, date_picker._viewed_date.year)) {
         return date_picker.background;
     } else {

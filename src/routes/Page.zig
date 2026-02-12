@@ -50,26 +50,28 @@ fn CodeBox(code: *SyntaxHighlighter, title: []const u8) void {
             .radius(.all(10))
             .padding(.xy(8, 16))
             .children({
-            Box()
-                .width(.percent(100))
-                .height(.percent(6))
-                .padding(.horizontal(24))
-                .children({
+            if (Vapor.isDesktop()) {
                 Box()
-                    .padding(.all(8))
-                    .width(.fit)
-                    .layout(.center)
-                    .height(.percent(100))
-                    .border(.bottom(1, .white))
+                    .width(.percent(100))
+                    .height(.percent(6))
+                    .padding(.horizontal(24))
                     .children({
-                    Text(title)
-                        .fontStyle(.italic)
-                        .fontFamily("Geist Mono, monospace")
-                        .font(14, 300, .white).end();
+                    Box()
+                        .padding(.all(8))
+                        .width(.fit)
+                        .layout(.center)
+                        .height(.percent(100))
+                        .border(.bottom(1, .white))
+                        .children({
+                        Text(title)
+                            .fontStyle(.italic)
+                            .fontFamily("Geist Mono, monospace")
+                            .font(14, 300, .white).end();
+                    });
                 });
-            });
+            }
             Center().width(.percent(100))
-                .height(.percent(94))
+                .height(.expand)
                 .scroll(.scroll_y())
                 .border(.round(.hex("#383735"), .all(6)))
                 .background(.hex("#282828"))
@@ -152,7 +154,7 @@ var reverb_middleware_highlighter: SyntaxHighlighter = undefined;
 var canopy_highlighter: SyntaxHighlighter = undefined;
 var websocket_highlighter: SyntaxHighlighter = undefined;
 var complex_form_highlighter: SyntaxHighlighter = undefined;
-var react_form_highlighter: SyntaxHighlighter = undefined;
+// var react_form_highlighter: SyntaxHighlighter = undefined;
 var react_form_highlighter_modern: SyntaxHighlighter = undefined;
 
 const Videos = enum {
@@ -175,6 +177,7 @@ var video: Vapor.Types.Video = .{
     .autoplay = true,
     .muted = true,
     .loop = true,
+    .lazy = true,
 };
 
 var chat_video: Vapor.Types.Video = .{
@@ -182,6 +185,7 @@ var chat_video: Vapor.Types.Video = .{
     .autoplay = true,
     .muted = true,
     .loop = true,
+    .lazy = true,
 };
 
 var kanban_video: Vapor.Types.Video = .{
@@ -189,6 +193,7 @@ var kanban_video: Vapor.Types.Video = .{
     .autoplay = true,
     .muted = true,
     .loop = true,
+    .lazy = true,
 };
 
 fn decrement() void {
@@ -246,6 +251,7 @@ var bar_with_label: ProgressBar = undefined;
 
 pub fn init() void {
     const allocator = Vapor.arena(.persist);
+    Tooltip.new();
 
     highlighter = SyntaxHighlighter.init(allocator);
     highlighter.use_cpy_btn = false;
@@ -270,15 +276,14 @@ pub fn init() void {
     complex_form_highlighter = SyntaxHighlighter.init(allocator);
     complex_form_highlighter.use_cpy_btn = false;
 
-    react_form_highlighter = SyntaxHighlighter.init(allocator);
-    react_form_highlighter.use_cpy_btn = false;
+    // react_form_highlighter = SyntaxHighlighter.init(allocator);
+    // react_form_highlighter.use_cpy_btn = false;
 
     react_form_highlighter_modern = SyntaxHighlighter.init(allocator);
     react_form_highlighter_modern.use_cpy_btn = false;
 
-    Vapor.Kit.fetch("/src/routes/VaporizeComplexForm.zig", handlePageForm, .{ .method = .GET });
-    Vapor.Kit.fetch("/src/routes/ReactComplexForm.tsx", handlePageReactForm, .{ .method = .GET });
-    Vapor.Kit.fetch("/src/routes/ReactComplexFormModern.tsx", handlePageReactFormModern, .{ .method = .GET });
+    Vapor.Kit.fetch("/zig/VaporizeComplexForm.zig", handlePageForm, .{ .method = .GET });
+    Vapor.Kit.fetch("/tsx/ReactComplexFormModern.tsx", handlePageReactFormModern, .{ .method = .GET });
 
     ComplexForm.init();
     // login_form.compile() catch unreachable;
@@ -308,23 +313,10 @@ fn measureTotalRenderTime(time: f64) void {
 
 fn handlePageForm(resp: Vapor.Kit.Response) void {
     switch (resp) {
-        .ok => |data| {
-            complex_form_highlighter.parse(data.body) catch unreachable;
+        .Ok => |data| {
+            complex_form_highlighter.parse(Vapor.dupe(data.body, .persist)) catch unreachable;
         },
-        .err => |err| {
-            Vapor.printErr("Failed to fetch: {s}", .{err.message});
-            return;
-        },
-    }
-    Vapor.cycle();
-}
-
-fn handlePageReactForm(resp: Vapor.Kit.Response) void {
-    switch (resp) {
-        .ok => |data| {
-            react_form_highlighter.parse(data.body) catch unreachable;
-        },
-        .err => |err| {
+        .Err => |err| {
             Vapor.printErr("Failed to fetch: {s}", .{err.message});
             return;
         },
@@ -334,10 +326,10 @@ fn handlePageReactForm(resp: Vapor.Kit.Response) void {
 
 fn handlePageReactFormModern(resp: Vapor.Kit.Response) void {
     switch (resp) {
-        .ok => |data| {
-            react_form_highlighter_modern.parse(data.body) catch unreachable;
+        .Ok => |data| {
+            react_form_highlighter_modern.parse(Vapor.dupe(data.body, .persist)) catch unreachable;
         },
-        .err => |err| {
+        .Err => |err| {
             Vapor.printErr("Failed to fetch: {s}", .{err.message});
             return;
         },
@@ -451,7 +443,7 @@ fn This() void {
     Html(
         \\<strong style="color: rgb(var(--text_color))">THIS</strong>
         \\entire website, is just a mere
-        \\<strong style="color: rgb(var(--text_color))"><i>250kb</i></strong>
+        \\<strong style="color: rgb(var(--text_color))"><i>264kb</i></strong>
         \\.
     ).style(&Styles.body_text.merge(.{
         .layout = .center,
@@ -600,34 +592,64 @@ pub fn render() void {
             }).children({
                 Center().style(&.{
                     .child_gap = 12,
-                    .size = .{ .width = .percent(45), .height = .px(48) },
-                    .visual = .{ .border = .solid(.all(1), .hex("#EBEBEB"), .all(99)) },
+                    .size = .{ .width = .percent(80), .height = .px(48) },
+                    // .visual = .{ .border = .solid(.all(1), .hex("#EBEBEB"), .all(99)) },
                 }).children({
-                    Text("version 1.0.0").style(&.{
-                        .visual = .{ .font_size = 20, .font_weight = 300 },
+                    // Text("version 1.0.0").style(&.{
+                    //     .visual = .{ .font_size = 20, .font_weight = 300 },
+                    // }).end();
+                    TextFmt("codex-engine rendered in {d:.2}ms", .{totalRenderTime}).style(&.{
+                        .layout = .center,
+                        .visual = .font(12, 500, .hex("#6f6f6f")),
                     }).end();
                     Icon(.arrow_right).style(&.{ .visual = .{ .font_size = 20 } }).end();
                 });
-                Graphic(.{ .src = "src/routes/text.svg" }).style(&.{ .size = .{ .width = .px(220) } }).end();
 
-                Center().style(&.{
-                    .direction = .column,
-                    .padding = .horizontal(12),
-                    .child_gap = 16,
-                    .size = .hw(.percent(40), .percent(100)),
-                }).children({
-                    Html("The <i>Toolkit</i> for Fullstack Applications").style(&.{
-                        .layout = .center,
-                        .visual = .font(36, 900, .palette(.text_color)),
-                    }).end();
-                    Html(
-                        \\<strong>Senet</strong> is a
-                        \\toolkit that works as a complete framework out of the box yet remains fully modular and adaptable to your exact needs.
-                    ).style(&.{
-                        .layout = .center,
-                        .visual = .font(20, 900, .palette(.text_color)),
-                    }).end();
+                Graphic(.{ .src = "/assets/senet_logo.svg" })
+                    .fill(.palette(.text_color))
+                    .stroke(.palette(.text_color))
+                    .width(.px(240))
+                    .end();
+
+                Box()
+                    .width(.percent(100))
+                    .wrap(.wrap)
+                    .margin(.all(0))
+                    .layout(.center)
+                    .children({
+                    Text("A ")
+                        .font(32, 900, .palette(.text_color))
+                        .whiteSpace(.pre)
+                        .end();
+                    Text("toolbox")
+                        .animation("text-glitch-chromatic")
+                        .whiteSpace(.pre)
+                        .font(32, 900, .palette(.tint))
+                        .fontStyle(.italic).end();
+                    Text(" for the Web")
+                        .font(32, 900, .palette(.text_color))
+                        .whiteSpace(.pre)
+                        .end();
                 });
+
+                // Center().style(&.{
+                //     .direction = .column,
+                //     .padding = .horizontal(12),
+                //     .child_gap = 16,
+                //     .size = .hw(.percent(40), .percent(100)),
+                // }).children({
+                //     Html("The <i>Toolkit</i> for Fullstack Applications").style(&.{
+                //         .layout = .center,
+                //         .visual = .font(36, 900, .palette(.text_color)),
+                //     }).end();
+                //     Html(
+                //         \\<strong>Senet</strong> is a
+                //         \\toolkit that works as a complete framework out of the box yet remains fully modular and adaptable to your exact needs.
+                //     ).style(&.{
+                //         .layout = .center,
+                //         .visual = .font(20, 900, .palette(.text_color)),
+                //     }).end();
+                // });
 
                 Box().style(&.{
                     .child_gap = 20,
@@ -664,21 +686,11 @@ pub fn render() void {
                 });
                 Stack().style(&.{ .layout = .bottom_right }).children({
                     Text("Used By").style(&Styles.muted_text).end();
-                    Box().style(&.{ .child_gap = 12, .layout = .x_even_center }).children({
-                        if (Theme.mode == .light) {
-                            Image(.{ .src = "/assets/acorn.png", .alt = "acorn" })
-                                .style(&.{
-                                .id = "acorn-image-light",
-                                .size = .{ .height = .px(32), .width = .percent(100) },
-                            }).end();
-                        } else {
-                            Image(.{ .src = "/assets/acornwhite.png", .alt = "acorn" }).style(&.{
-                                .id = "acorn-image-dark",
-                                .size = .{ .height = .px(32), .width = .percent(100) },
-                            }).end();
-                        }
-
-                        Text("Acorn").style(&.{ .visual = .font(28, 500, .palette(.text_color)) }).end();
+                    Box().style(&.{ .margin = .t(12), .layout = .x_even_center }).children({
+                        Graphic(.{ .src = "/assets/ryven.svg" }).style(&.{
+                            .size = .{ .height = .px(28), .width = .px(64) },
+                            .visual = .{ .fill = .palette(.text_color), .stroke = .palette(.text_color) },
+                        }).end();
                     });
                 });
             });
@@ -697,7 +709,7 @@ pub fn render() void {
             // Html(
             //     \\Below is the resulting UI, of the React and Vapor forms.
             // ).style(&Styles.body_text).end();
-            Text("Vaporization").font(64, 700, .palette(.text_color)).end();
+            Text("Vaporization").font(if (Vapor.isMobile()) 48 else 64, 700, .palette(.text_color)).end();
             Html(
                 \\Vaporization is a tool that allows you to generate UI from data such as 
                 \\<i style="color: rgb(var(--tint))"><code>structs</code></i>,
@@ -715,7 +727,7 @@ pub fn render() void {
         });
         Stack()
             // .layout(.top_center)
-            .width(.percent(40))
+            .width(.mobile_desktop_percent(80, 40))
             .children({
             ComplexForm.LoginComponent();
         });
@@ -724,34 +736,33 @@ pub fn render() void {
     Stack()
         .layout(.center)
         .width(.percent(100))
-        .spacing(64)
+        .spacing(if (Vapor.isMobile()) 8 else 72)
         .height(.percent(100))
+        .layer(.dot(0.5, 16, .palette(.border_color)))
         .pos(.relative)
+        .padding(.vertical(if (Vapor.isMobile()) 12 else 36))
         .baseStyle(&Vapor.Types.Style{
             .visual = .{
                 .border = .solid(.tb(1), .palette(.border_color_light), .all(0)),
-                .layers = &.{
-                    // .gradient(.linear, .deg(145), &.{ .transparent, .palette(.tint) }),
-                    .dot(0.5, 16, .palette(.border_color)),
-                    // .line(2, 8, .diagonal_up, .palette(.grid_color)),
-                },
             },
         })
         .children({
-        Stack().width(.percent(80)).spacing(16).layout(.center).children({
-            Text("Vapor/React Form Comparison").font(64, 700, .palette(.text_color)).end();
+        Stack()
+            .width(.percent(80)).spacing(16).layout(.center).children({
+            Text("Vapor/React Form Comparison").font(if (Vapor.isMobile()) 32 else 64, 700, .palette(.text_color)).end();
             Html(
                 \\Below is a code line comparison of a Vapor form, and a React form.
-                \\The React version uses Zod, React-Hook Form, and shadcn/ui.
+                \\The React version uses Zod, React-Hook Form, Tailwind, and shadcn/ui.
             ).style(&Styles.body_text).end();
         });
         Box()
             .width(.percent(100))
-            .height(.percent(60))
-            .layout(.x_even_center)
+            .height(.expand)
+            .direction(if (Vapor.isMobile()) .column else .row)
+            .layout(if (Vapor.isMobile()) .y_even_center else .x_even)
             .children({
-            Stack().width(.percent(40))
-                .height(.percent(100))
+            Stack().width(.mobile_desktop_percent(100, 40))
+                .height(.mobile_desktop_percent(35, 80))
                 .layout(.center)
                 .spacing(16)
                 .children({
@@ -761,12 +772,12 @@ pub fn render() void {
                 CodeBox(&complex_form_highlighter, "vaporize.zig");
             });
 
-            Stack().width(.percent(40))
-                .height(.percent(100))
+            Stack().width(.mobile_desktop_percent(100, 40))
+                .height(.mobile_desktop_percent(35, 80))
                 .spacing(16)
                 .layout(.center)
                 .children({
-                Text("~450 Lines")
+                Text("~560 Lines")
                     .font(20, 700, .palette(.text_color)).end();
 
                 CodeBox(&react_form_highlighter_modern, "react-hook-zod-shad.zig");
@@ -774,113 +785,108 @@ pub fn render() void {
         });
     });
 
-    if (Vapor.isDesktop()) {
-        Box().style(&.{
-            .size = .hw(.percent(100), .percent(100)),
-            .padding = .vertical(64),
-            .layout = .center,
-            // .direction = .column,
-            // .child_gap = 16,
-            .visual = Vapor.Types.Visual{
-                .border = .bottom(1, .hex("#E4E4E4")),
-                // .layers = &.{
-                //     .line(1, 12, Vapor.Types.LinesDirection.diagonal_up, .palette(.grid_color)),
-                //     .line(1, 12, Vapor.Types.LinesDirection.diagonal_down, .palette(.grid_color)),
-                // },
-            },
-        }).children({
+    // if (Vapor.isDesktop()) {
+    Box().style(&.{
+        .size = .hw(.percent(100), .percent(100)),
+        .padding = .vertical(64),
+        .layout = .center,
+        .visual = Vapor.Types.Visual{
+            .border = .bottom(1, .hex("#E4E4E4")),
+        },
+    }).children({
+        Box()
+            .hw(.percent(100), .percent(90))
+            .layout(if (Vapor.isMobile()) .y_even_center else .x_even_center)
+            .direction(if (Vapor.isMobile()) .column else .row)
+            .children({
             Box()
-                .hw(.percent(100), .percent(90))
-                .layout(.x_even_center)
+                .hw(.mobile_desktop(.fit, .percent(100)), .mobile_desktop_percent(90, 30))
+                .layout(.top_left)
+                .direction(.column)
+                .spacing(if (Vapor.isMobile()) 32 else 64)
                 .children({
                 Box()
-                    .hw(.percent(100), .percent(30))
-                    .layout(.top_left)
-                    .direction(.column)
-                    .spacing(64)
+                    .layout(.left_center)
+                    .spacing(8)
                     .children({
-                    Box()
-                        .layout(.left_center)
-                        .spacing(8)
-                        .children({
-                        Vapor.Svg(.{ .svg = template, .override = true })
-                            .stroke(.palette(.tint))
-                            .size(.hw_px(48, 48))
-                            .end();
-                        Text("Templates").style(&Styles.subheading).end();
-                    });
-                    Box()
-                        .spacing(16)
-                        .width(.percent(100))
-                        .height(.grow)
-                        .layout(.top_left)
-                        .direction(.column)
-                        .padding(.l(52))
-                        .children({
-                        ButtonCtx(switchVideo, .{Videos.dashboard})
-                            .children({
-                            Text("{dashboard.zig}")
-                                .hoverText(.hex("#6f6f6f"))
-                                .font(18, 300, if (Videos.dashboard != active_video) .transparentize(.hex("#6f6f6f"), 0.4) else .palette(.tint)).end();
-                        });
-                        ButtonCtx(switchVideo, .{Videos.kanban})
-                            .children({
-                            Text("{kanan.zig}")
-                                .hoverText(.hex("#6f6f6f"))
-                                .font(18, 300, if (Videos.kanban != active_video) .transparentize(.hex("#6f6f6f"), 0.4) else .palette(.tint)).end();
-                        });
-                        ButtonCtx(switchVideo, .{Videos.chat})
-                            .children({
-                            Text("{chat.zig}")
-                                .hoverText(.hex("#6f6f6f"))
-                                .font(18, 300, if (Videos.chat != active_video) .transparentize(.hex("#6f6f6f"), 0.4) else .palette(.tint)).end();
-                        });
-                    });
+                    Vapor.Svg(.{ .svg = template, .override = true })
+                        .stroke(.palette(.tint))
+                        .size(.hw_px(48, 48))
+                        .end();
+                    Text("Templates").style(&Styles.subheading).end();
                 });
                 Box()
-                    .direction(.column)
-                    .hw(.percent(100), .percent(65))
-                    .spacing(32)
+                    .spacing(16)
+                    .width(.percent(100))
+                    // .height(.grow)
+                    .layout(.top_left)
+                    .direction(if (Vapor.isMobile()) .row else .column)
+                    .padding(if (Vapor.isMobile()) .tb(8, 8) else .all(52))
                     .children({
-                    Box()
-                        .direction(.column)
-                        .hw(.fit, .percent(55))
-                        .spacing(16)
-                        .layout(.top_left)
+                    ButtonCtx(switchVideo, .{Videos.dashboard})
                         .children({
-                        Text("A framework so simple, even").style(&Styles.subheading).end();
-                        Text("Claude built the following with just the docs!").style(Styles.miniheading).end();
-                        Text(
-                            \\Senet, has been tested, by real users and is currently running in production, the goal was to create documentation
-                            \\that is easy to read, and easy to navigate. But also, can be fed into LLMs, so that one can query, and create.
-                        ).font(16, 300, .hex("#6f6f6f")).end();
+                        Text("{dashboard.zig}")
+                            .hoverText(.hex("#6f6f6f"))
+                            .font(18, 300, if (Videos.dashboard != active_video) .transparentize(.hex("#6f6f6f"), 0.4) else .palette(.tint)).end();
                     });
-                    Box()
-                        .background(.palette(.border_color_light))
-                        .radius(.all(18))
-                        .hw(.fit, .percent(90))
-                        .padding(.xy(8, 8))
-                        .layout(.top_center)
+                    ButtonCtx(switchVideo, .{Videos.kanban})
                         .children({
-                        Video(&Videos.getVideo(active_video))
-                            .radius(.all(10))
-                            .inlineStyle("object-fit: cover;", .{})
-                            .aspectRatio(.landscape)
-                            .size(.full)
-                            .end();
+                        Text("{kanan.zig}")
+                            .hoverText(.hex("#6f6f6f"))
+                            .font(18, 300, if (Videos.kanban != active_video) .transparentize(.hex("#6f6f6f"), 0.4) else .palette(.tint)).end();
+                    });
+                    ButtonCtx(switchVideo, .{Videos.chat})
+                        .children({
+                        Text("{chat.zig}")
+                            .hoverText(.hex("#6f6f6f"))
+                            .font(18, 300, if (Videos.chat != active_video) .transparentize(.hex("#6f6f6f"), 0.4) else .palette(.tint)).end();
                     });
                 });
             });
-
-            // RedirectLink(.{ .url = "https://vapor-ui.com", .aria_label = "Check out Vapor UI" }).width(.percent(60)).layout(.right_center)
-            //     .direction(.column)
-            //     .children({
-            //     Text("Explore all of Vapor's prebuilt components ⇀")
-            //         .fontStyle(.italic)
-            //         .font(16, 300, .hex("#6f6f6f")).end();
-            // });
+            Box()
+                .direction(.column)
+                .hw(.percent(100), .mobile_desktop_percent(100, 65))
+                .spacing(32)
+                .children({
+                Box()
+                    .direction(.column)
+                    .hw(.fit, .mobile_desktop_percent(100, 55))
+                    .spacing(16)
+                    .layout(.top_left)
+                    .children({
+                    Text("A framework so simple, even").style(&Styles.subheading).end();
+                    Text("Claude built the following with just the docs!").style(Styles.miniheading).end();
+                    Text(
+                        \\Senet, has been tested, by real users and is currently running in production, the goal was to create documentation
+                        \\that is easy to read, and easy to navigate. But also, can be fed into LLMs, so that one can query, and create.
+                    ).font(16, 300, .hex("#6f6f6f")).end();
+                });
+                Box()
+                    .background(.palette(.border_color_light))
+                    .radius(.all(18))
+                    .hw(.fit, .mobile_desktop_percent(100, 90))
+                    .padding(.xy(8, 8))
+                    .layout(.top_center)
+                    .children({
+                    Video(&Videos.getVideo(active_video))
+                        .radius(.all(10))
+                        .inlineStyle("object-fit: cover;", .{})
+                        .aspectRatio(.landscape)
+                        .size(.full)
+                        .end();
+                });
+            });
         });
-    }
+
+        // RedirectLink(.{ .url = "https://vapor-ui.com", .aria_label = "Check out Vapor UI" }).width(.percent(60)).layout(.right_center)
+        //     .direction(.column)
+        //     .children({
+        //     Text("Explore all of Vapor's prebuilt components ⇀")
+        //         .fontStyle(.italic)
+        //         .font(16, 300, .hex("#6f6f6f")).end();
+        // });
+    });
+    // }
 
     if (Vapor.isDesktop()) {
         Box().style(&.{
@@ -917,7 +923,7 @@ pub fn render() void {
     // Content
     // ---------------------------------------------------------------------------------------------
     Box().style(&.{
-        .size = .{ .width = .percent(100), .height = .percent(90) },
+        .size = .{ .width = .percent(100), .height = .mobile_desktop(.expand, .percent(90)) },
         .margin = .tb(64, 64),
         .layout = if (Vapor.isMobile()) .top_center else .x_even_center,
         .direction = if (Vapor.isMobile()) .column else .row,
@@ -930,16 +936,12 @@ pub fn render() void {
             .font_family = "IBM Plex Mono,monospace",
         }).end();
         Box()
-            // .scroll(.scroll_y())
-            // .padding(.horizontal(12))
-            .size(.hw(.mobile_desktop(.fit, .percent(60)), .mobile_desktop_percent(100, 40)))
-            // .border(.simple(.palette(.text_color)))
+            .size(.hw(.mobile_desktop(.percent(30), .percent(60)), .mobile_desktop_percent(100, 40)))
             .children({
-            // highlighter.render() catch unreachable;
             CodeBox(&highlighter, "vapor.zig");
         });
         Stack().style(&.{
-            .size = .hw(.mobile_desktop(.fit, .percent(60)), .percent(40)),
+            .size = .hw(.mobile_desktop(.percent(60), .percent(60)), .mobile_desktop_percent(100, 40)),
             .child_gap = 24,
             .layout = .left_center,
             .padding = .horizontal(12),
@@ -978,61 +980,27 @@ pub fn render() void {
     });
 
     // ---------------------------------------------------------------------------------------------
-    // Vaporization
-    // ---------------------------------------------------------------------------------------------
-    // Stack().style(&.{
-    //     .size = .{ .width = .percent(100), .height = .percent(90) },
-    //     .visual = .{ .border = .top(1, .palette(.border_color_light)) },
-    //     .layout = .center,
-    //     .child_gap = 32,
-    // }).children({
-    //     Stack().width(.percent(80)).spacing(16).layout(.center).children({
-    //         Text("Vaporization").font(64, 700, .palette(.text_color)).end();
-    //         Html(
-    //             \\Vaporization is a tool that allows you to generate UI from a
-    //             \\<i style="color: rgb(var(--tint))"><code>struct</code></i>
-    //             \\or other data types, like
-    //             \\<i style="color: rgb(var(--tint))"><code>strings</code></i>,
-    //             \\<i style="color: rgb(var(--tint))"><code>numbers</code></i>, and
-    //             \\<i style="color: rgb(var(--tint))"><code>arrays</code></i>, or even
-    //             \\<i style="color: rgb(var(--tint))"><code>markdown</code></i>.
-    //         ).style(&Styles.body_text).end();
-    //     });
-    //
-    //     Box().style(&.{
-    //         .size = .{ .width = .percent(100), .height = .percent(60) },
-    //         .layout = if (Vapor.isMobile()) .top_center else .x_even_center,
-    //         .direction = if (Vapor.isMobile()) .column else .row,
-    //     }).children({
-    //         Center().width(.percent(40)).height(.percent(100))
-    //             .scroll(.scroll_y())
-    //             .border(.simple(.palette(.text_color)))
-    //             .children({
-    //             form_highlighter.render() catch unreachable;
-    //         });
-    //         Center().width(.percent(40)).height(.fit).children({
-    //             form();
-    //         });
-    //     });
-    // });
-    // ---------------------------------------------------------------------------------------------
     // Reverb
     // ---------------------------------------------------------------------------------------------
     Stack().style(&.{
-        .size = .{ .width = .percent(100), .height = .percent(60) },
+        .size = .{ .width = .percent(100), .height = .mobile_desktop_percent(100, 60) },
         .visual = .{ .border = .top(1, .palette(.border_color_light)) },
         .layout = .center,
         .child_gap = 32,
+        .padding = if (Vapor.isMobile()) .horizontal(12) else .all(0),
     }).children({
         Box().style(&.{
             .size = .{ .width = .percent(100), .height = .percent(80) },
             .layout = if (Vapor.isMobile()) .top_center else .x_even_center,
             .direction = if (Vapor.isMobile()) .column else .row,
+            .child_gap = if (Vapor.isMobile()) 32 else 0,
         }).children({
-            Center().width(.percent(40)).height(.percent(100)).children({
+            Box()
+                .layout(if (Vapor.isMobile()) .top_center else .center)
+                .width(.mobile_desktop_percent(100, 40)).height(.mobile_desktop(.fit, .percent(100))).children({
                 Stack().width(.percent(100)).spacing(16).layout(.center).children({
                     Text("Reverb")
-                        .font(64, 700, .palette(.text_color))
+                        .font(if (Vapor.isMobile()) 48 else 64, 700, .palette(.text_color))
                         .end();
                     Html(
                         \\Reverb is a backend web framework that is built on top of
@@ -1050,7 +1018,9 @@ pub fn render() void {
                     }).end();
                 });
             });
-            Center().width(.percent(40)).height(.percent(100))
+            Box()
+                .layout(if (Vapor.isMobile()) .top_center else .center)
+                .width(.mobile_desktop_percent(100, 40)).height(.mobile_desktop_percent(40, 100))
                 // .scroll(.scroll_y())
                 // .border(.simple(.palette(.text_color)))
                 .children({
@@ -1059,87 +1029,123 @@ pub fn render() void {
             });
         });
     });
+
     Stack().style(&.{
-        .size = .{ .width = .percent(100), .height = .percent(90) },
+        .size = .{ .width = .percent(100), .height = .mobile_desktop(.fit, .percent(60)) },
         .visual = .{ .border = .top(1, .palette(.border_color_light)) },
         .layout = .center,
         .child_gap = 32,
+        .padding = if (Vapor.isMobile()) .xy(12, 12) else .all(0),
     }).children({
         Box().style(&.{
-            .size = .{ .width = .percent(100), .height = .percent(80) },
+            .size = .{ .width = .percent(100), .height = .mobile_desktop(.fit, .percent(80)) },
             .layout = if (Vapor.isMobile()) .top_center else .x_even_center,
             .direction = if (Vapor.isMobile()) .column else .row,
+            .child_gap = if (Vapor.isMobile()) 32 else 0,
         }).children({
-            Center().width(.percent(40)).height(.percent(100)).children({
+            Box()
+                .layout(if (Vapor.isMobile()) .top_center else .center)
+                .width(.mobile_desktop_percent(100, 40)).height(.mobile_desktop(.fit, .percent(100))).children({
                 Stack().width(.percent(100)).spacing(16).layout(.center).children({
-                    Text("Simple Routing & Powerful Middleware").font(64, 700, .palette(.text_color)).end();
+                    Text("Simple Routing & Powerful Middleware")
+                        .font(if (Vapor.isMobile()) 32 else 64, 700, .palette(.text_color))
+                        .end();
                     Html(
                         \\Send data to client, and database with one liners. Automatic handling of errors, middleware, and more.
                     ).style(&Styles.body_text).end();
                 });
             });
-            Center().width(.percent(40)).height(.percent(100))
-                // .scroll(.scroll_y())
-                // .border(.simple(.palette(.text_color)))
+            Box()
+                .layout(if (Vapor.isMobile()) .top_center else .center)
+                .width(.mobile_desktop_percent(100, 40)).height(.mobile_desktop_percent(40, 100))
                 .children({
                 CodeBox(&reverb_middleware_highlighter, "reverb_middleware.zig");
-                // reverb_middleware_highlighter.render() catch unreachable;
             });
         });
     });
 
-    Stack().style(&.{
-        .size = .{ .width = .percent(100), .height = .percent(90) },
+    Box().style(&.{
+        .size = .{ .width = .percent(100), .height = .mobile_desktop(.expand, .percent(90)) },
+        .margin = .tb(64, 64),
+        .layout = if (Vapor.isMobile()) .top_center else .x_even_center,
+        .direction = if (Vapor.isMobile()) .column else .row,
         .visual = .{ .border = .top(1, .palette(.border_color_light)) },
-        .layout = .center,
-        .child_gap = 32,
+        .child_gap = 16,
+        .position = .relative,
     }).children({
         Box().style(&.{
             .size = .{ .width = .percent(100), .height = .percent(80) },
             .layout = if (Vapor.isMobile()) .top_center else .x_even_center,
             .direction = if (Vapor.isMobile()) .column else .row,
+            .padding = if (Vapor.isMobile()) .horizontal(12) else .all(0),
+            .child_gap = if (Vapor.isMobile()) 32 else 0,
         }).children({
-            Center().width(.percent(40)).height(.percent(100))
+            if (Vapor.isMobile()) {
+                Box()
+                    .layout(if (Vapor.isMobile()) .top_center else .center)
+                    .width(.mobile_desktop_percent(100, 40)).height(.mobile_desktop(.fit, .percent(100))).children({
+                    Stack().width(.percent(100)).spacing(16).layout(.center).children({
+                        Text("Builtin WebSockets").font(if (Vapor.isMobile()) 32 else 64, 700, .palette(.text_color)).end();
+                        Html(
+                            \\Setup websockets with ease, and use them to communicate with anyone.
+                        ).style(&Styles.body_text).end();
+                        Html(
+                            \\<strong>Senet</strong> has a built-in WebSocket server.
+                        ).style(&Styles.body_text).end();
+                        Html(
+                            \\<strong>Vapor</strong> also has a built-in WebSocket client.
+                        ).style(&Styles.body_text).end();
+                    });
+                });
+            }
+            Box()
+                .layout(if (Vapor.isMobile()) .top_center else .center)
+                .width(.mobile_desktop_percent(100, 40)).height(.mobile_desktop_percent(40, 100))
                 .children({
                 CodeBox(&websocket_highlighter, "websocket.zig");
             });
 
-            Center().width(.percent(40)).height(.percent(100)).children({
-                Stack().width(.percent(100)).spacing(16).layout(.center).children({
-                    Text("Builtin WebSockets").font(64, 700, .palette(.text_color)).end();
-                    Html(
-                        \\Setup websockets with ease, and use them to communicate with anyone.
-                    ).style(&Styles.body_text).end();
-                    Html(
-                        \\<strong>Senet</strong> has a built-in WebSocket server.
-                    ).style(&Styles.body_text).end();
-                    Html(
-                        \\<strong>Vapor</strong> also has a built-in WebSocket client.
-                    ).style(&Styles.body_text).end();
+            if (Vapor.isDesktop()) {
+                Box()
+                    .layout(if (Vapor.isMobile()) .top_center else .center)
+                    .width(.mobile_desktop_percent(100, 40)).height(.mobile_desktop(.fit, .percent(100))).children({
+                    Stack().width(.percent(100)).spacing(16).layout(.center).children({
+                        Text("Builtin WebSockets").font(64, 700, .palette(.text_color)).end();
+                        Html(
+                            \\Setup websockets with ease, and use them to communicate with anyone.
+                        ).style(&Styles.body_text).end();
+                        Html(
+                            \\<strong>Senet</strong> has a built-in WebSocket server.
+                        ).style(&Styles.body_text).end();
+                        Html(
+                            \\<strong>Vapor</strong> also has a built-in WebSocket client.
+                        ).style(&Styles.body_text).end();
+                    });
                 });
-            });
+            }
         });
     });
 
-    if (Vapor.isDesktop()) {
-        Box().style(&.{
-            .size = .hw(.percent(100), .percent(100)),
-            .layout = .center,
-            .visual = .{
-                .layer = .grid(14, 1, .palette(.grid_color)),
-                .border = .top(1, .palette(.border_color_light)),
-            },
-            // .layout = .x_even,
-        }).children({
-            Stack().style(&.{
-                .size = .hw_percent(60, 60),
-            }).children({
-                Graphic(.{ .src = "/src/assets/tether.svg" }).style(&.{
-                    .size = .hw(.percent(100), .percent(100)),
-                }).end();
-            });
+    Box().style(&.{
+        .size = .hw(.mobile_desktop(.percent(40), .percent(100)), .percent(100)),
+        .layout = .center,
+        .visual = .{
+            .layer = .grid(14, 1, .palette(.grid_color)),
+            .border = .top(1, .palette(.border_color_light)),
+        },
+        // .layout = .x_even,
+    }).children({
+        Stack()
+            .width(.mobile_desktop(.percent(90), .percent(60)))
+            .height(.mobile_desktop(.percent(100), .percent(60)))
+            .layout(.center)
+            .children({
+            Graphic(.{ .src = "/src/assets/tether.svg" })
+                .width(.percent(100))
+                .height(.fit)
+                .end();
         });
-    }
+    });
 
     // ---------------------------------------------------------------------------------------------
     // Footer
@@ -1164,7 +1170,7 @@ pub fn render() void {
         }).children({
             Text("Community").font(18, 100, .white).end();
             Stack().style(&.{ .child_gap = 16, .size = .hw(.mobile_desktop_percent(100, 50), .percent(100)) }).children({
-                RedirectLink(.{ .url = "https://github.com/tether-labs", .aria_label = "github page of tether" }).style(&.{
+                RedirectLink(.{ .url = "https://github.com/senet-toolbox", .aria_label = "github page of tether" }).style(&.{
                     .visual = .{ .text_color = .white, .text_decoration = .none },
                 }).children({
                     Text("Github").hover(.{ .text_decoration = .underline }).duration(100).baseStyle(&Styles.muted_text).end();
@@ -1188,22 +1194,22 @@ pub fn render() void {
         }).children({
             Text("Resources").font(18, 100, .white).end();
             Stack().style(&.{ .child_gap = 16 }).children({
-                Link(.{ .url = "/docs/vapor", .aria_label = "docs page of tether" }).style(&.{
+                Link(.{ .url = "/docs/vapor", .aria_label = "docs page for vapor" }).style(&.{
                     .visual = .{ .text_color = .white, .text_decoration = .none },
                 }).children({
                     Text("Vapor Docs").hover(.{ .text_decoration = .underline }).duration(100).baseStyle(&Styles.muted_text).end();
                 });
-                Link(.{ .url = "/docs/reverb", .aria_label = "docs page of tether" }).style(&.{
+                Link(.{ .url = "/docs/reverb", .aria_label = "docs page for reverb" }).style(&.{
                     .visual = .{ .text_color = .white, .text_decoration = .none },
                 }).children({
                     Text("Reverb Docs").hover(.{ .text_decoration = .underline }).duration(100).baseStyle(&Styles.muted_text).end();
                 });
-                Link(.{ .url = "/docs/canopy", .aria_label = "docs page of tether" }).style(&.{
+                Link(.{ .url = "/docs/canopy", .aria_label = "docs page for canopy" }).style(&.{
                     .visual = .{ .text_color = .white, .text_decoration = .none },
                 }).children({
                     Text("Canopy Docs").hover(.{ .text_decoration = .underline }).duration(100).baseStyle(&Styles.muted_text).end();
                 });
-                RedirectLink(.{ .url = "/blog", .aria_label = "blog page of tether" }).style(&.{
+                RedirectLink(.{ .url = "https://vicrokx.com", .aria_label = "personal blog of vicrokx" }).style(&.{
                     .visual = .{ .text_color = .white, .text_decoration = .none },
                 }).children({
                     Text("Blog").hover(.{ .text_decoration = .underline }).duration(100).baseStyle(&Styles.muted_text).end();
@@ -1217,20 +1223,30 @@ pub fn render() void {
         }).children({
             Text("Projects").font(18, 100, .white).end();
             Stack().style(&.{ .child_gap = 16 }).children({
-                RedirectLink(.{ .url = "/acorn", .aria_label = "nightwatch page of tether" }).style(&.{
-                    .visual = .{ .text_color = .white, .text_decoration = .none },
-                }).children({
-                    Text("Acorn").hover(.{ .text_decoration = .underline }).duration(100).baseStyle(&Styles.muted_text).end();
-                });
-                RedirectLink(.{ .url = "https://heightsandminds.org", .aria_label = "heights and minds page of tether" }).style(&.{
+                RedirectLink(.{ .url = "https://heightsandminds.org", .aria_label = "heights and minds website" }).style(&.{
                     .visual = .{ .text_color = .white, .text_decoration = .none },
                 }).children({
                     Text("Heights & Minds").hover(.{ .text_decoration = .underline }).duration(100).baseStyle(&Styles.muted_text).end();
                 });
-                RedirectLink(.{ .url = "https://metal.tether.sh", .aria_label = "metal page of tether" }).style(&.{
+                RedirectLink(.{ .url = "https://kyber.run", .aria_label = "Kyber website" }).style(&.{
                     .visual = .{ .text_color = .white, .text_decoration = .none },
                 }).children({
-                    Text("Metal").hover(.{ .text_decoration = .underline }).duration(100).baseStyle(&Styles.muted_text).end();
+                    Text("Kyber").hover(.{ .text_decoration = .underline }).duration(100).baseStyle(&Styles.muted_text).end();
+                });
+                RedirectLink(.{ .url = "https://ryven.kyber.run", .aria_label = "Ryven website" }).style(&.{
+                    .visual = .{ .text_color = .white, .text_decoration = .none },
+                }).children({
+                    Text("Ryven").hover(.{ .text_decoration = .underline }).duration(100).baseStyle(&Styles.muted_text).end();
+                });
+                RedirectLink(.{ .url = "https://vapor-ui.kyber.run", .aria_label = "Vapor UI website" }).style(&.{
+                    .visual = .{ .text_color = .white, .text_decoration = .none },
+                }).children({
+                    Text("Vapor UI").hover(.{ .text_decoration = .underline }).duration(100).baseStyle(&Styles.muted_text).end();
+                });
+                RedirectLink(.{ .url = "https://tranquil.kyber.run", .aria_label = "Tranquil website" }).style(&.{
+                    .visual = .{ .text_color = .white, .text_decoration = .none },
+                }).children({
+                    Text("Tranquil").hover(.{ .text_decoration = .underline }).duration(100).baseStyle(&Styles.muted_text).end();
                 });
             });
         });
@@ -1241,7 +1257,7 @@ pub fn render() void {
             .padding = .vertical(12),
         }).children({
             Box().style(&.{ .child_gap = 8, .layout = .left_center }).children({
-                Text("TETHER").font(18, 100, .white).end();
+                Text("SENET").font(18, 100, .white).end();
                 Graphic(.{ .src = "src/assets/logonormal.svg" }).style(&.{
                     .size = .{ .width = .px(38) },
                     .visual = .{ .text_color = .white, .fill = .white },

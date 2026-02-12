@@ -374,7 +374,6 @@ fn insertValue(stable_id: []const u8, value: FieldValue) void {
 }
 
 fn createValue(stable_id: []const u8, field_type: FieldType, default_value: ?DefaultValue) FieldValue {
-    Vapor.print("createValue {s}", .{stable_id});
     return field_values.get(stable_id) orelse {
         const stable_id_alloc = Vapor.arena(.persist).alloc(u8, stable_id.len) catch unreachable;
         @memcpy(stable_id_alloc, stable_id);

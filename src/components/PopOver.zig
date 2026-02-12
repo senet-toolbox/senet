@@ -129,10 +129,14 @@ const PopOverOptions = struct {
     border: Vapor.Types.BorderGrouped = .round(.transparent, .all(6)),
     position: Vapor.Types.AnchorPlacement = .top,
     close_on_click_outside: bool = true,
+    on_trigger: ?*const fn () void = null,
 };
 
 fn onToggle(popover: *PopOver, _: *Vapor.Event) void {
     popover.options.show = !popover.options.show;
+    if (popover.options.on_trigger) |on_trigger| {
+        on_trigger();
+    }
 }
 
 fn onOpen(popover: *PopOver, _: *Vapor.Event) void {
@@ -141,11 +145,17 @@ fn onOpen(popover: *PopOver, _: *Vapor.Event) void {
 
 fn onClose(popover: *PopOver, _: *Vapor.Event) void {
     popover.options.show = false;
+    if (popover.options.on_trigger) |on_trigger| {
+        on_trigger();
+    }
 }
 
 fn onClickOutside(popover: *PopOver) void {
     if (popover.options.close_on_click_outside) {
         popover.options.show = false;
+    }
+    if (popover.options.on_trigger) |on_trigger| {
+        on_trigger();
     }
 }
 
@@ -167,6 +177,7 @@ pub const Options = struct {
     border: Vapor.Types.BorderGrouped = .round(.transparent, .all(6)),
     position: Vapor.Types.AnchorPlacement = .top,
     close_on_click_outside: bool = true,
+    on_trigger: ?*const fn () void = null,
 };
 
 fn TriggerBox() Vapor.Builder(.pure) {
@@ -196,6 +207,7 @@ pub fn create(options: Options) *PopOver {
             .border = options.border,
             .position = options.position,
             .close_on_click_outside = options.close_on_click_outside,
+            .on_trigger = options.on_trigger,
         } };
 
         popovers.put(stable_id, popover) catch unreachable;

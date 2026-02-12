@@ -73,7 +73,7 @@ export fn returnAll(response_ptr: [*:0]u8) void {
 }
 
 fn CrudButton(func: fn () void, text: []const u8) void {
-    return Button(.{ .on_press = func })
+    return Button(func)
         .background(.palette(.background))
         .border(.simple(.black))
         .padding(.all(8))

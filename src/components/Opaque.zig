@@ -37,6 +37,7 @@ const SideBarStruct = @import("SideBar.zig");
 const ProgressCircleStruct = @import("ProgressCircle.zig");
 const ProgressBarStruct = @import("ProgressBar.zig");
 const Theme = @import("theme");
+const RyvenButton = @import("RyvenButton.zig");
 
 const Shadow = Vapor.Types.NewShadow;
 const Color = Vapor.Types.Color;
@@ -191,6 +192,17 @@ pub const fade_out = Vapor.Animation.init("opaque-fade-out")
     .fill(.forwards);
 
 const Opaque = @This();
+
+pub fn initAnimations() void {
+    glitch.build();
+    text_glitch.build();
+    blink.build();
+    fade_in.build();
+    fade_out.build();
+    text_glitch_chromatic.build();
+    look_around.build();
+}
+
 pub fn new() void {
     SelectStruct.new();
     AlertStruct.new();
@@ -202,17 +214,12 @@ pub fn new() void {
     ComboBoxStruct.new();
     SwitchStruct.new();
     GroupStruct.new();
-    glitch.build();
-    text_glitch.build();
-    blink.build();
-    fade_in.build();
-    fade_out.build();
-    text_glitch_chromatic.build();
-    look_around.build();
+    RyvenButton.new();
     Tabs.new();
     SliderStruct.new();
     TableStruct.new();
     PopOverStruct.new();
+    DynamicTableStruct.new();
 }
 
 pub const Table = TableStruct.Table;
@@ -264,6 +271,9 @@ pub const TextArea = TextAreaStruct;
 
 pub const DynamicTable = DynamicTableStruct.DynamicTable;
 pub const DynamicRow = DynamicTableStruct.DynamicRow;
+pub const DataColumn = DynamicTableStruct.DataColumn;
+pub const ColumnType = DynamicTableStruct.ColumnType;
+pub const Value = DynamicTableStruct.Value;
 pub const PopOver = PopOverStruct;
 
 // pub fn LinearGradient(direction: Vapor.Types.GradientDirection, colors: []const Color) Vapor.Builder(.pure) {

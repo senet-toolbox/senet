@@ -136,7 +136,7 @@ pub fn code_snippet_single(text: []const u8) void {
             .hover = .{ .text_color = .palette(.tint), .border = .simple(.palette(.tint)) },
         },
         .position = .relative,
-    })({
+    }).children({
         Text(text).font(16, null, null)
             .ellipsis(.dot)
             .fontFamily("Azeret Mono, monospace")
@@ -153,16 +153,16 @@ pub fn code_snippet_single(text: []const u8) void {
                 .cursor = .pointer,
             },
             .layout = .center,
-        })({
+        }).children({
             if (copied and std.mem.eql(u8, text, copied_text)) {
                 Icon(.check).style(&.{
                     .visual = .{ .font_size = 16 },
-                });
+                }).end();
             } else {
                 Icon(.clipboard).style(&.{
                     .visual = .{ .font_size = 16 }, // we need to fix this to make sure it does not repalce the class of the text below
                     // setting it to 16 results in the Text below being overwritten
-                });
+                }).end();
             }
         });
  

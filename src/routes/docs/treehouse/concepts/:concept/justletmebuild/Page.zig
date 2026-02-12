@@ -28,7 +28,7 @@ pub fn render() void {
             .font_weight = 700,
             .text_color = .hex("#1a1a1a"),
         });
-        Static.Text("curl -sSL https://raw.githubusercontent.com/tether-labs/metal/main/install.sh | bash", .{
+        Static.Text("curl -sSL https://raw.githubusercontent.com/senet-toolbox/metal/main/install.sh | bash", .{
             .font_size = 16,
             .font_family = "Azeret Mono, monospace",
         });

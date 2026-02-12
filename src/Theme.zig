@@ -52,6 +52,7 @@ pub const ThemeTokens = enum(u8) {
     code_identifier_color,
     code_is_added_color,
     chart_bar_color,
+    text_muted,
 };
 
 pub const Colors = struct {
@@ -98,17 +99,23 @@ pub const Colors = struct {
     code_identifier_color: Color,
     code_is_added_color: Color,
     chart_bar_color: Color,
+    text_muted: Color,
 };
 
 pub const Light = Colors{
     .border_color = .hex("#262626"),
+    // .border_color_light = .hex("#C3C1C1"),
+    .border_color_light = .hex("#e4e4e4"),
+
     .text_color = .rgba(0, 0, 0, 255),
     .background = .white,
+    // .background = .hex("#F0F0F0"),
     .primary = .rgba(255, 255, 255, 255),
     .secondary = .rgba(0, 0, 0, 255),
     .font_family = "Montserrat",
     .btn_color = .hex("#2108FF"),
     .tint = .hex("#002bff"),
+    // .tint = .hex("#C2FE0A"),
     .dark_tint = .hex("#020089"),
     .text_tint_color = .white,
     .alternate_tint = .hex("#2108FF"),
@@ -128,7 +135,6 @@ pub const Light = Colors{
     .image_bg = .hex("#ffffff"),
     .code_background = .white,
     .highlight_color = .hex("#F3F3F3"),
-    .border_color_light = .hex("#e4e4e4"),
     .grid_color = .hex("#f6f6f6"),
     .code_text_color = .hex("#E4E7EE"),
     .code_function_color = .hex("#FFED84"),
@@ -144,6 +150,7 @@ pub const Light = Colors{
     .code_identifier_color = .hex("#2E3B5A"),
     .code_is_added_color = .hex("#16DF8F"),
     .chart_bar_color = .hex("#212121"),
+    .text_muted = .hex("#71717a"),
 };
 
 pub const Dark = Colors{
@@ -154,9 +161,9 @@ pub const Dark = Colors{
     .secondary = .rgba(255, 255, 255, 1),
     .font_family = "Montserrat",
     .btn_color = .hex("#FFFF15"),
-    .tint = .hex("#F2FF00"),
+    .tint = .hex("#C2FE0A"),
     .dark_tint = .hex("#D5E100"),
-    .text_tint_color = .hex("#FFFF15"),
+    .text_tint_color = .hex("#C2FE0A"),
     .alternate_tint = .hex("#6338FF"),
     .btn_tint = .hex("#FF3838"),
     .dark_text = .hex("#0B0B0B"),
@@ -190,6 +197,7 @@ pub const Dark = Colors{
     .code_identifier_color = .hex("#525C73"),
     .code_is_added_color = .hex("#085436"),
     .chart_bar_color = .hex("#272727"),
+    .text_muted = .hex("#71717a"),
 };
 
 pub var mode: Mode = .light;

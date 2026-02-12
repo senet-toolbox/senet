@@ -295,7 +295,7 @@ pub fn render() void {
                                 var list_item: Vapor.Builder(.static) = Static.ListItem();
                                 uuids.append(list_item.getUUID()) catch unreachable;
                                 list_item
-                                    .onHoverCtx(onHover, item)
+                                    .onHoverCtx(onHover, .{item})
                                     .onLeave(onLeave)
                                     .style(&.{
                                         .size = .{ .width = .percent(100), .height = .fit },

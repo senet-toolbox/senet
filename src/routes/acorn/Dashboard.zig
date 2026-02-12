@@ -17,8 +17,32 @@ const data = @import("exception_data.zig").exceptions_data;
 const traces_data = @import("traces_data.zig").traces_data;
 const Overview = @import("Overview.zig");
 const Database = @import("Database.zig");
-
 const font_family: []const u8 = "Barlow";
+const Writer = Vapor.Writer;
+
+const Polygons = Vapor.Polygons;
+
+// Hexagon with hover effect
+const hex = Polygons.init("hex-button")
+    .hexagon()
+    .fill(Vapor.Types.Color.palette(.text_color))
+    .hoverFill(Vapor.Types.Color.palette(.text_color))
+    .hoverScale(1.1)
+    .transition(200);
+
+const hex_inner = Polygons.init("hex-button-inner")
+    .hexagon()
+    .fill(Vapor.Types.Color.palette(.background))
+    .hoverFill(Vapor.Types.Color.palette(.background))
+    .hoverScale(1.1)
+    .transition(200);
+
+const hex_inner_inner = Polygons.init("hex-button-inner-inner")
+    .hexagon()
+    .fill(Vapor.Types.Color.palette(.text_color))
+    .hoverFill(Vapor.Types.Color.palette(.text_color))
+    .hoverScale(1.1)
+    .transition(200);
 
 // Import UI Components
 const Opaque = @import("../../components/Opaque.zig");
@@ -793,11 +817,24 @@ fn onSearch(evt: *Vapor.Event) void {
 
 var progress_circle: ProgressCircle = undefined;
 const max_progress: f64 = 78;
+var writer: Writer = undefined;
+var buffer: [1024]u8 = undefined;
+var hex_style: []const u8 = undefined;
+
 pub fn init() void {
     Vapor.Page(.{ .route = "/acorn/dashboard" }, render, null);
 
-    Overview.init();
+    hex.build();
+    hex_inner.build();
+    hex_inner_inner.build();
+    // writer.init(&buffer);
+    // hex.writeCss(writer);
+    // hex_style = writer.getAll();
+
+
+    // Overview.init();
     Database.init();
+
     // Build animations
     pulse_glow.build();
     slide_up.build();
@@ -843,8 +880,8 @@ pub fn init() void {
     cpu_chart.addSeries(.stacked_bar, "CPU", &cpu_points, .{
         .color = light_gray,
         .bar_radius = 0,
-        .shadow_color = .transparentizeHex(.hex("#000000"), 0.5),
-        .show_shadow = true,
+        // .shadow_color = .transparentizeHex(.hex("#000000"), 0.5),
+        // .show_shadow = true,
     }) catch unreachable;
     cpu_chart.build() catch unreachable;
 
@@ -857,8 +894,8 @@ pub fn init() void {
     memory_chart.addSeries(.stacked_bar, "Memory", &cpu_points, .{
         .color = light_gray,
         .bar_radius = 0,
-        .shadow_color = .transparentizeHex(.hex("#000000"), 0.5),
-        .show_shadow = true,
+        // .shadow_color = .transparentizeHex(.hex("#000000"), 0.5),
+        // .show_shadow = true,
     }) catch unreachable;
     memory_chart.build() catch unreachable;
 
@@ -899,7 +936,7 @@ pub fn init() void {
         .margin = .{ .top = 20, .bottom = 0, .left = 0, .right = 0 }, // Defaults
         .palette = .{ .colors = &.{ "#6366f1", "#10b981", "#f59e0b" } },
     });
-    error_chart.onendselection = onEndSelection;
+    // error_chart.onendselection = onEndSelection;
 
     error_chart.addSeries(.stacked_bar, "1/2XX", &error_1xx_2xx_3xx, .{
         .color = danger,
@@ -1251,21 +1288,58 @@ fn renderNavButton(item: NavItem) void {
 fn renderHeader() void {
     Box()
         .width(.percent(100))
+        .background(.palette(.tint))
         // .height(.px(72))
         .padding(.xy(28, 10))
-        .background(Theme.bg_base)
+        // .background(Theme.bg_base)
         .layout(.x_between_center)
+        .pos(.relative)
         .children({
+        // Box()
+        //     .class("hex-button")
+        //     .pos(.tl(.percent(80), .percent(50), .absolute))
+        //     .background(.palette(.text_color))
+        //     .width(.px(42))
+        //     .height(.px(42))
+        //     .layout(.center)
+        //     .children({
+        //     Box()
+        //         .class("hex-button-inner")
+        //         .background(.palette(.tint))
+        //         .width(.px(20))
+        //         .height(.px(20))
+        //         .layout(.center)
+        //         .children({
+        //         Box()
+        //             .class("hex-button-inner-inner")
+        //             .background(.palette(.text_color))
+        //             .width(.px(8))
+        //             .height(.px(8))
+        //             .children({});
+        //     });
+        // });
+
+        Vapor.Spacer(32)
+            .pos(.tl(.percent(80), .percent(0), .absolute))
+            .layer(Vapor.Types.BackgroundLayer.line(2, 4, .diagonal_up, .palette(.text_color)))
+            .width(.percent(30))
+            .end();
+        Vapor.Spacer(54)
+            .pos(.tl(.percent(0), .percent(1), .absolute))
+            .border(.sharp(.tblr(0, 1, 1, 1), .palette(.background)))
+            // .layer(Vapor.Types.BackgroundLayer.line(1, 4, .diagonal_up, .palette(.text_color)))
+            .width(.percent(40))
+            .end();
         // Left: Title
         Stack()
             .spacing(4)
             .layout(.left_center)
-            .background(.palette(.tint))
+            // .background(.palette(.tint))
             .padding(.horizontal(12))
             .children({
             Text(selected_nav.label())
-                .fontFamily("Orbitron")
-                .font(18, 500, .white)
+                // .fontFamily("")
+                .font(18, 100, .white)
                 .end();
         });
 
@@ -1284,6 +1358,7 @@ fn renderHeader() void {
 
             // Live mode toggle
             Button(toggleLiveMode, .{})
+                .background(.palette(.background))
                 .padding(.xy(14, 9))
                 .children({
                 if (is_live_mode) {
@@ -1302,6 +1377,7 @@ fn renderHeader() void {
             });
 
             Button(toggleLiveMode, .{})
+                .background(.palette(.background))
                 .padding(.xy(14, 9))
                 .children({
                 Text("Export")
@@ -1319,6 +1395,7 @@ fn renderHeader() void {
                 .pos(.relative)
                 .children({
                 Button(toggleDatePicker, .{})
+                    .background(.palette(.background))
                     .width(.px(40))
                     .height(.px(40))
                     .layout(.center)
@@ -1342,6 +1419,7 @@ fn renderHeader() void {
 
             // Refresh button
             Button(toggleLiveMode, .{})
+                .background(.palette(.background))
                 .width(.px(40))
                 .height(.px(40))
                 .layout(.center)
@@ -1674,7 +1752,7 @@ fn renderDashboardView() void {
                 .layout(.top_center)
                 .layer(.grid(14, 1, .transparentizeHex(.black, 0.05)))
                 .children({
-                // exceptions_table.render();
+                exceptions_table.render();
             });
         });
     });

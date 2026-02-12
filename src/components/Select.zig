@@ -15,7 +15,8 @@ var background: Vapor.Types.Background = .palette(.background);
 var border: Vapor.Types.BorderGrouped = .round(.palette(.border_color_light), .all(12));
 var group_title_color: Vapor.Types.Color = .hex("#8C8C8C");
 var text_color: Vapor.Types.Color = .palette(.text_color);
-var font_family: []const u8 = "Barlow";
+// var font_family: []const u8 = "Barlow";
+var font_family: []const u8 = "Montserrat";
 const selected_background: Vapor.Types.Background = .transparentizeHex(.palette(.tint), 0.05);
 const selected_border: Vapor.Types.BorderGrouped = .round(.palette(.tint), .all(12));
 

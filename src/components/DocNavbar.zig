@@ -56,8 +56,6 @@ pub const menu_items: []const MenuItem = &.{
             &.{ .title = "Vapor is simple", .link = "vapor-is-simple" },
             &.{ .title = "How it works", .link = "how-it-works" },
             &.{ .title = "Why Zig?", .link = "why-zig" },
-            &.{ .title = "Making a Button", .link = "making-a-button" },
-            &.{ .title = "Builder Pattern", .link = "builder" },
         },
         .icon = .house, // Keep as is - perfect for home
         .tags = &.{
@@ -91,13 +89,6 @@ pub const menu_items: []const MenuItem = &.{
             &.{ .title = "Basics", .link = "basics" },
             &.{ .title = "Creating a Vapor App", .link = "creating-a-vapor-app" },
             &.{ .title = "Instantiate", .link = "instantiate" },
-            &.{ .title = "export", .link = "export" },
-            &.{ .title = "Engine", .link = "engine" },
-            &.{ .title = "Performance", .link = "performance" },
-            &.{ .title = "Structuring your application", .link = "structuring-your-application" },
-            &.{ .title = "Global Components", .link = "global-components" },
-            &.{ .title = "Instance Components", .link = "instance-components" },
-            &.{ .title = "Function Components", .link = "function-components" },
         },
         .icon = .mortarboard, // Graduation cap for learning basics
         .tags = &.{
@@ -557,56 +548,24 @@ pub const menu_items: []const MenuItem = &.{
             },
         },
         .sections = &.{
-            &.{ .title = "Core Imports", .link = "core-imports" },
-            &.{ .title = "Component Patterns", .link = "component-patterns" },
-            &.{ .title = "Sizing", .link = "sizing" },
-            &.{ .title = "Layout", .link = "layout" },
-            &.{ .title = "Spacing", .link = "spacing" },
-            &.{ .title = "Typography", .link = "typography" },
-            &.{ .title = "Colors", .link = "colors" },
-            &.{ .title = "Borders", .link = "borders" },
-            &.{ .title = "Shadows", .link = "shadows" },
-            &.{ .title = "Backgrounds & Layers", .link = "backgrounds-layers" },
-            &.{ .title = "Positioning", .link = "positioning" },
-            &.{ .title = "Interactions & Hover", .link = "interactions-hover" },
-            &.{ .title = "Buttons & Events", .link = "buttons-events" },
-            &.{ .title = "Text Input", .link = "text-input" },
-            &.{ .title = "Links", .link = "links" },
-            &.{ .title = "Images & Graphics", .link = "images-graphics" },
-            &.{ .title = "Icons", .link = "icons" },
-            &.{ .title = "Lists", .link = "lists" },
-            &.{ .title = "Scrolling", .link = "scrolling" },
-            &.{ .title = "Conditionals & Loops", .link = "conditionals-loops" },
-            &.{ .title = "Responsive Design", .link = "responsive-design" },
-            &.{ .title = "Style Structs", .link = "style-structs" },
-            &.{ .title = "Animations", .link = "animations" },
-            &.{ .title = "Lifecycle Hooks", .link = "lifecycle-hooks" },
+            &.{ .title = "Cheat-Sheet", .link = "vapor-api-cheatsheet" },
+            &.{ .title = "Imports", .link = "imports-and-setup" },
+            &.{ .title = "Application Intialization", .link = "application-initialization" },
             &.{ .title = "State Management", .link = "state-management" },
+            &.{ .title = "Component Patterns", .link = "component-patterns" },
+            &.{ .title = "Core Components", .link = "core-components" },
+            &.{ .title = "Styling Reference", .link = "styling-reference" },
+            &.{ .title = "Style Structs", .link = "style-structs" },
+            &.{ .title = "Events and Handlers", .link = "events-and-handlers" },
             &.{ .title = "Memory Arenas", .link = "memory-arenas" },
+            &.{ .title = "Dynamic Arrays", .link = "dynamic-arrays" },
             &.{ .title = "Routing", .link = "routing" },
-            &.{ .title = "Fetching Data", .link = "fetching-data" },
-            &.{ .title = "Debugging", .link = "debugging" },
-            &.{ .title = "Opaque UI Components", .link = "opaque-ui-components" },
-            &.{ .title = "Quick Reference Tables", .link = "quick-reference-tables" },
+            &.{ .title = "Animations", .link = "animations" },
+            &.{ .title = "Binded Elements", .link = "binded-elements" },
+            &.{ .title = "Conditionals and Loops", .link = "conditionals-and-loops" },
+            &.{ .title = "Utility Functions", .link = "utility-functions" },
+            &.{ .title = "Quick Syntax Reference", .link = "quick-syntax-reference" },
             &.{ .title = "Common Patterns", .link = "common-patterns" },
-        },
-    },
-    MenuItem{
-        .id = "ui-components",
-        .title = "UI Components",
-        .link = "/docs/vapor/concepts/opaque",
-        .icon = .cubes_stacked,
-        .tags = &.{
-            Tag{
-                .keywords = &.{ "ui", "components", "vaporize", "vapor", "ui-components" },
-                .sub_title = "UI Components",
-                .url = "/docs/vapor/concepts/opaque",
-                .description = "UI Components",
-            },
-        },
-        .sections = &.{
-            &.{ .title = "UI Components", .link = "ui-components" },
-            &.{ .title = "Form Generation", .link = "form-generation" },
         },
     },
     MenuItem{
@@ -656,9 +615,13 @@ pub fn goto(url: []const u8) void {
             }
         }
     }
+    if (Vapor.isMobile()) {
+        menu = false;
+    }
     Vapor.Kit.navigate(url);
     Kit.scrollTo(0, 0);
     Vapor.onEnd(reinit); // This will triger at the end of the current cycle
+
 }
 
 fn handlePopState() void {
@@ -751,94 +714,118 @@ fn home() void {
     Vapor.Kit.scrollTo(0, 0);
 }
 
+var menu: bool = false;
+
+fn toggleMenu() void {
+    menu = !menu;
+}
+
 fn list() void {
     const current_path = Vapor.Kit.getWindowPath() orelse "/docs/vapor";
-    Vapor.Static.HooksCtx(.mounted, mount, .{})({
+    Box().style(&.{
+        .layout = .x_between_center,
+        .child_gap = 8,
+        .padding = .{ .top = 8, .bottom = 8, .left = 12, .right = 12 },
+        .position = .{ .type = .fixed, .top = .px(0), .left = .mobile_desktop_percent(0, 8), .right = .percent(0), .z_index = 400 },
+        .size = .hw(.mobile_desktop_percent(8, 6), .mobile_desktop_percent(100, 100 - 8)),
+        .visual = .{
+            .blur = 3,
+        },
+    }).children({
         Box().style(&.{
             .layout = .x_between_center,
             .child_gap = 8,
-            .padding = .{ .top = 8, .bottom = 8, .left = 12, .right = 12 },
-            .position = .{ .type = .fixed, .top = .px(0), .left = .percent(8), .right = .percent(0), .z_index = 400 },
-            .size = .hw(.mobile_desktop_percent(8, 6), .percent(100 - 8)),
-            .visual = .{
-                .blur = 3,
-            },
+            .size = .h(.percent(100)),
         }).children({
-            Box().style(&.{
-                .layout = .x_between_center,
-                .child_gap = 8,
-                .size = .h(.percent(100)),
-            }).children({
-                Button(home)
-                    // Link(.{ .url = "/", .aria_label = "home page of tether" })
-                    .style(&.{
-                        .visual = .{ .text_decoration = .none, .cursor = .pointer },
-                    }).children({
-                    Image(.{ .src = "/assets/circlelogo.webp", .alt = "tether logo" }).style(&.{
-                        .layout = .center,
-                        .size = .square_px(42),
-                    }).end();
-                });
-                Text("Senet").style(&.{
-                    .visual = .{ .font_weight = 500, .font_size = 18 },
-                }).end();
-                Box().style(&.{
-                    .visual = .{ .border = .l(1, .rgb(0, 0, 0)) },
-                    .size = .{ .height = .px(24) },
-                }).children({});
-                Text("Docs").style(&.{
-                    .visual = .{ .font_weight = 700, .font_size = 18 },
+            Button(home)
+                // Link(.{ .url = "/", .aria_label = "home page of tether" })
+                .style(&.{
+                    .visual = .{ .text_decoration = .none, .cursor = .pointer },
+                }).children({
+                Image(.{ .src = "/assets/circlelogo.webp", .alt = "tether logo" }).style(&.{
+                    .layout = .center,
+                    .size = .square_px(42),
                 }).end();
             });
-            if (!Vapor.isMobile()) {
-                Button(openDialog)
-                    .ariaLabel("search-dialog")
-                    .baseStyle(&.{
-                        .layout = .x_between_center,
-                        .size = .hw(.px(38), .percent(50)),
-                        .padding = .tblr(4, 4, 8, 8),
-                        .visual = .{ .border = .simple(.hex("#E1E1E1")), .background = .transparent, .cursor = .pointer },
-                        .interactive = .{ .hover = .{
-                            .border = .simple(.palette(.tint)),
-                        } },
-                    }).background(.palette(.background)).children({
-                    Box().style(&.{ .layout = .left_center, .child_gap = 24 }).children({
-                        Icon(.search).style(&.{
-                            .visual = .{ .font_size = 16, .text_color = .palette(.icon_color) },
-                        }).end();
-                        Text("Search...").style(&.{
-                            .visual = .{ .font_size = 16, .text_color = .palette(.icon_color) },
-                            .font_family = "Montserrat, sans-serif",
-                        }).end();
-                    });
-                    Icon(.command).style(&.{
+            Text("Senet").style(&.{
+                .visual = .{ .font_weight = 500, .font_size = 18 },
+            }).end();
+            Box().style(&.{
+                .visual = .{ .border = .l(1, .rgb(0, 0, 0)) },
+                .size = .{ .height = .px(24) },
+            }).children({});
+            Text("Docs").style(&.{
+                .visual = .{ .font_weight = 700, .font_size = 18 },
+            }).end();
+        });
+        if (Vapor.isMobile()) {
+            Box()
+                .width(.expand)
+                .layout(.right_center)
+                .children({
+                Button(toggleMenu)
+                    .layout(.center)
+                    .children({
+                    Icon(.list)
+                        .layout(.center)
+                        .fontSize(24)
+                        .end();
+                });
+            });
+        }
+        if (!Vapor.isMobile()) {
+            Button(openDialog)
+                .ariaLabel("search-dialog")
+                .baseStyle(&.{
+                    .layout = .x_between_center,
+                    .size = .hw(.px(38), .percent(50)),
+                    .padding = .tblr(4, 4, 8, 8),
+                    .visual = .{ .border = .simple(.hex("#E1E1E1")), .background = .transparent, .cursor = .pointer },
+                    .interactive = .{ .hover = .{
+                        .border = .simple(.palette(.tint)),
+                    } },
+                }).background(.palette(.background)).children({
+                Box().style(&.{ .layout = .left_center, .child_gap = 24 }).children({
+                    Icon(.search).style(&.{
                         .visual = .{ .font_size = 16, .text_color = .palette(.icon_color) },
                     }).end();
+                    Text("Search...").style(&.{
+                        .visual = .{ .font_size = 16, .text_color = .palette(.icon_color) },
+                        .font_family = "Montserrat, sans-serif",
+                    }).end();
                 });
-                // Box().plain();
-                Box().style(&.{
-                    .size = .{ .width = .percent(20), .height = .percent(100) },
-                    .layout = .right_center,
-                    .padding = .horizontal(12),
-                    .child_gap = 24,
-                }).children({
-                    Button(toggleTheme)
-                        .ariaLabel("toggle theme")
-                        .style(&.{
-                            .visual = .{ .background = .transparent, .cursor = .pointer },
-                        }).children({
-                        Icon(.cloud_moon).style(&.{
-                            .visual = .{ .font_size = 24, .text_color = .palette(.icon_color) },
-                            .interactive = .{ .hover = .{ .text_color = .palette(.tint) } },
-                        }).end();
-                    });
+                Icon(.command).style(&.{
+                    .visual = .{ .font_size = 16, .text_color = .palette(.icon_color) },
+                }).end();
+            });
+            // Box().plain();
+            Box().style(&.{
+                .size = .{ .width = .percent(20), .height = .percent(100) },
+                .layout = .right_center,
+                .padding = .horizontal(12),
+                .child_gap = 24,
+            }).children({
+                Button(toggleTheme)
+                    .ariaLabel("toggle theme")
+                    .style(&.{
+                        .visual = .{ .background = .transparent, .cursor = .pointer },
+                    }).children({
+                    Icon(.cloud_moon).style(&.{
+                        .visual = .{ .font_size = 24, .text_color = .palette(.icon_color) },
+                        .interactive = .{ .hover = .{ .text_color = .palette(.tint) } },
+                    }).end();
                 });
-            }
-        });
-        Box().style(&.{
-            .position = .{ .type = .fixed, .top = if (Vapor.isMobile()) .percent(8) else .percent(8), .left = .percent(8), .z_index = 999 },
-            .size = .hw(.percent(100), .mobile_desktop_percent(100, 14)),
-        }).children({
+            });
+        }
+    });
+    if (menu or Vapor.isDesktop()) {
+        Box()
+            .pos(.tl(.mobile_desktop_percent(8, 8), .mobile_desktop_percent(0, 8), .fixed))
+            .zIndex(999)
+            .width(.mobile_desktop_percent(100, 14))
+            .height(.percent(100))
+            .background(.palette(.background))
+            .children({
             List().style(&.{
                 .list_style = .none,
                 .direction = .column,
@@ -877,9 +864,19 @@ fn list() void {
                             .child_gap = 12,
                             .padding = .tblr(10, 10, 8, 8),
                         }).children({
-                            Icon(item.icon).style(&.{
-                                .visual = .{ .text_color = if (std.mem.eql(u8, current_path, item.link)) .palette(.tint) else .palette(.text_color) },
-                            }).end();
+                            if (item.icon == Vapor.IconTokens.cubes_stacked or item.icon == Vapor.IconTokens.microscope or item.icon == Vapor.IconTokens.react) {
+                                Vapor.Svg(.{ .svg = item.icon.svg.?, .override = true }).style(&.{
+                                    .size = .{ .width = .px(16), .height = .px(16) },
+                                    .visual = .{
+                                        .fill = if (std.mem.eql(u8, current_path, item.link)) .palette(.tint) else .palette(.text_color),
+                                    },
+                                }).end();
+                            } else {
+                                Icon(item.icon).style(&.{
+                                    .size = .{ .width = .px(14), .height = .px(14) },
+                                    .visual = .{ .text_color = if (std.mem.eql(u8, current_path, item.link)) .palette(.tint) else .palette(.text_color) },
+                                }).end();
+                            }
                             Text(item.title).style(&.{
                                 .visual = .{
                                     .text_color = if (std.mem.eql(u8, current_path, item.link)) .palette(.tint) else .palette(.text_color),
@@ -892,6 +889,10 @@ fn list() void {
                 }
             });
         });
+    } else {
+        Vapor.Null();
+    }
+    if (Vapor.isDesktop()) {
         Stack().style(&.{
             .position = .{ .type = .fixed, .top = if (Vapor.isMobile()) .percent(8) else .percent(8), .right = .percent(2), .z_index = 999 },
             .size = .hw(.percent(100), .mobile_desktop_percent(100, 14)),
@@ -939,15 +940,17 @@ fn list() void {
                 }
             });
         });
-    });
+    }
+    Vapor.Static.HooksCtx(.mounted, mount, .{})({});
+
     Search.render();
 }
 
 pub fn render() void {
     Box().style(&.{
         .position = .nav,
-        .size = .hw(.percent(100), .mobile_desktop_percent(100, 14)),
-        .padding = .{ .bottom = 128 },
+        .size = .hw(.mobile_desktop(.fit, .percent(100)), .mobile_desktop_percent(100, 14)),
+        // .padding = .{ .bottom = 128 },
     }).children({
         list();
     });

@@ -113,16 +113,16 @@ socket.onmessage = async function (event) {
   }
   hideReloading();
 };
-//
-// // Handle errors
-// socket.onerror = function (error) {
-//   console.error("WebSocket error:", error);
-// };
-//
-// // Handle disconnection
-// socket.onclose = function (event) {
-//   console.log("WebSocket connection closed:", event.code, event.reason);
-// };
+
+// Handle errors
+socket.onerror = function (error) {
+  console.error("WebSocket error:", error);
+};
+
+// Handle disconnection
+socket.onclose = function (event) {
+  console.log("WebSocket connection closed:", event.code, event.reason);
+};
 
 let layoutInfoPtr;
 let uiNodeLayoutInfoPtr;
@@ -755,6 +755,20 @@ function setupWasiInstance() {
     injectCSS(animations_css);
   }
 
+  const edges_ptr = wasmInstance.getEdgesPtr();
+  if (edges_ptr > 0) {
+    const edges_len = wasmInstance.getEdgesLen();
+    const edges_css = readWasmString(edges_ptr, edges_len);
+    // console.log("edges_css", edges_css);
+    injectCSS(edges_css);
+  }
+
+  const polygons_ptr = wasmInstance.getPolygonsPtr();
+  if (polygons_ptr > 0) {
+    const polygons_len = wasmInstance.getPolygonsLen();
+    const polygons_css = readWasmString(polygons_ptr, polygons_len);
+    injectCSS(polygons_css);
+  }
   // const start = performance.now();
   activeNodeIds = new Set();
   const rootUINode = wasmInstance.getRenderUINodeRootPtr();

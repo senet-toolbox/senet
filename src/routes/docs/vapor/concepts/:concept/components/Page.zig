@@ -45,7 +45,7 @@ var markdown: Compiler.vaporize.MarkDown(components) = .{};
 var markdown_loaded: bool = false;
 var page: []const u8 = "";
 pub fn init() void {
-    Vapor.Kit.fetch("/src/routes/docs/vapor/concepts/:concept/components/components_page.md", handlePage, .{ .method = .GET });
+    Vapor.Kit.fetch("/documents/components_page.md", handlePage, .{ .method = .GET });
     content.init();
     counter.init();
     counter2.init();
@@ -53,7 +53,7 @@ pub fn init() void {
 
 fn handlePage(resp: Vapor.Kit.Response) void {
     switch (resp) {
-        .ok => |data| {
+        .Ok => |data| {
             content.content_text = data.body;
             page = data.body;
             markdown.compile(page) catch |err| {
@@ -62,7 +62,7 @@ fn handlePage(resp: Vapor.Kit.Response) void {
             };
             markdown_loaded = true;
         },
-        .err => |err| {
+        .Err => |err| {
             Vapor.printErr("Failed to fetch: {s}", .{err.message});
             return;
         },

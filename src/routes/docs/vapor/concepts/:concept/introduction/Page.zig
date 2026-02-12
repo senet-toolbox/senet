@@ -150,7 +150,7 @@ pub fn render() void {
             .visual = .font(24, 700, .palette(.text_color)),
             .margin = .{ .top = 8 },
         });
-        code_snippet_single("curl -sSL https://raw.githubusercontent.com/tether-labs/metal/main/install.sh | bash");
+        code_snippet_single("curl -sSL https://raw.githubusercontent.com/senet-toolbox/metal/main/install.sh | bash");
     });
 
     Text("Fabric Component Example").style(&.{

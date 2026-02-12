@@ -929,40 +929,40 @@ pub fn render() void {
 
         Count();
 
-        // Box()
-        //     .width(.percent(100))
-        //     .height(.percent(40))
-        //     .padding(.all(16))
-        //     .direction(.column)
-        //     // .layout(.x_between)
-        //     .border(.round(.palette(.border_color_light), .all(12)))
-        //     .spacing(8)
-        //     .children({
-        //     Box()
-        //         .width(.percent(100))
-        //         .height(.percent(100))
-        //         .layout(.x_even_center)
-        //         .children({
-        //         Stack()
-        //             .layout(.left_center)
-        //             .spacing(2)
-        //             .children({
-        //             Text("HTTP Traffic by Method")
-        //                 .font(16, 300, Theme.text)
-        //                 .end();
-        //             http_chart.render();
-        //         });
-        //         Stack()
-        //             .layout(.left_center)
-        //             .spacing(2)
-        //             .children({
-        //             Text("RESPONSE Times by Method")
-        //                 .font(16, 300, Theme.text)
-        //                 .end();
-        //             response_times_chart.render();
-        //         });
-        //     });
-        // });
+        Box()
+            .width(.percent(100))
+            .height(.percent(40))
+            .padding(.all(16))
+            .direction(.column)
+            // .layout(.x_between)
+            .border(.round(.palette(.border_color_light), .all(12)))
+            .spacing(8)
+            .children({
+            Box()
+                .width(.percent(100))
+                .height(.percent(100))
+                .layout(.x_even_center)
+                .children({
+                Stack()
+                    .layout(.left_center)
+                    .spacing(2)
+                    .children({
+                    Text("HTTP Traffic by Method")
+                        .font(16, 300, Theme.text)
+                        .end();
+                    http_chart.render();
+                });
+                Stack()
+                    .layout(.left_center)
+                    .spacing(2)
+                    .children({
+                    Text("RESPONSE Times by Method")
+                        .font(16, 300, Theme.text)
+                        .end();
+                    response_times_chart.render();
+                });
+            });
+        });
         Box()
             .width(.percent(100))
             .height(.px(512))

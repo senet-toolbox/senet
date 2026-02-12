@@ -18,12 +18,12 @@ var page: []const u8 = "";
 var markdown_loaded: bool = false;
 var markdown: Compiler.vaporize.MarkDown(.{}) = .{};
 pub fn init() void {
-    Vapor.Kit.fetch("/src/routes/docs/vapor/concepts/:concept/layouts/layout_page.md", handlePage, .{ .method = .GET });
+    Vapor.Kit.fetch("/documents/layout_page.md", handlePage, .{ .method = .GET });
 }
 
 fn handlePage(resp: Vapor.Kit.Response) void {
     switch (resp) {
-        .ok => |data| {
+        .Ok => |data| {
             content.content_text = data.body;
             page = data.body;
             markdown.compile(page) catch |err| {
@@ -32,7 +32,7 @@ fn handlePage(resp: Vapor.Kit.Response) void {
             };
             markdown_loaded = true;
         },
-        .err => |err| {
+        .Err => |err| {
             Vapor.printErr("Failed to fetch: {s}", .{err.message});
             return;
         },

@@ -1480,6 +1480,11 @@ pub const Chart = struct {
     }
 
     pub fn showTooltip(self: *Chart, event: *Vapor.Event) void {
+        const offsets = self.container.getBoundingClientRect() orelse return;
+        self.bounds.offset_x = offsets.left;
+        self.bounds.offset_y = offsets.top;
+
+
         if (self.tooltip) |*tooltip| {
             const x = event.pageX() - self.bounds.offset_x;
             const y = event.pageY() - self.bounds.offset_y;

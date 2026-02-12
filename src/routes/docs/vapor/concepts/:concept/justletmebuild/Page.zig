@@ -2,19 +2,18 @@ const std = @import("std");
 const Vapor = @import("vapor");
 const Signal = Vapor.Signal;
 const Style = Vapor.Style;
-const Static = Vapor.Static;
-const Box = Static.Box;
-const Text = Static.Text;
-const RedirectLink = Static.RedirectLink;
-const Image = Static.Image;
-const Svg = Static.Svg;
-const Button = Static.Button;
+const Box = Vapor.Box;
+const Text = Vapor.Text;
+const RedirectLink = Vapor.RedirectLink;
+const Image = Vapor.Image;
+const Svg = Vapor.Svg;
+const Button = Vapor.Button;
 const Custom = @import("../../../../../../components/Custom.zig");
 const HtmlText = Custom.Chain.HtmlText;
-const CtxButton = Static.CtxButton;
-const List = Static.List;
-const ListItem = Static.ListItem;
-const Graphic = Static.Graphic;
+const CtxButton = Vapor.CtxButton;
+const List = Vapor.List;
+const ListItem = Vapor.ListItem;
+const Graphic = Vapor.Graphic;
 const Icon = Vapor.Icon;
 const Page = Vapor.Page;
 const CodeEditor = @import("../../../../../../components/CodeEditor.zig");
@@ -38,9 +37,9 @@ fn copy(text: []const u8) void {
     Vapor.Clipboard.copy(text);
     copied = true;
     copied_text = text;
-    Vapor.println("Hello", .{});
+    Vapor.println("Hello", .{}).end();
     Vapor.cycle();
-    Vapor.registerCtxTimeout(500, toggleIcon, .{});
+    Vapor.registerCtxTimeout(500, toggleIcon, .{}).end();
 }
 
 fn toggleIcon() void {
@@ -74,7 +73,7 @@ fn code_snippet_single(text: []const u8) void {
             .hover = .{ .text_color = .palette(.tint), .border = .{ .color = .palette(.tint) } },
         },
         .position = .relative,
-    })({
+    }).children({
         Box().style(&.{
             .position = .{ .type = .absolute, .right = .px(8), .top = .px(8) },
             .size = .square_px(22),
@@ -85,28 +84,28 @@ fn code_snippet_single(text: []const u8) void {
                 .cursor = .pointer,
             },
             .layout = .center,
-        })({
+        }).children({
             if (copied and std.mem.eql(u8, text, copied_text)) {
                 Icon(.check).style(&.{
                     .visual = .{ .font_size = 18 },
-                });
+                }).end();
             } else {
                 Icon(.clipboard).style(&.{
                     .visual = .{ .font_size = 18 },
-                });
+                }).end();
             }
-        });
+        }).end();
         HtmlText(text).style(&.{
             .visual = .{ .font_size = 16 },
             .font_family = "Azeret Mono, monospace",
-        });
-    });
+        }).end();
+    }).end();
 }
 
 pub fn Txt(text: []const u8) void {
     Text(text).style(&.{
         .visual = .font(18, null, null),
-    });
+    }).end();
 }
 
 pub fn render() void {
@@ -114,11 +113,11 @@ pub fn render() void {
         .child_gap = 24,
         .direction = .column,
         .size = .hw(.percent(100), .percent(100)),
-    })({
+    }).children({
         Text("Just let me build!!!").style(&.{
             .visual = .font(32, 700, .palette(.text_color)),
             .font_family = "IBM Plex Mono,monospace",
-        });
+        }).end();
         Text("Linux, BSD, MacOS, *nix").font(18, 700, .palette(.text_color)).end();
         RedirectLink(.{ .url = "https://www.zvm.app/guides/install-zvm/", .aria_label = "zvm github page" })
             .textDecoration(.none)
@@ -134,8 +133,8 @@ pub fn render() void {
         Text("Or install Zig, ZLS, ZVM, with Metal").font(18, 700, .palette(.text_color)).end();
 
         Text("Metal Install").font(18, 700, .palette(.text_color)).end();
-        code_snippet("curl -sSL https://raw.githubusercontent.com/tether-labs/metal/main/install.sh | bash");
-        code_snippet("metal create myapp");
-        code_snippet("my-app && metal run web");
+        code_snippet("curl -sSL https://raw.githubusercontent.com/senet-toolbox/metal/main/install.sh | bash");
+        code_snippet("metal create vapor myapp");
+        code_snippet("cd my-app && metal vapor run");
     });
 }

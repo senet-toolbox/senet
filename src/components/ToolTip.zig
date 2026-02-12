@@ -44,7 +44,7 @@ fn getCornerSvg(position: Vapor.Types.AnchorPlacement) []const u8 {
         .top =>
         \\<svg style="position:absolute;
         \\transform: translateX(-50%);
-        \\bottom: -6px;
+        \\bottom: -7px;
         \\left: 50%;" xmlns="http://www.w3.org/2000/svg" width="16" height="8" viewBox="0 0 16 8">
         \\  <path d="M0 0 L8 8 L16 0 Z" stroke="none"/>
         \\  <path d="M0 0 L8 8" stroke-width="1" stroke-linecap="round" fill="none"/>
@@ -139,7 +139,7 @@ const TooltipOptions = struct {
 
 fn onHover(tooltip: *ToolTip, _: *Vapor.Event) void {
     Vapor.lib.cancelTimeout(tooltip.options.timeout_key);
-    Vapor.lib.registerCtxTimeout(tooltip.options.show_timeout_key, 300, show, .{&tooltip.options});
+    Vapor.lib.registerCtxTimeout(tooltip.options.show_timeout_key, 500, show, .{&tooltip.options});
 }
 
 fn show(options: *TooltipOptions) void {
@@ -222,8 +222,8 @@ pub fn Trigger(tooltip: *ToolTip, trigger: anytype, args: anytype) *ToolTip {
     const container = tooltip.options.container;
     const anchor_name = tooltip.options.anchor_name;
     container
-        .onEventCtx(.pointerenter, onHover, tooltip)
-        .onEventCtx(.pointerleave, onLeave, tooltip)
+        .onEventCtx(.pointerenter, onHover, .{tooltip})
+        .onEventCtx(.pointerleave, onLeave, .{tooltip})
         .anchorSource(anchor_name)
         .children({
         @call(.auto, trigger, args);
@@ -241,8 +241,8 @@ pub fn Component(tooltip: *ToolTip, component: anytype, args: anytype) *ToolTip 
     Anchor(anchor_name)
         .anchorPlacement(position)
         .zIndex(1000)
-        .onEventCtx(.pointerenter, onHover, tooltip)
-        .onEventCtx(.pointerleave, onLeave, tooltip)
+        .onEventCtx(.pointerenter, onHover, .{tooltip})
+        .onEventCtx(.pointerleave, onLeave, .{tooltip})
         .children({
         Vapor.Static.HooksCtx(.destroy, destroy, .{tooltip})({
             if (tooltip.options.show) {
@@ -290,8 +290,8 @@ pub fn end(tooltip: *ToolTip) void {
     Anchor(anchor_name)
         .anchorPlacement(position)
         .zIndex(1000)
-        .onEventCtx(.pointerenter, onHover, tooltip)
-        .onEventCtx(.pointerleave, onLeave, tooltip)
+        .onEventCtx(.pointerenter, onHover, .{tooltip})
+        .onEventCtx(.pointerleave, onLeave, .{tooltip})
         .children({
         Vapor.Static.HooksCtx(.destroy, destroy, .{tooltip})({
             if (tooltip.options.show) {
@@ -366,8 +366,8 @@ pub fn simpleWithPosition(title: []const u8, content: []const u8, position: Posi
     const corner_svg = getCornerSvg(position);
 
     hover_box
-        .onEventCtx(.pointerenter, onHover, tooltip)
-        .onEventCtx(.pointerleave, onLeave, tooltip)
+        .onEventCtx(.pointerenter, onHover, .{tooltip})
+        .onEventCtx(.pointerleave, onLeave, .{tooltip})
         .anchorSource(anchor_name)
         .children({
         if (tooltip.options.trigger) |trigger| {
@@ -392,8 +392,8 @@ pub fn simpleWithPosition(title: []const u8, content: []const u8, position: Posi
         .anchorPlacement(position)
         .placement(.anchor_center)
         .zIndex(1000)
-        .onEventCtx(.pointerenter, onHover, tooltip)
-        .onEventCtx(.pointerleave, onLeave, tooltip)
+        .onEventCtx(.pointerenter, onHover, .{tooltip})
+        .onEventCtx(.pointerleave, onLeave, .{tooltip})
         .children({
         Vapor.Static.HooksCtx(.destroy, destroy, .{tooltip})({
             if (tooltip.options.show) {
@@ -475,8 +475,8 @@ pub fn render(tooltip_options: Options) void {
     const corner_svg = getCornerSvg(position);
 
     hover_box
-        .onEventCtx(.pointerenter, onHover, tooltip)
-        .onEventCtx(.pointerleave, onLeave, tooltip)
+        .onEventCtx(.pointerenter, onHover, .{tooltip})
+        .onEventCtx(.pointerleave, onLeave, .{tooltip})
         .anchorSource(anchor_name)
         .children({
         if (tooltip.options.trigger) |trigger| {
@@ -501,8 +501,8 @@ pub fn render(tooltip_options: Options) void {
         .transformOrigin(transform_origin)
         .placement(.anchor_center)
         .zIndex(1000)
-        .onEventCtx(.pointerenter, onHover, tooltip)
-        .onEventCtx(.pointerleave, onLeave, tooltip)
+        .onEventCtx(.pointerenter, onHover, .{tooltip})
+        .onEventCtx(.pointerleave, onLeave, .{tooltip})
         // .inlineStyleStr(position_style)
         .children({
         Vapor.Static.HooksCtx(.destroy, destroy, .{tooltip})({

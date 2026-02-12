@@ -243,6 +243,11 @@ pub fn LoginComponent() void {
 }
 
 pub fn init() void {
+
+    Vapor.Page(.{ .route = "/ui/te-store" }, renderHome, null);
+    Vapor.Page(.{ .route = "/ui/te-store/product" }, renderProductDetail, null);
+    Vapor.Page(.{ .route = "/ui/te-store/checkout" }, checkout, null);
+
     fadeIn.build();
     slideRight.build();
 
@@ -304,10 +309,6 @@ pub fn init() void {
     // });
     //
     // country.trigger = "Country";
-
-    Vapor.Page(.{ .route = "/ui/te-store" }, renderHome, null);
-    Vapor.Page(.{ .route = "/ui/te-store/product" }, renderProductDetail, null);
-    Vapor.Page(.{ .route = "/ui/te-store/checkout" }, checkout, null);
 }
 
 fn initProducts() void {
@@ -1313,9 +1314,4 @@ fn renderHome() void {
 
         renderCartPanel();
     });
-    // Vapor.Svg(.{ .svg = @embedFile("noise.svg") })
-    //     .pos(.tl(.percent(0), .percent(0), .fixed))
-    //     .size(.full)
-    //     .zIndex(99)
-    //     .end();
 }

@@ -2,48 +2,45 @@
 <html lang="en">
 
 <head>
-  <title>Tether</title>
+  <title>Senet</title>
   <meta charset="utf-8" />
   <meta name="google-site-verification" content="12aR_338F0VaglKbfvPLczdZV_Ej6AVx9Ef7M4ULfLU" />
   <meta name="description"
-    content="Tether website includes documentation on all three components Fabric, Tether, and Treehouse. As well as instructions on installation and use cases." />
+    content="Senet website includes documentation on all three components Vapor, Reverb, and Canopy. As well as instructions on installation and use cases." />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="icon" href="/assets/icon.svg" type="image/svg+xml" />
   <link rel="preload" href="/zig-out/bin/vapor.wasm" as="fetch" type="application/wasm" crossorigin />
-  <!-- <script src="https://unpkg.com/lucide@latest"></script> -->
 
   <!-- Preconnect stays the same -->
-  <link href="https://fonts.googleapis.com" />
-  <link href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://cdn.jsdelivr.net" crossorigin />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
 
   <!-- Load fonts async with media trick -->
-  <link
-    href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300;1,400;1,500&display=swap"
-    rel="stylesheet" media="print" onload="this.media='all'" />
+  <!-- <link -->
+  <!--   href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300;1,400;1,500&display=swap" -->
+  <!--   rel="stylesheet" media="print" onload="this.media='all'" /> -->
   <link
     href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,100..700;1,100..700&family=Montserrat:wght@400;700&display=swap"
     rel="stylesheet" media="print" onload="this.media='all'" />
 
-  <link rel="preload" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" as="style"
-    onload="this.rel='stylesheet'" />
+  <!-- <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400..900&display=swap" rel="stylesheet" /> -->
+  <!---->
+  <!-- <link -->
+  <!--   href="https://fonts.googleapis.com/css2?family=Barlow:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" -->
+  <!--   rel="stylesheet" /> -->
 
   <!-- Font Awesome - non-blocking -->
-  <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" as="style"
-    onload="this.rel='stylesheet'" />
-  <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/brands.min.css" as="style"
-    onload="this.rel='stylesheet'" />
+  <!-- <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" as="style" -->
+  <!--   onload="this.rel='stylesheet'" /> -->
+  <!-- <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/brands.min.css" as="style" -->
+  <!--   onload="this.rel='stylesheet'" /> -->
 
-  <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/fontawesome.min.css"
-    as="style" onload="this.rel='stylesheet'" />
-
-  <!-- Fallback for no-JS -->
-  <noscript>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/brands.min.css" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/fontawesome.min.css" />
-  </noscript>
+  <!-- <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/fontawesome.min.css" -->
+  <!--   as="style" onload="this.rel='stylesheet'" /> -->
 
   <script type="module" src="/web/wasi_obj.js"></script>
+  <link rel="stylesheet" href="/assets/css/bootstrap-icons.css" />
   <!-- <script type="module" src="/web/bundle.min.js"></script> -->
 
   <style>
@@ -51,8 +48,9 @@
       margin: 0;
       padding: 0;
       font-family: Montserrat;
-      font-weight: 400;
-      height: 100vh;
+      /* font-family: "Barlow", sans-serif; */
+      font-optical-sizing: auto;
+      height: 100dvh;
       width: 100%;
       box-sizing: border-box;
       flex-shrink: 0;
@@ -85,11 +83,7 @@
     h3,
     h4,
     h5,
-    h6 {
-      line-height: 1.5;
-      font-size-adjust: 0.5;
-    }
-
+    h6,
     textarea {
       line-height: 1.5;
       font-size-adjust: 0.5;
@@ -100,11 +94,20 @@
       border-spacing: 0;
     }
 
+    div {
+      min-width: 0;
+    }
+
+    button p {
+      font-family: inherit;
+    }
+
     input[type="file"]::file-selector-button {
       background: transparent;
       color: transparent;
       border: none;
     }
+
 
     input:-webkit-autofill {
       -webkit-box-shadow: 0 0 0 1000px transparent inset;
@@ -133,7 +136,7 @@
       padding: 10px;
       font-family: monospace;
       font-size: 14px;
-      z-index: 10000;
+      z-index: 9998;
       /* background-color: rgba(var(--background)); */
       background-color: rgb(var(--background));
       background-image: radial-gradient(circle, rgb(var(--text_color)) 0.5px, transparent 0px);
@@ -182,297 +185,100 @@
         transform: rotate(360deg);
       }
     }
+
+    /* The gear disc - moves DOWN and LEFT when switched ON */
+    #gearDisc {
+      transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    /* The star disc - moves UP and RIGHT when switched ON */
+    #starDisc {
+      transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
   </style>
   <!-- <link rel="stylesheet" href="/static/style_variables.css" /> -->
   <link rel="stylesheet" href="/static/docs/metal/style.css" />
 </head></head>
 
 <body>
-  <div class="stats" id="stats">
-    FPS: <span id="fps">0</span><br />
-    Frame Time: <span id="frameTime">0</span>ms<br />
-    Render Time: <span id="renderTime">0</span>ms<br />
-    Total Render Time: <span id="totalRenderTime">0</span>ms<br />
-  </div>
+  <!-- <div class="stats" id="stats"> -->
+  <!--   FPS: <span id="fps">0</span><br /> -->
+  <!--   Frame Time: <span id="frameTime">0</span>ms<br /> -->
+  <!--   Render Time: <span id="renderTime">0</span>ms<br /> -->
+  <!--   Total Render Time: <span id="totalRenderTime">0</span>ms<br /> -->
+  <!-- </div> -->
   <div id="reload-indicator" class="reload-indicator">
     <div class="reload-spinner"></div>
     <span>Reloading... <span id="reload-timer">0.0</span>s</span>
   </div>
-  <div id="contents" style="display: contents"><div  id="Flex_wvMYu2-gk" class="lay_fcXl83 pos_4TxA5 mapa_c1Pmw vis_l45j63 ">
-
-<div  id="Flex_8Oim53-gk" class="lay_FjeHV pos_f6i3U3 mapa_GjRnP2 vis_wksQx3 ">
-<div  id="Flex_LOZq61-gk" class="lay_LKxiW1 pos_PNZMO3 mapa_CrkEb2 vis_l45j63 ">
-<a  id="Link_et8SI4-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_HdnOR3 " aria-label="home page of tether" href="/">
-<img  id="Imag_gJY5d4-gk" class="lay_yNQAV4 pos_PNZMO3 mapa_CrkEb2 vis_l45j63 " src="/assets/circlelogo.webp">
-</img>
-</a>
-<p  id="Text_eD7KV2-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_uE0ZP1 ">Tether</p>
-<div  id="Flex_R20am1-gk" class="lay_VhOU93 pos_PNZMO3 mapa_CrkEb2 vis_xZvpo ">
-</div>
-<p  id="Text_YdegE-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_fRhKx1 ">Docs</p>
-</div>
-<button  id="Butt_5nIsL3-gk" class="lay_vNJoO2 pos_PNZMO3 mapa_4hFg71 vis_dXrHv intr_Lkq7v2 " aria-label="search-dialog">
-<div  id="Flex_Zdbzh3-gk" class="lay_cC6BZ2 pos_PNZMO3 mapa_CrkEb2 vis_l45j63 ">
-<i  id="Flex_dhMmD3-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_8D1Uq2 " href="bi bi-search">
-</i>
-<p  id="Text_Rfvgt3-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_I2OGp1 ">Search...</p>
-</div>
-<i  id="Flex_PhE1W4-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_8D1Uq2 " href="bi bi-command">
-</i>
-</button>
-<div  id="Flex_9VsTj-gk" class="lay_aRjFA2 pos_PNZMO3 mapa_TK4ER4 vis_l45j63 ">
-<button  id="Butt_Q0VvK-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_gec173 " aria-label="toggle theme">
-<i  id="Flex_fCF7g4-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_HLq704 intr_gziX93 " href="bi bi-cloud-moon">
-</i>
-</button>
-</div>
-</div>
-<div  id="Flex_OFxeK-gk" class="lay_fcXl83 pos_R7qmy1 mapa_CrkEb2 vis_l45j63 ">
-<ul  id="List_sR5kF-gk" class="lay_k7bGB4 pos_PNZMO3 mapa_bnttp vis_RgdvV1 ">
-<li  id="menu-/docs/vapor" class="lay_AAqfn3 pos_PNZMO3 mapa_CrkEb2 vis_3Tn9F1 intr_HVsCu1 "">
-<button  id="CtxB_hEudX2-gk" class="lay_IvyKF pos_PNZMO3 mapa_3Qb5v vis_gec173 ">
-<i  id="Flex_pag2v1-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_GNNsl3 " href="bi bi-house">
-</i>
-<p  id="Text_Whhn02-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_WnFl03 ">Overview</p>
-</button>
-</li>
-<li  id="menu-/docs/vapor/concepts/justletmebuild" class="lay_AAqfn3 pos_PNZMO3 mapa_CrkEb2 vis_0B5BG1 intr_0CiBa2 "">
-<button  id="CtxB_aDNeY2-gk" class="lay_IvyKF pos_PNZMO3 mapa_3Qb5v vis_gec173 ">
-<i  id="Flex_CPdAm2-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_t5Tw8 " href="bi bi-fire">
-</i>
-<p  id="Text_tMg7N3-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_0k2d81 ">Just let me build!!!!</p>
-</button>
-</li>
-<li  id="menu-/docs/vapor/concepts/basics" class="lay_AAqfn3 pos_PNZMO3 mapa_CrkEb2 vis_0B5BG1 intr_0CiBa2 "">
-<button  id="CtxB_jObSx3-gk" class="lay_IvyKF pos_PNZMO3 mapa_3Qb5v vis_gec173 ">
-<i  id="Flex_MTbcn-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_t5Tw8 " href="bi bi-mortarboard">
-</i>
-<p  id="Text_1JJa4-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_0k2d81 ">Basics</p>
-</button>
-</li>
-<li  id="menu-/docs/vapor/concepts/dont-know-zig" class="lay_AAqfn3 pos_PNZMO3 mapa_CrkEb2 vis_0B5BG1 intr_0CiBa2 "">
-<button  id="CtxB_o6vaE-gk" class="lay_IvyKF pos_PNZMO3 mapa_3Qb5v vis_gec173 ">
-<i  id="Flex_oPfVH3-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_t5Tw8 " href="bi bi-filetype-js">
-</i>
-<p  id="Text_yYwoF-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_0k2d81 ">From JS to Zig</p>
-</button>
-</li>
-<li  id="menu-/docs/vapor/concepts/project" class="lay_AAqfn3 pos_PNZMO3 mapa_CrkEb2 vis_0B5BG1 intr_0CiBa2 "">
-<button  id="CtxB_01F2n3-gk" class="lay_IvyKF pos_PNZMO3 mapa_3Qb5v vis_gec173 ">
-<i  id="Flex_yFLLS4-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_t5Tw8 " href="bi bi-diagram-3">
-</i>
-<p  id="Text_C778O4-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_0k2d81 ">Project Structure</p>
-</button>
-</li>
-<li  id="menu-/docs/vapor/concepts/routing" class="lay_AAqfn3 pos_PNZMO3 mapa_CrkEb2 vis_0B5BG1 intr_0CiBa2 "">
-<button  id="CtxB_X5QL72-gk" class="lay_IvyKF pos_PNZMO3 mapa_3Qb5v vis_gec173 ">
-<i  id="Flex_CgTjh2-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_t5Tw8 " href="bi bi-signpost">
-</i>
-<p  id="Text_3Mpw2-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_0k2d81 ">Routing</p>
-</button>
-</li>
-<li  id="menu-/docs/vapor/concepts/reactivity" class="lay_AAqfn3 pos_PNZMO3 mapa_CrkEb2 vis_0B5BG1 intr_0CiBa2 "">
-<button  id="CtxB_w0czu1-gk" class="lay_IvyKF pos_PNZMO3 mapa_3Qb5v vis_gec173 ">
-<i  id="Flex_OKqAK4-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_t5Tw8 " href="bi bi-arrow-repeat">
-</i>
-<p  id="Text_1fcrf3-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_0k2d81 ">Reactivity</p>
-</button>
-</li>
-<li  id="menu-/docs/vapor/concepts/styling" class="lay_AAqfn3 pos_PNZMO3 mapa_CrkEb2 vis_0B5BG1 intr_0CiBa2 "">
-<button  id="CtxB_Kd9ig3-gk" class="lay_IvyKF pos_PNZMO3 mapa_3Qb5v vis_gec173 ">
-<i  id="Flex_aN4Qa1-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_t5Tw8 " href="bi bi-paint-bucket">
-</i>
-<p  id="Text_2WhlD-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_0k2d81 ">Styling</p>
-</button>
-</li>
-<li  id="menu-/docs/vapor/concepts/vaporize" class="lay_AAqfn3 pos_PNZMO3 mapa_CrkEb2 vis_0B5BG1 intr_0CiBa2 "">
-<button  id="CtxB_E6RhB4-gk" class="lay_IvyKF pos_PNZMO3 mapa_3Qb5v vis_gec173 ">
-<i  id="Flex_um08K2-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_t5Tw8 " href="bi bi-device-hdd-fill">
-</i>
-<p  id="Text_sNVvv-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_0k2d81 ">Vaporize</p>
-</button>
-</li>
-<li  id="menu-/docs/vapor/concepts/animation" class="lay_AAqfn3 pos_PNZMO3 mapa_CrkEb2 vis_0B5BG1 intr_0CiBa2 "">
-<button  id="CtxB_2YwAc3-gk" class="lay_IvyKF pos_PNZMO3 mapa_3Qb5v vis_gec173 ">
-<i  id="Flex_PY03T4-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_t5Tw8 " href="bi bi-film">
-</i>
-<p  id="Text_hjrZb4-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_0k2d81 ">Animation</p>
-</button>
-</li>
-<li  id="menu-/docs/vapor/concepts/new-to-zig" class="lay_AAqfn3 pos_PNZMO3 mapa_CrkEb2 vis_0B5BG1 intr_0CiBa2 "">
-<button  id="CtxB_doy223-gk" class="lay_IvyKF pos_PNZMO3 mapa_3Qb5v vis_gec173 ">
-<i  id="Flex_WqwDs2-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_t5Tw8 " href="fa-solid fa-microscope">
-</i>
-<p  id="Text_5MWGR1-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_0k2d81 ">Deep Dive</p>
-</button>
-</li>
-<li  id="menu-/docs/vapor/concepts/memory" class="lay_AAqfn3 pos_PNZMO3 mapa_CrkEb2 vis_0B5BG1 intr_0CiBa2 "">
-<button  id="CtxB_PKZzR2-gk" class="lay_IvyKF pos_PNZMO3 mapa_3Qb5v vis_gec173 ">
-<i  id="Flex_32HyD-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_t5Tw8 " href="bi bi-memory">
-</i>
-<p  id="Text_P1JbX1-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_0k2d81 ">Memory</p>
-</button>
-</li>
-<li  id="menu-/docs/vapor/concepts/layout" class="lay_AAqfn3 pos_PNZMO3 mapa_CrkEb2 vis_0B5BG1 intr_0CiBa2 "">
-<button  id="CtxB_0Y0Y02-gk" class="lay_IvyKF pos_PNZMO3 mapa_3Qb5v vis_gec173 ">
-<i  id="Flex_bnQH3-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_t5Tw8 " href="bi bi-columns">
-</i>
-<p  id="Text_guKVc-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_0k2d81 ">Layout</p>
-</button>
-</li>
-<li  id="menu-/docs/vapor/concepts/kit" class="lay_AAqfn3 pos_PNZMO3 mapa_CrkEb2 vis_0B5BG1 intr_0CiBa2 "">
-<button  id="CtxB_zbBws-gk" class="lay_IvyKF pos_PNZMO3 mapa_3Qb5v vis_gec173 ">
-<i  id="Flex_eqwDt-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_t5Tw8 " href="bi bi-tools">
-</i>
-<p  id="Text_VjSA7-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_0k2d81 ">Kit</p>
-</button>
-</li>
-<li  id="menu-/docs/vapor/concepts/events" class="lay_AAqfn3 pos_PNZMO3 mapa_CrkEb2 vis_0B5BG1 intr_0CiBa2 "">
-<button  id="CtxB_PWN2N4-gk" class="lay_IvyKF pos_PNZMO3 mapa_3Qb5v vis_gec173 ">
-<i  id="Flex_EiP922-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_t5Tw8 " href="bi bi-cursor">
-</i>
-<p  id="Text_wqJv6-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_0k2d81 ">Events & Handlers</p>
-</button>
-</li>
-<li  id="menu-/docs/vapor/concepts/hooks" class="lay_AAqfn3 pos_PNZMO3 mapa_CrkEb2 vis_0B5BG1 intr_0CiBa2 "">
-<button  id="CtxB_s9Yjd3-gk" class="lay_IvyKF pos_PNZMO3 mapa_3Qb5v vis_gec173 ">
-<i  id="Flex_GI2Fc3-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_t5Tw8 " href="bi bi-hourglass-split">
-</i>
-<p  id="Text_aEHz82-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_0k2d81 ">Lifecycle Hooks</p>
-</button>
-</li>
-<li  id="menu-/docs/vapor/concepts/theme-and-icons" class="lay_AAqfn3 pos_PNZMO3 mapa_CrkEb2 vis_0B5BG1 intr_0CiBa2 "">
-<button  id="CtxB_36fEW2-gk" class="lay_IvyKF pos_PNZMO3 mapa_3Qb5v vis_gec173 ">
-<i  id="Flex_T2FNb1-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_t5Tw8 " href="bi bi-palette2">
-</i>
-<p  id="Text_1xTdd1-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_0k2d81 ">Theme and Icons</p>
-</button>
-</li>
-<li  id="menu-/react-to-vapor" class="lay_AAqfn3 pos_PNZMO3 mapa_CrkEb2 vis_0B5BG1 intr_0CiBa2 "">
-<button  id="CtxB_BtrnR-gk" class="lay_IvyKF pos_PNZMO3 mapa_3Qb5v vis_gec173 ">
-<i  id="Flex_e2VB14-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_t5Tw8 " href="fa-brands fa-react">
-</i>
-<p  id="Text_EhXps3-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_0k2d81 ">React to Vapor</p>
-</button>
-</li>
-<li  id="menu-/docs/vapor/concepts/codex-engine" class="lay_AAqfn3 pos_PNZMO3 mapa_CrkEb2 vis_0B5BG1 intr_0CiBa2 "">
-<button  id="CtxB_u4ZE73-gk" class="lay_IvyKF pos_PNZMO3 mapa_3Qb5v vis_gec173 ">
-<i  id="Flex_dA4oE3-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_t5Tw8 " href="bi bi-motherboard">
-</i>
-<p  id="Text_91hdM3-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_0k2d81 ">Codex Engine</p>
-</button>
-</li>
-<li  id="menu-/docs/vapor/concepts/performance" class="lay_AAqfn3 pos_PNZMO3 mapa_CrkEb2 vis_0B5BG1 intr_0CiBa2 "">
-<button  id="CtxB_3ltGL3-gk" class="lay_IvyKF pos_PNZMO3 mapa_3Qb5v vis_gec173 ">
-<i  id="Flex_NkGif3-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_t5Tw8 " href="bi bi-ethernet">
-</i>
-<p  id="Text_dr6qa4-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_0k2d81 ">Performance</p>
-</button>
-</li>
-<li  id="menu-/docs/vapor/concepts/tutorials" class="lay_AAqfn3 pos_PNZMO3 mapa_CrkEb2 vis_0B5BG1 intr_0CiBa2 "">
-<button  id="CtxB_GQbFw2-gk" class="lay_IvyKF pos_PNZMO3 mapa_3Qb5v vis_gec173 ">
-<i  id="Flex_iiG5F3-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_t5Tw8 " href="bi bi-bar-chart-steps">
-</i>
-<p  id="Text_cG8HJ4-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_0k2d81 ">Tutorials</p>
-</button>
-</li>
-<li  id="menu-/docs/vapor/concepts/opaque" class="lay_AAqfn3 pos_PNZMO3 mapa_CrkEb2 vis_0B5BG1 intr_0CiBa2 "">
-<button  id="CtxB_g3BpZ4-gk" class="lay_IvyKF pos_PNZMO3 mapa_3Qb5v vis_gec173 ">
-<i  id="Flex_fghVk-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_t5Tw8 " href="fa-solid fa-cubes-stacked">
-</i>
-<p  id="Text_FLTcK4-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_0k2d81 ">UI Components</p>
-</button>
-</li>
-<li  id="menu-/docs/metal" class="lay_AAqfn3 pos_PNZMO3 mapa_CrkEb2 vis_0B5BG1 intr_0CiBa2 "">
-<button  id="CtxB_UcIlO3-gk" class="lay_IvyKF pos_PNZMO3 mapa_3Qb5v vis_gec173 ">
-<i  id="Flex_za4Tp3-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_t5Tw8 " href="bi bi-screwdriver">
-</i>
-<p  id="Text_3iVMp3-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_0k2d81 ">Metal</p>
-</button>
-</li>
-</ul>
-</div>
-<div  id="Flex_NguTC-gk" class="lay_5j34Q1 pos_QAzmD2 mapa_CrkEb2 vis_l45j63 ">
-<div  id="Flex_Szrt5-gk" class="lay_sRkjz pos_PNZMO3 mapa_CrkEb2 vis_l45j63 ">
-<i  id="Flex_doXF22-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_m9RmS2 " href="bi bi-view-list">
-</i>
-<p  id="Text_YPefb4-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_7hDjA1 ">On this page</p>
-</div>
-<ul  id="List_T7AsT4-gk" class="lay_EHt132 pos_PNZMO3 mapa_JuL712 vis_RgdvV1 ">
-</ul>
-</div>
-
-
-
-</div>
-<div  id="Flex_h1Yvd-gk" class="lay_tupWc4 pos_PNZMO3 mapa_TK4ER4 vis_l45j63 ">
-<div  id="Flex_kyz5B-gk" class="lay_MAiLo1 pos_PNZMO3 mapa_CrkEb2 vis_l45j63 ">
-<div  id="Flex_4nh21-gk" class="lay_YSZ8C pos_PNZMO3 mapa_AyNhz vis_l45j63 ">
-<div  id="Flex_BFWuY1-gk" class="lay_xEnKo1 pos_PNZMO3 mapa_cN7oy3 vis_l45j63 ">
-<div  id="Flex_4us473-gk" class="lay_Mmpv02 pos_PNZMO3 mapa_cN7oy3 vis_l45j63 ">
-<div  id="Flex_ARKdt1-gk" class="lay_HKTla3 pos_PNZMO3 mapa_CrkEb2 vis_l45j63 ">
-<p  id="Text_IzhCI-gk" class="lay_RnK9f1 pos_PNZMO3 mapa_VKsEa1 vis_0zaFH3 ">Metal</p>
-<p  id="Html_gNOce2-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_s6TGB2 "><strong>Vapor, Reverb, Canopy</strong> all run on Metal, there 
+  <div id="contents" style="display: contents"><div  id="Flex_S7ezG2-gk" class="lay_3nYB54 pos_e8wtf3 mapa_TK4ER4 vis_RGZTP ">
+<div  id="Flex_nuQjl1-gk" class="lay_l26WI4 pos_e8wtf3 mapa_CrkEb2 vis_RGZTP ">
+<div  id="Flex_KEh2u1-gk" class="lay_h4TCQ3 pos_e8wtf3 mapa_AyNhz vis_RGZTP ">
+<div  id="Flex_BDJQp3-gk" class="lay_eEDPa4 pos_e8wtf3 mapa_cN7oy3 vis_RGZTP ">
+<div  id="Flex_fyVdm-gk" class="lay_nrP643 pos_e8wtf3 mapa_cN7oy3 vis_RGZTP ">
+<div  id="Flex_mWSE42-gk" class="lay_LRUU11 pos_e8wtf3 mapa_CrkEb2 vis_RGZTP ">
+<p  id="Text_cUmZU1-gk" class="lay_RnK9f1 pos_e8wtf3 mapa_VKsEa1 vis_M2M0L2 ">Metal</p>
+<p  id="Html_7TZ6B2-gk" class="lay_1I8dE4 pos_e8wtf3 mapa_CrkEb2 vis_34FK93 "><strong>Vapor, Reverb, Canopy</strong> all run on Metal, there 
 is no need for Docker Containers or
 Runtimes.</p>
 
 </div>
 </div>
-<div  id="Flex_9aHR82-gk" class="lay_28EIQ2 pos_PNZMO3 mapa_WshOF vis_l45j63 ">
-<button  id="CtxB_gUWxQ4-gk" class="lay_oAEsI1 pos_5QdGp2 mapa_rPfvm1 vis_XkKJf intr_QKkkw3 ">
-<p  id="Text_MWPLr3-gk" class="lay_iKMqA2 pos_PNZMO3 mapa_CrkEb2 vis_qMpSK2 ">curl -sSL https://raw.githubusercontent.com/tether-labs/metal/main/install.sh | bash</p>
-<div  id="Flex_47Hvl2-gk" class="lay_Qz8uf pos_PNZMO3 mapa_CrkEb2 vis_1vWd84 ">
-<i  id="Flex_oKik91-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_aIzTM3 " href="bi bi-clipboard">
+<div  id="Flex_a3iT2-gk" class="lay_bOUjc1 pos_e8wtf3 mapa_WshOF vis_RGZTP ">
+<button  id="CtxB_V5SnB1-gk" class="lay_fEOfp3 pos_t0s233 mapa_rPfvm1 vis_p9DdO3 intr_PAoS83 ">
+<p  id="Text_XYwO9-gk" class="lay_SysBY1 pos_e8wtf3 mapa_CrkEb2 vis_AMedi3 ">curl -sSL https://raw.githubusercontent.com/senet-toolbox/metal/main/install.sh | bash</p>
+<div  id="Flex_9IwC02-gk" class="lay_5cJga3 pos_e8wtf3 mapa_CrkEb2 vis_ml8qd3 ">
+<i  id="Icon_WkW1e1-gk" class="bi bi-clipboard lay_C7CDC1 pos_e8wtf3 mapa_CrkEb2 vis_dv5rq3 ">
 </i>
 </div>
 </button>
-<button  id="CtxB_XLiVD4-gk" class="lay_oAEsI1 pos_5QdGp2 mapa_rPfvm1 vis_XkKJf intr_QKkkw3 ">
-<p  id="Text_Ed1cF3-gk" class="lay_iKMqA2 pos_PNZMO3 mapa_CrkEb2 vis_qMpSK2 ">metal create myapp</p>
-<div  id="Flex_mdSFQ2-gk" class="lay_Qz8uf pos_PNZMO3 mapa_CrkEb2 vis_1vWd84 ">
-<i  id="Flex_WJliE1-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_aIzTM3 " href="bi bi-clipboard">
+<button  id="CtxB_6ro1x2-gk" class="lay_fEOfp3 pos_t0s233 mapa_rPfvm1 vis_p9DdO3 intr_PAoS83 ">
+<p  id="Text_l8MUw2-gk" class="lay_SysBY1 pos_e8wtf3 mapa_CrkEb2 vis_AMedi3 ">metal create myapp</p>
+<div  id="Flex_z1HWn2-gk" class="lay_5cJga3 pos_e8wtf3 mapa_CrkEb2 vis_ml8qd3 ">
+<i  id="Icon_gav7Q3-gk" class="bi bi-clipboard lay_C7CDC1 pos_e8wtf3 mapa_CrkEb2 vis_dv5rq3 ">
 </i>
 </div>
 </button>
-<button  id="CtxB_x5ygU1-gk" class="lay_oAEsI1 pos_5QdGp2 mapa_rPfvm1 vis_XkKJf intr_QKkkw3 ">
-<p  id="Text_e97VS4-gk" class="lay_iKMqA2 pos_PNZMO3 mapa_CrkEb2 vis_qMpSK2 ">my-app && metal run web</p>
-<div  id="Flex_homkO3-gk" class="lay_Qz8uf pos_PNZMO3 mapa_CrkEb2 vis_1vWd84 ">
-<i  id="Flex_zVCcG4-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_aIzTM3 " href="bi bi-clipboard">
+<button  id="CtxB_g8DeD4-gk" class="lay_fEOfp3 pos_t0s233 mapa_rPfvm1 vis_p9DdO3 intr_PAoS83 ">
+<p  id="Text_7BIBr2-gk" class="lay_SysBY1 pos_e8wtf3 mapa_CrkEb2 vis_AMedi3 ">my-app && metal run web</p>
+<div  id="Flex_9CG8t3-gk" class="lay_5cJga3 pos_e8wtf3 mapa_CrkEb2 vis_ml8qd3 ">
+<i  id="Icon_RhtaB2-gk" class="bi bi-clipboard lay_C7CDC1 pos_e8wtf3 mapa_CrkEb2 vis_dv5rq3 ">
 </i>
 </div>
 </button>
 </div>
-<p  id="Text_Yfr7s-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_7ALiQ4 ">It runs on my Machine!</p>
-<p  id="Html_fVCp32-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_aIzTM3 ">As we all know, switching machines, or having to reinstall megabytes of dependencies is a pain,
+<p  id="Text_jxDQR1-gk" class="lay_C7CDC1 pos_e8wtf3 mapa_CrkEb2 vis_gyIps2 ">It runs on my Machine!</p>
+<p  id="Html_D7eoD1-gk" class="lay_C7CDC1 pos_e8wtf3 mapa_CrkEb2 vis_dv5rq3 ">As we all know, switching machines, or having to reinstall megabytes of dependencies is a pain,
 and eventually leads to the dreaded "It works on my machine" problem. 
 Running a static blog shouldn’t require an entire runtime environment, build chain, and container stack. Nor should a full-stack app.</p>
 
-<p  id="Html_4HspX4-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_aIzTM3 ">The framework that is installed on one machine should run deterministically on another.
+<p  id="Html_n7g7N1-gk" class="lay_C7CDC1 pos_e8wtf3 mapa_CrkEb2 vis_dv5rq3 ">The framework that is installed on one machine should run deterministically on another.
 Every current JS framework or other framework currently ships dependencies. And there is no way to avoid them.</p>
 
-<p  id="Text_n3Wp11-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_7ALiQ4 ">Binary</p>
-<p  id="Html_G4v5K4-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_aIzTM3 ">Metal is how Vapor, Reverb and Canopy, compile and build the binaries. Depending on persmissions,
+<p  id="Text_9ruKo3-gk" class="lay_C7CDC1 pos_e8wtf3 mapa_CrkEb2 vis_gyIps2 ">Binary</p>
+<p  id="Html_er1ln2-gk" class="lay_C7CDC1 pos_e8wtf3 mapa_CrkEb2 vis_dv5rq3 ">Metal is how Vapor, Reverb and Canopy, compile and build the binaries. Depending on persmissions,
 Vapor will use wasm-opt and brotli, to compress the WASM binaries, this will reduce the total bundle size. For example, the raw
 WASM binary of this site it 7MB, after compressing using Metal, we result in 180kb total. While other frameworks may ship 100kb-200kb by default.
 Remember Vapor, is running WASM, so the browser not only parses this <a href="https://webassembly.org/docs/faq/">10x-20x</a> 
 faster, but also runs <a href="https://hacks.mozilla.org/2018/01/oxidizing-source-maps-with-rust-and-webassembly/">1.5x-2x</a> faster.
 And again, we only have one binary file running the Vapor server, and one vapor.wasm file which contains our UI, and client side functionality.</p>
 
-<div  id="Flex_as1sK2-gk" class="lay_b6Qkb1 pos_PNZMO3 mapa_CrkEb2 vis_l45j63 ">
-<p  id="Text_7mnYG-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_7ALiQ4 ">Total file count</p>
-<ul  id="List_bAkNn-gk" class="lay_PNZMO3 pos_PNZMO3 mapa_CrkEb2 vis_l45j63 ">
-<li  id="List_A5FsV-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_l45j63 "">
-<p  id="Text_43IZY3-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_aIzTM3 ">Vapor: server.exe, vapor.wasm, bundle.min.js</p>
+<div  id="Flex_rosp52-gk" class="lay_KiBJS3 pos_e8wtf3 mapa_CrkEb2 vis_ngXpV ">
+<p  id="Text_TCfgp-gk" class="lay_1I8dE4 pos_e8wtf3 mapa_CrkEb2 vis_gyIps2 ">Total file count</p>
+<ul  id="List_ykkCi1-gk" class="lay_PNZMO3 pos_e8wtf3 mapa_CrkEb2 vis_ngXpV ">
+<li  id="List_QIIUd-gk" class="lay_1I8dE4 pos_e8wtf3 mapa_CrkEb2 vis_RGZTP "">
+<p  id="Text_IUjQQ2-gk" class="lay_C7CDC1 pos_e8wtf3 mapa_CrkEb2 vis_dv5rq3 ">Vapor: server.exe, vapor.wasm, bundle.min.js</p>
 </li>
-<li  id="List_dxJXL3-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_l45j63 "">
-<p  id="Text_HqIsK-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_aIzTM3 ">Reverb: server.exe</p>
+<li  id="List_FmSgH3-gk" class="lay_1I8dE4 pos_e8wtf3 mapa_CrkEb2 vis_RGZTP "">
+<p  id="Text_lluPN1-gk" class="lay_C7CDC1 pos_e8wtf3 mapa_CrkEb2 vis_dv5rq3 ">Reverb: server.exe</p>
 </li>
-<li  id="List_4ulx02-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_l45j63 "">
-<p  id="Text_StBYA1-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_aIzTM3 ">Canopy: server.exe</p>
+<li  id="List_6WYzo1-gk" class="lay_1I8dE4 pos_e8wtf3 mapa_CrkEb2 vis_RGZTP "">
+<p  id="Text_HccAr2-gk" class="lay_C7CDC1 pos_e8wtf3 mapa_CrkEb2 vis_dv5rq3 ">Canopy: server.exe</p>
 </li>
 </ul>
 </div>
-<p  id="Text_faohL4-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_7ALiQ4 ">Caveat</p>
-<p  id="Html_k5xZS1-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_aIzTM3 ">Alot of people are going to tell you that, Yes WASM is faster, but the overhead, between JS bridging to WASM, kills
+<p  id="Text_2cLP72-gk" class="lay_C7CDC1 pos_e8wtf3 mapa_CrkEb2 vis_gyIps2 ">Caveat</p>
+<p  id="Html_ETcLI1-gk" class="lay_C7CDC1 pos_e8wtf3 mapa_CrkEb2 vis_dv5rq3 ">Alot of people are going to tell you that, Yes WASM is faster, but the overhead, between JS bridging to WASM, kills
 your performace. This claim is valid, however the amount of time to bridge between WASM and JS is 10ns
 so you would need to perform over 10,000,000 operations to hit and overhead of 1 second. Moving string around costs anywhere from 
 hundreds of nanoseconds up to a few milliseconds, because of size. You pay for the linear encoding, due UTF-8 and UTF-16 differences. 
@@ -481,119 +287,347 @@ And you will be able to interact with JS string and object without the need of c
 One very simple way to not cross this boundary a ton, is just batch. Vapor does this by default. </p>
 
 </div>
-<div  id="Flex_QhnDN1-gk" class="lay_b6Qkb1 pos_PNZMO3 mapa_CrkEb2 vis_l45j63 ">
-<h1  id="Head_15BMn3-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_aL0yM4 ">Commands
+<div  id="Flex_ZrWQO-gk" class="lay_KiBJS3 pos_e8wtf3 mapa_CrkEb2 vis_ngXpV ">
+<h1  id="Head_UAmdI-gk" class="lay_1I8dE4 pos_e8wtf3 mapa_CrkEb2 vis_sPfyl3 ">Commands
 </h>
-<p  id="Html_xOMbM-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_aIzTM3 ">Metal is a CLI tool, and it has a lot of commands. 
+<p  id="Html_qAqXE4-gk" class="lay_1I8dE4 pos_e8wtf3 mapa_CrkEb2 vis_dv5rq3 ">Metal is a CLI tool, and it has a lot of commands. 
 You can run <code>metal --help</code> to see all the commands.</p>
 
-<p  id="Html_vK6Tx3-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_aIzTM3 ">Every command is run within the current directory. You can specify a output path with the <code>-o</code> flag.</p>
+<p  id="Html_Chy9v2-gk" class="lay_1I8dE4 pos_e8wtf3 mapa_CrkEb2 vis_dv5rq3 ">Every command is run within the current directory. You can specify a output path with the <code>-o</code> flag.</p>
 
-<button  id="CtxB_ukdw22-gk" class="lay_oAEsI1 pos_5QdGp2 mapa_rPfvm1 vis_XkKJf intr_QKkkw3 ">
-<p  id="Text_yKPpp2-gk" class="lay_iKMqA2 pos_PNZMO3 mapa_CrkEb2 vis_qMpSK2 ">metal -v gen Grid -o /components/MyGrid.zig</p>
-<div  id="Flex_VfMJX3-gk" class="lay_Qz8uf pos_PNZMO3 mapa_CrkEb2 vis_1vWd84 ">
-<i  id="Flex_5hDq34-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_aIzTM3 " href="bi bi-clipboard">
+<button  id="CtxB_Vj0lq1-gk" class="lay_69EhC4 pos_t0s233 mapa_rPfvm1 vis_p9DdO3 intr_PAoS83 ">
+<p  id="Text_kesWv2-gk" class="lay_SysBY1 pos_e8wtf3 mapa_CrkEb2 vis_AMedi3 ">metal -v gen Grid -o /components/MyGrid.zig</p>
+<div  id="Flex_HtkV83-gk" class="lay_5cJga3 pos_e8wtf3 mapa_CrkEb2 vis_ml8qd3 ">
+<i  id="Icon_uP4KJ2-gk" class="bi bi-clipboard lay_C7CDC1 pos_e8wtf3 mapa_CrkEb2 vis_dv5rq3 ">
 </i>
 </div>
 </button>
-<button  id="CtxB_bFnBy2-gk" class="lay_oAEsI1 pos_5QdGp2 mapa_rPfvm1 vis_XkKJf intr_QKkkw3 ">
-<p  id="Text_taJ7o2-gk" class="lay_iKMqA2 pos_PNZMO3 mapa_CrkEb2 vis_qMpSK2 ">metal -r gen Crud -o /routes/about/MyCrud.zig</p>
-<div  id="Flex_PxxXE4-gk" class="lay_Qz8uf pos_PNZMO3 mapa_CrkEb2 vis_1vWd84 ">
-<i  id="Flex_m8GNd4-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_aIzTM3 " href="bi bi-clipboard">
+<button  id="CtxB_qI2CI3-gk" class="lay_69EhC4 pos_t0s233 mapa_rPfvm1 vis_p9DdO3 intr_PAoS83 ">
+<p  id="Text_LqhVA1-gk" class="lay_SysBY1 pos_e8wtf3 mapa_CrkEb2 vis_AMedi3 ">metal -r gen Crud -o /routes/about/MyCrud.zig</p>
+<div  id="Flex_eM94M3-gk" class="lay_5cJga3 pos_e8wtf3 mapa_CrkEb2 vis_ml8qd3 ">
+<i  id="Icon_EYs4Y2-gk" class="bi bi-clipboard lay_C7CDC1 pos_e8wtf3 mapa_CrkEb2 vis_dv5rq3 ">
 </i>
 </div>
 </button>
-<p  id="Html_XmwLK1-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_aIzTM3 ">Metal differentiates between Vapor, Reverb, and Canopy, with -v, -r, and -c flags.
+<p  id="Html_1xB4H3-gk" class="lay_1I8dE4 pos_e8wtf3 mapa_CrkEb2 vis_dv5rq3 ">Metal differentiates between Vapor, Reverb, and Canopy, with -v, -r, and -c flags.
 After this, you can run various generation commands, like <code>metal -v create my-app</code> or <code>metal -v gen DataTable</code>.</p>
 
-<h2  id="Head_Dumv64-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_cxlGC3 ">Vapor Gen Command
+<h2  id="Head_XRqed3-gk" class="lay_1I8dE4 pos_e8wtf3 mapa_CrkEb2 vis_QzohF1 ">Vapor Gen Command
 </h>
-<p  id="Html_2cJrx1-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_aIzTM3 ">When passing the <cod>gen</code> command, we can generate various component types, like <code>DataTable</code>.
+<p  id="Html_q7Pux3-gk" class="lay_1I8dE4 pos_e8wtf3 mapa_CrkEb2 vis_dv5rq3 ">When passing the <cod>gen</code> command, we can generate various component types, like <code>DataTable</code>.
 We can also generate Form components, based on a struct argument. For example, Vaporize can be used to generate the base Form UI, and then
 one can mutate the styles, or add custom logic. This is useful for rapid prototyping.</p>
 
-<button  id="CtxB_8rr5y2-gk" class="lay_oAEsI1 pos_5QdGp2 mapa_rPfvm1 vis_XkKJf intr_QKkkw3 ">
-<p  id="Text_QsEw23-gk" class="lay_iKMqA2 pos_PNZMO3 mapa_CrkEb2 vis_qMpSK2 ">metal -v gen Select</p>
-<div  id="Flex_f7QFa4-gk" class="lay_Qz8uf pos_PNZMO3 mapa_CrkEb2 vis_1vWd84 ">
-<i  id="Flex_Eufui-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_aIzTM3 " href="bi bi-clipboard">
+<button  id="CtxB_ySBSs2-gk" class="lay_69EhC4 pos_t0s233 mapa_rPfvm1 vis_p9DdO3 intr_PAoS83 ">
+<p  id="Text_gormn-gk" class="lay_SysBY1 pos_e8wtf3 mapa_CrkEb2 vis_AMedi3 ">metal -v gen Select</p>
+<div  id="Flex_WWdNw1-gk" class="lay_5cJga3 pos_e8wtf3 mapa_CrkEb2 vis_ml8qd3 ">
+<i  id="Icon_0SMsV3-gk" class="bi bi-clipboard lay_C7CDC1 pos_e8wtf3 mapa_CrkEb2 vis_dv5rq3 ">
 </i>
 </div>
 </button>
-<button  id="CtxB_onon63-gk" class="lay_oAEsI1 pos_5QdGp2 mapa_rPfvm1 vis_XkKJf intr_QKkkw3 ">
-<p  id="Text_RP1CK3-gk" class="lay_iKMqA2 pos_PNZMO3 mapa_CrkEb2 vis_qMpSK2 ">metal -v gen DragandDrop</p>
-<div  id="Flex_VrV0T3-gk" class="lay_Qz8uf pos_PNZMO3 mapa_CrkEb2 vis_1vWd84 ">
-<i  id="Flex_YjE2f3-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_aIzTM3 " href="bi bi-clipboard">
+<button  id="CtxB_iLCtJ1-gk" class="lay_69EhC4 pos_t0s233 mapa_rPfvm1 vis_p9DdO3 intr_PAoS83 ">
+<p  id="Text_Zx64k3-gk" class="lay_SysBY1 pos_e8wtf3 mapa_CrkEb2 vis_AMedi3 ">metal -v gen DragandDrop</p>
+<div  id="Flex_9ElWS4-gk" class="lay_5cJga3 pos_e8wtf3 mapa_CrkEb2 vis_ml8qd3 ">
+<i  id="Icon_gMYSC3-gk" class="bi bi-clipboard lay_C7CDC1 pos_e8wtf3 mapa_CrkEb2 vis_dv5rq3 ">
 </i>
 </div>
 </button>
-<button  id="CtxB_4FJ1C4-gk" class="lay_oAEsI1 pos_5QdGp2 mapa_rPfvm1 vis_XkKJf intr_QKkkw3 ">
-<p  id="Text_9pj8p2-gk" class="lay_iKMqA2 pos_PNZMO3 mapa_CrkEb2 vis_qMpSK2 ">metal -v gen ui [path-to-zon-file]</p>
-<div  id="Flex_Rm0VC-gk" class="lay_Qz8uf pos_PNZMO3 mapa_CrkEb2 vis_1vWd84 ">
-<i  id="Flex_WOCmC4-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_aIzTM3 " href="bi bi-clipboard">
+<button  id="CtxB_i1HgK3-gk" class="lay_69EhC4 pos_t0s233 mapa_rPfvm1 vis_p9DdO3 intr_PAoS83 ">
+<p  id="Text_3rL7m-gk" class="lay_SysBY1 pos_e8wtf3 mapa_CrkEb2 vis_AMedi3 ">metal -v gen ui [path-to-zon-file]</p>
+<div  id="Flex_tRSdz3-gk" class="lay_5cJga3 pos_e8wtf3 mapa_CrkEb2 vis_ml8qd3 ">
+<i  id="Icon_hNFBH2-gk" class="bi bi-clipboard lay_C7CDC1 pos_e8wtf3 mapa_CrkEb2 vis_dv5rq3 ">
 </i>
 </div>
 </button>
-<h2  id="Head_K8u343-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_cxlGC3 ">Reverb Gen Command
+<h2  id="Head_MRncn1-gk" class="lay_1I8dE4 pos_e8wtf3 mapa_CrkEb2 vis_QzohF1 ">Reverb Gen Command
 </h>
-<p  id="Html_1Fv9m3-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_aIzTM3 ">We follow the same pattern as Vapor, with Reverb, we can generate cruds, routes, auth, and more.</p>
+<p  id="Html_XmdMk2-gk" class="lay_1I8dE4 pos_e8wtf3 mapa_CrkEb2 vis_dv5rq3 ">We follow the same pattern as Vapor, with Reverb, we can generate cruds, routes, auth, and more.</p>
 
-<button  id="CtxB_b3x5I2-gk" class="lay_oAEsI1 pos_5QdGp2 mapa_rPfvm1 vis_XkKJf intr_QKkkw3 ">
-<p  id="Text_4nvRQ2-gk" class="lay_iKMqA2 pos_PNZMO3 mapa_CrkEb2 vis_qMpSK2 ">metal -r gen Crud</p>
-<div  id="Flex_GRLXF2-gk" class="lay_Qz8uf pos_PNZMO3 mapa_CrkEb2 vis_1vWd84 ">
-<i  id="Flex_vwn7b3-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_aIzTM3 " href="bi bi-clipboard">
+<button  id="CtxB_LrBbr-gk" class="lay_69EhC4 pos_t0s233 mapa_rPfvm1 vis_p9DdO3 intr_PAoS83 ">
+<p  id="Text_0CY63-gk" class="lay_SysBY1 pos_e8wtf3 mapa_CrkEb2 vis_AMedi3 ">metal -r gen Crud</p>
+<div  id="Flex_igtGn1-gk" class="lay_5cJga3 pos_e8wtf3 mapa_CrkEb2 vis_ml8qd3 ">
+<i  id="Icon_x3Mf9-gk" class="bi bi-clipboard lay_C7CDC1 pos_e8wtf3 mapa_CrkEb2 vis_dv5rq3 ">
 </i>
 </div>
 </button>
-<button  id="CtxB_ds5oM4-gk" class="lay_oAEsI1 pos_5QdGp2 mapa_rPfvm1 vis_XkKJf intr_QKkkw3 ">
-<p  id="Text_yW3mr1-gk" class="lay_iKMqA2 pos_PNZMO3 mapa_CrkEb2 vis_qMpSK2 ">metal -r gen Auth -o /routes/auth/MyAuth.zig</p>
-<div  id="Flex_SUlNi-gk" class="lay_Qz8uf pos_PNZMO3 mapa_CrkEb2 vis_1vWd84 ">
-<i  id="Flex_qwR5Y1-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_aIzTM3 " href="bi bi-clipboard">
+<button  id="CtxB_HgEN64-gk" class="lay_69EhC4 pos_t0s233 mapa_rPfvm1 vis_p9DdO3 intr_PAoS83 ">
+<p  id="Text_fUF9g2-gk" class="lay_SysBY1 pos_e8wtf3 mapa_CrkEb2 vis_AMedi3 ">metal -r gen Auth -o /routes/auth/MyAuth.zig</p>
+<div  id="Flex_1Njv73-gk" class="lay_5cJga3 pos_e8wtf3 mapa_CrkEb2 vis_ml8qd3 ">
+<i  id="Icon_fOEUO-gk" class="bi bi-clipboard lay_C7CDC1 pos_e8wtf3 mapa_CrkEb2 vis_dv5rq3 ">
 </i>
 </div>
 </button>
-<h2  id="Head_6w3ay3-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_cxlGC3 ">Release & Deployment Commands
+<h2  id="Head_kEJVf-gk" class="lay_1I8dE4 pos_e8wtf3 mapa_CrkEb2 vis_QzohF1 ">Release & Deployment Commands
 </h>
-<p  id="Html_LaVRN-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_aIzTM3 ">We can release with Metal, via:</p>
+<p  id="Html_B5GQ6-gk" class="lay_1I8dE4 pos_e8wtf3 mapa_CrkEb2 vis_dv5rq3 ">We can release with Metal, via:</p>
 
-<button  id="CtxB_28Wif3-gk" class="lay_oAEsI1 pos_5QdGp2 mapa_rPfvm1 vis_XkKJf intr_QKkkw3 ">
-<p  id="Text_UhA2l3-gk" class="lay_iKMqA2 pos_PNZMO3 mapa_CrkEb2 vis_qMpSK2 ">metal -v release-mode={debug|fast|small}</p>
-<div  id="Flex_yzwQt-gk" class="lay_Qz8uf pos_PNZMO3 mapa_CrkEb2 vis_1vWd84 ">
-<i  id="Flex_JayHv1-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_aIzTM3 " href="bi bi-clipboard">
+<button  id="CtxB_AUpHF-gk" class="lay_69EhC4 pos_t0s233 mapa_rPfvm1 vis_p9DdO3 intr_PAoS83 ">
+<p  id="Text_kkNP34-gk" class="lay_SysBY1 pos_e8wtf3 mapa_CrkEb2 vis_AMedi3 ">metal -v release-mode={debug|fast|small}</p>
+<div  id="Flex_OWcLY-gk" class="lay_5cJga3 pos_e8wtf3 mapa_CrkEb2 vis_ml8qd3 ">
+<i  id="Icon_uDuVA1-gk" class="bi bi-clipboard lay_C7CDC1 pos_e8wtf3 mapa_CrkEb2 vis_dv5rq3 ">
 </i>
 </div>
 </button>
-<button  id="CtxB_mEgGA1-gk" class="lay_oAEsI1 pos_5QdGp2 mapa_rPfvm1 vis_XkKJf intr_QKkkw3 ">
-<p  id="Text_isuVs3-gk" class="lay_iKMqA2 pos_PNZMO3 mapa_CrkEb2 vis_qMpSK2 ">metal -r release-mode={debug|fast|small}</p>
-<div  id="Flex_0QCVa2-gk" class="lay_Qz8uf pos_PNZMO3 mapa_CrkEb2 vis_1vWd84 ">
-<i  id="Flex_nR6FB1-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_aIzTM3 " href="bi bi-clipboard">
+<button  id="CtxB_kP8lz1-gk" class="lay_69EhC4 pos_t0s233 mapa_rPfvm1 vis_p9DdO3 intr_PAoS83 ">
+<p  id="Text_CX4mI-gk" class="lay_SysBY1 pos_e8wtf3 mapa_CrkEb2 vis_AMedi3 ">metal -r release-mode={debug|fast|small}</p>
+<div  id="Flex_ik2xA-gk" class="lay_5cJga3 pos_e8wtf3 mapa_CrkEb2 vis_ml8qd3 ">
+<i  id="Icon_vWLK83-gk" class="bi bi-clipboard lay_C7CDC1 pos_e8wtf3 mapa_CrkEb2 vis_dv5rq3 ">
 </i>
 </div>
 </button>
-<button  id="CtxB_53Rvz2-gk" class="lay_oAEsI1 pos_5QdGp2 mapa_rPfvm1 vis_XkKJf intr_QKkkw3 ">
-<p  id="Text_GbtQQ-gk" class="lay_iKMqA2 pos_PNZMO3 mapa_CrkEb2 vis_qMpSK2 ">metal -c release-mode={debug|fast|small}</p>
-<div  id="Flex_v3OAn1-gk" class="lay_Qz8uf pos_PNZMO3 mapa_CrkEb2 vis_1vWd84 ">
-<i  id="Flex_FqEtD3-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_aIzTM3 " href="bi bi-clipboard">
+<button  id="CtxB_Q7ryr-gk" class="lay_69EhC4 pos_t0s233 mapa_rPfvm1 vis_p9DdO3 intr_PAoS83 ">
+<p  id="Text_qyajg1-gk" class="lay_SysBY1 pos_e8wtf3 mapa_CrkEb2 vis_AMedi3 ">metal -c release-mode={debug|fast|small}</p>
+<div  id="Flex_GNXAK-gk" class="lay_5cJga3 pos_e8wtf3 mapa_CrkEb2 vis_ml8qd3 ">
+<i  id="Icon_8MqNS-gk" class="bi bi-clipboard lay_C7CDC1 pos_e8wtf3 mapa_CrkEb2 vis_dv5rq3 ">
 </i>
 </div>
 </button>
-<p  id="Html_26qmB-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_aIzTM3 ">This will generate various types of files, based on the mode. For Vapor specifically, release-mode small and fast, will run the wasm-opt and brotli commands.
+<p  id="Html_eqj3H1-gk" class="lay_1I8dE4 pos_e8wtf3 mapa_CrkEb2 vis_dv5rq3 ">This will generate various types of files, based on the mode. For Vapor specifically, release-mode small and fast, will run the wasm-opt and brotli commands.
 This will further compress the WASM binary, reaching an average 40x reduction in size.</p>
 
-<p  id="Html_fPpO33-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_aIzTM3 ">Vapor's server runs on Reverb, and so we get all the performance benefits of Reverb, by default.</p>
+<p  id="Html_8OO711-gk" class="lay_1I8dE4 pos_e8wtf3 mapa_CrkEb2 vis_dv5rq3 ">Vapor's server runs on Reverb, and so we get all the performance benefits of Reverb, by default.</p>
 
-<p  id="Html_DnimW3-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_aIzTM3 ">Vapor also takes the <code>pre-gen</code> command, which at build time, will generate a static HTML files, and serve them on initial request, 
+<p  id="Html_nAqka2-gk" class="lay_1I8dE4 pos_e8wtf3 mapa_CrkEb2 vis_dv5rq3 ">Vapor also takes the <code>pre-gen</code> command, which at build time, will generate a static HTML files, and serve them on initial request, 
 then following up with the WASM binary, this improves the first paint time, and reduces the time to first byte.</p>
 
-<button  id="CtxB_nkphV4-gk" class="lay_oAEsI1 pos_5QdGp2 mapa_rPfvm1 vis_XkKJf intr_QKkkw3 ">
-<p  id="Text_9S3nd2-gk" class="lay_iKMqA2 pos_PNZMO3 mapa_CrkEb2 vis_qMpSK2 ">metal -v release-mode=small pre-gen</p>
-<div  id="Flex_5LLzf1-gk" class="lay_Qz8uf pos_PNZMO3 mapa_CrkEb2 vis_1vWd84 ">
-<i  id="Flex_GByif-gk" class="lay_1I8dE4 pos_PNZMO3 mapa_CrkEb2 vis_aIzTM3 " href="bi bi-clipboard">
+<button  id="CtxB_zfbk43-gk" class="lay_69EhC4 pos_t0s233 mapa_rPfvm1 vis_p9DdO3 intr_PAoS83 ">
+<p  id="Text_c4t4F4-gk" class="lay_SysBY1 pos_e8wtf3 mapa_CrkEb2 vis_AMedi3 ">metal -v release-mode=small pre-gen</p>
+<div  id="Flex_ykQcd2-gk" class="lay_5cJga3 pos_e8wtf3 mapa_CrkEb2 vis_ml8qd3 ">
+<i  id="Icon_PEDW44-gk" class="bi bi-clipboard lay_C7CDC1 pos_e8wtf3 mapa_CrkEb2 vis_dv5rq3 ">
 </i>
 </div>
 </button>
 </div>
 </div>
 </div>
+</div>
+<div  id="Flex_Ym7PE1-gk" class="lay_NgkTA1 pos_SdsMW2 mapa_CrkEb2 vis_RGZTP ">
+<div  id="Flex_5x7Mw2-gk" class="lay_TPZCf pos_bITd33 mapa_GjRnP2 vis_1KwHU3 ">
+<div  id="Flex_QNEZT4-gk" class="lay_DH5a02 pos_e8wtf3 mapa_CrkEb2 vis_RGZTP ">
+<button  id="Butt_atjY8-gk" class="lay_C7CDC1 pos_e8wtf3 mapa_CrkEb2 vis_zrABW3 ">
+<img  id="Imag_k71q52-gk" class="lay_0opRR pos_e8wtf3 mapa_CrkEb2 vis_RGZTP " src="/assets/circlelogo.webp">
+</img>
+</button>
+<p  id="Text_ZbQvA-gk" class="lay_C7CDC1 pos_e8wtf3 mapa_CrkEb2 vis_nCsQm2 ">Senet</p>
+<div  id="Flex_YEEb51-gk" class="lay_1FR0s2 pos_e8wtf3 mapa_CrkEb2 vis_ym9aJ ">
+</div>
+<p  id="Text_18JCM3-gk" class="lay_C7CDC1 pos_e8wtf3 mapa_CrkEb2 vis_2InYE3 ">Docs</p>
+</div>
+<button  id="Butt_iV4mN1-gk" class="lay_OMUM52 pos_e8wtf3 mapa_4hFg71 vis_29zhJ1 intr_t723d3 ">
+<div  id="Flex_SdGtk1-gk" class="lay_vSb0O4 pos_e8wtf3 mapa_CrkEb2 vis_RGZTP ">
+<i  id="Icon_B4mWc-gk" class="bi bi-search lay_C7CDC1 pos_e8wtf3 mapa_CrkEb2 vis_4g32b1 ">
+</i>
+<p  id="Text_geQ223-gk" class="lay_C7CDC1 pos_e8wtf3 mapa_CrkEb2 vis_SW2GF4 ">Search...</p>
+</div>
+<i  id="Icon_BLrWm2-gk" class="bi bi-command lay_C7CDC1 pos_e8wtf3 mapa_CrkEb2 vis_4g32b1 ">
+</i>
+</button>
+<div  id="Flex_0Zsrh-gk" class="lay_miGfi3 pos_e8wtf3 mapa_TK4ER4 vis_RGZTP ">
+<button  id="Butt_I7pNp2-gk" class="lay_C7CDC1 pos_e8wtf3 mapa_CrkEb2 vis_zrABW3 ">
+<i  id="Icon_QbB6x1-gk" class="bi bi-cloud-moon lay_C7CDC1 pos_e8wtf3 mapa_CrkEb2 vis_mfMw54 intr_sN9sA4 ">
+</i>
+</button>
+</div>
+</div>
+<div  id="Flex_hPmMZ3-gk" class="lay_NgkTA1 pos_FEjf82 mapa_CrkEb2 vis_3ySDU ">
+<ul  id="List_Ftaou-gk" class="lay_si41X3 pos_e8wtf3 mapa_bnttp vis_OTG3T2 ">
+<li  id="menu-/docs/vapor" class="lay_WLTVy pos_e8wtf3 mapa_CrkEb2 vis_KAUjC3 intr_HDHy72 "">
+<button  id="CtxB_QFocu3-gk" class="lay_cooI21 pos_e8wtf3 mapa_3Qb5v vis_zrABW3 ">
+<i  id="Icon_LxKcR3-gk" class="bi bi-house lay_R6lHk2 pos_e8wtf3 mapa_CrkEb2 vis_GORZo1 ">
+</i>
+<p  id="Text_2NiPV-gk" class="lay_C7CDC1 pos_e8wtf3 mapa_CrkEb2 vis_8Odp2 ">Overview</p>
+</button>
+</li>
+<li  id="menu-/docs/vapor/concepts/justletmebuild" class="lay_WLTVy pos_e8wtf3 mapa_CrkEb2 vis_jRsGW3 intr_nzdbL4 "">
+<button  id="CtxB_Lp7w92-gk" class="lay_cooI21 pos_e8wtf3 mapa_3Qb5v vis_zrABW3 ">
+<i  id="Icon_XTgsI4-gk" class="bi bi-fire lay_R6lHk2 pos_e8wtf3 mapa_CrkEb2 vis_fxcWt3 ">
+</i>
+<p  id="Text_mAiv43-gk" class="lay_C7CDC1 pos_e8wtf3 mapa_CrkEb2 vis_kigpg2 ">Just let me build!!!!</p>
+</button>
+</li>
+<li  id="menu-/docs/vapor/concepts/basics" class="lay_WLTVy pos_e8wtf3 mapa_CrkEb2 vis_jRsGW3 intr_nzdbL4 "">
+<button  id="CtxB_preb11-gk" class="lay_cooI21 pos_e8wtf3 mapa_3Qb5v vis_zrABW3 ">
+<i  id="Icon_JmpQv1-gk" class="bi bi-mortarboard lay_R6lHk2 pos_e8wtf3 mapa_CrkEb2 vis_fxcWt3 ">
+</i>
+<p  id="Text_8GMfF4-gk" class="lay_C7CDC1 pos_e8wtf3 mapa_CrkEb2 vis_kigpg2 ">Basics</p>
+</button>
+</li>
+<li  id="menu-/docs/vapor/concepts/components" class="lay_WLTVy pos_e8wtf3 mapa_CrkEb2 vis_jRsGW3 intr_nzdbL4 "">
+<button  id="CtxB_QIAWg3-gk" class="lay_cooI21 pos_e8wtf3 mapa_3Qb5v vis_zrABW3 ">
+
+
+<p  id="Text_MJYpC2-gk" class="lay_C7CDC1 pos_e8wtf3 mapa_CrkEb2 vis_kigpg2 ">Components</p>
+</button>
+</li>
+<li  id="menu-/docs/vapor/concepts/dont-know-zig" class="lay_WLTVy pos_e8wtf3 mapa_CrkEb2 vis_jRsGW3 intr_nzdbL4 "">
+<button  id="CtxB_OCojM2-gk" class="lay_cooI21 pos_e8wtf3 mapa_3Qb5v vis_zrABW3 ">
+<i  id="Icon_xAxfw1-gk" class="bi bi-filetype-js lay_R6lHk2 pos_e8wtf3 mapa_CrkEb2 vis_fxcWt3 ">
+</i>
+<p  id="Text_kB5At2-gk" class="lay_C7CDC1 pos_e8wtf3 mapa_CrkEb2 vis_kigpg2 ">From JS to Zig</p>
+</button>
+</li>
+<li  id="menu-/docs/vapor/concepts/project" class="lay_WLTVy pos_e8wtf3 mapa_CrkEb2 vis_jRsGW3 intr_nzdbL4 "">
+<button  id="CtxB_p4TW01-gk" class="lay_cooI21 pos_e8wtf3 mapa_3Qb5v vis_zrABW3 ">
+<i  id="Icon_3kQtb1-gk" class="bi bi-diagram-3 lay_R6lHk2 pos_e8wtf3 mapa_CrkEb2 vis_fxcWt3 ">
+</i>
+<p  id="Text_bo4eU2-gk" class="lay_C7CDC1 pos_e8wtf3 mapa_CrkEb2 vis_kigpg2 ">Project Structure</p>
+</button>
+</li>
+<li  id="menu-/docs/vapor/concepts/routing" class="lay_WLTVy pos_e8wtf3 mapa_CrkEb2 vis_jRsGW3 intr_nzdbL4 "">
+<button  id="CtxB_fMygM1-gk" class="lay_cooI21 pos_e8wtf3 mapa_3Qb5v vis_zrABW3 ">
+<i  id="Icon_jIopD1-gk" class="bi bi-signpost lay_R6lHk2 pos_e8wtf3 mapa_CrkEb2 vis_fxcWt3 ">
+</i>
+<p  id="Text_xMxHw1-gk" class="lay_C7CDC1 pos_e8wtf3 mapa_CrkEb2 vis_kigpg2 ">Routing</p>
+</button>
+</li>
+<li  id="menu-/docs/vapor/concepts/styling" class="lay_WLTVy pos_e8wtf3 mapa_CrkEb2 vis_jRsGW3 intr_nzdbL4 "">
+<button  id="CtxB_mNhg72-gk" class="lay_cooI21 pos_e8wtf3 mapa_3Qb5v vis_zrABW3 ">
+<i  id="Icon_dCpLG2-gk" class="bi bi-paint-bucket lay_R6lHk2 pos_e8wtf3 mapa_CrkEb2 vis_fxcWt3 ">
+</i>
+<p  id="Text_tLsy12-gk" class="lay_C7CDC1 pos_e8wtf3 mapa_CrkEb2 vis_kigpg2 ">Styling</p>
+</button>
+</li>
+<li  id="menu-/docs/vapor/concepts/reactivity" class="lay_WLTVy pos_e8wtf3 mapa_CrkEb2 vis_jRsGW3 intr_nzdbL4 "">
+<button  id="CtxB_v6CBJ3-gk" class="lay_cooI21 pos_e8wtf3 mapa_3Qb5v vis_zrABW3 ">
+<i  id="Icon_RadqR2-gk" class="bi bi-arrow-repeat lay_R6lHk2 pos_e8wtf3 mapa_CrkEb2 vis_fxcWt3 ">
+</i>
+<p  id="Text_7vOnh3-gk" class="lay_C7CDC1 pos_e8wtf3 mapa_CrkEb2 vis_kigpg2 ">Reactivity</p>
+</button>
+</li>
+<li  id="menu-/docs/vapor/concepts/common-patterns" class="lay_WLTVy pos_e8wtf3 mapa_CrkEb2 vis_jRsGW3 intr_nzdbL4 "">
+<button  id="CtxB_pqQVj3-gk" class="lay_cooI21 pos_e8wtf3 mapa_3Qb5v vis_zrABW3 ">
+<i  id="Icon_keXFe2-gk" class="bi bi-filetype-js lay_R6lHk2 pos_e8wtf3 mapa_CrkEb2 vis_fxcWt3 ">
+</i>
+<p  id="Text_qrhWR1-gk" class="lay_C7CDC1 pos_e8wtf3 mapa_CrkEb2 vis_kigpg2 ">Common Patterns</p>
+</button>
+</li>
+<li  id="menu-/docs/vapor/concepts/gotchas" class="lay_WLTVy pos_e8wtf3 mapa_CrkEb2 vis_jRsGW3 intr_nzdbL4 "">
+<button  id="CtxB_nxtex-gk" class="lay_cooI21 pos_e8wtf3 mapa_3Qb5v vis_zrABW3 ">
+<i  id="Icon_Mj5dY2-gk" class="bi bi-exclamation-circle lay_R6lHk2 pos_e8wtf3 mapa_CrkEb2 vis_fxcWt3 ">
+</i>
+<p  id="Text_t6H0R4-gk" class="lay_C7CDC1 pos_e8wtf3 mapa_CrkEb2 vis_kigpg2 ">Gotchas</p>
+</button>
+</li>
+<li  id="menu-/docs/vapor/concepts/vaporize" class="lay_WLTVy pos_e8wtf3 mapa_CrkEb2 vis_jRsGW3 intr_nzdbL4 "">
+<button  id="CtxB_D6qG51-gk" class="lay_cooI21 pos_e8wtf3 mapa_3Qb5v vis_zrABW3 ">
+<i  id="Icon_d5Qtp1-gk" class="bi bi-device-hdd-fill lay_R6lHk2 pos_e8wtf3 mapa_CrkEb2 vis_fxcWt3 ">
+</i>
+<p  id="Text_PFdeL-gk" class="lay_C7CDC1 pos_e8wtf3 mapa_CrkEb2 vis_kigpg2 ">Vaporize</p>
+</button>
+</li>
+<li  id="menu-/docs/vapor/concepts/animation" class="lay_WLTVy pos_e8wtf3 mapa_CrkEb2 vis_jRsGW3 intr_nzdbL4 "">
+<button  id="CtxB_sy75-gk" class="lay_cooI21 pos_e8wtf3 mapa_3Qb5v vis_zrABW3 ">
+<i  id="Icon_aTJdg-gk" class="bi bi-film lay_R6lHk2 pos_e8wtf3 mapa_CrkEb2 vis_fxcWt3 ">
+</i>
+<p  id="Text_Tpplx2-gk" class="lay_C7CDC1 pos_e8wtf3 mapa_CrkEb2 vis_kigpg2 ">Animation</p>
+</button>
+</li>
+<li  id="menu-/docs/vapor/concepts/new-to-zig" class="lay_WLTVy pos_e8wtf3 mapa_CrkEb2 vis_jRsGW3 intr_nzdbL4 "">
+<button  id="CtxB_lu1gf1-gk" class="lay_cooI21 pos_e8wtf3 mapa_3Qb5v vis_zrABW3 ">
+
+
+<p  id="Text_xvqKc1-gk" class="lay_C7CDC1 pos_e8wtf3 mapa_CrkEb2 vis_kigpg2 ">Deep Dive</p>
+</button>
+</li>
+<li  id="menu-/docs/vapor/concepts/memory" class="lay_WLTVy pos_e8wtf3 mapa_CrkEb2 vis_jRsGW3 intr_nzdbL4 "">
+<button  id="CtxB_wUaaT2-gk" class="lay_cooI21 pos_e8wtf3 mapa_3Qb5v vis_zrABW3 ">
+<i  id="Icon_J5IWY4-gk" class="bi bi-memory lay_R6lHk2 pos_e8wtf3 mapa_CrkEb2 vis_fxcWt3 ">
+</i>
+<p  id="Text_qVBp82-gk" class="lay_C7CDC1 pos_e8wtf3 mapa_CrkEb2 vis_kigpg2 ">Memory</p>
+</button>
+</li>
+<li  id="menu-/docs/vapor/concepts/layout" class="lay_WLTVy pos_e8wtf3 mapa_CrkEb2 vis_jRsGW3 intr_nzdbL4 "">
+<button  id="CtxB_vDqXh1-gk" class="lay_cooI21 pos_e8wtf3 mapa_3Qb5v vis_zrABW3 ">
+<i  id="Icon_cRxRj-gk" class="bi bi-columns lay_R6lHk2 pos_e8wtf3 mapa_CrkEb2 vis_fxcWt3 ">
+</i>
+<p  id="Text_vJX3K-gk" class="lay_C7CDC1 pos_e8wtf3 mapa_CrkEb2 vis_kigpg2 ">Layout</p>
+</button>
+</li>
+<li  id="menu-/docs/vapor/concepts/kit" class="lay_WLTVy pos_e8wtf3 mapa_CrkEb2 vis_jRsGW3 intr_nzdbL4 "">
+<button  id="CtxB_2Ryn-gk" class="lay_cooI21 pos_e8wtf3 mapa_3Qb5v vis_zrABW3 ">
+<i  id="Icon_38Bax-gk" class="bi bi-tools lay_R6lHk2 pos_e8wtf3 mapa_CrkEb2 vis_fxcWt3 ">
+</i>
+<p  id="Text_lS2TM3-gk" class="lay_C7CDC1 pos_e8wtf3 mapa_CrkEb2 vis_kigpg2 ">Kit</p>
+</button>
+</li>
+<li  id="menu-/docs/vapor/concepts/events" class="lay_WLTVy pos_e8wtf3 mapa_CrkEb2 vis_jRsGW3 intr_nzdbL4 "">
+<button  id="CtxB_oxLZ24-gk" class="lay_cooI21 pos_e8wtf3 mapa_3Qb5v vis_zrABW3 ">
+<i  id="Icon_fs58K-gk" class="bi bi-cursor lay_R6lHk2 pos_e8wtf3 mapa_CrkEb2 vis_fxcWt3 ">
+</i>
+<p  id="Text_3PF3T3-gk" class="lay_C7CDC1 pos_e8wtf3 mapa_CrkEb2 vis_kigpg2 ">Events & Handlers</p>
+</button>
+</li>
+<li  id="menu-/docs/vapor/concepts/hooks" class="lay_WLTVy pos_e8wtf3 mapa_CrkEb2 vis_jRsGW3 intr_nzdbL4 "">
+<button  id="CtxB_V2dLJ4-gk" class="lay_cooI21 pos_e8wtf3 mapa_3Qb5v vis_zrABW3 ">
+<i  id="Icon_H1Ei31-gk" class="bi bi-hourglass-split lay_R6lHk2 pos_e8wtf3 mapa_CrkEb2 vis_fxcWt3 ">
+</i>
+<p  id="Text_NJOLj1-gk" class="lay_C7CDC1 pos_e8wtf3 mapa_CrkEb2 vis_kigpg2 ">Lifecycle Hooks</p>
+</button>
+</li>
+<li  id="menu-/docs/vapor/concepts/theme-and-icons" class="lay_WLTVy pos_e8wtf3 mapa_CrkEb2 vis_jRsGW3 intr_nzdbL4 "">
+<button  id="CtxB_W7Tji1-gk" class="lay_cooI21 pos_e8wtf3 mapa_3Qb5v vis_zrABW3 ">
+<i  id="Icon_SZ6L81-gk" class="bi bi-palette2 lay_R6lHk2 pos_e8wtf3 mapa_CrkEb2 vis_fxcWt3 ">
+</i>
+<p  id="Text_jIa8A2-gk" class="lay_C7CDC1 pos_e8wtf3 mapa_CrkEb2 vis_kigpg2 ">Theme and Icons</p>
+</button>
+</li>
+<li  id="menu-/react-to-vapor" class="lay_WLTVy pos_e8wtf3 mapa_CrkEb2 vis_jRsGW3 intr_nzdbL4 "">
+<button  id="CtxB_qlf8R-gk" class="lay_cooI21 pos_e8wtf3 mapa_3Qb5v vis_zrABW3 ">
+
+
+<p  id="Text_CSFxo3-gk" class="lay_C7CDC1 pos_e8wtf3 mapa_CrkEb2 vis_kigpg2 ">React to Vapor</p>
+</button>
+</li>
+<li  id="menu-/docs/vapor/concepts/codex-engine" class="lay_WLTVy pos_e8wtf3 mapa_CrkEb2 vis_jRsGW3 intr_nzdbL4 "">
+<button  id="CtxB_Yu6M91-gk" class="lay_cooI21 pos_e8wtf3 mapa_3Qb5v vis_zrABW3 ">
+<i  id="Icon_lmPIe1-gk" class="bi bi-motherboard lay_R6lHk2 pos_e8wtf3 mapa_CrkEb2 vis_fxcWt3 ">
+</i>
+<p  id="Text_xpAjK1-gk" class="lay_C7CDC1 pos_e8wtf3 mapa_CrkEb2 vis_kigpg2 ">Codex Engine</p>
+</button>
+</li>
+<li  id="menu-/docs/vapor/concepts/performance" class="lay_WLTVy pos_e8wtf3 mapa_CrkEb2 vis_jRsGW3 intr_nzdbL4 "">
+<button  id="CtxB_qsf5Y1-gk" class="lay_cooI21 pos_e8wtf3 mapa_3Qb5v vis_zrABW3 ">
+<i  id="Icon_2lcEK2-gk" class="bi bi-ethernet lay_R6lHk2 pos_e8wtf3 mapa_CrkEb2 vis_fxcWt3 ">
+</i>
+<p  id="Text_aPmF9-gk" class="lay_C7CDC1 pos_e8wtf3 mapa_CrkEb2 vis_kigpg2 ">Performance</p>
+</button>
+</li>
+<li  id="menu-/docs/vapor/concepts/tutorials" class="lay_WLTVy pos_e8wtf3 mapa_CrkEb2 vis_jRsGW3 intr_nzdbL4 "">
+<button  id="CtxB_gMJ851-gk" class="lay_cooI21 pos_e8wtf3 mapa_3Qb5v vis_zrABW3 ">
+<i  id="Icon_o9tcS-gk" class="bi bi-bar-chart-steps lay_R6lHk2 pos_e8wtf3 mapa_CrkEb2 vis_fxcWt3 ">
+</i>
+<p  id="Text_TUvuK4-gk" class="lay_C7CDC1 pos_e8wtf3 mapa_CrkEb2 vis_kigpg2 ">Tutorials</p>
+</button>
+</li>
+<li  id="menu-/docs/vapor/concepts/api" class="lay_WLTVy pos_e8wtf3 mapa_CrkEb2 vis_jRsGW3 intr_nzdbL4 "">
+<button  id="CtxB_oYwRH-gk" class="lay_cooI21 pos_e8wtf3 mapa_3Qb5v vis_zrABW3 ">
+<i  id="Icon_oRxuF1-gk" class="bi bi-filetype-json lay_R6lHk2 pos_e8wtf3 mapa_CrkEb2 vis_fxcWt3 ">
+</i>
+<p  id="Text_iXIgC3-gk" class="lay_C7CDC1 pos_e8wtf3 mapa_CrkEb2 vis_kigpg2 ">API Cheat Sheet</p>
+</button>
+</li>
+<li  id="menu-/docs/metal" class="lay_WLTVy pos_e8wtf3 mapa_CrkEb2 vis_jRsGW3 intr_nzdbL4 "">
+<button  id="CtxB_v6SZo3-gk" class="lay_cooI21 pos_e8wtf3 mapa_3Qb5v vis_zrABW3 ">
+<i  id="Icon_OYugm1-gk" class="bi bi-screwdriver lay_R6lHk2 pos_e8wtf3 mapa_CrkEb2 vis_fxcWt3 ">
+</i>
+<p  id="Text_n54SY-gk" class="lay_C7CDC1 pos_e8wtf3 mapa_CrkEb2 vis_kigpg2 ">Metal</p>
+</button>
+</li>
+</ul>
+</div>
+<div  id="Flex_nALMT1-gk" class="lay_5Ak3v pos_mKRCe mapa_CrkEb2 vis_RGZTP ">
+<div  id="Flex_DaEt84-gk" class="lay_sRkjz pos_e8wtf3 mapa_CrkEb2 vis_RGZTP ">
+<i  id="Icon_groYp3-gk" class="bi bi-view-list lay_C7CDC1 pos_e8wtf3 mapa_CrkEb2 vis_oEx991 ">
+</i>
+<p  id="Text_Sml5h1-gk" class="lay_C7CDC1 pos_e8wtf3 mapa_CrkEb2 vis_ViL754 ">On this page</p>
+</div>
+<ul  id="List_bsGP51-gk" class="lay_EHt132 pos_e8wtf3 mapa_JuL712 vis_OTG3T2 ">
+</ul>
+</div>
+<div  id="Hook_0B9f33-gk">
+</div>
+
+
 </div>
 </div>
 </body>

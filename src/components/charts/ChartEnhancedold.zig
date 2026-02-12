@@ -1110,12 +1110,18 @@ pub const Chart = struct {
     }
 
     pub fn showTooltip(self: *Chart, event: *Vapor.Event) void {
+        const offsets = self.container.getBoundingClientRect() orelse return;
+        std.log.info("mount {any}", .{offsets});
+        self.bounds.offset_x = offsets.left;
+        self.bounds.offset_y = offsets.top;
+
         if (self.tooltip) |*tooltip| {
             const x = event.pageX() - self.bounds.offset_x;
             const y = event.pageY() - self.bounds.offset_y;
 
             tooltip.left = x;
             tooltip.top = y;
+            std.log.info("showTooltip {d} {d}", .{ x, y });
 
             tooltip.binded.mutateStyleString("display", "block");
             tooltip.hide = false;
@@ -1285,6 +1291,7 @@ pub const Chart = struct {
 
     fn mount(self: *Chart) void {
         const offsets = self.container.getOffsets() orelse return;
+        std.log.info("mount {any}", .{offsets});
         self.bounds.offset_x = offsets.offset_left;
         self.bounds.offset_y = offsets.offset_top;
         if (self.tooltip) |*tooltip| {

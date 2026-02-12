@@ -68,28 +68,26 @@ fn toggleIcon() void {
 
 pub fn render() void {
     // NavBar.render();
-    Center().style(&.{
-        .size = .hw(.percent(100), .percent(100)),
-    })({
+    Center().style(&.{ .size = .hw(.percent(100), .percent(100)) }).children({
         Box().style(&.{
             .child_gap = 24,
             .direction = .column,
             .margin = .{ .bottom = 32 },
             .size = .w(.mobile_desktop_percent(100, 70)),
             .padding = .horizontal(12),
-        })({
-            Text("Install").style(heading);
+        }).children({
+            Text("Install").style(heading).end();
             Image(.{ .src = "/assets/ZVM.png" }).style(&.{
                 .position = .{ .type = .absolute, .top = .percent(10), .right = .percent(20) },
                 .size = .w(if (Vapor.isMobile()) .percent(30) else .percent(10)),
-            });
+            }).end();
             Image(.{ .src = "/assets/ZIG.svg" }).style(&.{
                 .position = .{ .type = .absolute, .bottom = .percent(5), .left = .percent(20) },
                 .size = .hw(.percent(30), .mobile_desktop_percent(40, 30)),
-            });
-            code_snippet("curl -sSL https://raw.githubusercontent.com/tether-labs/metal/main/install.sh | bash");
-            code_snippet("metal create myapp");
-            code_snippet("my-app && metal run web");
+            }).end();
+            code_snippet("curl -sSL https://raw.githubusercontent.com/senet-toolbox/metal/main/install.sh | bash");
+            code_snippet("metal create vapor myapp");
+            code_snippet("cd my-app && metal vapor run");
         });
     });
 }

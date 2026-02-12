@@ -43,19 +43,20 @@ var vapor_page: []const u8 = "";
 var markdown: Compiler.vaporize.MarkDown(components) = .{};
 var markdown_loaded: bool = false;
 pub fn init() void {
-    Vapor.Kit.fetch("/src/routes/docs/vapor/vapor_page.md", handlePage, .{ .method = .GET });
+    Page(.{ .src = @src() }, render, null);
+
+    Vapor.Kit.fetch("/documents/vapor_page.md", handlePage, .{ .method = .GET });
     content.init();
     // markdown.compile(vapor_page) catch |err| {
     //     Vapor.printErr("Failed to compile markdown: {any}", .{err});
     //     return;
     // };
     // markdown_loaded = true;
-    Page(.{ .src = @src() }, render, null);
 }
 
 fn handlePage(resp: Vapor.Kit.Response) void {
     switch (resp) {
-        .ok => |data| {
+        .Ok => |data| {
             content.content_text = data.body;
             vapor_page = data.body;
             markdown.compile(vapor_page) catch |err| {
@@ -64,7 +65,7 @@ fn handlePage(resp: Vapor.Kit.Response) void {
             };
             markdown_loaded = true;
         },
-        .err => |err| {
+        .Err => |err| {
             Vapor.printErr("Failed to fetch: {s}", .{err.message});
             return;
         },
@@ -145,12 +146,12 @@ fn openMenu() void {
 //         .padding = .all(8),
 //         .width = .percent(100),
 //         .direction = .column,
-//     })({
+//     }).children({
 //         Box().style(&.{
 //             .layout = .end_center,
 //             .width = .percent(100),
 //             .padding = .horizontal(12),
-//         })({
+//         }).children({
 //             Static.Box(.{
 //                 .width = .px(22),
 //                 .height = .px(22),
@@ -159,7 +160,7 @@ fn openMenu() void {
 //                 .cursor = .pointer,
 //                 .transition = .{ .duration = 300 },
 //                 .hover = .{ .background = .hex("#2D303E") },
-//             })({
+//             }).children({
 //                 Pure.Icon("bi bi-clipboard", .{
 //                     .font_size = 16,
 //                     .text_color = .hex("#cccccc"),
@@ -181,7 +182,7 @@ fn increment() void {
 }
 
 var video: Vapor.Types.Video = .{
-    .src = "/assets/kanban.mp4",
+    .src = "/assets/kanban-mini.mp4",
     .autoplay = true,
     .muted = true,
     .loop = true,
@@ -192,7 +193,7 @@ fn Demo() void {
         .margin = .tb(24, 48),
         .size = .hw(.percent(100), .percent(100)),
         .layout = .center,
-    })({
+    }).children({
         Vapor.Video(&video)
             .aspectRatio(.landscape)
             .hw(.percent(90), .percent(90))
@@ -285,18 +286,18 @@ pub fn render() void {
         .layout = .x_between,
         .direction = .column,
         .size = .square_percent(100),
-    })({
+    }).children({
         Box().style(&.{
             .padding = .horizontal(12),
             .direction = .row,
             .size = .w(.percent(100)),
-        })({
+        }).children({
             Box().style(&.{
                 .layout = .center,
                 .size = .w(.percent(100)),
                 .padding = .{ .top = 60, .bottom = 120 },
                 .direction = .column,
-            })({
+            }).children({
                 Box().style(&.{
                     .size = .w(.mobile_desktop_percent(100, 50)),
                     // .width = .mobile_desktop_percent(100, 64),
@@ -305,7 +306,7 @@ pub fn render() void {
                     .direction = .column,
                     .padding = .{ .bottom = 80 },
                     .margin = .tb(32, 32),
-                })({
+                }).children({
                     if (markdown_loaded) {
                         content.content(component);
                     } else {
@@ -315,63 +316,4 @@ pub fn render() void {
             });
         });
     });
-    // Box().style(&.{
-    //     .padding = .horizontal(12),
-    //     .direction = if (!Vapor.isMobile()) .row else .column,
-    //     .size = .hw(.percent(100), .percent(100)),
-    // })({
-    //     Box().style(&.{
-    //         .size = .hw(.percent(100), .percent(100)),
-    //         .layout = .top_center,
-    //     })({
-    //         Box().style(&.{
-    //             .size = .w(.mobile_desktop_percent(100, 48)),
-    //             .child_gap = 16,
-    //             .direction = .column,
-    //             .layout = .{ .x = .start, .y = .start },
-    //             .padding = .tb(80, 80),
-    //         })({
-    //             Button(.{ .on_press = copy }).style(&.{
-    //                 .visual = .{ .background = .transparent, .cursor = .pointer },
-    //                 .size = .w(.percent(100)),
-    //                 .child_gap = 12,
-    //                 .padding = .tb(8, 8),
-    //                 .layout = .right_center,
-    //             })({
-    //                 if (copied) {
-    //                     Icon(.check).style(&.{
-    //                         .visual = .{ .font_size = 16 },
-    //                     });
-    //                 } else {
-    //                     Icon(.clipboard).style(&.{
-    //                         .visual = .{ .font_size = 16 },
-    //                     });
-    //                 }
-    //             });
-    //             Custom.Virtualize(&.{
-    //                 .size = .hw(.percent(100), .percent(100)),
-    //                 .child_gap = 32,
-    //                 .layout = .{},
-    //                 .direction = .column,
-    //             })({
-    //                 Box().style(&.{
-    //                     .child_gap = 4,
-    //                     .direction = .column,
-    //                     .size = .hw(.percent(100), .percent(100)),
-    //                     .layout = .{},
-    //                 })({
-    //                     Text("Getting Started").style(&.{
-    //                         .visual = .font(16, 600, null),
-    //                         .font_family = "IBM Plex Sans",
-    //                     });
-    // Vaporize.traverse(mark_up, .{
-    //     .code_color = .palette(.tint),
-    //     .text_color = .palette(.text_color),
-    //     .heading_color = .palette(.text_color),
-    // }, void, null) catch unreachable;
-    //                 });
-    //             });
-    //         });
-    //     });
-    // });
 }
