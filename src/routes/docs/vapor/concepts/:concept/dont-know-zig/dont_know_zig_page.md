@@ -1,16 +1,16 @@
 {#thats-ok}
 
-# "i don't know zig, that's ok"
+# "I don't know zig, that's ok"
 
-**you don't need to know zig to start building with vapor.**
+**You don't need to know zig to start building with vapor.**
 
-if you've written javascript, typescript, c, java, or really any programming language, you already understand 90% of what you need. zig just looks a little different.
+If you've written javascript, typescript, c, java, or really any programming language, you already understand 90% of what you need. Zig just looks a little different.
 
-this section will get you comfortable in about 10 minutes.
+This section will get you comfortable in about 10 minutes.
 
 {#the-basics-variables}
 
-### the basics: variables
+### The basics: variables
 
 ```zig
 // mutable (can change)
@@ -62,7 +62,7 @@ function add(a, b) {
 
 {#the-one-weird-type-strings}
 
-### the one weird type: strings
+### The one weird type: strings
 
 at first glance, this looks strange, in comparison to other languages, but it's actually incredibly handy.
 
@@ -122,8 +122,8 @@ if (count > 10) {
     // do something else
 }
 
-const flag = if (is_active) "america" else "denmark";
-const flag = is_active ? "america" : "denmark" ❌ // error: ternary operator is not allowed;
+const flag = if (is_active) "America" else "Denmark";
+const flag = is_active ? "America" : "Denmark" ❌ // Error: ternary operator is not allowed;
 ```
 
 `if else if else` statement are identical to javascript. no surprises here.
@@ -135,12 +135,12 @@ const flag = is_active ? "america" : "denmark" ❌ // error: ternary operator is
 ```zig
 // loop through items
 for (items) |item| {
-    text(item).end();
+    Text(item).end();
 }
 
 // with index
 for (items, 0..) |item, index| {
-    text(item).end();
+    Text(item).end();
 }
 
 // while loop
@@ -148,17 +148,17 @@ while (count < 10) {
     count += 1;
 }
 
-// ✅ value only
+// ✅ Value only
 for (items) |item| { }
 
-// ✅ index only
+// ✅ Index only
 for (0..items.len) |i| { }
 
-// ✅ both value and index (note the 0..)
+// ✅ Both value AND index (note the 0..)
 for (items, 0..) |item, i| { }
 
-// ❌ wrong - can't use |_, i| without 0..
-for (items) |_, i| { }  // won't compile!
+// ❌ Wrong - can't use |_, i| without 0..
+for (items) |_, i| { }  // Won't compile!
 ```
 
 **javascript equivalent:**
@@ -181,7 +181,7 @@ the `|item|` syntax is called "capture" - it's just how zig names the loop varia
 
 {#structs}
 
-### structs (like objects)
+### Structs (like objects)
 
 ```zig
 const user = struct {
@@ -213,16 +213,16 @@ the only difference: zig uses `.name = value` instead of `name: value`.
 
 {#the-dot-brace-pattern}
 
-### the dot-brace pattern
+### The dot-brace pattern
 
 you'll see this everywhere in vapor:
 
 ```zig
-// the left side is the function, the right side are the args
-printcount(.{ .count = 12 })
+// The left side is the function, the right side are the args
+printCount(.{ .count = 12 })
 
-fn printcount(args: struct { count: i32 }) void {
-    std.log.info(("count: {d}", .{args.count});
+fn printCount(args: struct { count: i32 }) void {
+    std.log.info(("Count: {d}", .{args.count});
 }
 ```
 
@@ -230,10 +230,10 @@ that `.{ }` is just an anonymous struct (like an inline object in js):
 
 ```js
 // javascript
-printcount({ count: 12 });
+printCount({ count: 12 });
 
-function printcount({ count }) {
-  console.log(`count: ${count}`);
+function printCount({ count }) {
+  console.log(`Count: ${count}`);
 }
 ```
 
@@ -262,7 +262,7 @@ console.log(`name is: ${name}`);
 
 {#what-you-can-ignore}
 
-### what you can ignore (for now)
+### What you can ignore (for now)
 
 these zig concepts exist but **you won't need them** to build uis:
 
@@ -276,15 +276,15 @@ these zig concepts exist but **you won't need them** to build uis:
 
 {#a-complete-example}
 
-### a complete example
+### A complete example
 
-here's a real vapor component. see if you can read it:
+Here's a real Vapor component. See if you can read it:
 
 ```zig
-const vapor = @import("vapor");
-const button = vapor.button;
-const text = vapor.text;
-const box = vapor.box;
+const Vapor = @import("vapor");
+const Button = Vapor.Button;
+const Text = Vapor.Text;
+const Box = Vapor.Box;
 
 var count: i32 = 0;
 var message: []const u8 = "click the button!";
@@ -299,25 +299,25 @@ fn handleclick() void {
 }
 
 pub fn render() void {
-    box().layout(.center).spacing(16).children({
-        text(message).font(18, 400, .black).end();
+    Box().layout(.center).spacing(16).children({
+        Text(message).font(18, 400, .black).end();
 
-        button(handleclick).children({
-            text("click me").font(16, 700, .white).end();
+        Button(handleclick).children({
+            Text("click me").font(16, 700, .white).end();
         });
 
-        text(count).font(24, 700, .blue).end();
+        Text(count).font(24, 700, .blue).end();
     });
 }
 ```
 
-if you understood that, **you're ready to build with vapor.**
+If you understood that, **you're ready to build with Vapor.**
 
 {#quick-reference-card}
 
-### quick reference card
+### Quick reference card
 
-keep this handy for your first few hours:
+Keep this handy for your first few hours:
 
 | javascript             | zig                              |
 | ---------------------- | -------------------------------- |
@@ -333,8 +333,8 @@ keep this handy for your first few hours:
 
 {#next-steps}
 
-### next steps
+### Next steps
 
-now that you're comfortable with the basics, you're ready to build something real.
+Now that you're comfortable with the basics, you're ready to build something real.
 
-head over to [making a button](#making-a-button) to create your first interactive vapor component.
+Head over to [making a button](#making-a-button) to create your first interactive vapor component.

@@ -1,5 +1,6 @@
 import { importObject } from "./wasi_env.js";
 import {
+  EventType,
   PerformanceMonitor,
   setWasiInstance,
   setWasiStructBridge,
@@ -18,6 +19,7 @@ import {
   hooksCtxCreated,
   hooksMountedCtx,
   hooksDestroyCtx,
+  eventStorage,
 } from "./maps.js";
 import {
   COMPONENT_TYPES,
@@ -45,6 +47,7 @@ import {
   cacheMisses,
   styleClassCache,
 } from "./wasi_styling.js";
+import { formatWasmError, parseWasmError } from "./formatter.js";
 // import { initCacheModule } from "./cachebindings.js";
 
 export let wasmInstance;
@@ -57,7 +60,7 @@ let tree_node;
 const socket = new WebSocket("ws://localhost:3003");
 //
 // This fires when the connection is successfully established
-socket.onopen = function (event) {
+socket.onopen = function(event) {
   console.log("WebSocket connection established!");
   // Maybe update UI to show connected status
 };
@@ -97,7 +100,7 @@ function hideReloading() {
 }
 
 // Handle incoming messages
-socket.onmessage = async function (event) {
+socket.onmessage = async function(event) {
   console.log(event);
   if (event.data === "reloading") {
     showReloading();
@@ -115,19 +118,19 @@ socket.onmessage = async function (event) {
 };
 
 // Handle errors
-socket.onerror = function (error) {
+socket.onerror = function(error) {
   console.error("WebSocket error:", error);
 };
 
 // Handle disconnection
-socket.onclose = function (event) {
+socket.onclose = function(event) {
   console.log("WebSocket connection closed:", event.code, event.reason);
 };
 
 let layoutInfoPtr;
 let uiNodeLayoutInfoPtr;
 
-window.addEventListener("popstate", async function (event) {
+window.addEventListener("popstate", async function(event) {
   const path = window.location.pathname;
   rerenderRoute(path);
   requestAnimationFrame(() => {
@@ -338,7 +341,7 @@ export const rerenderRoute = (navigatedPath) => {
       if (element) {
         // Scroll the element into view with options
         element.scrollIntoView({
-          block: "center", // Vertically align to the center of the screen
+          // block: "center", // Vertically align to the center of the screen
         });
       }
     } else {
@@ -663,9 +666,7 @@ function loadTheme() {
 }
 
 export const styleSheet = new CSSStyleSheet();
-// export const styleSheet =
-//   document.styleSheets[0] ||
-//   document.head.appendChild(document.createElement("style")).sheet;
+export let breadcrumbs = [];
 
 export let currentPath;
 function setupWasiInstance() {
@@ -674,25 +675,198 @@ function setupWasiInstance() {
 
   // new PerformanceMonitor();
 
-  document.getElementById("contents").addEventListener("click", (event) => {
-    const button = event.target.closest("button");
-    if (!button) return;
+  const rootContainer = document.getElementById("contents");
 
-    const nodeInfo = domNodeRegistry.get(button.id);
-    if (nodeInfo?.elementType === COMPONENT_TYPES.BUTTON_CTX) {
-      event.preventDefault();
-      event.stopPropagation();
-      const idPtr = allocString(button.id);
-      wasmInstance.ctxButtonCallback(idPtr);
+  // 1. Define all the events you want your framework to listen to globally
+  const delegatedEvents = [
+    "click",
+    "dblclick",
+    "input",
+    "change",
+    "keydown",
+    "keyup",
+    "submit",
+    "focusin", // Bubbling version of focus
+    "focusout", // Bubbling version of blur
+  ];
+
+  function findRegisteredElement(event) {
+    let el = event.target;
+    while (el && el !== rootContainer) {
+      if (el.id) {
+        const nodeInfo = domNodeRegistry.get(el.id);
+        if (nodeInfo) {
+          const t = nodeInfo.elementType;
+          // Non-interactive elements should handle hover/focus themselves
+          // but let clicks/keys bubble up to the nearest interactive parent
+          const isInteractiveEvent = [
+            "click",
+            "dblclick",
+            "keydown",
+            "keyup",
+            "submit",
+          ].includes(event.type);
+          const isNonInteractive =
+            t === COMPONENT_TYPES.TEXT || t === COMPONENT_TYPES.IMAGE;
+
+          if (isInteractiveEvent && isNonInteractive) {
+            el = el.parentElement;
+            continue;
+          }
+          return el;
+        }
+      }
+      el = el.parentElement;
+    }
+    return null;
+  }
+
+  // 2. The single master function that handles EVERYTHING
+  function handleGlobalEvent(event) {
+    // Find the closest element that has an ID (so we can look it up in the registry)
+    let targetElement = event.target.closest("[id]");
+    if (!targetElement) return;
+
+    if (event.type === "click" || event.type === "dbclick") {
+      targetElement = event.target.closest("button");
     }
 
-    if (nodeInfo?.elementType === COMPONENT_TYPES.BUTTON) {
-      event.preventDefault();
-      event.stopPropagation();
-      const idPtr = allocString(button.id);
-      wasmInstance.buttonCallback(idPtr);
+    console.log("Target Element", targetElement);
+    const nodeInfo = domNodeRegistry.get(targetElement.id);
+    if (!nodeInfo) return;
+
+    const callback_id = nodeInfo.hash + EventType[event.type];
+    eventStorage[callback_id] = event;
+
+    const type = nodeInfo.elementType;
+
+    // --- BUTTON LOGIC ---
+    if (
+      type === COMPONENT_TYPES.BUTTON_CTX ||
+      type === COMPONENT_TYPES.BUTTON
+    ) {
+      if (event.type === "click" || event.type === "dbclick") {
+        event.preventDefault();
+        event.stopPropagation();
+        try {
+          wasmInstance.invokeErasedCallback(nodeInfo.hash);
+        } catch (e) {
+          handleWasmError(e, targetElement.id);
+        }
+      }
+      return;
     }
+
+    // --- INPUT LOGIC (Example for focus/blur) ---
+    if (type === COMPONENT_TYPES.TEXT_FIELD) {
+      if (event.type === "focusin") {
+        const callback_id = nodeInfo.hash + EventType["focus"];
+        eventStorage[callback_id] = event;
+
+        wasmInstance.dispatchNodeEvent(nodeInfo.node_ptr, EventType["focus"]);
+      }
+      if (event.type === "focusout") {
+        const callback_id = nodeInfo.hash + EventType["blur"];
+        eventStorage[callback_id] = event;
+
+        wasmInstance.dispatchNodeEvent(nodeInfo.node_ptr, EventType["blur"]);
+      }
+      if (event.type === "input") {
+        wasmInstance.dispatchNodeEvent(nodeInfo.node_ptr, EventType["input"]);
+      }
+      return;
+    }
+
+    if (type === COMPONENT_TYPES.FORM) {
+      if (event.type === "submit") {
+        const callback_id = nodeInfo.hash + EventType["submit"];
+        eventStorage[callback_id] = event;
+
+        wasmInstance.dispatchNodeEvent(nodeInfo.node_ptr, EventType["submit"]);
+      }
+      return;
+    }
+
+    if ("keydown" === event.type || "keyup" === event.type) {
+      wasmInstance.dispatchNodeEvent(nodeInfo.hash, EventType[event.type]);
+    }
+  }
+
+  // 3. Loop through the array and attach the master function to the root
+  delegatedEvents.forEach((eventType) => {
+    rootContainer.addEventListener(eventType, handleGlobalEvent);
   });
+
+  // 4. (Bonus) Extracted your error handler so the main function isn't cluttered
+  function handleWasmError(e, elementId) {
+    if (e instanceof WebAssembly.RuntimeError) {
+      const parsed = parseWasmError(e);
+      const idPtr = allocStringFrame(JSON.stringify(parsed));
+
+      const eventData = { id: elementId };
+      console.log(eventData);
+
+      const eventPtr = allocStringFrame(JSON.stringify(eventData));
+      wasmInstance.recordState(idPtr, eventPtr);
+    }
+    throw e;
+  }
+
+  // document.getElementById("contents").addEventListener("click", (event) => {
+  //   const button = event.target.closest("button");
+  //   if (!button) return;
+  //
+  //   const nodeInfo = domNodeRegistry.get(button.id);
+  //   if (nodeInfo?.elementType === COMPONENT_TYPES.BUTTON_CTX) {
+  //     event.preventDefault();
+  //     event.stopPropagation();
+  //     try {
+  //       // wasmInstance.ctxButtonCallback(idPtr);
+  //       wasmInstance.invokeErasedCallback(nodeInfo.hash);
+  //     } catch (e) {
+  //       if (e instanceof WebAssembly.RuntimeError) {
+  //         const parsed = parseWasmError(e);
+  //         const stringified = JSON.stringify(parsed);
+  //         const idPtr = allocStringFrame(stringified);
+  //         const EventData = {
+  //           id: button.id,
+  //           // event: event,
+  //           // breadcrumbs: breadcrumbs,
+  //         };
+  //         console.log(EventData);
+  //         const stringifiedEvent = JSON.stringify(EventData);
+  //         const eventPtr = allocStringFrame(stringifiedEvent);
+  //         wasmInstance.recordState(idPtr, eventPtr);
+  //       }
+  //       throw e;
+  //     }
+  //   }
+  //
+  //   if (nodeInfo?.elementType === COMPONENT_TYPES.BUTTON) {
+  //     event.preventDefault();
+  //     event.stopPropagation();
+  //     try {
+  //       console.log("Button CTX", nodeInfo.hash);
+  //       wasmInstance.invokeErasedCallback(nodeInfo.hash);
+  //     } catch (e) {
+  //       if (e instanceof WebAssembly.RuntimeError) {
+  //         const parsed = parseWasmError(e);
+  //         const stringified = JSON.stringify(parsed);
+  //         const idPtr = allocStringFrame(stringified);
+  //         const EventData = {
+  //           id: button.id,
+  //           // event: event,
+  //           // breadcrumbs: breadcrumbs,
+  //         };
+  //         console.log(EventData);
+  //         const stringifiedEvent = JSON.stringify(EventData);
+  //         const eventPtr = allocStringFrame(stringifiedEvent);
+  //         wasmInstance.recordState(idPtr, eventPtr);
+  //       }
+  //       throw e;
+  //     }
+  //   }
+  // });
 
   //
 
@@ -786,7 +960,7 @@ function setupWasiInstance() {
     if (element) {
       // Scroll the element into view with options
       element.scrollIntoView({
-        block: "center", // Vertically align to the center of the screen
+        // block: "center", // Vertically align to the center of the screen
       });
     }
   } else {

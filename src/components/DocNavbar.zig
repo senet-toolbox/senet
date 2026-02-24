@@ -25,7 +25,6 @@ const Hooks = Static.Hooks;
 const Observer = Vapor.Kit.Observer;
 const Stack = Static.Stack;
 const Content = @import("../components/Content.zig");
-const OverlayManager = @import("../components/OverlayManager.zig");
 
 const SideBar = @This();
 
@@ -706,7 +705,7 @@ fn mount() void {
     Vapor.scrollIntoView(uuid, .{ .block = .start });
     if (!Vapor.getStatus().valid_url) return;
     Vapor.onEnd(createObserver);
-    Vapor.onPopState(handlePopState);
+    // Vapor.onPopState(handlePopState);
 }
 
 fn home() void {

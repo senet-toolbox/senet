@@ -6,7 +6,6 @@ const Static = Vapor.Static;
 const Pure = Vapor.Pure;
 const Page = Vapor.Page;
 const ViewCode = @import("../ViewCode.zig");
-const CodeEditor = @import("../../../../../../components/CodeEditor.zig");
 const Custom = @import("../../../../../../components/Custom.zig");
 const Vaporize = @import("vaporize");
 const Box = Static.Box;

@@ -3,6 +3,7 @@
  * Organized by functional domain
  */
 
+import { parseWasmError } from "./formatter.js";
 import {
   eventHandlers,
   elementDimensions,
@@ -12,6 +13,7 @@ import {
   observers,
   timeouts,
   sockets,
+  domNodeRegistry,
 } from "./maps.js";
 
 import {
@@ -31,6 +33,101 @@ import { batchRemoveTombStones } from "./wasi_styling.js";
 
 export let wasmInstance = null;
 let structBridge = undefined;
+
+export const EventType = {
+  // Mouse events
+  none: 0,
+  click: 1, // Fired when a pointing device button is clicked.
+  dblclick: 2, // Fired when a pointing device button is double-clicked.
+  mousedown: 3, // Fired when a pointing device button is pressed.
+  mouseup: 4, // Fired when a pointing device button is released.
+  mousemove: 5, // Fired when a pointing device is moved.
+  mouseover: 6, // Fired when a pointing device is moved onto an element.
+  mouseout: 7, // Fired when a pointing device is moved off an element.
+  mouseenter: 8, // Similar to mouseover but does not bubble.
+  mouseleave: 9, // Similar to mouseout but does not bubble.
+  contextmenu: 10, // Fired when the right mouse button is clicked.
+
+  // Keyboard events
+  keydown: 11, // Fired when a key is pressed.
+  keyup: 12, // Fired when a key is released.
+  keypress: 13, // Fired when a key that produces a character value is pressed.
+
+  // Focus events
+  focus: 14, // Fired when an element gains focus.
+  blur: 15, // Fired when an element loses focus.
+  focusin: 16, // Fired when an element is about to receive focus.
+  focusout: 17, // Fired when an element is about to lose focus.
+
+  // Form events
+  change: 18, // Fired when the value of an element changes.
+  input: 19, // Fired every time the value of an element changes.
+  submit: 20, // Fired when a form is submitted.
+  reset: 21, // Fired when a form is reset.
+
+  // Window events
+  resize: 22, // Fired when the window is resized.
+  scroll: 23, // Fired when the document view is scrolled.
+  wheel: 24, // Fired when the mouse wheel is rotated.
+
+  // Drag & Drop events
+  drag: 25, // Fired continuously while an element or text selection is being dragged.
+  dragstart: 26, // Fired at the start of a drag operation.
+  dragend: 27, // Fired at the end of a drag operation.
+  dragover: 28, // Fired when an element is being dragged over a valid drop target.
+  dragenter: 29, // Fired when a dragged element enters a valid drop target.
+  dragleave: 30, // Fired when a dragged element leaves a valid drop target.
+  drop: 31, // Fired when a dragged element is dropped on a valid drop target.
+
+  // Clipboard events
+  copy: 32, // Fired when the user initiates a copy action.
+  cut: 33, // Fired when the user initiates a cut action.
+  paste: 34, // Fired when the user initiates a paste action.
+
+  // Touch events
+  touchstart: 35, // Fired when one or more touch points are placed on the touch surface.
+  touchmove: 36, // Fired when one or more touch points are moved along the touch surface.
+  touchend: 37, // Fired when one or more touch points are removed from the touch surface.
+  touchcancel: 38, // Fired when a touch point is disrupted (e.g., by a modal interruption).
+
+  // Pointer events
+  pointerover: 39, // Fired when a pointer enters the hit test boundaries of an element.
+  pointerenter: 40, // Similar to pointerover but does not bubble.
+  pointerdown: 41, // Fired when a pointer becomes active.
+  pointermove: 42, // Fired when a pointer changes coordinates.
+  pointerup: 43, // Fired when a pointer is no longer active.
+  pointercancel: 44, // Fired when a pointer is canceled.
+  pointerout: 45, // Fired when a pointer moves out of an element.
+  pointerleave: 46, // Similar to pointerout but does not bubble.
+
+  // Document / Media / Error events
+  load: 47, // Fired when a resource and its dependent resources have finished loading.
+  unload: 48, // Fired when the document is being unloaded.
+  abort: 49, // Fired when the loading of a resource is aborted.
+  error: 50, // Fired when a resource fails to load.
+  select: 51, // Fired when some text has been selected.
+  show: 52, // Fired when a context menu item is shown.
+  close: 53, // Fired when a dialog or other element is closed.
+  cancel: 54, // Fired when a dialog is canceled or dismissed.
+
+  // Media events
+  play: 55, // Fired when playback has begun.
+  pause: 56, // Fired when playback has been paused.
+  ended: 57, // Fired when playback has stopped because the end of the media was reached.
+  volumechange: 58, // Fired when the volume has been changed.
+  waiting: 59, // Fired when playback has stopped because of a temporary lack of data.
+
+  // Progress events
+  loadstart: 60, // Fired when the browser has started to load a resource.
+  progress: 61, // Fired periodically as the browser loads a resource.
+  loadend: 62, // Fired when a request has completed (success or failure).
+
+  // Transition & Animation events
+  transitionend: 63, // Fired when a CSS transition has completed.
+  animationstart: 64, // Fired when a CSS animation has started.
+  animationend: 65, // Fired when a CSS animation has completed.
+  animationiteration: 66, // Fired when an iteration of a CSS animation has completed.
+};
 
 // Define a cache outside the function to store DOM references
 export const elementCache = new Map();
@@ -382,6 +479,7 @@ export const env = {
 
   checkMemoryGrowthWasm: () => {
     checkMemoryGrowth();
+    return;
   },
 
   trackAlloc: () => {
@@ -456,6 +554,36 @@ export const env = {
   // Event Handling - Document Level
   // ==========================================================================
 
+  createEventListenerGlobal: (ptr, len, onid) => {
+    if (!requireWasm()) return;
+    const callback_id = onid >>> 0;
+    const event_type = readWasmString(ptr, len);
+    let eventData = eventHandlers.get("vapor-document");
+
+    const handler = (event) => {
+      try {
+        eventStorage[callback_id] = event;
+        eventStorage[callback_id] = event;
+        wasmInstance.dispatchEvent(EventType[event_type], callback_id);
+      } catch (e) {
+        if (e instanceof WebAssembly.RuntimeError) {
+          const parsed = parseWasmError(e);
+          const stringified = JSON.stringify(parsed);
+          const errorPtr = allocStringFrame(stringified);
+          wasmInstance.recordState(errorPtr, null);
+        }
+        throw e;
+      }
+    };
+
+    if (eventData === undefined) {
+      eventData = {};
+    }
+    eventData[event_type] = handler;
+    document.addEventListener(event_type, handler);
+    eventHandlers.set("vapor-document", eventData);
+  },
+
   createEventListener: (ptr, len, onid) => {
     if (!requireWasm()) return;
     const event_id = onid >>> 0;
@@ -464,7 +592,17 @@ export const env = {
 
     const handler = (event) => {
       eventStorage[event_id] = event;
-      wasmInstance.eventCallback(event_id);
+      try {
+        wasmInstance.eventCallback(event_id);
+      } catch (e) {
+        if (e instanceof WebAssembly.RuntimeError) {
+          const parsed = parseWasmError(e);
+          const stringified = JSON.stringify(parsed);
+          const errorPtr = allocStringFrame(stringified);
+          wasmInstance.recordState(errorPtr, null);
+        }
+        throw e;
+      }
     };
 
     if (eventData === undefined) {
@@ -517,6 +655,44 @@ export const env = {
   // Event Handling - Element Level
   // ==========================================================================
 
+  // createElementEventListener: (idPtr, idLen, ptr, len, onid) => {
+  //   if (!requireWasm()) return;
+  //   const [elementId, element] = getElement(idPtr, idLen);
+  //   if (element === null) {
+  //     console.log("Could not attach listener element is Null", elementId);
+  //     return;
+  //   }
+  //
+  //   const event_id = onid >>> 0;
+  //   const event_type = readWasmString(ptr, len);
+  //   const eventData = eventHandlers.get(elementId);
+  //
+  //   const handler = (event) => {
+  //     if (event_type === "pointerdown") {
+  //       element.setPointerCapture(event.pointerId);
+  //     }
+  //     eventStorage[event_id] = event;
+  //     wasmInstance.eventCallback(event_id);
+  //   };
+  //
+  //   if (event_type === "pointerdown") {
+  //     element.style.contain = "layout style paint";
+  //     element.style.willChange = "transform";
+  //   }
+  //
+  //   if (eventData === undefined) {
+  //     const newEventData = {};
+  //     newEventData[event_type] = handler;
+  //     element.addEventListener(event_type, handler);
+  //     eventHandlers.set(elementId, newEventData);
+  //   } else {
+  //     if (eventData[event_type] === undefined) {
+  //       eventData[event_type] = handler;
+  //       element.addEventListener(event_type, handler);
+  //       eventHandlers.set(elementId, eventData);
+  //     }
+  //   }
+  // },
   createElementEventListener: (idPtr, idLen, ptr, len, onid) => {
     if (!requireWasm()) return;
     const [elementId, element] = getElement(idPtr, idLen);
@@ -525,16 +701,29 @@ export const env = {
       return;
     }
 
-    const event_id = onid >>> 0;
+    const callback_id = onid >>> 0;
     const event_type = readWasmString(ptr, len);
     const eventData = eventHandlers.get(elementId);
+
+    // if (event_type === "focus") {
+    //   console.log("FOCUS");
+    //   return;
+    // }
 
     const handler = (event) => {
       if (event_type === "pointerdown") {
         element.setPointerCapture(event.pointerId);
       }
-      eventStorage[event_id] = event;
-      wasmInstance.eventCallback(event_id);
+      eventStorage[callback_id] = event;
+
+      const nodeInfo = domNodeRegistry.get(elementId);
+      eventStorage[callback_id] = event;
+      console.log("NodeInfo", nodeInfo);
+      wasmInstance.dispatchNodeEvent(
+        nodeInfo.node_ptr,
+        EventType[event_type],
+        callback_id,
+      );
     };
 
     if (event_type === "pointerdown") {
@@ -549,6 +738,9 @@ export const env = {
       eventHandlers.set(elementId, newEventData);
     } else {
       if (eventData[event_type] === undefined) {
+        if (elementId == "Text_yrBqC3-gk") {
+          console.warn("HERE");
+        }
         eventData[event_type] = handler;
         element.addEventListener(event_type, handler);
         eventHandlers.set(elementId, eventData);
@@ -576,13 +768,13 @@ export const env = {
       return;
     }
 
-    const event_id = onid >>> 0;
+    const callback_id = onid >>> 0;
     const event_type = readWasmString(ptr, len);
     let eventData = eventHandlers.get(elementId);
 
     const handler = (event) => {
-      eventStorage[event_id] = event;
-      wasmInstance.eventInstCallback(event_id);
+      eventStorage[callback_id] = event;
+      wasmInstance.eventInstCallback(callback_id);
     };
 
     if (eventData === undefined) {
@@ -606,6 +798,10 @@ export const env = {
       memory.subarray(idPtr, idPtr + idLen),
     );
     const element = document.getElementById(elementId);
+
+    if (elementId == "Text_yrBqC3-gk") {
+      console.warn("ERROR HERE");
+    }
 
     const eventType = readWasmString(ptr, len);
     const eventData = eventHandlers.get(elementId);
@@ -786,18 +982,9 @@ export const env = {
 
   getAttributeWasmNumber: (ptr, len, attributePtr, attributeLen) => {
     if (!requireWasm()) return;
-    const memory = new Uint8Array(wasmInstance.memory.buffer);
-    const id = new TextDecoder().decode(memory.subarray(ptr, ptr + len));
+    const id = readWasmString(ptr, len);
     const attribute = readWasmString(attributePtr, attributeLen);
     const element = document.getElementById(id);
-    // console.log({
-    //   scrollHeight: element.scrollHeight,
-    //   clientHeight: element.clientHeight,
-    //   offsetHeight: element.offsetHeight,
-    //   getBoundingClientRect: element.getBoundingClientRect(),
-    //   computedStyle: getComputedStyle(element).height,
-    //   scrollTop: element.scrollTop,
-    // });
     const value = element[attribute];
     return value;
   },
@@ -1325,7 +1512,7 @@ export const env = {
 
     const timeoutId = setInterval(() => {
       try {
-        wasmInstance.callbackCtx(callbackId, null);
+        wasmInstance.invokeErasedCallback(callbackId);
       } catch (e) {
         // Ignore errors
       }
@@ -1374,7 +1561,7 @@ export const env = {
           const id = window.location.hash.substring(1, hash.length);
           const element = document.getElementById(id);
           if (element) {
-            element.scrollIntoView({ block: "center" });
+            element.scrollIntoView();
           }
         }
       });

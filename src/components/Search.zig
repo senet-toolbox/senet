@@ -31,12 +31,12 @@ pub fn toggle() void {
 
 pub fn mount() void {
     Vapor.print("mount", .{});
-    OverlayManager.register(.keydown, handleKeyPresses, &binded);
+    OverlayManager.register(.keydown, handleKeyPresses, .{&binded});
     search_box.focus();
 }
 
 pub fn destroy() void {
-    OverlayManager.unregister(.keydown, &binded);
+    OverlayManager.unregister(.keydown, .{&binded});
     current_item = dynamic_menu_items.items[0];
     Vapor.print("destroy", .{});
 }
@@ -181,7 +181,7 @@ fn closeEvent(_: *Vapor.Event) void {
 fn close() void {
     show = false;
     clear();
-    OverlayManager.unregister(.keydown, &binded);
+    OverlayManager.unregister(.keydown, .{&binded});
 }
 
 var current_item: ?MenuItem = null;

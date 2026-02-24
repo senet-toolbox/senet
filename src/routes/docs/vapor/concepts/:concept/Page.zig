@@ -3,10 +3,8 @@ const Vapor = @import("vapor");
 const Signal = Vapor.Signal;
 const Style = Vapor.Style;
 const Static = Vapor.Static;
-const Pure = Vapor.Pure;
 const Page = Vapor.Page;
 const Basics = @import("basics/Page.zig");
-const Introduction = @import("introduction/Page.zig");
 const Routing = @import("routing/Page.zig");
 const Tutorials = @import("tutorials/Page.zig");
 const Reactivity = @import("reactivity/Page.zig");
@@ -139,9 +137,6 @@ fn getRender(path: []const u8) ?*const fn () void {
                 .@"dont-know-zig" => {
                     return DontKnowZig.render;
                 },
-                // .@"opaque" => {
-                //     return Opaque.render;
-                // },
                 .components => {
                     return Components.render;
                 },
@@ -151,9 +146,6 @@ fn getRender(path: []const u8) ?*const fn () void {
                 .gotchas => {
                     return Gotchas.render;
                 },
-                // // .introduction => {
-                // //     return Introduction.render;
-                // // },
                 .project => {
                     return Project.render;
                 },
@@ -169,12 +161,6 @@ fn getRender(path: []const u8) ?*const fn () void {
                 .events => {
                     return Events.render;
                 },
-                // // .jslibs => {
-                // //     return JSLibs.render;
-                // // },
-                // // .bridge => {
-                // //     return Bridge.render;
-                // // },
                 .justletmebuild => {
                     return Just.render;
                 },

@@ -24,7 +24,6 @@ const ListItem = Vapor.ListItem;
 const Hooks = Vapor.Hooks;
 const VirtualList = Pure.VirtualList;
 const Theme = @import("theme");
-const CodeEditor = @import("../components/CodeEditor.zig");
 const Animation = Vapor.lib.Animation;
 const Video = Vapor.Video;
 const CtxButton = Vapor.CtxButton;
@@ -146,7 +145,6 @@ fn sumF64(items: []const f64) f64 {
 }
 
 var counter: i32 = 0;
-var code_view_loc: CodeEditor = undefined;
 var highlighter: SyntaxHighlighter = undefined;
 var form_highlighter: SyntaxHighlighter = undefined;
 var reverb_highlighter: SyntaxHighlighter = undefined;
@@ -247,8 +245,6 @@ pub fn sample() void {
 
 var performance_monitor: PerformanceMonitor = undefined;
 
-var bar_with_label: ProgressBar = undefined;
-
 pub fn init() void {
     const allocator = Vapor.arena(.persist);
     Tooltip.new();
@@ -287,19 +283,6 @@ pub fn init() void {
 
     ComplexForm.init();
     // login_form.compile() catch unreachable;
-
-    bar_with_label = ProgressBar.init(Vapor.arena(.persist), .{
-        .width = 256,
-        .height = 6,
-        .color = .palette(.tint),
-        .background = .transparentize(.palette(.text_color), 0.1),
-        .show_label = true,
-        .label_font_size = 12,
-        .label_position = .above,
-        .label_color = .palette(.text_color),
-    });
-    bar_with_label.setProgress(0.8);
-
     // Vapor.lib.runOnAnimationFrame(Vapor.print, .{ "hello", .{} });
     // performance_monitor.startMonitoring();
     Vapor.lib.onCommitCtx(measureTotalRenderTime, .{Vapor.lib.nowMs()});
@@ -443,7 +426,7 @@ fn This() void {
     Html(
         \\<strong style="color: rgb(var(--text_color))">THIS</strong>
         \\entire website, is just a mere
-        \\<strong style="color: rgb(var(--text_color))"><i>264kb</i></strong>
+        \\<strong style="color: rgb(var(--text_color))"><i>246kb</i></strong>
         \\.
     ).style(&Styles.body_text.merge(.{
         .layout = .center,
@@ -469,6 +452,8 @@ fn Details() void {
         Text("Vaporization").font(12, 300, .palette(.text_color)).end();
     });
 }
+
+const senet_logo = @embedFile("senet_logo.svg");
 
 fn switchVideo(selected_video: Videos) void {
     active_video = selected_video;
@@ -512,7 +497,6 @@ pub fn render() void {
                     .margin = .t(64),
                     .layout = .center,
                 }).children({
-                    // bar_with_label.render();
                     TextFmt("codex-engine rendered in {d:.2}ms", .{totalRenderTime}).style(&.{
                         .layout = .center,
                         .visual = .font(12, 500, .hex("#6f6f6f")),
@@ -605,7 +589,7 @@ pub fn render() void {
                     Icon(.arrow_right).style(&.{ .visual = .{ .font_size = 20 } }).end();
                 });
 
-                Graphic(.{ .src = "/assets/senet_logo.svg" })
+                Vapor.Svg(.{ .svg = senet_logo, .override = true })
                     .fill(.palette(.text_color))
                     .stroke(.palette(.text_color))
                     .width(.px(240))
@@ -827,19 +811,19 @@ pub fn render() void {
                         .children({
                         Text("{dashboard.zig}")
                             .hoverText(.hex("#6f6f6f"))
-                            .font(18, 300, if (Videos.dashboard != active_video) .transparentize(.hex("#6f6f6f"), 0.4) else .palette(.tint)).end();
+                            .font(18, 300, if (Videos.dashboard != active_video) .transparentize(.hex("#6f6f6f"), 0.7) else .palette(.tint)).end();
                     });
                     ButtonCtx(switchVideo, .{Videos.kanban})
                         .children({
                         Text("{kanan.zig}")
                             .hoverText(.hex("#6f6f6f"))
-                            .font(18, 300, if (Videos.kanban != active_video) .transparentize(.hex("#6f6f6f"), 0.4) else .palette(.tint)).end();
+                            .font(18, 300, if (Videos.kanban != active_video) .transparentize(.hex("#6f6f6f"), 0.7) else .palette(.tint)).end();
                     });
                     ButtonCtx(switchVideo, .{Videos.chat})
                         .children({
                         Text("{chat.zig}")
                             .hoverText(.hex("#6f6f6f"))
-                            .font(18, 300, if (Videos.chat != active_video) .transparentize(.hex("#6f6f6f"), 0.4) else .palette(.tint)).end();
+                            .font(18, 300, if (Videos.chat != active_video) .transparentize(.hex("#6f6f6f"), 0.7) else .palette(.tint)).end();
                     });
                 });
             });

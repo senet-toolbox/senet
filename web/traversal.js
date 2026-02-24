@@ -357,7 +357,7 @@ function createLinkElement(element, uinode) {
     element.ariaLabel = readWasmString(label, length);
   }
 
-  element.addEventListener("click", function (event) {
+  element.addEventListener("click", function(event) {
     event.preventDefault();
 
     const clickedHref = event.currentTarget.href;
@@ -663,6 +663,10 @@ export function createElementByType(uinode) {
             break;
           case 8:
             element.type = "tel";
+            break;
+          case 9:
+            console.log("Date");
+            element.type = "date";
             break;
         }
         if (element.type !== "number") {
@@ -1162,6 +1166,7 @@ export function traverseUINodes(parent, parentUINode) {
     const child_ptr = uinodes[i][1];
     activeNodeIds.add(uinode.id);
     let element = null;
+
     if (uinode.isDirty) {
       // s = performance.now();
       // element = domNodeRegistry.get(uinode.id)?.domNode;
@@ -1283,6 +1288,11 @@ export function traverseUINodes(parent, parentUINode) {
         // Here we may need to change the positions of the elements
         // Update existing element
         updateElement(element, uinode);
+        const node_info = domNodeRegistry.get(uinode.id);
+        if (node_info !== undefined) {
+          node_info.node_ptr = uinode.offset;
+          domNodeRegistry.set(uinode.id, node_info);
+        }
 
         // Calculate the intended anchor (next sibling)
         const next = uinodes[i + 1];
@@ -1307,6 +1317,12 @@ export function traverseUINodes(parent, parentUINode) {
         traverseUINodes(element, child_ptr);
       }
     } else {
+      const node_info = domNodeRegistry.get(uinode.id);
+      if (node_info !== undefined) {
+        node_info.node_ptr = uinode.offset;
+        domNodeRegistry.set(uinode.id, node_info);
+      }
+
       // Element is not dirty, just process its children
       const element = document.getElementById(uinode.id);
       traverseUINodes(element, child_ptr);

@@ -3,7 +3,6 @@ const Vapor = @import("vapor");
 const Signal = Vapor.Signal;
 const Style = Vapor.Style;
 const Static = Vapor.Static;
-const Pure = Vapor.Pure;
 const Box = Static.Box;
 const Text = Static.Text;
 const Link = Static.Link;
@@ -15,21 +14,16 @@ const List = Static.List;
 const ListItem = Static.ListItem;
 const Stack = Static.Stack;
 const Graphic = Static.Graphic;
-const Icon = Pure.Icon;
 const Vaporize = @import("vaporize");
 const Compiler = @import("../../../../../../main.zig");
 
 const Page = Vapor.Page;
-const CodeEditor = @import("../../../../../../components/CodeEditor.zig");
 const Custom = @import("../../../../../../components/Custom.zig");
 const HtmlText = Custom.Chain.HtmlText;
 
 const Content = @import("../../../../../../components/Content.zig");
 var content: Content.new("") = undefined;
 
-var page_sample: CodeEditor = undefined;
-var dyanmic_code_editor: CodeEditor = undefined;
-var app_example: CodeEditor = undefined;
 const items: []const []const u8 = &.{
     "Compiles to WASM and sent down the wire, resulting in client side rendering.",
     "Browser parse WASM 10x-20x faster than JS",

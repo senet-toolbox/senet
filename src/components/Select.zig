@@ -13,7 +13,7 @@ const HooksCtx = Vapor.Static.HooksCtx;
 
 var background: Vapor.Types.Background = .palette(.background);
 var border: Vapor.Types.BorderGrouped = .round(.palette(.border_color_light), .all(12));
-var group_title_color: Vapor.Types.Color = .hex("#8C8C8C");
+var group_title_color: Vapor.Types.Color = .transparentizeHex(.palette(.text_color), 0.8);
 var text_color: Vapor.Types.Color = .palette(.text_color);
 // var font_family: []const u8 = "Barlow";
 var font_family: []const u8 = "Montserrat";

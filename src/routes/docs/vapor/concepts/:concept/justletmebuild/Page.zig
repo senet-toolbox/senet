@@ -16,14 +16,9 @@ const ListItem = Vapor.ListItem;
 const Graphic = Vapor.Graphic;
 const Icon = Vapor.Icon;
 const Page = Vapor.Page;
-const CodeEditor = @import("../../../../../../components/CodeEditor.zig");
 const code_snippet = @import("../../../../../../components/Custom.zig").code_snippet_single;
-const Grain = Vapor.Grain;
 
 // Initialization
-var wasi_js_code_editor: CodeEditor = undefined;
-var chart_code_editor: CodeEditor = undefined;
-var chart_use_code_editor: CodeEditor = undefined;
 pub fn init() void {
     // wasi_js_code_editor.init(&Vapor.lib.allocator_global, @embedFile("chart.js"));
     // chart_code_editor.init(&Vapor.lib.allocator_global, @embedFile("chart_sample.zig"));
@@ -60,46 +55,46 @@ fn code_snippet_single(text: []const u8) void {
         //     .border = .solid(.all(0), .palette(.text_color), .all(4)),
         // })
         .style(&.{
-        .visual = .{
-            .border = .simple(.palette(.border_color_light)),
-            .text_color = .palette(.text_color),
-            .cursor = .pointer,
-        },
-        .padding = .all(8),
-        .size = .square_percent(100),
-        .direction = .column,
-        .layout = .flex,
-        .interactive = .{
-            .hover = .{ .text_color = .palette(.tint), .border = .{ .color = .palette(.tint) } },
-        },
-        .position = .relative,
-    }).children({
-        Box().style(&.{
-            .position = .{ .type = .absolute, .right = .px(8), .top = .px(8) },
-            .size = .square_px(22),
-            .transition = .{ .duration = 100 },
             .visual = .{
-                .border_radius = .all(4),
-                .background = .transparent,
+                .border = .simple(.palette(.border_color_light)),
+                .text_color = .palette(.text_color),
                 .cursor = .pointer,
             },
-            .layout = .center,
+            .padding = .all(8),
+            .size = .square_percent(100),
+            .direction = .column,
+            .layout = .flex,
+            .interactive = .{
+                .hover = .{ .text_color = .palette(.tint), .border = .{ .color = .palette(.tint) } },
+            },
+            .position = .relative,
         }).children({
-            if (copied and std.mem.eql(u8, text, copied_text)) {
-                Icon(.check).style(&.{
-                    .visual = .{ .font_size = 18 },
-                }).end();
-            } else {
-                Icon(.clipboard).style(&.{
-                    .visual = .{ .font_size = 18 },
-                }).end();
-            }
+            Box().style(&.{
+                .position = .{ .type = .absolute, .right = .px(8), .top = .px(8) },
+                .size = .square_px(22),
+                .transition = .{ .duration = 100 },
+                .visual = .{
+                    .border_radius = .all(4),
+                    .background = .transparent,
+                    .cursor = .pointer,
+                },
+                .layout = .center,
+            }).children({
+                if (copied and std.mem.eql(u8, text, copied_text)) {
+                    Icon(.check).style(&.{
+                        .visual = .{ .font_size = 18 },
+                    }).end();
+                } else {
+                    Icon(.clipboard).style(&.{
+                        .visual = .{ .font_size = 18 },
+                    }).end();
+                }
+            }).end();
+            HtmlText(text).style(&.{
+                .visual = .{ .font_size = 16 },
+                .font_family = "Azeret Mono, monospace",
+            }).end();
         }).end();
-        HtmlText(text).style(&.{
-            .visual = .{ .font_size = 16 },
-            .font_family = "Azeret Mono, monospace",
-        }).end();
-    }).end();
 }
 
 pub fn Txt(text: []const u8) void {

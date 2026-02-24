@@ -4,7 +4,6 @@ const Signal = Vapor.Signal;
 const Style = Vapor.Style;
 const Static = Vapor.Static;
 const Pure = Vapor.Pure;
-const CodeEditor = @import("../../../../../../components/CodeEditor.zig");
 const Custom = @import("../../../../../../components/Custom.zig");
 const Content = @import("../../../../../../components/Content.zig");
 const HtmlText = Custom.Chain.HtmlText;

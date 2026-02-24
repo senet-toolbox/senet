@@ -6,7 +6,7 @@ const ValidationError = Vaporize.ValidationError;
 const Box = Vapor.Box;
 const Text = Vapor.Text;
 const Compiler = @import("../main.zig");
-const Select = @import("../components/Opaque.zig").Select;
+const Select = @import("../components/Select.zig").Select;
 const new = @import("../components/Select.zig").new;
 
 const Currency = enum { usd, eur };

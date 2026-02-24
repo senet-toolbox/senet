@@ -45,6 +45,7 @@ import {
   cacheMisses,
   styleClassCache,
 } from "./wasi_styling.js";
+import { formatWasmError, parseWasmError } from "./formatter.js";
 // import { initCacheModule } from "./cachebindings.js";
 
 export let wasmInstance;
@@ -57,7 +58,7 @@ let tree_node;
 const socket = new WebSocket("ws://localhost:3003");
 //
 // This fires when the connection is successfully established
-socket.onopen = function (event) {
+socket.onopen = function(event) {
   console.log("WebSocket connection established!");
   // Maybe update UI to show connected status
 };
@@ -97,7 +98,7 @@ function hideReloading() {
 }
 
 // Handle incoming messages
-socket.onmessage = async function (event) {
+socket.onmessage = async function(event) {
   console.log(event);
   if (event.data === "reloading") {
     showReloading();
@@ -113,21 +114,21 @@ socket.onmessage = async function (event) {
   }
   hideReloading();
 };
-//
-// // Handle errors
-// socket.onerror = function (error) {
-//   console.error("WebSocket error:", error);
-// };
-//
-// // Handle disconnection
-// socket.onclose = function (event) {
-//   console.log("WebSocket connection closed:", event.code, event.reason);
-// };
+
+// Handle errors
+socket.onerror = function(error) {
+  console.error("WebSocket error:", error);
+};
+
+// Handle disconnection
+socket.onclose = function(event) {
+  console.log("WebSocket connection closed:", event.code, event.reason);
+};
 
 let layoutInfoPtr;
 let uiNodeLayoutInfoPtr;
 
-window.addEventListener("popstate", async function (event) {
+window.addEventListener("popstate", async function(event) {
   const path = window.location.pathname;
   rerenderRoute(path);
   requestAnimationFrame(() => {
@@ -338,7 +339,7 @@ export const rerenderRoute = (navigatedPath) => {
       if (element) {
         // Scroll the element into view with options
         element.scrollIntoView({
-          block: "center", // Vertically align to the center of the screen
+          // block: "center", // Vertically align to the center of the screen
         });
       }
     } else {
@@ -667,6 +668,8 @@ export const styleSheet = new CSSStyleSheet();
 //   document.styleSheets[0] ||
 //   document.head.appendChild(document.createElement("style")).sheet;
 
+export let breadcrumbs = [];
+
 export let currentPath;
 function setupWasiInstance() {
   checkMemoryGrowth();
@@ -682,15 +685,51 @@ function setupWasiInstance() {
     if (nodeInfo?.elementType === COMPONENT_TYPES.BUTTON_CTX) {
       event.preventDefault();
       event.stopPropagation();
-      const idPtr = allocString(button.id);
-      wasmInstance.ctxButtonCallback(idPtr);
+      try {
+        // wasmInstance.ctxButtonCallback(idPtr);
+        wasmInstance.invokeErasedCallback(nodeInfo.hash);
+      } catch (e) {
+        if (e instanceof WebAssembly.RuntimeError) {
+          const parsed = parseWasmError(e);
+          const stringified = JSON.stringify(parsed);
+          const idPtr = allocStringFrame(stringified);
+          const EventData = {
+            id: button.id,
+            // event: event,
+            // breadcrumbs: breadcrumbs,
+          };
+          console.log(EventData);
+          const stringifiedEvent = JSON.stringify(EventData);
+          const eventPtr = allocStringFrame(stringifiedEvent);
+          wasmInstance.recordState(idPtr, eventPtr);
+        }
+        throw e;
+      }
     }
 
     if (nodeInfo?.elementType === COMPONENT_TYPES.BUTTON) {
       event.preventDefault();
       event.stopPropagation();
-      const idPtr = allocString(button.id);
-      wasmInstance.buttonCallback(idPtr);
+      try {
+        console.log("Button CTX", nodeInfo.hash);
+        wasmInstance.invokeErasedCallback(nodeInfo.hash);
+      } catch (e) {
+        if (e instanceof WebAssembly.RuntimeError) {
+          const parsed = parseWasmError(e);
+          const stringified = JSON.stringify(parsed);
+          const idPtr = allocStringFrame(stringified);
+          const EventData = {
+            id: button.id,
+            // event: event,
+            // breadcrumbs: breadcrumbs,
+          };
+          console.log(EventData);
+          const stringifiedEvent = JSON.stringify(EventData);
+          const eventPtr = allocStringFrame(stringifiedEvent);
+          wasmInstance.recordState(idPtr, eventPtr);
+        }
+        throw e;
+      }
     }
   });
 
@@ -786,7 +825,7 @@ function setupWasiInstance() {
     if (element) {
       // Scroll the element into view with options
       element.scrollIntoView({
-        block: "center", // Vertically align to the center of the screen
+        // block: "center", // Vertically align to the center of the screen
       });
     }
   } else {

@@ -79,7 +79,7 @@ inline fn routes() void {
 
 pub fn init() void {
     Search.init();
-    OverlayManager.register(.keydown, clickEvent, &local_binded);
+    OverlayManager.register(.keydown, clickEvent, .{&local_binded});
 }
 
 pub fn closeAll(evt: *Vapor.Event) void {
@@ -193,7 +193,7 @@ pub fn render() void {
                             .visual = .{ .font_size = 16, .text_color = .palette(.icon_color) },
                         }).end();
                         Text("Search...").style(&.{
-                            .visual = .font(16, 500, .palette(.icon_color)),
+                            .visual = .font(16, 500, .transparentizeHex(.palette(.text_color), 0.5)),
                             .font_family = "IBM Plex Mono,monospace",
                         }).end();
                     });
