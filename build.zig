@@ -150,6 +150,7 @@ pub fn build(b: *std.Build) void {
     }
 
     exe.rdynamic = true;
+    exe.entry = .disabled;
 
     b.installArtifact(exe);
 

@@ -40,10 +40,8 @@
             .path = "../vaporize",
         },
         .vapor = .{
-            .path = "../vapor",
-        },
-        .metal = .{
-            .path = "../metal-cli",
+            .url = "https://github.com/senet-toolbox/vapor/archive/refs/tags/v1.2.5.tar.gz",
+            .hash = "vapor-1.2.5-VGoNdYzvGwAUvTu4MCiO_1s14K6DAHBSpJt-mC7ykN8g",
         },
     },
     .paths = .{

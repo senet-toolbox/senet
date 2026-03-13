@@ -24,7 +24,7 @@ const Form = struct {
 };
 
 var vaporizer: Vaporize.Compiler = undefined;
-var form: vaporizer.Form(Form) = .{};
+var form: Vaporize.Form(Form) = .{};
 
 pub fn init() void {
     // Initialize the vaporize compiler
@@ -41,10 +41,7 @@ pub fn init() void {
 }
 
 fn render() void {
-    form.render() catch |err| {
-        TextFmt("Failed to render form: {any}", .{err}).end();
-        return;
-    };
+    form.render();
 }
 ```
 
@@ -167,7 +164,7 @@ Nested structs become form sections. `Vaporize.Condition` creates conditional vi
 ### Handling Submission
 
 ```zig
-var form: vaporizer.Form(Form) = .{
+var form: Vaporize.Form(Form) = .{
     .on_submit = onSubmit,
 };
 
@@ -193,7 +190,7 @@ const Vapor = @import("vapor");
 const Vaporize = @import("vaporize");
 
 var vaporizer: Vaporize.Compiler = undefined;
-var markdown: vaporizer.MarkDown(.{}) = .{};
+var markdown: Vaporize.MarkDown(.{}) = .{};
 
 const markdown_text =
     \\# Main Heading
@@ -219,9 +216,7 @@ export fn init() void {
 }
 
 fn render() void {
-    markdown.render() catch |err| {
-        TextFmt("Failed to render markdown: {any}", .{err}).end();
-    };
+    markdown.render();
 }
 ```
 

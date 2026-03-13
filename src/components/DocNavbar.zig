@@ -44,6 +44,23 @@ pub const MenuItem = struct {
     tags: []const Tag = &.{},
 };
 
+var current_doc: usize = 0;
+
+const Docs = struct {
+    title: []const u8,
+    items: []const MenuItem,
+};
+
+var current_docs: []const Docs = &.{
+    .{
+        .title = "Vapor",
+        .items = menu_items,
+    },
+    .{
+        .title = "Reverb",
+        .items = &.{},
+    },
+};
 pub const menu_items: []const MenuItem = &.{
     MenuItem{
         .id = "overview",
@@ -606,7 +623,7 @@ fn toggleTheme() void {
 
 pub fn goto(url: []const u8) void {
     sections.clearRetainingCapacity();
-    for (menu_items) |item| {
+    for (current_docs[current_doc].items) |item| {
         if (std.mem.eql(u8, url, item.link)) {
             current_menu_item = item;
             for (item.sections) |section| {
@@ -626,7 +643,7 @@ pub fn goto(url: []const u8) void {
 fn handlePopState() void {
     const url = Vapor.Kit.getWindowPath() orelse "/";
     sections.clearRetainingCapacity();
-    for (menu_items) |item| {
+    for (current_docs[current_doc].items) |item| {
         if (std.mem.eql(u8, url, item.link)) {
             current_menu_item = item;
             for (item.sections) |section| {
@@ -689,8 +706,14 @@ fn mount() void {
     Vapor.Kit.scrollTo(0, 0);
     // this runs after the vaporize is mounter
     const current_path = Vapor.Kit.getWindowPath() orelse "/docs/vapor";
+    std.log.info("current_doc: {s}", .{current_path});
+    if (std.mem.eql(u8, current_path, "/docs/reverb")) {
+        current_doc = 1;
+    } else {
+        current_doc = 0;
+    }
     current_menu_item = null;
-    for (menu_items) |item| {
+    for (current_docs[current_doc].items) |item| {
         if (std.mem.eql(u8, current_path, item.link)) {
             current_menu_item = item;
             for (item.sections) |section| {
@@ -700,7 +723,10 @@ fn mount() void {
         }
     }
 
-    if (current_menu_item == null) return;
+    if (current_menu_item == null) {
+        Vapor.cycle();
+        return;
+    }
     const uuid = Vapor.fmtln("menu-{s}", .{current_menu_item.?.link});
     Vapor.scrollIntoView(uuid, .{ .block = .start });
     if (!Vapor.getStatus().valid_url) return;
@@ -835,7 +861,7 @@ fn list() void {
                 .show_scrollbar = false,
                 .layout = .{},
             }).children({
-                for (menu_items) |item| {
+                for (current_docs[current_doc].items) |item| {
                     const uuid = Vapor.fmtln("menu-{s}", .{item.link});
                     ListItem()
                         .id(uuid)

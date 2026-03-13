@@ -718,7 +718,6 @@ export const env = {
 
       const nodeInfo = domNodeRegistry.get(elementId);
       eventStorage[callback_id] = event;
-      console.log("NodeInfo", nodeInfo);
       wasmInstance.dispatchNodeEvent(
         nodeInfo.node_ptr,
         EventType[event_type],

@@ -95,3 +95,40 @@ with _minimal to no memory management._
 - `.end()` closes leaf elements (no children)
 - `.children({})` wraps elements that contain others
 - The `{}` block runs first, adding children before the parent closes
+- The `.items(.{})` takes a slice of items, and renders them, there is no need to write `.end()` on leaf elements.
+
+---
+
+### Children vs Items
+
+`.children({})` is a scoped block, and thus `.end()` is required on leaf elements.
+you can also run arbitrary code within the block.
+
+```zig
+Box().children({
+    var text: []const u8 = "";
+    text = "Hello";
+    Text(text).end();
+    Text("World").end();
+});
+```
+
+`.items(.{})` is a simpler alternative, and does not require `.end()` on leaf elements.
+
+```zig
+Box().items(.{
+    Text(text),
+    Text("World"),
+});
+```
+
+We cannot run arbitrary code within `.items(.{})`, but you can use `.items(.{})` to render a slice of items.
+This is because `.items(.{})` does not take a scoped block.
+
+```zig
+// The .end() is not required on leaf elements, however the following still runs correctly
+Box().items(.{
+    Text(text).end(),
+    Text("World").end(),
+});
+```

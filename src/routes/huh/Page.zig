@@ -79,7 +79,7 @@ pub fn render() void {
 
             HtmlText(
                 \\Senet was created out of personal frustration with the current state of web development. But also out of desire to create a solid foundation for which,
-                \\future applications can be built on. You can use each component of Senet <code>[Vapor, Reverb, Canopy]</code> seperatley or together.
+                \\future applications can be built on. You can use each component of Senet <code>[Vapor, Reverb, Canopy(coming soon)]</code> seperatley or together.
             ).style(muted_text).end();
 
             Text("{Vapor}").style(heading).end();
@@ -105,7 +105,7 @@ pub fn render() void {
                 .font(18, null, .palette(.tint))
                 .end();
 
-            Text("{Canopy}").style(heading).end();
+            Text("{Canopy} (Coming Soon)").style(heading).end();
 
             HtmlText(
                 \\Runs as a in memory cache at the front and a persistent database at the back. By default, it uses the RESP3 protocol, and has a similar API to SQL, 
@@ -123,9 +123,20 @@ pub fn render() void {
             HtmlText(
                 \\Below is a set of sample applications, that were built with Senet, they are all single file, and can be downloaded and run.
             ).style(muted_text).end();
-            Image(.{ .src = "/assets/ryven.webp" }).style(&.{
-                .size = .w(.percent(100)),
-            }).end();
+            Vapor.Stack().spacing(32).items(.{
+                Text("Sample Ecommerce App").font(18, 300, .palette(.text_color)).mt(64).border(.bottom(1, .palette(.border_color_light))),
+                Image(.{ .src = "/assets/ryven.webp" }).style(&.{
+                    .size = .w(.percent(100)),
+                }),
+                Text("Ryven Sql Editor").font(18, 300, .palette(.text_color)).mt(64).border(.bottom(1, .palette(.border_color_light))),
+                Image(.{ .src = "/assets/ryven.png" }).style(&.{
+                    .size = .w(.percent(100)),
+                }),
+                Text("UI Component Library").font(18, 300, .palette(.text_color)).mt(64).border(.bottom(1, .palette(.border_color_light))),
+                Image(.{ .src = "/assets/vapor-ui.png" }).style(&.{
+                    .size = .w(.percent(100)),
+                }),
+            });
         });
     });
 }

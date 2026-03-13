@@ -178,7 +178,7 @@ Button(click).padding(.all(8)).children({
 });
 
 // style struct → direct block ({})
-Button(click).style(&button_style)({
+Button(click).style(&button_style).children({
     Text("click").end();
 });
 
@@ -191,71 +191,6 @@ const button_style = Vapor.Style{
 ```
 
 we are taking a reference to the `button_style` variable, and passing it to the `.style()` function.
-
-#### note on style vs children
-
-**why?** `.style()` returns a different type that takes the children block directly. just remember:
-
-- `.children({...})` after builder chains
-- `({...})` after `.style(&style)`
-
-```zig
-ButtonCtx(clicked, .{12}).style(&button_style)({ // ✅ Correct
-    Text("click").end();
-});
-
-ButtonCtx(clicked, .{12}).style(&button_style).children({ // ❌ Incorrect, cannot use children after style
-    Text("click").end();
-});
-```
-
-### quick reference
-
-```zig
-// leaf elements - use .end()
-Text("hello").end();
-Text(35).end();
-Icon(.search).end();
-Image(.{ .src = "photo.jpg" }).end();
-TextField(.string).bind(&text).end();
-
-// containers - use .children({})
-Box().children({ ... });
-Center().children({ ... });
-Stack().children({ ... });
-List().children({ ... });
-Button(fn).children({ ... });
-Link(.{ .url = "/" }).children({ ... });
-
-// with style struct - use ({})
-// ❌ Cannot use children({}) after style
-Box().style(&my_style)({ ... });
-ButtonCtx(fn, .{}).style(&btn_style)({ ... });
-```
-
-```zig
-pub fn render() void {
-    const text_style: *const Vapor.Style = &.{
-        .visual = .{
-            .font_size = 24,
-            .font_weight = 700,
-            .text_color = .red,
-        },
-    };
-
-    Box.style(text_style)({
-        Text("hello there!").style(text_style);
-        Text("...").style(&.{
-            .visual = .{
-                .font_size = 18,
-                .font_weight = 700,
-                .text_color = .black,
-            },
-        });
-        Text("general kenobi").style(text_style);
-    });
-}
-```
 
 {#inline-style}
 
@@ -405,7 +340,7 @@ fn samples() void {
             .font(48, 700, .white).fontFamily("montserrat").end();
     });
 
-    Box().style(&common_style)({
+    Box().style(&common_style).children({
         Text("top right text").fontSize(14).end();
     });
 
@@ -414,12 +349,12 @@ fn samples() void {
         Text("top left text").fontSize(14).end();
     });
 
-    Button(clicked).style(&pill_button_base)({
+    Button(clicked).style(&pill_button_base).children({
         Text("click me").fontSize(18).end();
     });
 
     // here we merge the pill style,
-    Button(clicked).style(&mergedStyle())({
+    Button(clicked).style(&mergedStyle()).children({
         Text("click me").fontSize(18).end();
     });
 }

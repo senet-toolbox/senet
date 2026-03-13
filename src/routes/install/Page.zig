@@ -67,7 +67,6 @@ fn toggleIcon() void {
 }
 
 pub fn render() void {
-    // NavBar.render();
     Center().style(&.{ .size = .hw(.percent(100), .percent(100)) }).children({
         Box().style(&.{
             .child_gap = 24,

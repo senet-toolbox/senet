@@ -45,7 +45,7 @@ const Url = struct {
     url: []const u8,
     title: []const u8,
 };
-const urls: [4]Url = .{
+const urls: [3]Url = .{
     .{
         .url = "/docs/vapor",
         .title = "[0] = Vapor",
@@ -55,13 +55,13 @@ const urls: [4]Url = .{
         .title = "[1] = Reverb",
     },
     .{
-        .url = "/docs/treehouse",
-        .title = "[2] = Canopy",
-    },
-    .{
         .url = "/docs/metal",
-        .title = "Metal",
+        .title = "[2] = Metal",
     },
+    // .{
+    //     .url = "/docs/metal",
+    //     .title = "Metal",
+    // },
 };
 
 inline fn routes() void {

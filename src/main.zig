@@ -39,9 +39,16 @@ fn TestPage() void {
     Vapor.Text("Hello, world!").end();
 }
 
+fn ReverbPage() void {
+    Vapor.Center().size(.full).children({
+        Vapor.Text("Comming Soon").end();
+    });
+}
+
 fn initPages() void {
     Vapor.Page(.{ .route = "/" }, RootPage.render, null);
     RootPage.init();
+    Vapor.Page(.{ .route = "/docs/reverb" }, ReverbPage, null);
     VaporDocs.init();
     VaporDocsConcepts.init();
     MetalDocs.init();
@@ -175,8 +182,6 @@ pub export fn init() void {
     };
     initPages();
 }
-
-pub fn main() void {}
 
 pub const std_options = std.Options{
     .log_level = .debug,

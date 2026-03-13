@@ -335,9 +335,17 @@ const blocks: []const struct { title: []const u8, description: []const u8 } = &.
         .description = "Is a simple, yet powerful, backend framework for Zig. Zero runtime allocations, High performance, Express like.",
     },
     .{
-        .title = "Canopy",
-        .description = "Runs as a in memory cache at the front and a persistent database at the back. All the while boasting throughput on par with Redis.",
+        .title = "Metal",
+        .description = "Metal a full featured cli tool for deploying, building, and managing Senet Applications.",
     },
+    // .{
+    //     .title = "Assembler",
+    //     .description = "An AI driven, Assembler for Senet Applications, instead of generating code, it assembles code for you.",
+    // },
+    // .{
+    //     .title = "Canopy",
+    //     .description = "Runs as a in memory cache at the front and a persistent database at the back. All the while boasting throughput on par with Redis.",
+    // },
 };
 
 fn boxes() void {
@@ -524,8 +532,8 @@ pub fn render() void {
                     Html(
                         \\<strong style="color: rgb(var(--tint))">Senet</strong>
                         \\includes a <a style="text-decoration: none; color: rgb(var(--text_color));" href="/docs/vapor"><i>Frontend [0]</i></a>, 
-                        \\<a style="text-decoration: none; color: rgb(var(--text_color)); "href="/docs/vapor"><i>Backend [1]</i></a>, and 
-                        \\<a style="text-decoration: none; color: rgb(var(--text_color)); "href="/docs/vapor"><i>Database [2]</i></a>.
+                        \\<a style="text-decoration: none; color: rgb(var(--text_color)); "href="/docs/reverb"><i>Backend [1]</i></a>, and 
+                        \\<a style="text-decoration: none; color: rgb(var(--text_color)); "href="/docs/metal"><i>CLI [2]</i></a>.
                         \\Yet ships with <strong style="color: rgb(var(--text_color))"><i>zero</i></strong> dependencies.
                     ).style(&Styles.body_text.merge(.{
                         .layout = .center,
@@ -1159,12 +1167,14 @@ pub fn render() void {
                 }).children({
                     Text("Github").hover(.{ .text_decoration = .underline }).duration(100).baseStyle(&Styles.muted_text).end();
                 });
-                RedirectLink(.{ .url = "https://discord.gg/tether", .aria_label = "discord page of tether" }).style(&.{
+                // RedirectLink(.{ .url = "https://discord.gg/tether", .aria_label = "discord page of tether" }).style(&.{
+                Box().style(&.{
                     .visual = .{ .text_color = .white, .text_decoration = .none },
                 }).children({
                     Text("Discord").hover(.{ .text_decoration = .underline }).duration(100).baseStyle(&Styles.muted_text).end();
                 });
-                RedirectLink(.{ .url = "https://youtube.com/tetherlabs", .aria_label = "youtube page of tether" }).style(&.{
+                // RedirectLink(.{ .url = "https://youtube.com/tetherlabs", .aria_label = "youtube page of tether" }).style(&.{
+                Box().style(&.{
                     .visual = .{ .text_color = .white, .text_decoration = .none },
                 }).children({
                     Text("Youtube").hover(.{ .text_decoration = .underline }).duration(100).baseStyle(&Styles.muted_text).end();
@@ -1188,15 +1198,15 @@ pub fn render() void {
                 }).children({
                     Text("Reverb Docs").hover(.{ .text_decoration = .underline }).duration(100).baseStyle(&Styles.muted_text).end();
                 });
-                Link(.{ .url = "/docs/canopy", .aria_label = "docs page for canopy" }).style(&.{
+                Link(.{ .url = "/docs/metal", .aria_label = "docs page for canopy" }).style(&.{
                     .visual = .{ .text_color = .white, .text_decoration = .none },
                 }).children({
-                    Text("Canopy Docs").hover(.{ .text_decoration = .underline }).duration(100).baseStyle(&Styles.muted_text).end();
+                    Text("Metal Docs").hover(.{ .text_decoration = .underline }).duration(100).baseStyle(&Styles.muted_text).end();
                 });
                 RedirectLink(.{ .url = "https://vicrokx.com", .aria_label = "personal blog of vicrokx" }).style(&.{
                     .visual = .{ .text_color = .white, .text_decoration = .none },
                 }).children({
-                    Text("Blog").hover(.{ .text_decoration = .underline }).duration(100).baseStyle(&Styles.muted_text).end();
+                    Text("Me").hover(.{ .text_decoration = .underline }).duration(100).baseStyle(&Styles.muted_text).end();
                 });
             });
         });
@@ -1227,11 +1237,11 @@ pub fn render() void {
                 }).children({
                     Text("Vapor UI").hover(.{ .text_decoration = .underline }).duration(100).baseStyle(&Styles.muted_text).end();
                 });
-                RedirectLink(.{ .url = "https://tranquil.kyber.run", .aria_label = "Tranquil website" }).style(&.{
-                    .visual = .{ .text_color = .white, .text_decoration = .none },
-                }).children({
-                    Text("Tranquil").hover(.{ .text_decoration = .underline }).duration(100).baseStyle(&Styles.muted_text).end();
-                });
+                // RedirectLink(.{ .url = "https://tranquil.kyber.run", .aria_label = "Tranquil website" }).style(&.{
+                //     .visual = .{ .text_color = .white, .text_decoration = .none },
+                // }).children({
+                //     Text("Tranquil").hover(.{ .text_decoration = .underline }).duration(100).baseStyle(&Styles.muted_text).end();
+                // });
             });
         });
 

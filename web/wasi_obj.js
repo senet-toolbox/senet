@@ -57,75 +57,74 @@ export let layoutInfo;
 export let UINodelayoutInfo;
 
 let tree_node;
-const socket = new WebSocket("ws://localhost:3003");
+// const socket = new WebSocket("ws://localhost:3003");
 //
-// This fires when the connection is successfully established
-socket.onopen = function(event) {
-  console.log("WebSocket connection established!");
-  // Maybe update UI to show connected status
-};
+// // This fires when the connection is successfully established
+// socket.onopen = function(event) {
+//   console.log("WebSocket connection established!");
+//   // Maybe update UI to show connected status
+// };
+//
+// const reloadIndicator = document.getElementById("reload-indicator");
+// const reloadTimer = document.getElementById("reload-timer");
+//
+// let reloadStartTime = null;
+// let reloadTimerInterval = null;
 
-const reloadIndicator = document.getElementById("reload-indicator");
-const reloadTimer = document.getElementById("reload-timer");
+// function showReloading() {
+//   reloadStartTime = performance.now();
+//   reloadIndicator.classList.add("visible");
+//
+//   // Update timer every 100ms
+//   reloadTimerInterval = setInterval(() => {
+//     const elapsed = (performance.now() - reloadStartTime) / 1000;
+//     reloadTimer.textContent = elapsed.toFixed(1);
+//   }, 100);
+// }
+//
+// function hideReloading() {
+//   // Show final time briefly before hiding
+//   if (reloadStartTime) {
+//     const elapsed = (performance.now() - reloadStartTime) / 1000;
+//     reloadTimer.textContent = elapsed.toFixed(2);
+//   }
+//
+//   clearInterval(reloadTimerInterval);
+//   reloadTimerInterval = null;
+//   reloadStartTime = null;
+//
+//   // Small delay so you can see the final time
+//   setTimeout(() => {
+//     reloadIndicator.classList.remove("visible");
+//   }, 300);
+// }
 
-let reloadStartTime = null;
-let reloadTimerInterval = null;
-
-function showReloading() {
-  reloadStartTime = performance.now();
-  reloadIndicator.classList.add("visible");
-
-  // Update timer every 100ms
-  reloadTimerInterval = setInterval(() => {
-    const elapsed = (performance.now() - reloadStartTime) / 1000;
-    reloadTimer.textContent = elapsed.toFixed(1);
-  }, 100);
-}
-
-function hideReloading() {
-  // Show final time briefly before hiding
-  if (reloadStartTime) {
-    const elapsed = (performance.now() - reloadStartTime) / 1000;
-    reloadTimer.textContent = elapsed.toFixed(2);
-  }
-
-  clearInterval(reloadTimerInterval);
-  reloadTimerInterval = null;
-  reloadStartTime = null;
-
-  // Small delay so you can see the final time
-  setTimeout(() => {
-    reloadIndicator.classList.remove("visible");
-  }, 300);
-}
-
-// Handle incoming messages
-socket.onmessage = async function(event) {
-  console.log(event);
-  if (event.data === "reloading") {
-    showReloading();
-    return;
-  }
-
-  // Your existing reload logic here...
-  // After WASM loads:
-  if (event.data === "refresh") {
-    const rootElement = document.getElementById("contents");
-    rootElement.innerHTML = "";
-    window.location.reload();
-  }
-  hideReloading();
-};
-
-// Handle errors
-socket.onerror = function(error) {
-  console.error("WebSocket error:", error);
-};
-
-// Handle disconnection
-socket.onclose = function(event) {
-  console.log("WebSocket connection closed:", event.code, event.reason);
-};
+// // Handle incoming messages
+// socket.onmessage = async function(event) {
+//   if (event.data === "reloading") {
+//     showReloading();
+//     return;
+//   }
+//
+//   // Your existing reload logic here...
+//   // After WASM loads:
+//   if (event.data === "refresh") {
+//     const rootElement = document.getElementById("contents");
+//     rootElement.innerHTML = "";
+//     window.location.reload();
+//   }
+//   hideReloading();
+// };
+//
+// // Handle errors
+// socket.onerror = function(error) {
+//   console.error("WebSocket error:", error);
+// };
+//
+// // Handle disconnection
+// socket.onclose = function(event) {
+//   console.log("WebSocket connection closed:", event.code, event.reason);
+// };
 
 let layoutInfoPtr;
 let uiNodeLayoutInfoPtr;
@@ -725,13 +724,17 @@ function setupWasiInstance() {
   function handleGlobalEvent(event) {
     // Find the closest element that has an ID (so we can look it up in the registry)
     let targetElement = event.target.closest("[id]");
-    if (!targetElement) return;
 
     if (event.type === "click" || event.type === "dbclick") {
       targetElement = event.target.closest("button");
     }
 
-    console.log("Target Element", targetElement);
+    if (!targetElement) return;
+
+    if (targetElement.id === null || targetElement.id === undefined) {
+      return;
+    }
+
     const nodeInfo = domNodeRegistry.get(targetElement.id);
     if (!nodeInfo) return;
 
@@ -758,7 +761,7 @@ function setupWasiInstance() {
     }
 
     // --- INPUT LOGIC (Example for focus/blur) ---
-    if (type === COMPONENT_TYPES.TEXT_FIELD) {
+    if (type === COMPONENT_TYPES.TEXT_FIELD || type === COMPONENT_TYPES.TEXT_AREA) {
       if (event.type === "focusin") {
         const callback_id = nodeInfo.hash + EventType["focus"];
         eventStorage[callback_id] = event;
@@ -1932,7 +1935,8 @@ export function readUINode(offset) {
     elemType === COMPONENT_TYPES.TEXT_FIELD ||
     elemType === COMPONENT_TYPES.CODE ||
     elemType === COMPONENT_TYPES.SVG ||
-    elemType === COMPONENT_TYPES.HTML_TEXT
+    elemType === COMPONENT_TYPES.HTML_TEXT ||
+    elemType === COMPONENT_TYPES.TEXT_AREA
   ) {
     textPtr = view.getUint32(offset + UINodelayoutInfo.textPtrOffset, true);
     textLen = view.getUint32(offset + UINodelayoutInfo.textPtrOffset + 4, true);

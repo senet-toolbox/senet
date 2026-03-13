@@ -29,55 +29,6 @@ fn saveInput() void {
 }
 ```
 
-{#style-syntax-gotcha}
-
-## Style Struct vs Builder Chain Syntax
-
-**The Problem:** Mixing up `.children({})` and direct block `({})` syntax.
-
-```zig
-// ❌ WRONG - can't use .children() after .style()
-Box().style(&my_style).children({
-    Text("Hello").end();
-});
-
-// ❌ WRONG - forgetting to close leaf elements
-Text("Hello");  // Missing .end()!
-
-// ❌ WRONG - using ({}) without .style()
-Box()({  // This won't compile
-    Text("Hello").end();
-});
-```
-
-**The Fix:** Follow these rules:
-
-```zig
-// ✅ With style struct: use direct block
-Box().style(&my_style)({
-    Text("Hello").end();
-});
-
-// ✅ With builder chain: use .children({})
-Box().padding(.all(20)).children({
-    Text("Hello").end();
-});
-
-// ✅ Leaf elements always use .end()
-Text("Hello").end();
-Icon(.search).end();
-Image(.{ .src = "/img.png" }).end();
-TextField(.string).bind(&text).end();
-```
-
-**Quick Reference:**
-
-| Element Type                        | With Builder Chain | With Style Struct |
-| ----------------------------------- | ------------------ | ----------------- |
-| Container (Box, Stack, Center)      | `.children({})`    | `.style(&s)({})`  |
-| Button                              | `.children({})`    | `.style(&s)({})`  |
-| Leaf (Text, Icon, Image, TextField) | `.end()`           | `.end()`          |
-
 {#event-handler-gotcha}
 
 ## Event Handler Signatures

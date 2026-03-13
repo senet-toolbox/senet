@@ -162,6 +162,7 @@ pub const Dark = Colors{
     .font_family = "Montserrat",
     .btn_color = .hex("#FFFF15"),
     .tint = .hex("#C2FE0A"),
+    // .tint = .hex("#FE3F0A"),
     .dark_tint = .hex("#D5E100"),
     .text_tint_color = .hex("#C2FE0A"),
     .alternate_tint = .hex("#6338FF"),

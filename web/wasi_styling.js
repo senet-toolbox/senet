@@ -72,7 +72,7 @@ export function updateComponentStyle(
   if (specified_className.length === 0) {
     element.setAttribute("class", "");
     return;
-  };
+  }
 
   // Fast path: if we've seen this exact styleId combo before, just set class and return
   if (processedStyleIds.has(specified_className)) {

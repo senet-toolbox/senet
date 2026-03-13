@@ -82,6 +82,7 @@ pub fn render() void {
                 .padding(.all(12))
                 .direction(.column)
                 .layout(.{ .x = .start, .y = .even })
+                .fill(.palette(.text_color))
                 .duration(100)
                 .hover(.{
                     .border = .{ .color = .palette(.tint), .thickness = .all(1) },
@@ -91,7 +92,7 @@ pub fn render() void {
                 .children({
                 if (item.icon == Vapor.IconTokens.cubes_stacked or item.icon == Vapor.IconTokens.microscope or item.icon == Vapor.IconTokens.react) {
                     Vapor.Svg(.{ .svg = item.icon.svg.?, .override = true })
-                        .class("btn-svg")
+                        .class("btn-icon")
                         .fontSize(18)
                         .height(.px(32))
                         .padding(.all(4))
@@ -145,6 +146,7 @@ pub fn render() void {
                 .direction(.column)
                 .layout(.{ .x = .end, .y = .even })
                 .duration(100)
+                .fill(.palette(.text_color))
                 .hover(.{
                     .border = .{ .color = .palette(.tint), .thickness = .all(1) },
                     .text_color = .palette(.tint),
@@ -153,7 +155,7 @@ pub fn render() void {
                 .children({
                 if (item.icon == Vapor.IconTokens.cubes_stacked or item.icon == Vapor.IconTokens.microscope or item.icon == Vapor.IconTokens.react) {
                     Vapor.Svg(.{ .svg = item.icon.svg.?, .override = true })
-                        .class("btn-svg")
+                        .class("btn-icon")
                         .fontSize(18)
                         .height(.px(32))
                         .padding(.all(4))
@@ -170,6 +172,7 @@ pub fn render() void {
                     Icon(item.icon)
                         .class("btn-icon")
                         .font(18, null, .palette(.text_color))
+                        .padding(.all(4))
                         .height(.px(32))
                         .width(.px(32))
                         .inheritHover(&.{ .border, .text_color, .fill })
