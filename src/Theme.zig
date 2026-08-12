@@ -11,6 +11,7 @@ pub const ThemeTokens = enum(u8) {
     none,
     border_color,
     text_color,
+    text,
     background,
     primary,
     secondary,
@@ -58,6 +59,7 @@ pub const ThemeTokens = enum(u8) {
 pub const Colors = struct {
     border_color: Color,
     text_color: Color,
+    text: Color,
     background: Color,
     primary: Color,
     secondary: Color,
@@ -108,6 +110,7 @@ pub const Light = Colors{
     .border_color_light = .hex("#e4e4e4"),
 
     .text_color = .rgba(0, 0, 0, 255),
+    .text = .rgba(0, 0, 0, 255),
     .background = .white,
     // .background = .hex("#F0F0F0"),
     .primary = .rgba(255, 255, 255, 255),
@@ -156,6 +159,7 @@ pub const Light = Colors{
 pub const Dark = Colors{
     .border_color = .hex("#27272a"),
     .text_color = .hex("#EAEAEA"),
+    .text = .hex("#EAEAEA"),
     .background = .hex("#0F0F0F"),
     .primary = .rgba(0, 0, 0, 255),
     .secondary = .rgba(255, 255, 255, 1),

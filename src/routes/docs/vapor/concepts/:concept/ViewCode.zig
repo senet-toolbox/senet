@@ -1,7 +1,6 @@
 const std = @import("std");
 const Fabric = @import("fabric");
 const Element = Fabric.Element;
-const CodeEditor = @import("CodeEditor.zig");
 const println = Fabric.println;
 
 // Reactive Signals for updating state.
@@ -32,7 +31,6 @@ var border_color: [4]f32 = undefined;
 const ViewCode = @This();
 allocator: *std.mem.Allocator,
 selected_display: *Signal([]const u8) = undefined,
-code_editor: CodeEditor = undefined,
 height: f32 = 500,
 
 fn switchDisplay(view_code: *ViewCode, selected: []const u8) void {
@@ -72,8 +70,8 @@ pub fn renderWrapper(ptr: *anyopaque) void {
 }
 
 pub fn render(view_code: *ViewCode, component: *const fn () void) void {
-    Static.FlexBox(styles.outer_container)({
-        Static.FlexBox(.{
+    Static.FlexRow(styles.outer_container)({
+        Static.FlexRow(.{
             .width = .percent(1),
             .height = .fixed(40),
             .child_alignment = .{ .x = .start, .y = .center },
@@ -94,7 +92,7 @@ pub fn render(view_code: *ViewCode, component: *const fn () void) void {
             });
         });
 
-        Pure.FlexBox(.{
+        Pure.FlexRow(.{
             .width = .percent(1),
             .box_sizing = .border_box,
             .height = .fixed(view_code.height),

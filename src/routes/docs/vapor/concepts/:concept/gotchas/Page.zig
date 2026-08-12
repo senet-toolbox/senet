@@ -2,44 +2,61 @@ const std = @import("std");
 const Vapor = @import("vapor");
 const Page = Vapor.Page;
 const Content = @import("../../../../../../components/Content.zig");
+const reinit = @import("../../../../../../components/DocNavbar.zig").reinit;
 const Vaporize = @import("vaporize");
 const Compiler = @import("../../../../../../main.zig");
+const Fetch = Vapor.Fetch.Fetch;
+const Loader = @import("components").Loader;
+const Error = @import("components").Error;
 
 // Initialization
 var content: Content.new("") = undefined;
 var markdown: Compiler.vaporize.MarkDown(.{}) = .{};
 var page: []const u8 = "";
-var markdown_loaded: bool = false;
+var f: ?*Fetch = null;
 var vaporizer: Vaporize.Compiler = undefined;
 
 pub fn init() void {
-    Vapor.Kit.fetch("/documents/gotchas_page.md", handlePage, .{ .method = .GET });
+    f = Fetch.fetch("/documents/gotchas_page.md", .{ .method = .GET });
+    f.?.handle(handlePage, .{});
+    content.init();
 }
 
-fn handlePage(resp: Vapor.Kit.Response) void {
+fn handlePage(resp: Vapor.Fetch.Result) void {
     switch (resp) {
-        .Ok => |data| {
+        .ok => |data| {
             content.content_text = data.body;
             page = data.body;
             markdown.compile(page) catch |err| {
-                Vapor.printErr("Failed to compile markdown: {any}", .{err});
+                std.log.err("Failed to compile markdown: {any}", .{err});
                 return;
             };
-            markdown_loaded = true;
         },
-        .Err => |err| {
-            Vapor.printErr("Failed to fetch: {s}", .{err.message});
+        .err => |err| {
+            std.log.err("Failed to fetch: {s}", .{err.message});
             return;
         },
     }
-    Vapor.cycle();
+    Vapor.onLayout(reinit, .{});
 }
 
 fn component() void {
-    if (!markdown_loaded) return;
     markdown.render() catch unreachable;
 }
 
 pub fn render() void {
-    content.content(component);
+    if (f) |h| {
+        switch (h.state()) {
+            .idle => {},
+            .loading => {
+                Loader.render();
+            },
+            .ok => {
+                content.content(component);
+            },
+            .err => {
+                Error.render();
+            },
+        }
+    }
 }

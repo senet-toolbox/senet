@@ -3,11 +3,10 @@ const Vaporize = @import("vaporize");
 const Validation = Vaporize.Validation;
 const ValidationError = Vaporize.ValidationError;
 
-const Box = Vapor.Box;
+const Row = Vapor.Row;
 const Text = Vapor.Text;
 const Compiler = @import("../main.zig");
-const Select = @import("../components/Select.zig").Select;
-const new = @import("../components/Select.zig").new;
+const Select = @import("opaque-ui").Select;
 
 const Currency = enum { usd, eur };
 
@@ -95,8 +94,6 @@ var country: Select(Country) = undefined;
 var payment_method: Select(PaymentMethod) = undefined;
 
 pub fn init() void {
-    new();
-    // compile the struct into a UI form
     login_form.compile() catch unreachable;
 
     payment_method = .fromItems(&.{

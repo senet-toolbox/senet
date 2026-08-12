@@ -2,19 +2,16 @@ const std = @import("std");
 const Vapor = @import("vapor");
 const NavBar = @import("../../components/Navbar.zig");
 const Custom = @import("../../components/Custom.zig");
-const Signal = Vapor.Signal;
 const Style = Vapor.Style;
-const Static = Vapor.Static;
-const Center = Static.Center;
-const Box = Static.Box;
-const Image = Static.Image;
-const Text = Static.Text;
+const Center = Vapor.Center;
+const Row = Vapor.Row;
+const Image = Vapor.Image;
+const Text = Vapor.Text;
 const Page = Vapor.Page;
-const Pure = Vapor.Pure;
 const HtmlText = Vapor.Html;
-const Graphic = Static.Graphic;
-const List = Static.List;
-const ListItem = Static.ListItem;
+const Graphic = Vapor.Graphic;
+const List = Vapor.List;
+const ListItem = Vapor.ListItem;
 
 // Initialization
 pub fn init() void {
@@ -63,9 +60,9 @@ const muted_text = &Style{
 pub fn render() void {
     Center().style(&.{
         .size = .w(.percent(100)),
-        .padding = .{ .top = 120, .bottom = 80 },
+        .padding = .tb(120, 80),
     }).children({
-        Box().style(&.{
+        Row().style(&.{
             .child_gap = 24,
             .direction = .column,
             .size = .w(.mobile_desktop_percent(100, 60)),

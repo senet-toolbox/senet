@@ -1,0 +1,8 @@
+<svg viewBox="0 0 50 50" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect x="2" y="2" width="46" height="46"
+        stroke="rgba(var(--border_color_light))" stroke-width="1" />
+  <rect x="2" y="2" width="46" height="46"
+        stroke="rgba(var(--tint))" stroke-width="1"
+        stroke-dasharray="46 138"
+        style="animation: square-dash 1s linear infinite;" />
+</svg>

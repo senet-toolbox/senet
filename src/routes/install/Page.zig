@@ -3,20 +3,18 @@ const Vapor = @import("vapor");
 const NavBar = @import("../../components/Navbar.zig");
 const Custom = @import("../../components/Custom.zig");
 const code_snippet = Custom.code_snippet_single;
-const Signal = Vapor.Signal;
 const Style = Vapor.Style;
-const Static = Vapor.Static;
-const Center = Static.Center;
-const Box = Static.Box;
-const Image = Static.Image;
-const Text = Static.Text;
+const Center = Vapor.Center;
+const Row = Vapor.Row;
+const Image = Vapor.Image;
+const Text = Vapor.Text;
 const Page = Vapor.Page;
 const Pure = Vapor.Pure;
 const HtmlText = Custom.Chain.HtmlText;
-const Graphic = Static.Graphic;
-const Icon = Static.Icon;
-const Button = Static.Button;
-const CtxButton = Static.CtxButton;
+const Graphic = Vapor.Graphic;
+const Icon = Vapor.Icon;
+const Button = Vapor.Button;
+const CtxButton = Vapor.CtxButton;
 
 // Initialization
 pub fn init() void {
@@ -59,7 +57,7 @@ var copied: bool = false;
 fn copy(text: []const u8) void {
     Vapor.Clipboard.copy(text);
     copied = true;
-    Vapor.registerCtxTimeout(500, toggleIcon, .{});
+    Vapor.timeout(500, toggleIcon, .{});
 }
 
 fn toggleIcon() void {
@@ -68,7 +66,7 @@ fn toggleIcon() void {
 
 pub fn render() void {
     Center().style(&.{ .size = .hw(.percent(100), .percent(100)) }).children({
-        Box().style(&.{
+        Row().style(&.{
             .child_gap = 24,
             .direction = .column,
             .margin = .{ .bottom = 32 },

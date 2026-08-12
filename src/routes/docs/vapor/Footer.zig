@@ -1,22 +1,19 @@
 const std = @import("std");
 const Vapor = @import("vapor");
-const Static = Vapor.Static;
 const Types = Vapor.Types;
 const Dynamic = Vapor.Dynamic;
 const Element = Vapor.Element;
-const Sheet = @import("Sheet.zig").Sheet;
 const Signal = Vapor.Signal;
 const Kit = Vapor.Kit;
-const println = Vapor.println;
 const logo = @embedFile("logo.svg");
 const Binded = Vapor.Binded;
-const Box = Static.Box;
-const Text = Static.Text;
-const Link = Static.Link;
-const Image = Static.Image;
-const Svg = Static.Svg;
-const Button = Static.Button;
-const Center = Static.Center;
+const Row = Vapor.Row;
+const Text = Vapor.Text;
+const Link = Vapor.Link;
+const Image = Vapor.Image;
+const Svg = Vapor.Svg;
+const Button = Vapor.Button;
+const Center = Vapor.Center;
 const Icon = Vapor.Icon;
 const menu_items = @import("../../../components/DocNavbar.zig").menu_items;
 const MenuItem = @import("../../../components/DocNavbar.zig").MenuItem;
@@ -64,139 +61,79 @@ fn onLeave(_: *Vapor.Event) void {
     hovered_item = null;
 }
 
+fn isSvg(item: MenuItem) bool {
+    const react = std.mem.eql(u8, item.id, "react-to-vapor");
+    const components = std.mem.eql(u8, item.id, "components");
+    const deep = std.mem.eql(u8, item.id, "deep-dive");
+    if (react or components or deep) {
+        return true;
+    }
+    return false;
+}
+const BtnType = enum {
+    Prev,
+    Next,
+};
+
+fn renderBtn(btn_type: BtnType, item: MenuItem, callback: anytype) void {
+    const is_prev = btn_type == .Prev;
+    return Button(callback, .{})
+        .class(if (is_prev) "prev-btn" else "next-btn")
+        .size(.hw(.px(128), .percent(45)))
+        .border(.simple(.palette(.border_color_light)))
+        .background(.transparent)
+        .cursor(.pointer)
+        .padding(.all(12))
+        .direction(.column)
+        .layout(if (is_prev) .{ .x = .start, .y = .even } else .{ .x = .end, .y = .even })
+        .duration(100)
+        .fill(.palette(.text_color))
+        .hover(.{
+            .border = .simple(.palette(.tint)),
+            .text_color = .palette(.tint),
+            .fill = .palette(.tint),
+        })
+        .children({
+        if (isSvg(item)) {
+            applyIconsStyles(Vapor.Svg(.{ .svg = item.icon.svg.?, .override = true })).end();
+        } else {
+            applyIconsStyles(Icon(item.icon)).end();
+        }
+        Center().spacing(12).children({
+            Text(item.title).fontSize(18).end();
+        });
+    });
+}
+
 pub fn render() void {
     const path = Vapor.Kit.getWindowPath() orelse "/";
     setCurrentRoute(path);
-    Box().style(&.{
+    Row().style(&.{
         .size = .w(.percent(100)),
         .layout = .x_between_center,
-        .child_gap = 32,
+        .spacing = 32,
     }).children({
         if (getPrevPath()) |item| {
-            Button(gotoPrevRoute)
-                .class("prev-btn")
-                .size(.hw(.px(128), .percent(45)))
-                .border(.simple(.palette(.border_color_light)))
-                .background(.transparent)
-                .cursor(.pointer)
-                .padding(.all(12))
-                .direction(.column)
-                .layout(.{ .x = .start, .y = .even })
-                .fill(.palette(.text_color))
-                .duration(100)
-                .hover(.{
-                    .border = .{ .color = .palette(.tint), .thickness = .all(1) },
-                    .text_color = .palette(.tint),
-                    .fill = .palette(.tint),
-                })
-                .children({
-                if (item.icon == Vapor.IconTokens.cubes_stacked or item.icon == Vapor.IconTokens.microscope or item.icon == Vapor.IconTokens.react) {
-                    Vapor.Svg(.{ .svg = item.icon.svg.?, .override = true })
-                        .class("btn-icon")
-                        .fontSize(18)
-                        .height(.px(32))
-                        .padding(.all(4))
-                        .font(18, null, .palette(.text_color))
-                        .width(.px(32))
-                        .inheritHover(&.{ .border, .text_color, .fill })
-                        .layout(.center)
-                        .border(.{
-                            .color = .palette(.border_color_light),
-                            .thickness = .all(1),
-                        })
-                        .end();
-                } else {
-                    Icon(item.icon)
-                        .class("btn-icon")
-                        .fontSize(18)
-                        .height(.px(32))
-                        .font(18, null, .palette(.text_color))
-                        .width(.px(32))
-                        .inheritHover(&.{ .border, .text_color, .fill })
-                        .layout(.center)
-                        .border(.{
-                            .color = .palette(.border_color_light),
-                            .thickness = .all(1),
-                        })
-                        .end();
-                }
-                Center().style(&.{
-                    .child_gap = 12,
-                }).children({
-                    Text(item.title)
-                        .baseStyle(&.{
-                            .visual = .{
-                                .font_size = 18,
-                                .text_color = .palette(.text_color),
-                            },
-                        })
-                        .fontFamily("IBM Plex Sans,monospace")
-                        .end();
-                });
-            });
+            renderBtn(.Prev, item, gotoPrevRoute);
         }
         if (getNextPathItem()) |item| {
-            Button(gotoNextRoute)
-                .class("next-btn")
-                .size(.hw(.px(128), .percent(45)))
-                .border(.simple(.palette(.border_color_light)))
-                .background(.transparent)
-                .cursor(.pointer)
-                .padding(.all(12))
-                .direction(.column)
-                .layout(.{ .x = .end, .y = .even })
-                .duration(100)
-                .fill(.palette(.text_color))
-                .hover(.{
-                    .border = .{ .color = .palette(.tint), .thickness = .all(1) },
-                    .text_color = .palette(.tint),
-                    .fill = .palette(.tint),
-                })
-                .children({
-                if (item.icon == Vapor.IconTokens.cubes_stacked or item.icon == Vapor.IconTokens.microscope or item.icon == Vapor.IconTokens.react) {
-                    Vapor.Svg(.{ .svg = item.icon.svg.?, .override = true })
-                        .class("btn-icon")
-                        .fontSize(18)
-                        .height(.px(32))
-                        .padding(.all(4))
-                        .font(18, null, .palette(.text_color))
-                        .width(.px(32))
-                        .inheritHover(&.{ .border, .text_color, .fill })
-                        .layout(.center)
-                        .border(.{
-                            .color = .palette(.border_color_light),
-                            .thickness = .all(1),
-                        })
-                        .end();
-                } else {
-                    Icon(item.icon)
-                        .class("btn-icon")
-                        .font(18, null, .palette(.text_color))
-                        .padding(.all(4))
-                        .height(.px(32))
-                        .width(.px(32))
-                        .inheritHover(&.{ .border, .text_color, .fill })
-                        .layout(.center)
-                        .border(.{
-                            .color = .palette(.border_color_light),
-                            .thickness = .all(1),
-                        })
-                        .end();
-                }
-                Center().style(&.{
-                    .child_gap = 12,
-                }).children({
-                    Text(item.title)
-                        .baseStyle(&.{
-                            .visual = .{
-                                .font_size = 18,
-                                .text_color = .palette(.text_color),
-                            },
-                        })
-                        .fontFamily("IBM Plex Sans,monospace")
-                        .end();
-                });
-            });
+            renderBtn(.Next, item, gotoNextRoute);
         }
+    });
+}
+
+fn applyIconsStyles(component: Vapor.Builder(.pure)) Vapor.Builder(.pure) {
+    return component
+        .class("btn-icon")
+        .fontSize(18)
+        .height(.px(32))
+        .padding(.all(4))
+        .font(18, null, .palette(.text_color))
+        .width(.px(32))
+        .inheritHover(&.{ .border, .text_color, .fill })
+        .layout(.center)
+        .border(.{
+        .color = .palette(.border_color_light),
+        .thickness = .all(1),
     });
 }

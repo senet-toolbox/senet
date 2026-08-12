@@ -1,10 +1,9 @@
 const Vapor = @import("vapor");
 const std = @import("std");
-const Static = Vapor.Static;
-const Box = Static.Box;
-const Text = Static.Text;
-const CtxButton = Static.CtxButton;
-const Icon = Static.Icon;
+const Row = Vapor.Row;
+const Text = Vapor.Text;
+const Button = Vapor.Button;
+const Icon = Vapor.Icon;
 const Color = Vapor.Types.Color;
 
 const Snippet = @This();
@@ -20,7 +19,7 @@ fn copy(snippet: *Snippet, text: []const u8) void {
     snippet.copied = true;
     snippet.copied_text = text;
     Vapor.cycle();
-    Vapor.registerCtxTimeout("copy_snippet", 500, toggleIcon, .{snippet});
+    Vapor.timeout("copy_snippet", 500, toggleIcon, .{snippet});
 }
 
 fn toggleIcon(snippet: *Snippet) void {
@@ -30,7 +29,7 @@ fn toggleIcon(snippet: *Snippet) void {
 }
 
 pub fn code(snippet: *Snippet, text: []const u8) void {
-    CtxButton(copy, .{ snippet, text })
+    Button(copy, .{ snippet, text })
         .style(&.{
         .visual = .{
             .border = .simple(.palette(.border_color_light)),
@@ -55,7 +54,7 @@ pub fn code(snippet: *Snippet, text: []const u8) void {
             .layout(.center)
             .size(.w(.grow))
             .end();
-        Box().style(&.{
+        Row().style(&.{
             // .position = .{ .type = .absolute, .right = .px(8), .top = .px(8) },
             .size = .square_px(22),
             .transition = .{ .duration = 100 },

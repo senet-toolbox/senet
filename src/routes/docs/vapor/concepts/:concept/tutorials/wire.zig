@@ -17,7 +17,7 @@ pub fn render() void {
     })({
         Static.Text("Tic‑Tac‑Toe!", .{});
         // Constrain the board to 30 % of the viewport for now.
-        Static.Box(.{
+        Static.Row(.{
             .width  = .percent(30),
             .height = .percent(30),
         })({

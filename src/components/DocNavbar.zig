@@ -1,29 +1,27 @@
 const std = @import("std");
 const Vapor = @import("vapor");
-const Static = Vapor.Static;
 const Types = Vapor.Types;
 const Signal = Vapor.Signal;
 const Kit = Vapor.Kit;
 const println = Vapor.println;
 const Binded = Vapor.Binded;
 const Search = @import("Search.zig");
-const Box = Static.Box;
-const Image = Static.Image;
-const Text = Static.Text;
+const Row = Vapor.Row;
+const Image = Vapor.Image;
+const Text = Vapor.Text;
 const Page = Vapor.Page;
-const Graphic = Static.Graphic;
-const Icon = Static.Icon;
-const Button = Static.Button;
-const Link = Static.Link;
-const List = Static.List;
-const CtxButton = Static.CtxButton;
-const ListItem = Static.ListItem;
-const RedirectLink = Static.RedirectLink;
+const Graphic = Vapor.Graphic;
+const Icon = Vapor.Icon;
+const Button = Vapor.Button;
+const Link = Vapor.Link;
+const List = Vapor.List;
+const ListItem = Vapor.ListItem;
+const RedirectLink = Vapor.RedirectLink;
 const Theme = @import("theme");
 const IconTokens = Vapor.IconTokens;
-const Hooks = Static.Hooks;
+const Hooks = Vapor.Hooks;
 const Observer = Vapor.Kit.Observer;
-const Stack = Static.Stack;
+const Stack = Vapor.Stack;
 const Content = @import("../components/Content.zig");
 
 const SideBar = @This();
@@ -40,7 +38,7 @@ pub const MenuItem = struct {
     title: []const u8,
     sections: []const *const struct { title: []const u8, link: []const u8 } = &.{},
     link: []const u8,
-    icon: *const IconTokens,
+    icon: IconTokens,
     tags: []const Tag = &.{},
 };
 
@@ -80,6 +78,21 @@ pub const menu_items: []const MenuItem = &.{
                 .sub_title = "Vapor Docs",
                 .url = "/docs/vapor",
                 .description = "Vapor documentation...",
+            },
+        },
+    },
+    MenuItem{
+        .id = "Ask an LLM",
+        .title = "Learn via LLM",
+        .link = "/docs/vapor/concepts/ask-an-llm",
+        .sections = &.{},
+        .icon = .robot, // Keep as is - perfect for home
+        .tags = &.{
+            Tag{
+                .keywords = &.{ "llm", "ai", "vapor llm", "vapor ai" },
+                .sub_title = "Ask an LLM",
+                .url = "/docs/vapor/concepts/ask-an-llm",
+                .description = "Vapor LLM documentation...",
             },
         },
     },
@@ -241,18 +254,16 @@ pub const menu_items: []const MenuItem = &.{
         .link = "/docs/vapor/concepts/reactivity",
         .sections = &.{
             &.{ .title = "Reactivity", .link = "reactivity" },
-            &.{ .title = "UI as reactivity", .link = "ui-as-reactivity" },
+            // &.{ .title = "UI as reactivity", .link = "ui-as-reactivity" },
+            &.{ .title = "State Persists", .link = "state-persists" },
+            &.{ .title = "One Rule", .link = "one-rule" },
+            &.{ .title = "Using cycle()", .link = "using-cycle" },
+            &.{ .title = "Its just Zig", .link = "its-just-zig" },
+            &.{ .title = "Modes", .link = "modes" },
             &.{ .title = "Atomic Mode", .link = "atomic-mode" },
             &.{ .title = "Immediate Mode", .link = "immediate-mode" },
-            &.{ .title = "80% of content in an application is static", .link = "80-content-is-static" },
-            &.{ .title = "Retained Mode", .link = "retained-mode" },
-            &.{ .title = "Using cycle()", .link = "using-cycle" },
-            &.{ .title = "Zig is meant to be Explicit!", .link = "zig-is-meant-to-be-explicit" },
-            &.{ .title = "Signal(T)", .link = "signalT" },
-            &.{ .title = "Effects", .link = "effects" },
-            &.{ .title = "With the concept of effects", .link = "with-the-concept-of-effects" },
-            &.{ .title = "Without the concept of effects", .link = "without-the-concept-of-effects" },
-            &.{ .title = "Its just Zig", .link = "its-just-zig" },
+            &.{ .title = "Static Mode", .link = "static-mode" },
+            &.{ .title = "Performance", .link = "performance" },
         },
         .icon = .arrow_repeat, // Circular arrows for reactive updates
         .tags = &.{
@@ -302,11 +313,8 @@ pub const menu_items: []const MenuItem = &.{
         .sections = &.{
             &.{ .title = "Gotchas", .link = "gotchas" },
             &.{ .title = "String Slices Are References, Not Copies", .link = "string-slice-gotcha" },
-            &.{ .title = "Style Struct vs Builder Chain Syntax", .link = "style-syntax-gotcha" },
             &.{ .title = "Event Handler Signatures", .link = "event-handler-gotcha" },
             &.{ .title = "State Inside Render Functions", .link = "state-in-render-gotcha" },
-            &.{ .title = "Color vs Background Types", .link = "color-type-gotcha" },
-            &.{ .title = "Loop Index vs Value", .link = "loop-index-gotcha" },
         },
     },
 
@@ -316,6 +324,8 @@ pub const menu_items: []const MenuItem = &.{
         .link = "/docs/vapor/concepts/vaporize",
         .sections = &.{
             &.{ .title = "Vaporize", .link = "vaporize" },
+            &.{ .title = "Rendering Forms", .link = "rendering-forms" },
+            &.{ .title = "Rendering Markdown", .link = "vaporizing-markdown" },
         },
         .icon = .device_hdd_fill,
     },
@@ -352,7 +362,7 @@ pub const menu_items: []const MenuItem = &.{
     },
 
     MenuItem{ // New to Zig
-        .id = "new-to-zig",
+        .id = "deep-dive",
         .title = "Deep Dive",
         .link = "/docs/vapor/concepts/new-to-zig",
         .icon = .microscope,
@@ -376,6 +386,7 @@ pub const menu_items: []const MenuItem = &.{
         .link = "/docs/vapor/concepts/memory",
         .sections = &.{
             &.{ .title = "Memory", .link = "memory" },
+            &.{ .title = "Memory is not scary", .link = "memory-is-not-scary" },
         },
         .icon = .memory,
     },
@@ -403,17 +414,15 @@ pub const menu_items: []const MenuItem = &.{
         .link = "/docs/vapor/concepts/kit",
         .icon = .tools, // Tools icon for toolkit/kit
         .sections = &.{
-            &.{ .title = "Kit", .link = "kit" },
-            &.{ .title = "Why Callbacks again?", .link = "why-callbacks" },
-            &.{ .title = "Example", .link = "example" },
-            &.{ .title = "fetch", .link = "fetch" },
-            &.{ .title = "fetchCtx", .link = "fetchCtx" },
-            &.{ .title = "navigate", .link = "navigate" },
-            &.{ .title = "routePush", .link = "routePush" },
-            &.{ .title = "getWindowPath", .link = "getWindowPath" },
-            &.{ .title = "getWindowParams", .link = "getWindowParams" },
-            &.{ .title = "persist", .link = "persist" },
-            &.{ .title = "getPersist", .link = "getPersist" },
+            &.{ .title = "Fetch", .link = "fetch" },
+            &.{ .title = "Result", .link = "result" },
+            &.{ .title = "Request", .link = "request-lifecycle" },
+            &.{ .title = "Lifetime", .link = "lifetime" },
+            &.{ .title = "Dedup", .link = "dedup" },
+            &.{ .title = "Passing Context", .link = "passing-context" },
+            &.{ .title = "Cancel", .link = "cancel-release" },
+            &.{ .title = "Post", .link = "post" },
+            &.{ .title = "Debugging & Mocking", .link = "debugging" },
         },
     },
     MenuItem{
@@ -607,7 +616,7 @@ pub var section_indices: std.AutoHashMap(usize, void) = undefined;
 pub fn init() void {
     sections = std.StringHashMap(bool).init(Vapor.lib.frame_arena.persistentAllocator());
     section_indices = std.AutoHashMap(usize, void).init(Vapor.lib.frame_arena.persistentAllocator());
-    Content.initBoxes();
+    Content.initRowes();
     observer = Observer.new("menu-bar", handleSection, .{
         .threshold = 0.4,
     });
@@ -636,7 +645,7 @@ pub fn goto(url: []const u8) void {
     }
     Vapor.Kit.navigate(url);
     Kit.scrollTo(0, 0);
-    Vapor.onEnd(reinit); // This will triger at the end of the current cycle
+    Vapor.onLayout(reinit, .{}); // This will triger at the end of the current cycle
 
 }
 
@@ -657,6 +666,8 @@ fn handlePopState() void {
 
 fn handleSection(target: Observer.Target) void {
     if (Content.boxes.len == 0) return;
+    if (current_menu_item.?.sections.len <= target.index) return;
+
     if (Content.boxes.len > target.index) {
         if (target.is_in_view) {
             sections.put(current_menu_item.?.sections[target.index].link, true) catch |err| {
@@ -674,7 +685,7 @@ fn handleSection(target: Observer.Target) void {
 pub fn reinit() void {
     if (!Vapor.getStatus().valid_url) return;
     observer.disconnect();
-    Content.reinitBoxes(); // This creates the boxes after the page is mounted
+    Content.reinitRowes(); // This creates the boxes after the page is mounted
     Vapor.cycle();
     reinitObserver(); // This will triger at the end of the current cycle
 
@@ -684,7 +695,7 @@ var mounted: bool = false;
 var observer: Observer = undefined;
 fn createObserver() void {
     if (!Vapor.getStatus().valid_url) return;
-    Content.reinitBoxes(); // This creates the boxes after the page is mounted
+    Content.reinitRowes(); // This creates the boxes after the page is mounted
 
     if (current_menu_item) |item| {
         for (item.sections, 0..) |section, i| {
@@ -730,8 +741,7 @@ fn mount() void {
     const uuid = Vapor.fmtln("menu-{s}", .{current_menu_item.?.link});
     Vapor.scrollIntoView(uuid, .{ .block = .start });
     if (!Vapor.getStatus().valid_url) return;
-    Vapor.onEnd(createObserver);
-    // Vapor.onPopState(handlePopState);
+    Vapor.onLayout(Vapor.timeout, .{ "mount-content", 60, createObserver, .{} });
 }
 
 fn home() void {
@@ -745,24 +755,36 @@ fn toggleMenu() void {
     menu = !menu;
 }
 
+fn isSvg(item: MenuItem) bool {
+    const react = std.mem.eql(u8, item.id, "react-to-vapor");
+    const components = std.mem.eql(u8, item.id, "components");
+    const deep = std.mem.eql(u8, item.id, "deep-dive");
+    if (react or components or deep) {
+        return true;
+    }
+    return false;
+}
+
 fn list() void {
     const current_path = Vapor.Kit.getWindowPath() orelse "/docs/vapor";
-    Box().style(&.{
-        .layout = .x_between_center,
-        .child_gap = 8,
-        .padding = .{ .top = 8, .bottom = 8, .left = 12, .right = 12 },
-        .position = .{ .type = .fixed, .top = .px(0), .left = .mobile_desktop_percent(0, 8), .right = .percent(0), .z_index = 400 },
-        .size = .hw(.mobile_desktop_percent(8, 6), .mobile_desktop_percent(100, 100 - 8)),
-        .visual = .{
-            .blur = 3,
-        },
-    }).children({
-        Box().style(&.{
+    Row()
+        .onMount(mount, .{})
+        .style(&.{
+            .layout = .x_between_center,
+            .child_gap = 8,
+            .padding = .xy(12, 8),
+            .position = .{ .type = .fixed, .top = .px(0), .left = .mobile_desktop_percent(0, 8), .right = .percent(0), .z_index = 400 },
+            .size = .hw(.mobile_desktop_percent(8, 6), .mobile_desktop_percent(100, 100 - 8)),
+            .visual = .{
+                .blur = 3,
+            },
+        }).children({
+        Row().style(&.{
             .layout = .x_between_center,
             .child_gap = 8,
             .size = .h(.percent(100)),
         }).children({
-            Button(home)
+            Button(home, .{})
                 // Link(.{ .url = "/", .aria_label = "home page of tether" })
                 .style(&.{
                     .visual = .{ .text_decoration = .none, .cursor = .pointer },
@@ -775,7 +797,7 @@ fn list() void {
             Text("Senet").style(&.{
                 .visual = .{ .font_weight = 500, .font_size = 18 },
             }).end();
-            Box().style(&.{
+            Row().style(&.{
                 .visual = .{ .border = .l(1, .rgb(0, 0, 0)) },
                 .size = .{ .height = .px(24) },
             }).children({});
@@ -784,11 +806,11 @@ fn list() void {
             }).end();
         });
         if (Vapor.isMobile()) {
-            Box()
+            Row()
                 .width(.expand)
                 .layout(.right_center)
                 .children({
-                Button(toggleMenu)
+                Button(toggleMenu, .{})
                     .layout(.center)
                     .children({
                     Icon(.list)
@@ -799,7 +821,7 @@ fn list() void {
             });
         }
         if (!Vapor.isMobile()) {
-            Button(openDialog)
+            Button(openDialog, .{})
                 .ariaLabel("search-dialog")
                 .baseStyle(&.{
                     .layout = .x_between_center,
@@ -810,7 +832,7 @@ fn list() void {
                         .border = .simple(.palette(.tint)),
                     } },
                 }).background(.palette(.background)).children({
-                Box().style(&.{ .layout = .left_center, .child_gap = 24 }).children({
+                Row().style(&.{ .layout = .left_center, .child_gap = 24 }).children({
                     Icon(.search).style(&.{
                         .visual = .{ .font_size = 16, .text_color = .palette(.icon_color) },
                     }).end();
@@ -823,14 +845,14 @@ fn list() void {
                     .visual = .{ .font_size = 16, .text_color = .palette(.icon_color) },
                 }).end();
             });
-            // Box().plain();
-            Box().style(&.{
+            // Row().plain();
+            Row().style(&.{
                 .size = .{ .width = .percent(20), .height = .percent(100) },
                 .layout = .right_center,
                 .padding = .horizontal(12),
                 .child_gap = 24,
             }).children({
-                Button(toggleTheme)
+                Button(toggleTheme, .{})
                     .ariaLabel("toggle theme")
                     .style(&.{
                         .visual = .{ .background = .transparent, .cursor = .pointer },
@@ -844,7 +866,7 @@ fn list() void {
         }
     });
     if (menu or Vapor.isDesktop()) {
-        Box()
+        Row()
             .pos(.tl(.mobile_desktop_percent(8, 8), .mobile_desktop_percent(0, 8), .fixed))
             .zIndex(999)
             .width(.mobile_desktop_percent(100, 14))
@@ -854,7 +876,7 @@ fn list() void {
             List().style(&.{
                 .list_style = .none,
                 .direction = .column,
-                .padding = .{ .top = 16, .bottom = 64, .right = 8, .left = 8 },
+                .padding = .tblr(16, 64, 8, 8),
                 .child_gap = 12,
                 .size = .hw(.percent(95), .percent(100)),
                 .scroll = .scroll_y(),
@@ -878,7 +900,7 @@ fn list() void {
                                 },
                             },
                         }).children({
-                        CtxButton(goto, .{item.link}).style(&.{
+                        Button(goto, .{item.link}).style(&.{
                             .visual = .{
                                 .text_decoration = .none,
                                 .cursor = .pointer,
@@ -889,7 +911,7 @@ fn list() void {
                             .child_gap = 12,
                             .padding = .tblr(10, 10, 8, 8),
                         }).children({
-                            if (item.icon == Vapor.IconTokens.cubes_stacked or item.icon == Vapor.IconTokens.microscope or item.icon == Vapor.IconTokens.react) {
+                            if (isSvg(item)) {
                                 Vapor.Svg(.{ .svg = item.icon.svg.?, .override = true }).style(&.{
                                     .size = .{ .width = .px(16), .height = .px(16) },
                                     .visual = .{
@@ -898,7 +920,6 @@ fn list() void {
                                 }).end();
                             } else {
                                 Icon(item.icon).style(&.{
-                                    .size = .{ .width = .px(14), .height = .px(14) },
                                     .visual = .{ .text_color = if (std.mem.eql(u8, current_path, item.link)) .palette(.tint) else .palette(.text_color) },
                                 }).end();
                             }
@@ -922,7 +943,7 @@ fn list() void {
             .position = .{ .type = .fixed, .top = if (Vapor.isMobile()) .percent(8) else .percent(8), .right = .percent(2), .z_index = 999 },
             .size = .hw(.percent(100), .mobile_desktop_percent(100, 14)),
         }).children({
-            Box().style(&.{
+            Row().style(&.{
                 .layout = .left_center,
                 .child_gap = 8,
             }).children({
@@ -932,7 +953,7 @@ fn list() void {
             List().style(&.{
                 .list_style = .none,
                 .direction = .column,
-                .padding = .{ .top = 16, .bottom = 64, .right = 0, .left = 0 },
+                .padding = .tb(16, 64),
                 .child_gap = 8,
                 .size = .hw(.percent(95), .percent(100)),
                 .scroll = .scroll_y(),
@@ -966,13 +987,12 @@ fn list() void {
             });
         });
     }
-    Vapor.Static.HooksCtx(.mounted, mount, .{})({});
 
     Search.render();
 }
 
 pub fn render() void {
-    Box().style(&.{
+    Row().style(&.{
         .position = .nav,
         .size = .hw(.mobile_desktop(.fit, .percent(100)), .mobile_desktop_percent(100, 14)),
         // .padding = .{ .bottom = 128 },

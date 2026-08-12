@@ -8,10 +8,9 @@ const OverlayManager = @This();
 
 const Item = struct { id: usize, erased_cb: Vapor.lib.ErasedEventCallback };
 
-var stack: Vapor.Array(Item) = undefined;
+var stack = Vapor.persist.Array(Item);
 
 pub fn init() void {
-    stack = Vapor.array(Item, .persist);
     _ = Vapor.addGlobalListener(.keydown, onKeyDown);
 }
 
@@ -45,7 +44,7 @@ pub fn register(event_type: EventType, cb: anytype, args: anytype) void {
     const erased = Vapor.lib.ErasedEventCallback.make(Vapor.arena(.persist), event_type, cb, args) catch unreachable;
 
     const stable_id = @intFromEnum(event_type);
-    stack.append(.{ .id = stable_id, .erased_cb = erased }) catch unreachable;
+    stack.append(.{ .id = stable_id, .erased_cb = erased });
 }
 
 pub fn unregister(event_type: EventType, args: anytype) void {

@@ -8,16 +8,31 @@ const VaporDocsConcepts = @import("routes/docs/vapor/concepts/:concept/Page.zig"
 const MetalDocs = @import("routes/docs/metal/Page.zig");
 const Huh = @import("routes/huh/Page.zig");
 const Install = @import("routes/install/Page.zig");
+const Error = @import("routes/error/Page.zig");
 const Theme = @import("theme");
 const Vaporize = @import("vaporize");
-const Opaque = @import("components/Opaque.zig");
+const Opaque = @import("opaque-ui");
+const Loader = @import("components").Loader;
+const LoaderText = @import("components").LoaderText;
 
 const OverlayManager = @import("components/OverlayManager.zig");
+const Fetch = Vapor.Fetch.Fetch;
+
 
 fn registerLayouts() !void {
     initLayouts();
-    try Vapor.lib.registerLayout("/", layout, .{});
-    try Vapor.lib.registerLayout("/docs", layoutDocs, .{ .reset = true });
+    try Vapor.registerLayout("/", layout, .{});
+    try Vapor.registerLayout("/docs", layoutDocs, .{ .reset = true });
+    _ = Vapor.registerHook("/docs", before, .before);
+    _ = Vapor.registerHook("/docs", after, .after);
+}
+
+fn before(ctx: Vapor.lib.HookContext) void {
+    std.log.info("Before hook called {s}", .{ctx.to_path});
+}
+
+fn after(ctx: Vapor.lib.HookContext) void {
+    std.log.info("After hook called {s}", .{ctx.to_path});
 }
 
 fn initLayouts() void {
@@ -46,8 +61,8 @@ fn ReverbPage() void {
 }
 
 fn initPages() void {
-    Vapor.Page(.{ .route = "/" }, RootPage.render, null);
     RootPage.init();
+    Error.init();
     Vapor.Page(.{ .route = "/docs/reverb" }, ReverbPage, null);
     VaporDocs.init();
     VaporDocsConcepts.init();
@@ -101,7 +116,7 @@ const style_config = Vaporize.StyleConfig{
             .text_color = .white,
         },
         .transition = .{ .duration = 100 },
-        .interactive = .hoverScaleTextBackground(.white, .palette(.tint)),
+        .interactive = .{ .hover = .{ .transform = .scale(), .background = .palette(.tint), .text_color = .white } },
         .child_gap = 8,
         .font_family = "Montserrat",
     },
@@ -157,16 +172,20 @@ pub var vaporize: Vaporize.Compiler = undefined;
 
 pub export fn init() void {
     // InitializeVapor
-    Vapor.init(.{
-        .mode = .atomic, // .atomic
-        .page_node_count = 10_240,
-    });
-    Vapor.Kit.init();
+    Vapor.init(.{});
+    Vapor.Animation.new();
+    Vapor.Edges.new();
+    Vapor.Polygons.new();
+    Fetch.init();
+    Loader.init();
+    LoaderText.init();
+
+    vaporize = Vaporize.init(Vapor.persist.arena(), style_config) catch unreachable; // this causes issues
+
 
     OverlayManager.init();
     Opaque.initAnimations();
-
-    vaporize = Vaporize.init(Vapor.arena(.persist), .{}) catch unreachable; // this causes issues
+    Opaque.new();
 
     // Global style variables
     Vapor.setGlobalStyleVariables(.{ // Adds 11kb

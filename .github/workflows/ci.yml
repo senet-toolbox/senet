@@ -1,0 +1,69 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # Cheap and only needs Vapor, so it runs even if the other sibling packages
+  # are not reachable from CI.
+  docs:
+    name: Docs reference real APIs
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: senet-website
+
+      - uses: actions/checkout@v4
+        with:
+          repository: senet-toolbox/vapor
+          path: vapor
+          # Needed only if the repository is private:
+          # token: ${{ secrets.WORKFLOW_TOKEN }}
+
+      - name: Check every documented Vapor symbol resolves
+        working-directory: senet-website
+        run: python3 scripts/check-docs-api.py --vapor ../vapor
+
+  # The site depends on three sibling packages by path. If any of them is
+  # private, give the checkout steps a PAT via secrets.WORKFLOW_TOKEN.
+  build:
+    name: Build the site
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: senet-website
+
+      - uses: actions/checkout@v4
+        with:
+          repository: senet-toolbox/vapor
+          path: vapor
+          # token: ${{ secrets.WORKFLOW_TOKEN }}
+
+      - uses: actions/checkout@v4
+        with:
+          repository: tether-labs/vaporize
+          path: vaporize
+          # token: ${{ secrets.WORKFLOW_TOKEN }}
+
+      - uses: actions/checkout@v4
+        with:
+          repository: senet-toolbox/opaque
+          path: opaque-ui
+          # token: ${{ secrets.WORKFLOW_TOKEN }}
+
+      - uses: mlugg/setup-zig@v2
+        with:
+          version: 0.16.0
+
+      - name: Build
+        working-directory: senet-website
+        run: zig build

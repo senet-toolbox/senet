@@ -1,8 +1,8 @@
-pub inline fn Box(style: Style) fn (void) void {
+pub inline fn Row(style: Style) fn (void) void {
     const elem_decl = ElementDecl{
         .style = style,
         .dynamic = .static,
-        .elem_type = .Box,
+        .elem_type = .Row,
     };
 
     LifeCycle.open(elem_decl);

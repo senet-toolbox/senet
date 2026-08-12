@@ -1,5 +1,5 @@
 const Vapor = @import("vapor");
-const Box = Vapor.Box;
+const Row = Vapor.Row;
 const Button = Vapor.Button;
 const Text = Vapor.Text;
 const TextFmt = Vapor.TextFmt;
@@ -21,8 +21,8 @@ pub fn Counter(comptime T: type, initial_value: T) type {
         }
 
         pub fn render() void {
-            Box().layout(.center).spacing(16).padding(.all(20)).children({
-                Button(decrement)
+            Row().layout(.center).spacing(16).padding(.all(20)).children({
+                Button(decrement, .{})
                     .shadow(.card(.palette(.text_color)))
                     .padding(.all(8))
                     .border(.simple(.palette(.text_color)))
@@ -41,7 +41,7 @@ pub fn Counter(comptime T: type, initial_value: T) type {
                     TextFmt("i32 Counter: {d}", .{count}).font(24, 700, .palette(.text_color)).end();
                 }
 
-                Button(increment)
+                Button(increment, .{})
                     .shadow(.card(.palette(.text_color)))
                     .padding(.all(8))
                     .border(.simple(.palette(.text_color)))

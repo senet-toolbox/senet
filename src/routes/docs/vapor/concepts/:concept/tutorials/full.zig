@@ -5,7 +5,7 @@ const Signal = Fabric.Signal;
 
 const Player = enum { x, o };
 
-const GridBox = struct {
+const GridRow = struct {
     clicked: bool = false,
     player: Player = undefined,
 };
@@ -19,16 +19,16 @@ fn drawO() void {
     Static.Svg(@embedFile("../assets/O.svg"), .{ .width = .fixed(42), .height = .fixed(42) });
 }
 
-var grid_boxes: [9]GridBox = undefined;
+var grid_boxes: [9]GridRow = undefined;
 var current_player: Player = .x;
 var winner: ?Player = null;
 /// Initialise the board for a new game.
 pub fn init() void {
-    for (&grid_boxes) |*box| box.* = GridBox{};
+    for (&grid_boxes) |*box| box.* = GridRow{};
     current_player = .x;
 }
 
-fn selectBox(box: *GridBox) void {
+fn selectRow(box: *GridRow) void {
     if (box.clicked or winner != null) return; // ignore if game over
 
     box.clicked = true;
@@ -81,7 +81,7 @@ pub fn render() void {
         .flex_wrap = .wrap,
     })({
         for (&grid_boxes) |*box| {
-            Static.CtxButton(selectBox, .{box}, .{
+            Static.CtxButton(selectRow, .{box}, .{
                 .display = .flex,
                 .border_color = .hex("#CCCCCC"),
                 .height = .percent(33),

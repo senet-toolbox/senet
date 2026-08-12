@@ -1,6 +1,6 @@
 const Vapor = @import("fabric");
 const Pure = Vapor.Pure;
-const Box = Pure.Box;
+const Row = Pure.Row;
 const TextFmt = Pure.TextFmt;
 const Text = Pure.Text;
 const Button = Pure.Button;

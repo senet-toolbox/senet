@@ -1,32 +1,33 @@
 const std = @import("std");
-const builtin = @import("builtin");
-fn generateHtml(b: *std.Build, run: *std.Build.Step.Run, static: bool, atomic: bool) void {
+
+fn generateHtml(b: *std.Build, static: bool, atomic: bool) *std.Build.Step {
     const target = b.graph.host;
 
     const optimize = std.builtin.OptimizeMode.Debug;
-    // Create a module for your config file
-    const user_config_module = b.addModule("user_config", .{
-        .root_source_file = b.path("src/my_config.zig"),
-        .target = target,
+
+    // ---------------------
+    //  Local modules
+    // ---------------------
+    const config_module = b.addModule("config", .{
+        .root_source_file = b.path("src/config.zig"),
         .optimize = optimize,
     });
 
-    // Define your build options
+    // ---------------------
+    //  Dependencies
+    // ---------------------
 
-    const vapor = b.dependency("vapor", .{
+    // Vapor — core framework
+    const vapor_dep = b.dependency("vapor", .{
         .target = target,
         .optimize = optimize,
         .static = static,
         .atomic = atomic,
     });
+    const vapor_module = vapor_dep.module("vapor");
+    vapor_module.addImport("config", config_module);
 
-    const vapor_module = vapor.module("vapor");
-
-    vapor_module.addImport("user_config", user_config_module);
-    vapor_module.addImport("vapor", vapor_module);
-
-
-    // ADD THIS: Create a theme module that has access tovapor
+    // Theme — styling layer (depends on vapor)
     const theme_module = b.addModule("theme", .{
         .root_source_file = b.path("src/Theme.zig"),
         .target = target,
@@ -35,15 +36,34 @@ fn generateHtml(b: *std.Build, run: *std.Build.Step.Run, static: bool, atomic: b
             .{ .name = "vapor", .module = vapor_module },
         },
     });
-
     vapor_module.addImport("theme", theme_module);
 
-    const vaporize = b.dependency("vaporize", .{
+    // Vaporize — utility layer (depends on vapor)
+    const vaporize_dep = b.dependency("vaporize", .{
         .target = target,
         .optimize = optimize,
     });
-    const vaporize_module = vaporize.module("vaporize");
+    const vaporize_module = vaporize_dep.module("vaporize");
     vaporize_module.addImport("vapor", vapor_module);
+
+    // Opaque UI — component library (depends on vapor, theme, config)
+    const opaque_ui_dep = b.dependency("opaque_ui", .{
+        .target = target,
+        .optimize = optimize,
+    });
+    const opaque_ui_module = opaque_ui_dep.module("opaque_ui");
+    opaque_ui_module.addImport("vapor", vapor_module);
+    opaque_ui_module.addImport("theme", theme_module);
+    opaque_ui_module.addImport("config", config_module);
+
+    const components_module = b.addModule("components", .{
+        .root_source_file = b.path("src/components/root.zig"),
+        .target = target,
+        .optimize = optimize,
+        .imports = &.{
+            .{ .name = "vapor", .module = vapor_module },
+        },
+    });
 
     const generator_mod = b.createModule(.{
         .root_source_file = b.path("src/generator.zig"),
@@ -52,60 +72,60 @@ fn generateHtml(b: *std.Build, run: *std.Build.Step.Run, static: bool, atomic: b
         .imports = &.{
             .{ .name = "vapor", .module = vapor_module },
             .{ .name = "theme", .module = theme_module }, // ADD THIS
-            .{ .name = "user_config", .module = user_config_module },
+            .{ .name = "config", .module = config_module },
             .{ .name = "vaporize", .module = vaporize_module },
+            .{ .name = "opaque-ui", .module = opaque_ui_module },
+            .{ .name = "components", .module = components_module },
         },
     });
+
     const generator_exe = b.addExecutable(.{
         .name = "generator",
         .root_module = generator_mod,
     });
 
-    run.* = b.addRunArtifact(generator_exe).*;
+    const run = b.addRunArtifact(generator_exe);
+    return &run.step;
 }
 
-// Basic minimal vapor build.zig setup
 pub fn build(b: *std.Build) void {
-    var generator: std.Build.Step.Run = undefined;
+    // ---------------------
+    //  Build options
+    // ---------------------
     const generate = b.option(bool, "generate", "Generate HTML") orelse false;
     const static = b.option(bool, "static", "Statically link the wasm module") orelse false;
     const atomic = b.option(bool, "atomic", "Atomically link the wasm module") orelse false;
-
-    if (generate) {
-        generateHtml(b, &generator, static, atomic);
-    }
-
-    const wasm_target = b.standardTargetOptions(.{
-        // .default_target = .{ .cpu_arch = .x86_64 },
-        .default_target = .{ .cpu_arch = .wasm32, .os_tag = .wasi },
-    });
-
     const optimize = b.standardOptimizeOption(.{});
 
-    // Create a module for your config file
-    const user_config_module = b.addModule("user_config", .{
-        .root_source_file = b.path("src/my_config.zig"),
+    const wasm_target = b.standardTargetOptions(.{
+        .default_target = .{ .cpu_arch = .wasm32, .os_tag = .wasi },
+        // .default_target = .{ .cpu_arch = .x86, .os_tag = .macos },
+    });
+
+    // ---------------------
+    //  Local modules
+    // ---------------------
+    const config_module = b.addModule("config", .{
+        .root_source_file = b.path("src/config.zig"),
         .target = wasm_target,
         .optimize = optimize,
     });
 
+    // ---------------------
+    //  Dependencies
+    // ---------------------
+
+    // Vapor — core framework
     const vapor_dep = b.dependency("vapor", .{
         .target = wasm_target,
         .optimize = optimize,
         .static = static,
         .atomic = atomic,
     });
-
-    // 1. Get the compiled library artifact
-    // const vapor_lib = vapor_dep.artifact("vapor_lib");
-
-    // 2. Link it to your executable
     const vapor_module = vapor_dep.module("vapor");
+    vapor_module.addImport("config", config_module);
 
-    vapor_module.addImport("user_config", user_config_module);
-    vapor_module.addImport("vapor", vapor_module);
-
-    // ADD THIS: Create a theme module that has access tovapor
+    // Theme — styling layer (depends on vapor)
     const theme_module = b.addModule("theme", .{
         .root_source_file = b.path("src/Theme.zig"),
         .target = wasm_target,
@@ -114,25 +134,49 @@ pub fn build(b: *std.Build) void {
             .{ .name = "vapor", .module = vapor_module },
         },
     });
+    vapor_module.addImport("theme", theme_module);
 
-    const vaporize = b.dependency("vaporize", .{
+    // Vaporize — utility layer (depends on vapor)
+    const vaporize_dep = b.dependency("vaporize", .{
         .target = wasm_target,
         .optimize = optimize,
     });
-    const vaporize_module = vaporize.module("vaporize");
+    const vaporize_module = vaporize_dep.module("vaporize");
     vaporize_module.addImport("vapor", vapor_module);
 
-    vapor_module.addImport("theme", theme_module);
-    // We will also create a module for our other entry point, 'main.zig'.
+    // Opaque UI — component library (depends on vapor, theme, config)
+    const opaque_ui_dep = b.dependency("opaque_ui", .{
+        .target = wasm_target,
+        .optimize = optimize,
+    });
+    const opaque_ui_module = opaque_ui_dep.module("opaque_ui");
+    opaque_ui_module.addImport("vapor", vapor_module);
+    opaque_ui_module.addImport("theme", theme_module);
+    opaque_ui_module.addImport("config", config_module);
+
+    const components_module = b.addModule("components", .{
+        .root_source_file = b.path("src/components/root.zig"),
+        .target = wasm_target,
+        .optimize = optimize,
+        .imports = &.{
+            .{ .name = "vapor", .module = vapor_module },
+        },
+    });
+
+    // ---------------------
+    //  Executable
+    // ---------------------
     const exe_mod = b.createModule(.{
         .root_source_file = b.path("src/main.zig"),
         .target = wasm_target,
         .optimize = optimize,
         .imports = &.{
             .{ .name = "vapor", .module = vapor_module },
+            .{ .name = "theme", .module = theme_module },
+            .{ .name = "config", .module = config_module },
             .{ .name = "vaporize", .module = vaporize_module },
-            .{ .name = "theme", .module = theme_module }, // ADD THIS
-            .{ .name = "user_config", .module = user_config_module },
+            .{ .name = "opaque-ui", .module = opaque_ui_module },
+            .{ .name = "components", .module = components_module },
         },
     });
 
@@ -141,21 +185,27 @@ pub fn build(b: *std.Build) void {
         .root_module = exe_mod,
     });
 
-    // exe.linkLibrary(vapor_lib);
+    // ---------------------
+    //  Memory stack size
+    // ---------------------
+    // exe.stack_size = 4 * 1024 * 1024;
 
-    exe.stack_size = 10 * 1024 * 1024;
-
-    if (generate) {
-        exe.step.dependOn(&generator.step);
-    }
-
-    exe.rdynamic = true;
+    // ---------------------
+    //  Disabling main entry point
+    // ---------------------
     exe.entry = .disabled;
+
+    // ---------------------
+    //  Export all extern functions
+    // ---------------------
+    exe.rdynamic = true;
 
     b.installArtifact(exe);
 
+    // ---------------------
+    //  Run step
+    // ---------------------
     const run_cmd = b.addRunArtifact(exe);
-
     run_cmd.step.dependOn(b.getInstallStep());
 
     if (b.args) |args| {
@@ -165,4 +215,9 @@ pub fn build(b: *std.Build) void {
     const run_step = b.step("run", "Run the app");
     run_step.dependOn(&run_cmd.step);
 
+    // Optional: wire up the HTML generator before compilation
+    if (generate) {
+        const gen_step = generateHtml(b, static, atomic);
+        exe.step.dependOn(gen_step);
+    }
 }

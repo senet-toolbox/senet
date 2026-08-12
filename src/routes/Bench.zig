@@ -1,7 +1,7 @@
 const std = @import("std");
 const Vapor = @import("vapor");
 
-const Box = Vapor.Box;
+const Row = Vapor.Row;
 const Text = Vapor.Text;
 const Button = Vapor.Button;
 const ButtonCtx = Vapor.CtxButton;
@@ -212,7 +212,7 @@ fn RowView(row: *Row) void {
     const bg: Vapor.Types.Background = if (row.selected) .vapor_blue else .white;
     const text_color: Vapor.Types.Color = if (row.selected) .white else .black;
 
-    Box()
+    Row()
         .direction(.row)
         .background(bg)
         .padding(.tblr(4, 4, 8, 8))
@@ -259,7 +259,7 @@ fn Benchmark() void {
         Text("Vapor 10k Benchmark").font(28, 800, .black).end();
 
         // Stats
-        Box().direction(.row).spacing(20).children({
+        Row().direction(.row).spacing(20).children({
             Text(Vapor.fmtln("Rows: {d}", .{rows.items.len}))
                 .font(14, 400, .black).end();
             Text(Vapor.fmtln("Last: {s}", .{last_action}))
@@ -269,7 +269,7 @@ fn Benchmark() void {
         });
 
         // Action Buttons
-        Box().direction(.row).spacing(8).wrap(.wrap).children({
+        Row().direction(.row).spacing(8).wrap(.wrap).children({
             ActionButton("Create 1,000", create1k);
             ActionButton("Create 10,000", create10k);
             ActionButton("Append 1,000", append1k);

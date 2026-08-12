@@ -16,7 +16,7 @@ pub fn init() void {
 }
 
 pub fn render() void {
-    Static.Box(.{
+    Static.Row(.{
         .child_gap = 64,
         .direction = .row,
         .width = .percent(80),

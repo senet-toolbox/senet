@@ -3,14 +3,16 @@ const Vapor = @import("vapor");
 const Signal = Vapor.Signal;
 const Style = Vapor.Style;
 const Static = Vapor.Static;
-const Pure = Vapor.Pure;
-const CodeEditor = @import("../CodeEditor.zig");
 const Vaporize = @import("vaporize");
-const Box = Static.Box;
+const Row = Vapor.Row;
 const Custom = @import("../../../../../../components/Custom.zig");
 const Content = @import("../../../../../../components/Content.zig");
+const reinit = @import("../../../../../../components/DocNavbar.zig").reinit;
 const snippet = Custom.code_snippet_single;
 const Compiler = @import("../../../../../../main.zig");
+const Fetch = Vapor.Fetch.Fetch;
+const Loader = @import("components").Loader;
+const Error = @import("components").Error;
 
 const Text = Static.Text;
 const Link = Static.Link;
@@ -20,34 +22,33 @@ const Button = Static.Button;
 const TextFmt = Static.TextFmt;
 
 // Initialization
-var sample_events: CodeEditor = undefined;
-var sample_inst_events: CodeEditor = undefined;
 var content: Content.new("") = undefined;
-var markdown_loaded: bool = false;
 var page: []const u8 = "";
+var f: ?*Fetch = null;
 var markdown: Compiler.vaporize.MarkDown(.{}) = .{};
 
 pub fn init() void {
-    Vapor.Kit.fetch("/documents/themes_icons_page.md", handlePage, .{ .method = .GET });
+    f = Fetch.fetch("/documents/themes_icons_page.md", .{ .method = .GET });
+    f.?.handle(handlePage, .{});
+    content.init();
 }
 
-fn handlePage(resp: Vapor.Kit.Response) void {
+fn handlePage(resp: Vapor.Fetch.Result) void {
     switch (resp) {
-        .Ok => |data| {
+        .ok => |data| {
             content.content_text = data.body;
             page = data.body;
             markdown.compile(page) catch |err| {
-                Vapor.printErr("Failed to compile markdown: {any}", .{err});
+                std.log.err("Failed to compile markdown: {any}", .{err});
                 return;
             };
-            markdown_loaded = true;
         },
-        .Err => |err| {
-            Vapor.printErr("Failed to fetch: {s}", .{err.message});
+        .err => |err| {
+            std.log.err("Failed to fetch: {s}", .{err.message});
             return;
         },
     }
-    Vapor.cycle();
+    Vapor.onLayout(reinit, .{});
 }
 
 fn component() void {
@@ -55,13 +56,25 @@ fn component() void {
 }
 
 pub fn render() void {
-    if (!markdown_loaded) return;
-    content.content(component);
-    Box()
-        .background(.palette(.background))
-        .border(.simple(.palette(.border_color)))
-        .font(16, 500, .palette(.text_color))
-        .children({
-        //...
-    });
+    if (f) |h| {
+        switch (h.state()) {
+            .idle => {},
+            .loading => {
+                Loader.render();
+            },
+            .ok => {
+                content.content(component);
+                Row()
+                    .background(.palette(.background))
+                    .border(.simple(.palette(.border_color)))
+                    .font(16, 500, .palette(.text_color))
+                    .children({
+                    //...
+                });
+            },
+            .err => {
+                Error.render();
+            },
+        }
+    }
 }

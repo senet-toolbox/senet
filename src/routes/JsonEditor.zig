@@ -1,7 +1,7 @@
 const std = @import("std");
 const Vapor = @import("vapor");
 const Page = Vapor.Page;
-const Box = Vapor.Box;
+const Row = Vapor.Row;
 const Text = Vapor.Text;
 const Hooks = Vapor.Static.Hooks;
 const TextArea = Vapor.TextArea;
@@ -444,7 +444,7 @@ var copied: bool = false;
 fn copy() void {
     Vapor.Clipboard.copy(text);
     copied = true;
-    Vapor.registerCtxTimeout("json_editor_copy", 1000, toggleIcon, .{{}});
+    Vapor.timeout("json_editor_copy", 1000, toggleIcon, .{{}});
 }
 
 fn toggleIcon(_: void) void {
@@ -456,7 +456,7 @@ fn render() void {
         .height(.px(container_height * 2))
         .width(.px(420))
         .children({
-        Box()
+        Row()
             .width(.percent(100))
             .padding(.horizontal(12))
             .height(.px(48))
@@ -480,7 +480,7 @@ fn render() void {
                 }
             });
         });
-        Box()
+        Row()
             .height(.px(container_height))
             .width(.px(420))
             .pos(.relative)
@@ -488,7 +488,7 @@ fn render() void {
             .spacing(16)
             // .background(.hex("#1e1e1e"))
             .children({
-            Box()
+            Row()
                 .ref(&binded_highlighter)
                 .height(.px(container_height))
                 .width(.px(420))
@@ -499,7 +499,7 @@ fn render() void {
                 .pos(.tl(.percent(0), .percent(0), .absolute)).children({
                 highlighter.renderAST(highlighter.root) catch unreachable;
             });
-            Box()
+            Row()
                 .background(.transparent)
                 .width(.percent(100))
                 .height(.percent(100))
@@ -522,12 +522,12 @@ fn render() void {
                     .caret(.{ .type = .block, .color = .palette(.text_color) })
                     .font(15, null, .transparent)
                     .fontFamily("DM Mono, monospace")
-                    .onChange(onChange)
+                    .onChange(onChange, .{})
                     .onKeyDown(onKeyDown)
                     .end();
             });
         });
-        Box()
+        Row()
             .width(.percent(100))
             .height(.px(64))
             .scroll(.scroll_y())

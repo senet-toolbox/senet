@@ -14,6 +14,7 @@ import {
   timeouts,
   sockets,
   domNodeRegistry,
+  elementEvents,
 } from "./maps.js";
 
 import {
@@ -24,6 +25,7 @@ import {
   styleSheet,
   checkMemoryGrowth,
   allocStringFrame,
+  f32View,
 } from "./wasi_obj.js";
 import { batchRemoveTombStones } from "./wasi_styling.js";
 
@@ -103,34 +105,37 @@ export const EventType = {
   // Document / Media / Error events
   load: 47, // Fired when a resource and its dependent resources have finished loading.
   unload: 48, // Fired when the document is being unloaded.
-  abort: 49, // Fired when the loading of a resource is aborted.
-  error: 50, // Fired when a resource fails to load.
-  select: 51, // Fired when some text has been selected.
-  show: 52, // Fired when a context menu item is shown.
-  close: 53, // Fired when a dialog or other element is closed.
-  cancel: 54, // Fired when a dialog is canceled or dismissed.
+  abort: 49,
+  show: 50,
+  close: 51,
+  cancel: 52,
 
   // Media events
-  play: 55, // Fired when playback has begun.
-  pause: 56, // Fired when playback has been paused.
-  ended: 57, // Fired when playback has stopped because the end of the media was reached.
-  volumechange: 58, // Fired when the volume has been changed.
-  waiting: 59, // Fired when playback has stopped because of a temporary lack of data.
+  play: 53,
+  pause: 54,
+  ended: 55,
+  volumechange: 56,
+  waiting: 57,
 
   // Progress events
-  loadstart: 60, // Fired when the browser has started to load a resource.
-  progress: 61, // Fired periodically as the browser loads a resource.
-  loadend: 62, // Fired when a request has completed (success or failure).
+  loadstart: 58,
+  progress: 59,
+  loadend: 60,
 
   // Transition & Animation events
-  transitionend: 63, // Fired when a CSS transition has completed.
-  animationstart: 64, // Fired when a CSS animation has started.
-  animationend: 65, // Fired when a CSS animation has completed.
-  animationiteration: 66, // Fired when an iteration of a CSS animation has completed.
+  transitionend: 61,
+  animationstart: 62,
+  animationend: 63,
+  animationiteration: 64,
 };
 
 // Define a cache outside the function to store DOM references
 export const elementCache = new Map();
+
+// Separate map for resize observers (don't share with IntersectionObservers)
+const resizeObservers = new Map();
+// Map: observerId -> Map<elementId, callbackId>
+const resizeCallbacks = new Map();
 
 export function setWasiInstance(instance) {
   wasmInstance = instance;
@@ -415,6 +420,11 @@ export class WasmObjectBuilder {
           const strPtr = allocStringFrame(value);
           this.wasm.addStringField(handle, keyPtr, strPtr);
           break;
+        case "radio":
+          console.log("Radio", value);
+          // const strPtr = allocStringFrame(value);
+          // this.wasm.addStringField(handle, keyPtr, strPtr);
+          break;
         case "number":
           if (Number.isInteger(value)) {
             this.wasm.addIntField(handle, keyPtr, value);
@@ -492,11 +502,20 @@ export const env = {
   // Console / Debugging
   // ==========================================================================
 
-  consoleLogWasm: (ptr, len) => {
-    if (!requireWasm()) return;
-    const memory = new Uint8Array(wasmInstance.memory.buffer);
-    const str = new TextDecoder().decode(memory.subarray(ptr, ptr + len));
-    console.log(str);
+  // consoleLogWasm: (ptr, len) => {
+  //   if (!requireWasm()) return;
+  //   const memory = new Uint8Array(wasmInstance.memory.buffer);
+  //   const str = new TextDecoder().decode(memory.subarray(ptr, ptr + len));
+  //   console.log(str);
+  // },
+
+  consoleLogWasm: (level, msgPtr, msgLen, stylePtr, styleLen) => {
+    const consoleMethods = ["error", "warn", "info", "debug"];
+    const msg = readWasmString(msgPtr, msgLen);
+    const style = readWasmString(stylePtr, styleLen);
+    const method = consoleMethods[level] || "log";
+    console.log(msg, style, method);
+    // console[method](msg, style);
   },
 
   consoleLogColoredWasm: (
@@ -637,7 +656,6 @@ export const env = {
     if (!requireWasm()) return;
     const eventType = readWasmString(ptr, len);
     const eventData = eventHandlers.get("vapor-document");
-    console.log("removeEventListener", eventData);
     if (!eventData) return;
 
     const handler = eventData[eventType];
@@ -651,9 +669,121 @@ export const env = {
     }
   },
 
+  setPointerCaptureWasm: (idPtr, idLen, onid) => {
+    if (!requireWasm()) return;
+    const eventId = onid >>> 0;
+    const event = eventStorage[eventId];
+    if (!event) {
+      console.error("Event not found");
+      return;
+    }
+    const [elementId, element] = getElement(idPtr, idLen);
+    element.setPointerCapture(event.pointerId);
+  },
+
+  releasePointerCaptureWasm: (idPtr, idLen, onid) => {
+    if (!requireWasm()) return;
+    const eventId = onid >>> 0;
+    const event = eventStorage[eventId];
+    const [elementId, element] = getElement(idPtr, idLen);
+    if (!event) {
+      console.error("Event not found", element, eventId, elementId);
+      return;
+    }
+    element.releasePointerCapture(event.pointerId);
+  },
+
   // ==========================================================================
   // Event Handling - Element Level
   // ==========================================================================
+  // createElementEventListener: (idPtr, idLen, ptr, len, onid) => {
+  //   if (!requireWasm()) return;
+  //
+  //   const [elementId, element] = getElement(idPtr, idLen);
+  //   if (element === null) {
+  //     console.log("Could not attach listener element is Null", elementId);
+  //     return;
+  //   }
+  //
+  //   let event_type = readWasmString(ptr, len);
+  //   if (event_type === "rightclick") {
+  //     event_type = "contextmenu";
+  //   }
+  //
+  //   let eventData = eventHandlers.get(elementId);
+  //
+  //   if (!eventData) {
+  //     eventData = Object.create(null);
+  //     eventHandlers.set(elementId, eventData);
+  //   }
+  //
+  //   if (eventData[event_type]) {
+  //     return;
+  //   }
+  //
+  //   const handler = (event) => {
+  //     const currentId = element.id;
+  //     const nodeInfo = domNodeRegistry.get(currentId);
+  //
+  //     if (nodeInfo === undefined) {
+  //       console.log("Could Not find domNode", element, currentId);
+  //       return;
+  //     }
+  //
+  //     const callback_id = onid >>> 0;
+  //     eventStorage[callback_id] = event;
+  //
+  //     wasmInstance.dispatchNodeEvent(
+  //       nodeInfo.node_ptr,
+  //       EventType[event_type],
+  //       callback_id,
+  //     );
+  //   };
+  //
+  //   eventData[event_type] = handler;
+  //   element.addEventListener(event_type, handler);
+  // },
+  createElementEventListener: (idPtr, idLen, ptr, len, onid) => {
+    if (!requireWasm()) return;
+    const [elementId, element] = getElement(idPtr, idLen);
+    if (element === null) {
+      console.log("Could not attach listener element is Null", elementId);
+      return;
+    }
+
+    const callback_id = onid >>> 0;
+    let event_type = readWasmString(ptr, len);
+    const eventData = eventHandlers.get(elementId);
+
+    if (event_type === "rightclick") {
+      event_type = "contextmenu";
+    }
+
+    const handler = (event) => {
+      const currentId = element.id;
+      const nodeInfo = domNodeRegistry.get(currentId);
+      if (nodeInfo === undefined) {
+        console.log("Could Not find domNode", element, currentId);
+        return;
+      }
+
+      eventStorage[callback_id] = event;
+      wasmInstance.dispatchNodeEvent(
+        nodeInfo.node_ptr,
+        EventType[event_type],
+        callback_id,
+      );
+      return false;
+    };
+
+    if (!eventData) {
+      eventHandlers.set(elementId, { [event_type]: handler });
+      element.addEventListener(event_type, handler);
+    } else if (!eventData[event_type]) {
+      eventData[event_type] = handler;
+      element.addEventListener(event_type, handler);
+    }
+  },
 
   // createElementEventListener: (idPtr, idLen, ptr, len, onid) => {
   //   if (!requireWasm()) return;
@@ -663,22 +793,36 @@ export const env = {
   //     return;
   //   }
   //
-  //   const event_id = onid >>> 0;
-  //   const event_type = readWasmString(ptr, len);
+  //   const callback_id = onid >>> 0;
+  //   let event_type = readWasmString(ptr, len);
   //   const eventData = eventHandlers.get(elementId);
+  //
+  //   if (event_type === "rightclick") {
+  //     event_type = "contextmenu";
+  //     // return;
+  //   }
   //
   //   const handler = (event) => {
   //     if (event_type === "pointerdown") {
   //       element.setPointerCapture(event.pointerId);
   //     }
-  //     eventStorage[event_id] = event;
-  //     wasmInstance.eventCallback(event_id);
-  //   };
+  //     eventStorage[callback_id] = event;
   //
-  //   if (event_type === "pointerdown") {
-  //     element.style.contain = "layout style paint";
-  //     element.style.willChange = "transform";
-  //   }
+  //     if (event_type === "contextmenu") {
+  //       console.log(event);
+  //       console.log("Right Click", EventType[event_type]);
+  //       console.log(callback_id, elementId);
+  //     }
+  //
+  //     const nodeInfo = domNodeRegistry.get(elementId);
+  //     eventStorage[callback_id] = event;
+  //     wasmInstance.dispatchNodeEvent(
+  //       nodeInfo.node_ptr,
+  //       EventType[event_type],
+  //       callback_id,
+  //     );
+  //     return false;
+  //   };
   //
   //   if (eventData === undefined) {
   //     const newEventData = {};
@@ -693,65 +837,19 @@ export const env = {
   //     }
   //   }
   // },
-  createElementEventListener: (idPtr, idLen, ptr, len, onid) => {
-    if (!requireWasm()) return;
-    const [elementId, element] = getElement(idPtr, idLen);
-    if (element === null) {
-      console.log("Could not attach listener element is Null", elementId);
-      return;
-    }
 
-    const callback_id = onid >>> 0;
-    const event_type = readWasmString(ptr, len);
-    const eventData = eventHandlers.get(elementId);
-
-    // if (event_type === "focus") {
-    //   console.log("FOCUS");
-    //   return;
-    // }
-
-    const handler = (event) => {
-      if (event_type === "pointerdown") {
-        element.setPointerCapture(event.pointerId);
-      }
-      eventStorage[callback_id] = event;
-
-      const nodeInfo = domNodeRegistry.get(elementId);
-      eventStorage[callback_id] = event;
-      wasmInstance.dispatchNodeEvent(
-        nodeInfo.node_ptr,
-        EventType[event_type],
-        callback_id,
-      );
-    };
-
-    if (event_type === "pointerdown") {
-      element.style.contain = "layout style paint";
-      element.style.willChange = "transform";
-    }
-
-    if (eventData === undefined) {
-      const newEventData = {};
-      newEventData[event_type] = handler;
-      element.addEventListener(event_type, handler);
-      eventHandlers.set(elementId, newEventData);
-    } else {
-      if (eventData[event_type] === undefined) {
-        if (elementId == "Text_yrBqC3-gk") {
-          console.warn("HERE");
-        }
-        eventData[event_type] = handler;
-        element.addEventListener(event_type, handler);
-        eventHandlers.set(elementId, eventData);
-      }
-    }
-  },
-
-  runOnAnimationFrameWasm: (onid) => {
-    if (!requireWasm()) return;
-    requestAnimationFrame(() => {
+  requestAnimationFrameWasm: (onid) => {
+    if (!requireWasm()) return 0;
+    const handle = requestAnimationFrame(() => {
       wasmInstance.callAnimationFrameCallback(onid);
     });
+    return handle;
+  },
+
+  cancelAnimationFrameWasm: (handle) => {
+    if (!requireWasm()) return;
+    if (handle === 0) return;
+    cancelAnimationFrame(handle);
   },
 
   createElementEventInstListener: (idPtr, idLen, ptr, len, onid) => {
@@ -798,10 +896,6 @@ export const env = {
     );
     const element = document.getElementById(elementId);
 
-    if (elementId == "Text_yrBqC3-gk") {
-      console.warn("ERROR HERE");
-    }
-
     const eventType = readWasmString(ptr, len);
     const eventData = eventHandlers.get(elementId);
     if (!eventData) return;
@@ -843,8 +937,17 @@ export const env = {
     if (!requireWasm()) return;
     const event_id = onid >>> 0;
     const key = readWasmString(ptr, len);
+
     const event = eventStorage[event_id];
-    const keyValue = event[key];
+    if (event === undefined) {
+      console.warn(
+        "Event Not found",
+        Object.keys(eventStorage).slice(),
+        event_id,
+      );
+      return;
+    }
+    const keyValue = event.target?.[key] ?? event[key];
     return keyValue;
   },
 
@@ -951,9 +1054,46 @@ export const env = {
     if (!requireWasm()) return;
     const id = readWasmString(idPtr, idLen);
     const attribute = readWasmString(attributePtr, attributeLen);
+    let element = elementCache.get(id);
+    if (!element) {
+      element = document.getElementById(id);
+      if (element) elementCache.set(id, element);
+      else return;
+    }
+    element[attribute] = value;
+  },
+
+  mutateDomElementI32Wasm: (
+    idPtr,
+    idLen,
+    attributePtr,
+    attributeLen,
+    value,
+  ) => {
+    if (!requireWasm()) return;
+    const id = readWasmString(idPtr, idLen);
+    const attribute = readWasmString(attributePtr, attributeLen);
     const element = document.getElementById(id);
     if (element === null) {
-      console.log("Is Null");
+      console.warn("Cannot Set Attribute, Element Is Null");
+      return;
+    }
+    element[attribute] = value;
+  },
+
+  mutateDomElementF32Wasm: (
+    idPtr,
+    idLen,
+    attributePtr,
+    attributeLen,
+    value,
+  ) => {
+    if (!requireWasm()) return;
+    const id = readWasmString(idPtr, idLen);
+    const attribute = readWasmString(attributePtr, attributeLen);
+    const element = document.getElementById(id);
+    if (element === null) {
+      console.warn("Cannot Set Attribute, Element Is Null");
       return;
     }
     element[attribute] = value;
@@ -973,7 +1113,7 @@ export const env = {
     const value = readWasmString(valuePtr, valueLen);
     const element = document.getElementById(id);
     if (element === null) {
-      console.warn("Cannot Set Attribute, Element Is Null");
+      console.warn("Cannot Set Attribute, Element: ", id, "is Not in DOM");
       return;
     }
     element[attribute] = value;
@@ -1031,25 +1171,17 @@ export const env = {
     valuePtr,
     valueLen,
   ) => {
-    requestAnimationFrame(() => {
-      if (!requireWasm()) return;
-      const memory = new Uint8Array(wasmInstance.memory.buffer);
-      const id = new TextDecoder().decode(
-        memory.subarray(idPtr, idPtr + idLen),
-      );
-      const attribute = new TextDecoder().decode(
-        memory.subarray(attributePtr, attributePtr + attributeLen),
-      );
-      const value = new TextDecoder().decode(
-        memory.subarray(valuePtr, valuePtr + valueLen),
-      );
-      const element = document.getElementById(id);
-      if (element === null) {
-        console.log("Is Null");
-        return;
-      }
-      element.style[attribute] = value;
-    });
+    if (!requireWasm()) return;
+    const id = readWasmString(idPtr, idLen);
+    const attribute = readWasmString(attributePtr, attributeLen);
+    const value = readWasmString(valuePtr, valueLen);
+
+    const element = document.getElementById(id);
+    if (element === null) {
+      console.log("Is Null");
+      return;
+    }
+    element.style[attribute] = value;
   },
 
   // ... inside your imports object ...
@@ -1130,30 +1262,42 @@ export const env = {
   // ==========================================================================
 
   getBoundingClientRectWasm: (idPtr, idLen) => {
-    if (!requireWasm()) return;
-    const memory = new Uint8Array(wasmInstance.memory.buffer);
-    const elementId = new TextDecoder().decode(
-      memory.subarray(idPtr, idPtr + idLen),
-    );
-    const ptr = wasmInstance.allocate(6);
-    const bounds = new Float32Array(memory.buffer, ptr, 6);
+    if (!requireWasm()) return 0;
+
+    // Read the id BEFORE allocating (allocate can detach the buffer).
+    const elementId = readWasmString(idPtr, idLen);
+
     const element = document.getElementById(elementId);
-    const rectBounds = element.getBoundingClientRect();
+    if (!element) {
+      console.error("Element not found", elementId);
+      return 0;
+    }
 
-    bounds[0] = rectBounds.top + window.scrollY;
-    bounds[1] = rectBounds.left + window.scrollX;
-    bounds[2] = rectBounds.right + window.scrollX;
-    bounds[3] = rectBounds.bottom + window.scrollY;
-    bounds[4] = rectBounds.width;
-    bounds[5] = rectBounds.height;
+    // 6 floats * 4 bytes each
+    const ptr = wasmInstance.allocate(6 * 4);
 
-    return ptr;
+    // Re-fetch the buffer AFTER allocate — it may have been detached/replaced.
+    const bounds = f32View(ptr, 6);
+
+    try {
+      const r = element.getBoundingClientRect();
+      bounds[0] = r.top;
+      bounds[1] = r.left;
+      bounds[2] = r.right;
+      bounds[3] = r.bottom;
+      bounds[4] = r.width;
+      bounds[5] = r.height;
+      return ptr;
+    } catch (e) {
+      console.error("Error getting element bounds", e, elementId);
+      return 0;
+    }
   },
 
   getOffsetsWasm: (idPtr, idLen) => {
     if (!requireWasm()) return;
     const memory = new Uint8Array(wasmInstance.memory.buffer);
-    const id = new TextDecoder().decode(memory.subarray(idPtr, idPtr + idLen));
+    const id = readWasmString(idPtr, idLen);
     const element = document.getElementById(id);
 
     if (!element) {
@@ -1535,6 +1679,10 @@ export const env = {
     return allocStringFrame(window.location.hash);
   },
 
+  getWindowOriginWasm: () => {
+    return allocStringFrame(window.location.origin);
+  },
+
   setWindowHashWasm: (hashPtr, hashLen) => {
     const hash = readWasmString(hashPtr, hashLen);
     window.location.hash = hash;
@@ -1548,7 +1696,6 @@ export const env = {
   navigateWasm: (pathPtr, pathLen) => {
     const path = readWasmString(pathPtr, pathLen);
     const currentPath = window.location.pathname;
-    window.history.pushState({}, "", path);
     requestAnimationFrame(() => {
       if (currentPath !== path) {
         rerenderRoute(path);
@@ -1804,7 +1951,7 @@ export const env = {
     socket.send(data);
   },
 
-  fetchWasm: (urlPtr, urlLen, callback_id, httpPtr, httpLen) => {
+  fetchWasm: async (urlPtr, urlLen, callback_id, httpPtr, httpLen) => {
     const url = readWasmString(urlPtr, urlLen);
     const data = readWasmString(httpPtr, httpLen);
     const Request = JSON.parse(data);
@@ -1818,6 +1965,7 @@ export const env = {
     fetch(url, Request)
       .then(async (res) => {
         const elapsed = Math.round(performance.now() - startTime);
+
         const headers = {};
         res.headers.forEach((value, key) => {
           headers[key] = value;
@@ -1825,97 +1973,96 @@ export const env = {
 
         const body = await res.text();
 
-        let response = {
-          code: res.status,
-          message: res.statusText,
-          type: res.type,
+        // Wire format: flat object matching ParsedResponseWire in Zig.
+        // - `ok: bool` is the variant discriminant (no outer Ok/Err wrapper)
+        // - `status` (not `code`)
+        // - For HTTP errors (4xx/5xx), ok=false and error_kind="http"
+        const wire = {
           ok: res.ok,
+          status: res.status,
+          message: res.statusText,
+          body: body,
           url: res.url,
           redirected: res.redirected,
-          body: body,
-          headers: headers,
           content_type: res.headers.get("content-type") || "",
           content_length: body.length,
           elapsed_ms: elapsed,
+          headers: headers,
         };
 
         if (!res.ok) {
-          // Add error fields so it matches ErrResponse
-          response.error_kind = "http";
-          response.error_name = "HttpError";
+          wire.error_kind = "http";
+          wire.error_name = "HttpError";
         }
 
-        const tag = res.ok ? "Ok" : "Err";
-        const respString = JSON.stringify({ [tag]: response });
+        const respString = JSON.stringify(wire);
         const ptr = allocStringFrame(respString);
-        wasmInstance.resumeCallback(callback_id, ptr);
+        wasmInstance.resumecallback(callback_id, ptr);
       })
       .catch((err) => {
         const elapsed = Math.round(performance.now() - startTime);
 
-        // Classify the network error
+        // Categorize into one of the values Zig's parseErrorKind recognizes:
+        //   "network" | "timeout" | "abort" | "parse" | "http"
+        // Anything else lands in Zig's `.unknown` bucket. We keep the JS-side
+        // detail (cors, dns, tls, etc.) in error_name for diagnostics.
         let error_kind = "unknown";
-        const msg = err.message.toLowerCase();
+        let error_name = err.name || "Error";
+
+        const msg = (err.message || "").toLowerCase();
+
         if (err.name === "AbortError" || msg.includes("abort")) {
-          error_kind = "aborted";
-        } else if (
-          err.name === "TypeError" &&
-          msg.includes("failed to fetch")
-        ) {
-          error_kind = "network";
+          error_kind = "abort";
         } else if (msg.includes("timeout")) {
           error_kind = "timeout";
+        } else if (
+          err.name === "TypeError" &&
+          (msg.includes("failed to fetch") ||
+            msg.includes("networkerror") ||
+            msg.includes("network request failed"))
+        ) {
+          // Browsers conflate CORS, DNS, and TLS into a generic "TypeError: Failed to fetch".
+          // We bucket all of these as "network" for the Zig enum, but preserve detail in
+          // error_name so users can disambiguate when debugging.
+          error_kind = "network";
+          if (msg.includes("cors")) error_name = "CorsError";
+          else if (msg.includes("dns") || msg.includes("not found"))
+            error_name = "DnsError";
+          else if (
+            msg.includes("ssl") ||
+            msg.includes("cert") ||
+            msg.includes("tls")
+          )
+            error_name = "TlsError";
         } else if (msg.includes("cors")) {
-          error_kind = "cors";
+          error_kind = "network";
+          error_name = "CorsError";
         } else if (msg.includes("dns") || msg.includes("not found")) {
-          error_kind = "dns";
+          error_kind = "network";
+          error_name = "DnsError";
         } else if (msg.includes("ssl") || msg.includes("cert")) {
-          error_kind = "tls";
+          error_kind = "network";
+          error_name = "TlsError";
         }
 
-        const response = {
-          code: 0,
-          type: "error",
-          message: err.message,
+        const wire = {
           ok: false,
+          status: 0,
+          message: err.message || String(err),
+          body: "",
           url: url,
           redirected: false,
-          body: "",
-          headers: {},
           content_type: "",
           content_length: 0,
           elapsed_ms: elapsed,
+          headers: null,
           error_kind: error_kind,
-          error_name: err.name || "Error",
+          error_name: error_name,
         };
 
-        const respString = JSON.stringify({ Err: response });
+        const respString = JSON.stringify(wire);
         const ptr = allocStringFrame(respString);
-        wasmInstance.resumeCallback(callback_id, ptr);
-      });
-  },
-
-  fetchParamsWasm: (urlPtr, urlLen, callback_id, httpPtr, httpLen) => {
-    const url = readWasmString(urlPtr, urlLen);
-    const data = readWasmString(httpPtr, httpLen);
-    const Request = JSON.parse(data);
-
-    const response = {};
-    fetch(url, Request)
-      .then((res) => {
-        response.code = res.status;
-        response.text = res.statusText;
-        response.type = res.type;
-        return res.text();
-      })
-      .then((text) => {
-        response.body = text;
-        const respString = JSON.stringify(response);
-        const ptr = allocString(respString);
-        wasmInstance.resumeCallback(callback_id, ptr);
-      })
-      .catch((err) => {
-        console.error("Fetch failed:", err);
+        wasmInstance.resumecallback(callback_id, ptr);
       });
   },
 
@@ -1941,7 +2088,6 @@ export const env = {
   // ==========================================================================
   // Intersection Observer
   // ==========================================================================
-
   createObserverWasm(id_ptr, optionsPtr) {
     const id = id_ptr >>> 0;
     optionsPtr = optionsPtr >>> 0;
@@ -1986,11 +2132,22 @@ export const env = {
     const id = id_ptr >>> 0;
     const elementId = readWasmString(elementPtr, elementLen);
     const observer = observers.get(id);
-    const element = document.getElementById(elementId);
-    if (element === null) {
-      console.warn(`Element with id ${elementId} not found`);
+    let element = document.getElementById(elementId);
+    if (!element) {
+      requestAnimationFrame(() => {
+        element = document.getElementById(elementId);
+        if (!element) {
+          console.warn(
+            `Could not Observe: Element with id ${elementId} not found`,
+          );
+          return;
+        }
+        element.dataset.index = index;
+        observer.observe(element);
+      });
       return;
     }
+
     element.dataset.index = index;
     observer.observe(element);
   },
@@ -2009,6 +2166,148 @@ export const env = {
 
   destroyObserverWasm(ptr, len) {
     observers.delete(readWasmString(ptr, len));
+  },
+
+  // ==========================================================================
+  // Resize Observer
+  // ==========================================================================
+
+  createResizeObserverWasm(id_ptr, optionsPtr) {
+    const id = id_ptr >>> 0;
+    optionsPtr = optionsPtr >>> 0;
+
+    // Read options struct (same pattern as IntersectionObserver)
+    const instancePtr = wasmInstance.getResizeOptions(optionsPtr);
+    let box = "content-box";
+    if (instancePtr) {
+      const fieldCount = wasmInstance.getResizeOptionsFieldCount();
+      const reader = new DynamicStructReader(wasmInstance, wasmInstance.memory);
+      const opts = reader.readStruct(
+        null,
+        instancePtr,
+        fieldCount,
+        "getResizeOptionsFieldDescriptor",
+      );
+      // box enum: 0=content-box, 1=border-box, 2=device-pixel-content-box
+      box =
+        ["content-box", "border-box", "device-pixel-content-box"][opts.box] ||
+        "content-box";
+    }
+
+    const callbackMap = new Map();
+    resizeCallbacks.set(id, callbackMap);
+
+    const builder = new WasmObjectBuilder(wasmInstance, wasmInstance.memory);
+
+    const observer = new ResizeObserver(
+      (entries) => {
+        for (const entry of entries) {
+          const elementId = entry.target.id;
+          const callbackId = callbackMap.get(elementId);
+
+          if (callbackId === undefined) continue;
+
+          // Pull dimensions. borderBoxSize is an array of {inlineSize, blockSize}
+          const borderBox = entry.borderBoxSize?.[0];
+          const contentBox = entry.contentBoxSize?.[0];
+
+          const width = borderBox
+            ? borderBox.inlineSize
+            : entry.contentRect.width;
+          const height = borderBox
+            ? borderBox.blockSize
+            : entry.contentRect.height;
+          const contentWidth = contentBox
+            ? contentBox.inlineSize
+            : entry.contentRect.width;
+          const contentHeight = contentBox
+            ? contentBox.blockSize
+            : entry.contentRect.height;
+
+          const index = parseInt(entry.target.dataset.resizeIndex || "0", 10);
+
+          // Write entry directly into Wasm memory at a scratch location
+          // OR use your existing builder pattern:
+          const data = {
+            width,
+            height,
+            content_width: contentWidth,
+            content_height: contentHeight,
+            index,
+          };
+
+          const entryPtr = builder.passObject(data); // however you marshal structs in
+          wasmInstance.resizeCallback(callbackId, entryPtr);
+        }
+      },
+      { box },
+    );
+
+    resizeObservers.set(id, observer);
+  },
+
+  observeResizeWasm(id_ptr, elementPtr, elementLen, callback_Id) {
+    const id = id_ptr >>> 0;
+    const callbackId = callback_Id >>> 0;
+    const elementId = readWasmString(elementPtr, elementLen);
+    const observer = resizeObservers.get(id);
+    if (!observer) {
+      console.warn(`ResizeObserver ${id} not found`);
+      return;
+    }
+    let element = document.getElementById(elementId);
+    if (!element) {
+      requestAnimationFrame(() => {
+        element = document.getElementById(elementId);
+        if (!element) {
+          console.warn(`Element ${elementId} not found for resize observation`);
+          return;
+        }
+        // Track callbackId per element so we can dispatch correctly
+        const cbMap = resizeCallbacks.get(id);
+        cbMap.set(elementId, callbackId);
+
+        observer.observe(element);
+      });
+      return;
+    }
+
+    // Track callbackId per element so we can dispatch correctly
+    const cbMap = resizeCallbacks.get(id);
+    cbMap.set(elementId, callbackId);
+
+    observer.observe(element);
+  },
+
+  unobserveResizeWasm(id_ptr, elementPtr, elementLen) {
+    const id = id_ptr >>> 0;
+    const elementId = readWasmString(elementPtr, elementLen);
+    const observer = resizeObservers.get(id);
+    if (!observer) return;
+    const element = document.getElementById(elementId);
+    if (element) observer.unobserve(element);
+    resizeCallbacks.get(id)?.delete(elementId);
+  },
+
+  disconnectResizeObserverWasm(id_ptr) {
+    const id = id_ptr >>> 0;
+    const observer = resizeObservers.get(id);
+    if (!observer) return;
+    observer.disconnect();
+    resizeCallbacks.get(id)?.clear();
+  },
+
+  destroyResizeObserverWasm(ptr, len) {
+    const name = readWasmString(ptr, len);
+    // If you key by hash on Zig side, you'll need to match that here
+    // For now, assuming the JS side keys the same way
+    const id = hashName(name); // or however your hashing aligns
+    const observer = resizeObservers.get(id);
+    if (observer) {
+      observer.disconnect();
+      resizeObservers.delete(id);
+      resizeCallbacks.delete(id);
+    }
   },
 
   // ==========================================================================
@@ -2169,7 +2468,7 @@ export const env = {
         break;
     }
 
-    element.scrollTo({ top, left, behavior: "smooth" });
+    element.scrollTo({ top, left, behavior });
   },
 
   setAttributeWasm: (idPtr, idLen, keyPtr, keyLen, valuePtr, valueLen) => {
@@ -2192,5 +2491,39 @@ export const env = {
       return;
     }
     element.removeAttribute(key);
+  },
+  startViewTransitionWasm: (callback_id) => {
+    const transition = document.startViewTransition(() => {
+      wasmInstance.invokeErasedCallback(callback_id);
+    });
+
+    transition.ready.catch((err) => console.error("Transition failed:", err));
+    transition.finished.catch((err) => console.error("Transition error:", err));
+  },
+
+  runPlaygroundWasm: async (urlPtr, urlLen) => {
+    const wasm_playground_url = readWasmString(urlPtr, urlLen);
+
+    // Fetch the WASM binary
+    const response = await fetch(wasm_playground_url);
+    const bytes = await response.arrayBuffer();
+
+    // Destroy the old iframe and create a fresh one
+    const oldIframe = document.getElementById("playground-frame");
+    const parent = oldIframe.parentElement;
+    const newIframe = oldIframe.cloneNode(false); // clones attributes, not children/state
+    parent.replaceChild(newIframe, oldIframe);
+
+    // Wait for the new iframe to signal it's ready, then send the WASM
+    window.addEventListener("message", function handler(e) {
+      if (e.data.type === "playground-ready") {
+        window.removeEventListener("message", handler);
+        newIframe.contentWindow.postMessage({ type: "load-wasm", bytes }, "*");
+      }
+    });
+  },
+  windowOpenWasm: (urlPtr, urlLen) => {
+    const url = readWasmString(urlPtr, urlLen);
+    window.open(url, "_blank");
   },
 };

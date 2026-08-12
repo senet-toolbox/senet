@@ -1,12 +1,11 @@
 const std = @import("std");
 const Vapor = @import("vapor");
-const Static = Vapor.Static;
 const Pure = Vapor.Pure;
 const Style = Vapor.Style;
-const CtxButton = Static.CtxButton;
-const Text = Static.Text;
-const Icon = Static.Icon;
-const Box = Static.Box;
+const Button = Vapor.Button;
+const Text = Vapor.Text;
+const Icon = Vapor.Icon;
+const Row = Vapor.Row;
 
 const HtmlOptions = struct {
     text: []const u8,
@@ -109,8 +108,7 @@ fn copy(text: []const u8) void {
     Vapor.Clipboard.copy(text);
     copied = true;
     copied_text = text;
-    Vapor.println("Hello", .{});
-    Vapor.registerCtxTimeout("code_snippet", 500, toggleIcon, .{});
+    Vapor.timeout("code_snippet", 500, toggleIcon, .{});
 }
 
 fn toggleIcon() void {
@@ -120,7 +118,7 @@ fn toggleIcon() void {
 }
 
 pub fn code_snippet_single(text: []const u8) void {
-    CtxButton(copy, .{text})
+    Button(copy, .{text})
         .style(&.{
         .visual = .{
             .border = .simple(.palette(.border_color_light)),
@@ -143,7 +141,7 @@ pub fn code_snippet_single(text: []const u8) void {
             .layout(.center)
             .size(.w(.grow))
             .end();
-        Box().style(&.{
+        Row().style(&.{
             // .position = .{ .type = .absolute, .right = .px(8), .top = .px(8) },
             .size = .square_px(22),
             .transition = .{ .duration = 100 },

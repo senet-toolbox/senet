@@ -1,6 +1,6 @@
 const std = @import("std");
 const Vapor = @import("vapor");
-const Box = Vapor.Box;
+const Row = Vapor.Row;
 const Text = Vapor.Text;
 const ButtonCtx = Vapor.CtxButton;
 const Icon = Vapor.Icon;
@@ -82,7 +82,7 @@ fn goto(url: []const u8) void {
 
 fn render() void {
     const current_path = Vapor.Kit.getWindowPath();
-    Box().style(&.{
+    Row().style(&.{
         .position = .{ .type = .fixed, .top = .px(60), .left = .percent(2), .z_index = 999 },
         .size = .hw(.percent(100), .mobile_desktop_percent(100, 14)),
     })({

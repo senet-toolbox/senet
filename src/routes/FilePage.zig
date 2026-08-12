@@ -1,6 +1,6 @@
 const Vapor = @import("vapor");
 const std = @import("std");
-const Box = Vapor.Box;
+const Row = Vapor.Row;
 const Text = Vapor.Text;
 const TextField = Vapor.TextField;
 const RedirectLink = Vapor.RedirectLink;
@@ -116,13 +116,13 @@ fn onFileRead(text: []const u8) void {
 }
 
 fn render() void {
-    Box().children({
+    Row().children({
         Text("File Page").font(72, 700, .palette(.text_color)).end();
         TextField(.file)
-            .onChange(upload)
+            .onChange(upload, .{})
             .placeholder("File Path").end();
     });
-    Box()
+    Row()
         .pos(.relative)
         .class("box")
         .width(.px(width))
@@ -137,7 +137,7 @@ fn render() void {
                 .height(.percent(100))
                 .end();
         }
-        Box()
+        Row()
             .pos(.br(.px(-24), .px(-24), .absolute))
             .height(.px(24))
             .width(.px(24))

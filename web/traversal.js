@@ -5,27 +5,18 @@ import {
   activeNodeIds,
   readWasmString,
   rerenderRoute,
-  allocString,
   text_data,
   currentPath,
-  render,
 } from "./wasi_obj.js";
-import {
-  applyHoverClass,
-  applyFocusClass,
-  updateComponentStyle,
-  applyFocusWithinClass,
-  setRuleStyle,
-  applyTooltipClass,
-} from "./wasi_styling.js";
+import { updateComponentStyle, setRuleStyle } from "./wasi_styling.js";
 import {
   domNodeRegistry,
   eventHandlers,
-  eventStorage,
   hooksCtxCreated,
   hooksDestroyCtx,
   hooksMounted,
   hooksMountedCtx,
+  invokedHooks,
   loadedSections,
   observeredSections,
   pureNodeRegistry,
@@ -94,6 +85,8 @@ export const COMPONENT_TYPES = {
   TABLE_HEAD: 56,
   ANCHOR: 57,
   SPACER: 58,
+  IFRAME: 59,
+  FIELDSET: 60,
 };
 
 const STATE_TYPES = {
@@ -119,53 +112,53 @@ export function clearIntervalsForRoute(path) {
   }
 }
 
-export async function animateExitRecursive(el, index, toRemoveMap) {
-  if (!el) return;
-  el.dataset.removing = "true";
-
-  // First, recursively handle children that are in the removal set
-  const childRemovals = [];
-  for (const [id, { el: childEl, index: childIndex }] of toRemoveMap) {
-    if (
-      childEl !== el &&
-      el.contains(childEl) &&
-      childEl.parentElement?.closest(`[data-removing="true"]`) === el
-    ) {
-      // Direct child in removal set
-      childRemovals.push(
-        animateExitRecursive(childEl, childIndex, toRemoveMap),
-      );
-    }
-  }
-  await Promise.all(childRemovals);
-
-  // Now animate this element
-  const animPtr = wasmInstance.getRemovalAnimationPtr(index);
-  if (animPtr > 0) {
-    const animLen = wasmInstance.getRemovalAnimationLen(index);
-    const css = readWasmString(animPtr, animLen);
-    if (css) {
-      el.style.animation = css;
-      void el.offsetWidth;
-      await new Promise((resolve) => {
-        el.addEventListener("animationend", () => resolve(), { once: true });
-      });
-    }
-  }
-
-  // Cleanup
-  domNodeRegistry.delete(el.id);
-  pureNodeRegistry.delete(el.id);
-  loadedSections.delete(el.id);
-  const eventData = eventHandlers.get(el.id);
-  if (eventData) {
-    for (const [eventType, handler] of Object.entries(eventData)) {
-      el.removeEventListener(eventType, handler);
-    }
-    eventHandlers.delete(el.id);
-  }
-  el.remove();
-}
+// export async function animateExitRecursive(el, index, toRemoveMap) {
+//   if (!el) return;
+//   el.dataset.removing = "true";
+//
+//   // First, recursively handle children that are in the removal set
+//   const childRemovals = [];
+//   for (const [id, { el: childEl, index: childIndex }] of toRemoveMap) {
+//     if (
+//       childEl !== el &&
+//       el.contains(childEl) &&
+//       childEl.parentElement?.closest(`[data-removing="true"]`) === el
+//     ) {
+//       // Direct child in removal set
+//       childRemovals.push(
+//         animateExitRecursive(childEl, childIndex, toRemoveMap),
+//       );
+//     }
+//   }
+//   await Promise.all(childRemovals);
+//
+//   // Now animate this element
+//   const animPtr = wasmInstance.getRemovalAnimationPtr(index);
+//   if (animPtr > 0) {
+//     const animLen = wasmInstance.getRemovalAnimationLen(index);
+//     const css = readWasmString(animPtr, animLen);
+//     if (css) {
+//       el.style.animation = css;
+//       void el.offsetWidth;
+//       await new Promise((resolve) => {
+//         el.addEventListener("animationend", () => resolve(), { once: true });
+//       });
+//     }
+//   }
+//
+//   // Cleanup
+//   domNodeRegistry.delete(el.id);
+//   pureNodeRegistry.delete(el.id);
+//   loadedSections.delete(el.id);
+//   const eventData = eventHandlers.get(el.id);
+//   if (eventData) {
+//     for (const [eventType, handler] of Object.entries(eventData)) {
+//       el.removeEventListener(eventType, handler);
+//     }
+//     eventHandlers.delete(el.id);
+//   }
+//   el.remove();
+// }
 
 export async function animateExit(el, index = -1, skipAnimation = false) {
   if (!el || el.dataset.removing === "true") return;
@@ -223,6 +216,10 @@ function cleanupRegistryEntry(id) {
       }
       eventHandlers.delete(id);
     }
+  }
+
+  if (entry?.destroy_hash > 0) {
+    wasmInstance.invokeHooksErasedCallback(entry.destroy_hash);
   }
 
   domNodeRegistry.delete(id);
@@ -365,7 +362,6 @@ function createLinkElement(element, uinode) {
     const urlObj = new URL(clickedHref);
     const path = urlObj.pathname;
     const currentPath = window.location.pathname;
-    window.history.pushState({}, "", path);
     // we push the state and renderCycle the new path
     requestAnimationFrame(() => {
       if (currentPath !== path) {
@@ -434,6 +430,39 @@ export function attachElementListeners(element, renderCmd) {
       element.autoplay = videoView.getUint8(8) === 1;
       break;
 
+    case COMPONENT_TYPES.LINK:
+      element.addEventListener("click", function(event) {
+        event.preventDefault();
+
+        const clickedHref = event.currentTarget.href;
+
+        const urlObj = new URL(clickedHref);
+        const path = urlObj.pathname;
+        const currentPath = window.location.pathname;
+        window.history.pushState({}, "", path);
+        // we push the state and renderCycle the new path
+        requestAnimationFrame(() => {
+          if (currentPath !== path) {
+            rerenderRoute(path);
+          }
+          requestAnimationFrame(() => {
+            const hash = urlObj.hash;
+            if (hash) {
+              const id = hash.substring(1, hash.length);
+              const element = document.getElementById(id);
+              if (element) {
+                // Scroll the element into view with options
+                element.scrollIntoView({
+                  block: "center", // Vertically align to the center of the screen
+                });
+              }
+              window.history.pushState({}, "", path + hash);
+            }
+          });
+        });
+      });
+      break;
+
     default:
       break;
   }
@@ -491,18 +520,17 @@ export function createElementByType(uinode) {
       break;
 
     case COMPONENT_TYPES.TEXT_AREA:
-      const textareaPtr = wasmInstance.getTextFieldParams(uinode.offset) >>> 0;
       element = document.createElement("textarea");
 
-      const textarea_ptr = wasmInstance.getFieldName(uinode.offset) >>> 0;
-      if (textarea_ptr) {
+      text = readWasmString(uinode.textPtr, uinode.textLen);
+      const text_field_ptr = wasmInstance.getFieldName(uinode.offset) >>> 0;
+      if (text_field_ptr) {
         const field_len = wasmInstance.getFieldNameLen();
-        const field = readWasmString(textarea_ptr, field_len);
+        const field = readWasmString(text_field_ptr, field_len);
         element.setAttribute("name", field);
       }
-
-      // element.lang = "json";
-      if (textareaPtr) {
+      const text_instansePtr = wasmInstance.getTextFieldParams(uinode.offset);
+      if (text_instansePtr) {
         const fieldCount = wasmInstance.getTextFieldCount(uinode.offset);
         const reader = new DynamicStructReader(
           wasmInstance,
@@ -510,16 +538,14 @@ export function createElementByType(uinode) {
         );
         const fieldStruct = reader.readStruct(
           uinode.offset,
-          textareaPtr,
+          text_instansePtr,
           fieldCount,
           "getTextFieldDescriptor",
         );
+        element.placeholder =
+          fieldStruct.default !== null ? String(fieldStruct.default) : "";
         element.value =
-          fieldStruct.value !== null
-            ? String(fieldStruct.value)
-            : fieldStruct.default !== null
-              ? String(fieldStruct.default)
-              : "";
+          fieldStruct.value !== null ? String(fieldStruct.value) : "";
       }
       break;
 
@@ -636,6 +662,9 @@ export function createElementByType(uinode) {
         element.value =
           fieldStruct.value !== null ? String(fieldStruct.value) : "";
 
+        element.required =
+          fieldStruct.required !== null ? fieldStruct.required : "";
+
         switch (fieldStruct.type) {
           case 0:
             element.type = "number";
@@ -650,6 +679,7 @@ export function createElementByType(uinode) {
             element.type = "checkbox";
             break;
           case 4:
+            console.log("Radio", fieldCount);
             element.type = "radio";
             break;
           case 5:
@@ -865,11 +895,24 @@ export function createElementByType(uinode) {
       );
       break;
 
+    case COMPONENT_TYPES.IFRAME:
+      element = document.createElement("iframe");
+      const url = readWasmString(uinode.hrefPtr, uinode.hrefLen);
+      console.log("IFRAME", url);
+      element.src = url;
+      break;
+
+    case COMPONENT_TYPES.FIELDSET:
+      element = document.createElement("fieldset");
+      break;
+
     case COMPONENT_TYPES.SPACER:
       element = document.createElement("div");
       break;
 
     case COMPONENT_TYPES.NOOP:
+      // element = document.createElement("div");
+      // element.style.display = "none";
       break;
 
     default:
@@ -935,6 +978,7 @@ export function setupElement(element, uinode) {
     exitAnimationId: uinode.exitAnimationId,
     destroyId: uinode.hooks.destroyId > 0 ? uinode.hooks.destroyId : null,
     hash: uinode.hash,
+    destroy_hash: uinode.onCallbacks[2],
   });
   // tRegistry += performance.now() - s;
 }
@@ -944,9 +988,9 @@ export function setupElement(element, uinode) {
  * @param {HTMLElement} element - The element to update
  * @param {Object} renderCmd - The render command
  */
-export function updateElement(element, uinode) {
+export function updateElement(element, uinode, force = false) {
   // Update text content if needed
-  if (uinode.changedProps > 0) {
+  if (uinode.changedProps > 0 || force) {
     if (
       (uinode.textLen >= 0 && uinode.elemType === COMPONENT_TYPES.TEXT) ||
       uinode.elemType === COMPONENT_TYPES.HEADER ||
@@ -1025,47 +1069,65 @@ export function updateElement(element, uinode) {
   }
 
   // This means that the style hash has changed and we need to update
-  if (uinode.changedStyle > 0) {
-    // Update styling
-    updateComponentStyle(uinode.offset, uinode.styleId, "", element);
+  if (uinode.changedStyle > 0 || force) {
 
-    const inlineStylePtr = wasmInstance.getInlineStyle(uinode.offset);
-    if (inlineStylePtr !== 0) {
-      const inlineStyleLen = wasmInstance.getInlineStyleLen(uinode.offset);
-      const inlineStyle = readWasmString(inlineStylePtr, inlineStyleLen);
-      element.setAttribute("style", inlineStyle);
-    } else if (uinode.elemType === COMPONENT_TYPES.ICON) {
-      const iconName = readWasmString(uinode.hrefPtr, uinode.hrefLen);
-      element.className = iconName + " " + uinode.styleId;
-      uinode.styleId = iconName + " " + uinode.styleId;
+    // Update styling
+
+    const isReusedNode = !force; // force=true means freshly created/attached
+    if (isReusedNode) {
+      // element.style = "";
+      const prevTransition = element.style.transition;
+      if (!uinode.morph) {
+        element.style.transition = "none";
+      } else {
+        if (element.style.transition === "") {
+          element.style.transition = "all 0.3s ease-in-out";
+        }
+      }
+
+      updateComponentStyle(uinode.offset, uinode.styleId, "", element);
+
+      const inlineStylePtr = wasmInstance.getInlineStyle(uinode.offset);
+      if (inlineStylePtr !== 0) {
+        const inlineStyleLen = wasmInstance.getInlineStyleLen(uinode.offset);
+        const inlineStyle = readWasmString(inlineStylePtr, inlineStyleLen);
+        element.setAttribute("style", inlineStyle);
+      } else if (uinode.elemType === COMPONENT_TYPES.ICON) {
+        const iconName = readWasmString(uinode.hrefPtr, uinode.hrefLen);
+        element.className = iconName + " " + uinode.styleId;
+        uinode.styleId = iconName + " " + uinode.styleId;
+      } else {
+        // element.setAttribute("style", "");
+      }
+
+      if (!uinode.morph) {
+        // Force style flush so the new width/etc commits with transition:none
+        void element.offsetHeight;
+
+        // Restore on next frame
+        requestAnimationFrame(() => {
+          element.style.transition = prevTransition; // usually '' so class rules win
+        });
+      }
     } else {
-      element.setAttribute("style", "");
+      updateComponentStyle(uinode.offset, uinode.styleId, "", element);
+      const inlineStylePtr = wasmInstance.getInlineStyle(uinode.offset);
+      if (inlineStylePtr !== 0) {
+        const inlineStyleLen = wasmInstance.getInlineStyleLen(uinode.offset);
+        const inlineStyle = readWasmString(inlineStylePtr, inlineStyleLen);
+        element.setAttribute("style", inlineStyle);
+      } else if (uinode.elemType === COMPONENT_TYPES.ICON) {
+        const iconName = readWasmString(uinode.hrefPtr, uinode.hrefLen);
+        element.className = iconName + " " + uinode.styleId;
+        uinode.styleId = iconName + " " + uinode.styleId;
+      }
     }
   } else {
     const inlineStylePtr = wasmInstance.getInlineStyle(uinode.offset);
-    if (inlineStylePtr === 0) {
-      element.setAttribute("style", "");
-    }
+    // if (inlineStylePtr === 0) {
+    //   element.setAttribute("style", "");
+    // }
   }
-
-  // if (uinode.hoverCss.length > 0) {
-  //   applyHoverClass(element, uinode.styleId, uinode.hoverCss);
-  // }
-  //
-  // if (uinode.focusCss.length > 0) {
-  //   applyFocusClass(element, uinode.styleId, uinode.focusCss);
-  // }
-  //
-  // if (uinode.focusWithinCss.length > 0) {
-  //   applyFocusWithinClass(element, uinode.styleId, uinode.focusWithinCss);
-  // }
-  // if (uinode.stateType === STATE_TYPES.PURE) {
-  //   pureNodeRegistry.set(uinode.id, {
-  //     id: uinode.id,
-  //     state: uinode,
-  //     index: uinode.index,
-  //   });
-  // }
 }
 
 /**
@@ -1131,6 +1193,62 @@ export function resetTimers() {
   tRegistry = 0;
 }
 
+function invokeCallbacks(uinode) {
+  for (const item of uinode.onCallbacks) {
+    if (item === 0) continue;
+    wasmInstance.invokeErasedCallback(item);
+  }
+}
+
+function invokeCallback(callback_hash) {
+  if (callback_hash === 0) return;
+  wasmInstance.invokeHooksErasedCallback(callback_hash);
+}
+
+const LAYER_ROOTS = {
+  0: null, // LAYER_NONE — normal placement
+  1: "layer-tooltip",
+  2: "layer-popover",
+  3: "layer-modal",
+  4: "layer-toast",
+};
+
+function getLayerRoot(layerKind) {
+  if (!layerKind) return null;
+  const id = LAYER_ROOTS[layerKind];
+  return id ? document.getElementById(id) : null;
+}
+
+function getValidAnchor(parent, nextUinode) {
+  if (!nextUinode) return null;
+  const nextId = nextUinode[0]?.id;
+  if (!nextId) return null;
+  const candidate = document.getElementById(nextId);
+  // Only use it if it's actually a child of the parent we're inserting into
+  if (candidate && candidate.parentNode === parent) {
+    return candidate;
+  }
+  return null;
+}
+
+function placeElement(element, parent, anchor, uinode) {
+  if (uinode.layer && uinode.layer > 0) {
+    const layerRoot = getLayerRoot(uinode.layer);
+    if (layerRoot) {
+      element.dataset.layer = uinode.layer;
+      if (element.parentNode !== layerRoot) {
+        layerRoot.appendChild(element);
+      }
+      return;
+    }
+  }
+
+  // Defensive: if anchor isn't actually in parent, just append
+  if (anchor && anchor.parentNode !== parent) {
+    anchor = null;
+  }
+  parent.insertBefore(element, anchor);
+}
 /**
  * Traverse and render the component tree
  * @param {HTMLElement} parent - The parent element html element
@@ -1142,23 +1260,14 @@ export function traverseUINodes(parent, parentUINode) {
 
   // const children_count = wasmInstance.getUINodeChildrenCount(parentUINode);
   const uinodes = [];
-  // let s = performance.now();
 
   // Collect children by walking the linked list - O(n)
   let childPtr = wasmInstance.getUINodeFirstChild(parentUINode);
 
   while (childPtr) {
-    // s = performance.now();
     const uiNode = readUINode(childPtr);
-    // t1 += performance.now() - s;
-
-    // s = performance.now();
     uinodes.push([uiNode, childPtr]);
-    // t7 += performance.now() - s;
-
-    // s = performance.now();
     childPtr = wasmInstance.getUINodeNextSibling(childPtr);
-    // t2 += performance.now() - s;
   }
 
   for (let i = uinodes.length - 1; i >= 0; i--) {
@@ -1168,16 +1277,15 @@ export function traverseUINodes(parent, parentUINode) {
     let element = null;
 
     if (uinode.isDirty) {
-      // s = performance.now();
-      // element = domNodeRegistry.get(uinode.id)?.domNode;
       element = document.getElementById(uinode.id);
-      // if (uinode.id.startsWith("checkbox-")) {
-      //   console.log("Element", element, domNodeRegistry.get(uinode.id));
-      // }
-      // t3 += performance.now() - s;
+
+      if (uinode.hooksChanged) {
+        console.log("Hooks Change", uinode.id, uinode.hooksChanged);
+        invokedHooks.set(uinode.onCallbacks[0], true);
+      }
+
       if (element && state.initial_render) {
         // Create new element
-
         attachElementListeners(element, uinode);
         domNodeRegistry.set(uinode.id, {
           elementType: uinode.elemType,
@@ -1186,50 +1294,22 @@ export function traverseUINodes(parent, parentUINode) {
           exitAnimationId: uinode.exitAnimationId,
           destroyId: uinode.hooks.destroyId > 0 ? uinode.hooks.destroyId : null,
           hash: uinode.hash,
+          destroy_hash: uinode.onCallbacks[2],
         });
 
-        // Append to parent
-        const next = uinodes[i + 1];
-        let anchor = null;
-        if (next) {
-          const nextId = next[0]?.id; // id of the next sibling
-          anchor = nextId ? document.getElementById(nextId) : null;
-        }
+        updateElement(element, uinode, true);
 
-        // s = performance.now();
-        parent.insertBefore(element, anchor);
-        // t4 += performance.now() - s;
+        // Append to parent
+        const anchor = getValidAnchor(parent, uinodes[i + 1]);
+        placeElement(element, parent, anchor, uinode);
+
         traverseUINodes(element, child_ptr);
 
-        if (uinode.elemType === COMPONENT_TYPES.HOOKS_CTX) {
-          const hooks_type = wasmInstance.getHooksType(uinode.offset);
-          switch (hooks_type) {
-            case 0:
-              hooksMountedCtx.set(uinode.hash, true);
-              break;
-            case 1:
-              hooksDestroyCtx.set(uinode.hash, true);
-              break;
-            case 2:
-              console.log("hooksCtxCreated", uinode.hash);
-              hooksCtxCreated.set(uinode.hash, true);
-              break;
-          }
-          element.className = "";
-        } else if (uinode.elemType === COMPONENT_TYPES.HOOKS) {
-          if (uinode.hooks.mountedId > 0) {
-            hooksMounted.set(uinode.id, true);
-            element.className = "";
-          }
-          if (uinode.hooks.createdId > 0) {
-            wasmInstance.hooksCreatedCallback(uinode.hooks.createdId);
-          }
-          if (uinode.hooks.updatedId > 0) {
-            wasmInstance.hooksUpdatedCallback(uinode.hooks.updatedId);
-          }
-        } else if (uinode.hooks.createdId > 0) {
-          hooksCtxCreated.set(uinode.id, true);
+        if (uinode.onCallbacks[0] > 0) {
+          invokedHooks.set(uinode.onCallbacks[0], true);
         }
+
+        invokeCallback(uinode.onCallbacks[1]);
       } else if (!element || state.initial_render) {
         // Create new element
         // s = performance.now();
@@ -1244,223 +1324,70 @@ export function traverseUINodes(parent, parentUINode) {
         // t5 += performance.now() - s;
 
         // Append to parent
-        const next = uinodes[i + 1];
-        let anchor = null;
-        if (next) {
-          const nextId = next[0]?.id; // id of the next sibling
-          anchor = nextId ? document.getElementById(nextId) : null;
-        }
+        const anchor = getValidAnchor(parent, uinodes[i + 1]);
+        placeElement(element, parent, anchor, uinode);
 
-        // s = performance.now();
-        parent.insertBefore(element, anchor);
-        // t4 += performance.now() - s;
         traverseUINodes(element, child_ptr);
 
-        if (uinode.elemType === COMPONENT_TYPES.HOOKS_CTX) {
-          const hooks_type = wasmInstance.getHooksType(uinode.offset);
-          switch (hooks_type) {
-            case 0:
-              hooksMountedCtx.set(uinode.hash, true);
-              break;
-            case 1:
-              hooksDestroyCtx.set(uinode.hash, true);
-              break;
-            case 2:
-              hooksCtxCreated.set(uinode.hash, true);
-              break;
-          }
-          element.className = "";
-        } else if (uinode.elemType === COMPONENT_TYPES.HOOKS) {
-          if (uinode.hooks.mountedId > 0) {
-            hooksMounted.set(uinode.id, true);
-            element.className = "";
-          }
-          if (uinode.hooks.createdId > 0) {
-            wasmInstance.hooksCreatedCallback(uinode.hooks.createdId);
-          }
-          if (uinode.hooks.updatedId > 0) {
-            wasmInstance.hooksUpdatedCallback(uinode.hooks.updatedId);
-          }
-        } else if (uinode.hooks.createdId > 0) {
-          hooksCtxCreated.set(uinode.id, true);
+        if (uinode.onCallbacks[0] > 0) {
+          invokedHooks.set(uinode.onCallbacks[0], true);
         }
+
+        invokeCallback(uinode.onCallbacks[1]);
       } else {
-        // Here we may need to change the positions of the elements
         // Update existing element
         updateElement(element, uinode);
         const node_info = domNodeRegistry.get(uinode.id);
         if (node_info !== undefined) {
-          node_info.node_ptr = uinode.offset;
-          domNodeRegistry.set(uinode.id, node_info);
+          domNodeRegistry.set(uinode.id, {
+            elementType: uinode.elemType,
+            node_ptr: uinode.offset,
+            domNode: element,
+            exitAnimationId: uinode.exitAnimationId,
+            destroyId:
+              uinode.hooks.destroyId > 0 ? uinode.hooks.destroyId : null,
+            hash: uinode.hash,
+            destroy_hash: uinode.onCallbacks[2],
+          });
         }
 
-        // Calculate the intended anchor (next sibling)
-        const next = uinodes[i + 1];
-        let anchor = null;
-        if (next) {
-          const nextId = next[0]?.id;
-          anchor = nextId ? document.getElementById(nextId) : null;
-          // anchor = nextId ? domNodeRegistry.get(nextId)?.domNode : null;
-          // element = domNodeRegistry.get(uinode.id)?.domNode;
-        }
-        // In traverseUINodes, when checking siblings:
-        let actualNextSibling = element.nextSibling;
-        while (actualNextSibling?.dataset?.removing) {
-          actualNextSibling = actualNextSibling.nextSibling;
-        }
+        if (uinode.layer && uinode.layer > 0) {
+          // Layered node: make sure it's in the right layer root, skip sibling logic
+          const layerRoot = getLayerRoot(uinode.layer);
+          if (layerRoot && element.parentNode !== layerRoot) {
+            element.dataset.layer = uinode.layer;
+            layerRoot.appendChild(element);
+          }
+        } else {
+          // Normal node: reposition within parent if needed
+          const anchor = getValidAnchor(parent, uinodes[i + 1]);
 
-        if (element.parentNode !== parent || actualNextSibling !== anchor) {
-          parent.insertBefore(element, anchor);
+          let actualNextSibling = element.nextSibling;
+          while (actualNextSibling?.dataset?.removing) {
+            actualNextSibling = actualNextSibling.nextSibling;
+          }
+
+          if (element.parentNode !== parent || actualNextSibling !== anchor) {
+            parent.insertBefore(element, anchor);
+          }
         }
 
         // Process children
         traverseUINodes(element, child_ptr);
+
+        invokeCallback(uinode.onCallbacks[1]);
       }
     } else {
       const node_info = domNodeRegistry.get(uinode.id);
       if (node_info !== undefined) {
         node_info.node_ptr = uinode.offset;
+        node_info.destroy_hash = uinode.onCallbacks[2];
         domNodeRegistry.set(uinode.id, node_info);
       }
 
       // Element is not dirty, just process its children
       const element = document.getElementById(uinode.id);
       traverseUINodes(element, child_ptr);
-    }
-  }
-}
-
-/**
- * Traverse and render the component tree
- * @param {HTMLElement} parent - The parent element html element
- * @param {HTMLElement} tree_node - The current tree node  *UINode
- * @param {Object} layout - The layout information
- */
-export function traverse(parent, has_children, tree_node, layout) {
-  // if (has_children === 0) return;
-  if (!parent) return;
-
-  const children_count = wasmInstance.getTreeNodeChildrenCount(tree_node);
-
-  // const existingDOMElements = Array.from(parent.children); // Get all existing DOM nodes
-  //
-  // // Create a map of existing DOM elements by their ID for fast lookups
-  // const existingElementsMap = new Map();
-  // for (const el of existingDOMElements) {
-  //   existingElementsMap.set(el.id, el);
-  // }
-
-  const renderCmds = [];
-
-  for (let i = 0; i < children_count; i++) {
-    const child_ptr = wasmInstance.getTreeNodeChild(tree_node, i);
-    const rndcmd_ptr = wasmInstance.getRenderCommandPtr(child_ptr);
-    const renderCmd = readRenderCommand(rndcmd_ptr, layout);
-
-    const uiNode = readUINode(renderCmd.nodePtr);
-    console.log(uiNode);
-    renderCmds.push([renderCmd, child_ptr]);
-  }
-
-  for (let i = children_count - 1; i >= 0; i--) {
-    const renderCmd = renderCmds[i][0];
-    const child_ptr = renderCmds[i][1];
-    activeNodeIds.add(renderCmd.id);
-    let element = null;
-    if (renderCmd.isDirty) {
-      element = document.getElementById(renderCmd.id);
-      if (element && state.initial_render) {
-        attachElementListeners(element, renderCmd);
-        traverse(element, renderCmd.props.has_children, child_ptr, layout);
-
-        // Handle hooks mounted calls
-        if (renderCmd.elemType === COMPONENT_TYPES.HOOKS_CTX) {
-          console.log("HOOKS_CTX");
-          if (renderCmd.hooks.mountedId > 0) {
-            hooksMountedCtx.set(renderCmd.id, true);
-            element.className = "";
-          }
-        } else if (renderCmd.elemType === COMPONENT_TYPES.HOOKS) {
-          if (renderCmd.hooks.mountedId > 0) {
-            hooksMounted.set(renderCmd.id, true);
-            element.className = "";
-          }
-          if (renderCmd.hooks.createdId > 0) {
-            wasmInstance.hooksCreatedCallback(renderCmd.hooks.createdId);
-          }
-          if (renderCmd.hooks.updatedId > 0) {
-            wasmInstance.hooksUpdatedCallback(renderCmd.hooks.updatedId);
-          }
-        } else if (renderCmd.hooks.createdId > 0) {
-          hooksCtxCreated.set(renderCmd.id, true);
-        }
-      } else if (!element || state.initial_render) {
-        // Create new element
-        element = createElementByType(renderCmd);
-
-        if (!element) continue; // Skip if element creation failed
-
-        // Set up the element
-        setupElement(element, renderCmd);
-
-        // Append to parent
-        const next = renderCmds[i + 1];
-        let anchor = null;
-        if (next) {
-          const nextId = next[0]?.id; // id of the next sibling
-          anchor = nextId ? document.getElementById(nextId) : null;
-        }
-        parent.insertBefore(element, anchor);
-        traverse(element, renderCmd.props.has_children, child_ptr, layout);
-
-        if (renderCmd.elemType === COMPONENT_TYPES.HOOKS_CTX) {
-          console.log("HOOKS_CTX");
-          if (renderCmd.hooks.mountedId > 0) {
-            hooksMountedCtx.set(renderCmd.id, true);
-            element.className = "";
-          }
-        } else if (renderCmd.elemType === COMPONENT_TYPES.HOOKS) {
-          if (renderCmd.hooks.mountedId > 0) {
-            hooksMounted.set(renderCmd.id, true);
-            element.className = "";
-          }
-          if (renderCmd.hooks.createdId > 0) {
-            wasmInstance.hooksCreatedCallback(renderCmd.hooks.createdId);
-          }
-          if (renderCmd.hooks.updatedId > 0) {
-            wasmInstance.hooksUpdatedCallback(renderCmd.hooks.updatedId);
-          }
-        } else if (renderCmd.hooks.createdId > 0) {
-          hooksCtxCreated.set(renderCmd.id, true);
-        }
-      } else {
-        // Here we may need to change the positions of the elements
-        // Update existing element
-        updateElement(element, renderCmd);
-
-        // Calculate the intended anchor (next sibling)
-        const next = renderCmds[i + 1];
-        let anchor = null;
-        if (next) {
-          const nextId = next[0]?.id;
-          anchor = nextId ? document.getElementById(nextId) : null;
-        }
-
-        // FIX: Check if the element is already in the correct position.
-        // We only move it if:
-        // 1. The element is not attached to this parent yet, OR
-        // 2. The element's current next sibling is different from the intended anchor.
-        if (element.parentNode !== parent || element.nextSibling !== anchor) {
-          parent.insertBefore(element, anchor);
-        }
-
-        // Process children
-        traverse(element, renderCmd.props.has_children, child_ptr, layout);
-      }
-    } else {
-      // Element is not dirty, just process its children
-      const element = document.getElementById(renderCmd.id);
-      traverse(element, renderCmd.props.has_children, child_ptr, layout);
     }
   }
 }

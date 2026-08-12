@@ -1,6 +1,9 @@
 const std = @import("std");
 const Vapor = @import("vapor");
-const Static = Vapor.Static;
+const Row = Vapor.Row;
+const Button = Vapor.Button;
+const Text = Vapor.Text;
+const TextFmt = Vapor.TextFmt;
 
 // Global state
 var count: i32 = 0;
@@ -15,8 +18,8 @@ fn decrement() void {
 }
 
 pub fn render() void {
-    Static.Box().layout(.center).spacing(16).padding(.all(20)).children({
-        Static.Button(decrement)
+    Row().layout(.center).spacing(16).padding(.all(20)).children({
+        Button(decrement, .{})
             .shadow(.card(.palette(.text_color)))
             .padding(.all(8))
             .border(.simple(.palette(.text_color)))
@@ -26,12 +29,12 @@ pub fn render() void {
             .width(.percent(20))
             .cursor(.pointer)
             .children({
-            Static.Text("-").font(18, null, .palette(.text_color)).end();
+            Text("-").font(18, null, .palette(.text_color)).end();
         });
 
-        Static.TextFmt("Global State: {d}", .{count}).font(24, 700, .palette(.text_color)).end();
+        TextFmt("Global State: {d}", .{count}).font(24, 700, .palette(.text_color)).end();
 
-        Static.Button(increment)
+        Button(increment, .{})
             .shadow(.card(.palette(.text_color)))
             .padding(.all(8))
             .border(.simple(.palette(.text_color)))
@@ -41,7 +44,7 @@ pub fn render() void {
             .width(.percent(20))
             .cursor(.pointer)
             .children({
-            Static.Text("+").font(18, null, .palette(.text_color)).end();
+            Text("+").font(18, null, .palette(.text_color)).end();
         });
     });
 }

@@ -2,7 +2,7 @@ const std = @import("std");
 const Vapor = @import("vapor");
 const Signal = Vapor.Signal;
 const Style = Vapor.Style;
-const Box = Vapor.Box;
+const Row = Vapor.Row;
 const Text = Vapor.Text;
 const RedirectLink = Vapor.RedirectLink;
 const Image = Vapor.Image;
@@ -44,16 +44,7 @@ fn toggleIcon() void {
 }
 
 fn code_snippet_single(text: []const u8) void {
-    // Box().style(&.{
     CtxButton(copy, .{text})
-        // .tooltip(&.{
-        //     .text = "Copy",
-        //     .position = .right,
-        //     .layout = .center,
-        //     .color = .palette(.background),
-        //     .background = .palette(.text_color),
-        //     .border = .solid(.all(0), .palette(.text_color), .all(4)),
-        // })
         .style(&.{
             .visual = .{
                 .border = .simple(.palette(.border_color_light)),
@@ -69,7 +60,7 @@ fn code_snippet_single(text: []const u8) void {
             },
             .position = .relative,
         }).children({
-            Box().style(&.{
+            Row().style(&.{
                 .position = .{ .type = .absolute, .right = .px(8), .top = .px(8) },
                 .size = .square_px(22),
                 .transition = .{ .duration = 100 },
@@ -104,7 +95,7 @@ pub fn Txt(text: []const u8) void {
 }
 
 pub fn render() void {
-    Box().style(&.{
+    Row().style(&.{
         .child_gap = 24,
         .direction = .column,
         .size = .hw(.percent(100), .percent(100)),
@@ -124,8 +115,6 @@ pub fn render() void {
         Text("Install Zig & ZLS via ZVM").font(18, 700, .palette(.text_color)).end();
 
         code_snippet("zvm i --zls master");
-
-        Text("Or install Zig, ZLS, ZVM, with Metal").font(18, 700, .palette(.text_color)).end();
 
         Text("Metal Install").font(18, 700, .palette(.text_color)).end();
         code_snippet("curl -sSL https://raw.githubusercontent.com/senet-toolbox/metal/main/install.sh | bash");

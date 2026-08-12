@@ -25,10 +25,10 @@ fn setUserName(response: *Kit.Response) void {
 }
 
 pub fn render() void {
-    // Since the onCreate Function only runs when Static.Box, and Pure are added to the dom, then making
+    // Since the onCreate Function only runs when Static.Row, and Pure are added to the dom, then making
     // the fetch call after will work and update the DOM
     Static.Hooks(.{ .on_create = onCreate })({
-        Static.Box(.{})({
+        Static.Row(.{})({
             Pure.AllocText("Fetched username: {s}", .{user.name}, .{});
         });
     });

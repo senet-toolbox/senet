@@ -2,10 +2,10 @@ const Fabric = @import("fabric");
 const Static = Fabric.Static;
 const Style = Fabric.Style;
 
-fn StyledFlexBox(style: Style) fn (void) void {
+fn StyledFlexRow(style: Style) fn (void) void {
     const elem_decl = Fabric.ElementDecl{
         .style = Style.override(style),
-        .elem_type = .FlexBox,
+        .elem_type = .FlexRow,
     };
     Fabric.LifeCycle.open(elem_decl);
     Fabric.LifeCycle.configure(elem_decl);
@@ -55,8 +55,8 @@ fn sample() void {
         });
     });
 
-    // Here we use the StyledFlexBox, instead of overidding within the UI node style argument
-    StyledFlexBox(.{
+    // Here we use the StyledFlexRow, instead of overidding within the UI node style argument
+    StyledFlexRow(.{
         .width = .fit,
         .height = .px(48),
     })({

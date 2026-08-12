@@ -2,20 +2,20 @@ const std = @import("std");
 const Vapor = @import("vapor");
 const Signal = Vapor.Signal;
 const Style = Vapor.Style;
-const Static = Vapor.Static;
-const Box = Static.Box;
-const Text = Static.Text;
-const Link = Static.Link;
-const Image = Static.Image;
-const Svg = Static.Svg;
-const Button = Static.Button;
-const List = Static.List;
-const ListItem = Static.ListItem;
-const Graphic = Static.Graphic;
+const Row = Vapor.Row;
+const Text = Vapor.Text;
+const Link = Vapor.Link;
+const Image = Vapor.Image;
+const Svg = Vapor.Svg;
+const Button = Vapor.Button;
+const List = Vapor.List;
+const ListItem = Vapor.ListItem;
+const Graphic = Vapor.Graphic;
 const Mark = Vapor.Mark;
 const Vaporize = @import("vaporize");
-const Icon = Static.Icon;
+const Icon = Vapor.Icon;
 const Content = @import("../../../components/Content.zig");
+const DocNavBar = @import("../../../components/DocNavbar.zig");
 const Page = Vapor.Page;
 const Custom = @import("../../../components/Custom.zig");
 const root = @import("../../../main.zig");
@@ -32,31 +32,25 @@ const components = .{
 };
 
 fn builder() void {
-    Box()
+    Row()
         .height(.px(100)).layer(.dot(0.5, 20, .white)).background(.vapor_blue).layout(.center).children({
         Text("I like Dots!").font(48, 700, .white).fontFamily("Montserrat").end();
     });
 }
 
-// var vapor_page: []const u8 = @embedFile("vapor_page.md");
 var vapor_page: []const u8 = "";
 var markdown: Compiler.vaporize.MarkDown(components) = .{};
 var markdown_loaded: bool = false;
+const fetch = Vapor.Fetch.Fetch.fetch;
 pub fn init() void {
     Page(.{ .src = @src() }, render, null);
-
-    Vapor.Kit.fetch("/documents/vapor_page.md", handlePage, .{ .method = .GET });
+    fetch("/documents/vapor_page.md", .{ .method = .GET }).handle(handlePage, .{});
     content.init();
-    // markdown.compile(vapor_page) catch |err| {
-    //     Vapor.printErr("Failed to compile markdown: {any}", .{err});
-    //     return;
-    // };
-    // markdown_loaded = true;
 }
 
-fn handlePage(resp: Vapor.Kit.Response) void {
+fn handlePage(resp: Vapor.Fetch.Result) void {
     switch (resp) {
-        .Ok => |data| {
+        .ok => |data| {
             content.content_text = data.body;
             vapor_page = data.body;
             markdown.compile(vapor_page) catch |err| {
@@ -65,12 +59,11 @@ fn handlePage(resp: Vapor.Kit.Response) void {
             };
             markdown_loaded = true;
         },
-        .Err => |err| {
+        .err => |err| {
             Vapor.printErr("Failed to fetch: {s}", .{err.message});
             return;
         },
     }
-    Vapor.cycle();
 }
 
 // Deinitialization
@@ -85,8 +78,7 @@ fn toggleIcon(_: void) void {
 fn copy() void {
     Vapor.Clipboard.copy(vapor_page);
     copied = true;
-    Vapor.cycle();
-    Vapor.registerCtxTimeout(1000, toggleIcon, .{{}});
+    Vapor.timeout(1000, toggleIcon, .{{}});
 }
 
 // Render
@@ -139,7 +131,7 @@ fn openMenu() void {
 }
 
 // fn code_snippet(text: []const u8) void {
-//     Static.Box(.{
+//     Vapor.Row(.{
 //         .height = .percent(100),
 //         .background = .hex("#282a36"),
 //         .border_radius = .all(8),
@@ -147,12 +139,12 @@ fn openMenu() void {
 //         .width = .percent(100),
 //         .direction = .column,
 //     }).children({
-//         Box().style(&.{
+//         Row().style(&.{
 //             .layout = .end_center,
 //             .width = .percent(100),
 //             .padding = .horizontal(12),
 //         }).children({
-//             Static.Box(.{
+//             Vapor.Row(.{
 //                 .width = .px(22),
 //                 .height = .px(22),
 //                 .border_radius = .all(4),
@@ -189,7 +181,7 @@ var video: Vapor.Types.Video = .{
 };
 
 fn Demo() void {
-    Box().style(&.{
+    Row().style(&.{
         .margin = .tb(24, 48),
         .size = .hw(.percent(100), .percent(100)),
         .layout = .center,
@@ -202,18 +194,18 @@ fn Demo() void {
 }
 
 fn counter() void {
-    Box().margin(.tb(12, 32)).spacing(48).width(.percent(100)).layout(.center).children({
-        Button(increment)
+    Row().margin(.tb(12, 32)).spacing(48).width(.percent(100)).layout(.center).children({
+        Button(increment, .{})
             .shadow(.card(.palette(.text_color)))
             .padding(.all(8))
             .border(.simple(.palette(.text_color)))
             .background(.palette(.background))
             .duration(100)
             .hoverScale()
-            .width(.percent(20))
+            .width(.percent(30))
             .cursor(.pointer)
             .children({
-            Static.Text("Click Me")
+            Vapor.Text("Click Me")
                 .fontFamily("IBM Plex Mono,monospace")
                 .font(22, 700, .palette(.text_color))
                 .end();
@@ -231,8 +223,8 @@ fn alert() void {
 const Counter = struct {
     count: u32 = 0,
     pub fn render(self: *Counter) void {
-        Box().margin(.tb(12, 32)).spacing(16).width(.percent(100)).layout(.center).children({
-            Vapor.CtxButton(counterIncrement, self)
+        Row().margin(.tb(12, 32)).spacing(16).width(.percent(100)).layout(.center).children({
+            Button(counterIncrement, .{self})
                 .padding(.all(8))
                 .border(.simple(.palette(.text_color)))
                 .background(.palette(.background))
@@ -241,7 +233,7 @@ const Counter = struct {
                 .width(.percent(20))
                 .cursor(.pointer)
                 .children({
-                Static.Text("-").fontFamily("IBM Plex Mono,monospace").font(18, null, .palette(.text_color)).end();
+                Vapor.Text("-").fontFamily("IBM Plex Mono,monospace").font(18, null, .palette(.text_color)).end();
             });
             Text(self.count).width(.px(100)).font(24, 700, .palette(.text_color)).end();
         });
@@ -256,8 +248,8 @@ const Counter = struct {
 };
 
 fn alertComponent() void {
-    Box().margin(.tb(12, 32)).spacing(16).width(.percent(100)).layout(.center).children({
-        Button(alert)
+    Row().margin(.tb(12, 32)).spacing(16).width(.percent(100)).layout(.center).children({
+        Button(alert, .{})
             .shadow(.card(.palette(.text_color)))
             .padding(.all(8))
             .border(.simple(.palette(.text_color)))
@@ -267,7 +259,7 @@ fn alertComponent() void {
             .width(.percent(20))
             .cursor(.pointer)
             .children({
-            Static.Text("Alert!")
+            Vapor.Text("Alert!")
                 .font(22, 700, .palette(.text_color))
                 .fontFamily("IBM Plex Mono,monospace")
                 .end();
@@ -282,29 +274,29 @@ fn component() void {
 }
 
 pub fn render() void {
-    Box().style(&.{
+    Row().style(&.{
         .layout = .x_between,
         .direction = .column,
         .size = .square_percent(100),
     }).children({
-        Box().style(&.{
+        Row().style(&.{
             .padding = .horizontal(12),
             .direction = .row,
             .size = .w(.percent(100)),
         }).children({
-            Box().style(&.{
+            Row().style(&.{
                 .layout = .center,
                 .size = .w(.percent(100)),
-                .padding = .{ .top = 60, .bottom = 120 },
+                .padding = .tb(60, 120),
                 .direction = .column,
             }).children({
-                Box().style(&.{
+                Row().style(&.{
                     .size = .w(.mobile_desktop_percent(100, 50)),
                     // .width = .mobile_desktop_percent(100, 64),
                     // .size = .w(.percent(100)),
                     .child_gap = 32,
                     .direction = .column,
-                    .padding = .{ .bottom = 80 },
+                    .padding = .bottom(80),
                     .margin = .tb(32, 32),
                 }).children({
                     if (markdown_loaded) {

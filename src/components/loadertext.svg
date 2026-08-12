@@ -1,0 +1,33 @@
+<svg width="100%" viewBox="0 0 680 130" xmlns="http://www.w3.org/2000/svg">
+  <style>
+    .sk-base { fill: #e4e4e7; }
+    .sk-stop { stop-color: #f4f4f5; }
+    @media (prefers-color-scheme: dark) {
+      .sk-base { fill: #2a2a2e; }
+      .sk-stop { stop-color: #3a3a3f; }
+    }
+    .sk-sweep { animation: sk-shimmer 1.4s linear infinite; }
+    @keyframes sk-shimmer {
+      0%   { transform: translateX(-260px); }
+      100% { transform: translateX(680px); }
+    }
+  </style>
+  <defs>
+    <linearGradient id="sk-sheen" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0"   class="sk-stop" stop-opacity="0"/>
+      <stop offset="0.5" class="sk-stop" stop-opacity="0.85"/>
+      <stop offset="1"   class="sk-stop" stop-opacity="0"/>
+    </linearGradient>
+    <clipPath id="sk-bars">
+      <rect x="8" y="10"  width="300" height="14" rx="6"/>
+      <rect x="8" y="40"  width="640" height="11" rx="5"/>
+      <rect x="8" y="62"  width="640" height="11" rx="5"/>
+      <rect x="8" y="84"  width="640" height="11" rx="5"/>
+      <rect x="8" y="106" width="420" height="11" rx="5"/>
+    </clipPath>
+  </defs>
+  <g clip-path="url(#sk-bars)">
+    <rect class="sk-base" x="0" y="0" width="680" height="130"/>
+    <rect class="sk-sweep" x="0" y="0" width="260" height="130" fill="url(#sk-sheen)"/>
+  </g>
+</svg>

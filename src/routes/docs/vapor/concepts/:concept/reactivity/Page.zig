@@ -3,8 +3,12 @@ const Vapor = @import("vapor");
 const Page = Vapor.Page;
 const Vaporize = @import("vaporize");
 const Compiler = @import("../../../../../../main.zig");
+const Fetch = Vapor.Fetch.Fetch;
+const Loader = @import("components").Loader;
+const Error = @import("components").Error;
 const Content = @import("../../../../../../components/Content.zig");
-const Box = Vapor.Box;
+const reinit = @import("../../../../../../components/DocNavbar.zig").reinit;
+const Row = Vapor.Row;
 const Text = Vapor.Text;
 const Button = Vapor.Button;
 const TextFmt = Vapor.TextFmt;
@@ -17,23 +21,23 @@ var markdown: Compiler.vaporize.MarkDown(.{
     .{ .tag = "graphics", .function = graphics },
 }) = .{};
 var page: []const u8 = "";
+var f: ?*Fetch = null;
 var content: Content.new("") = .{};
-var markdown_loaded: bool = false;
 
 var count: i32 = 0;
 fn increment() void {
     count += 1;
+    text = "Increment Again";
 }
 
 var text: []const u8 = "Increment";
 var count2: u32 = 0;
 fn increment_cycle() void {
-    text = "Increment Again";
     count2 += 1;
 }
 
 fn graphics() void {
-    Box().style(&.{
+    Row().style(&.{
         .size = .{ .width = .percent(100), .height = .percent(100) },
         .padding = .tb(48, 48),
         .layout = .center,
@@ -60,21 +64,33 @@ fn changeColors(_: *Vapor.Event) void {
     }
 }
 
+fn onHover(_: *Vapor.Event) void {
+    color = .palette(.tint);
+}
+fn onLeave(_: *Vapor.Event) void {
+    color = .palette(.text_color);
+}
+
 fn counter() void {
-    Box().margin(.tb(12, 32)).spacing(48).width(.percent(100)).layout(.center).children({
-        Button(increment)
-            .shadow(.card(color))
+    Row().margin(.tb(12, 32)).spacing(48).width(.percent(100)).layout(.center).children({
+        Button(increment, .{})
             .padding(.all(8))
-            .border(.simple(color))
             .background(.palette(.background))
             .duration(100)
-            .hoverScale()
-            .onHover(changeColors)
-            .onLeave(changeColors)
+            .onHover(onHover, .{})
+            .onLeave(onLeave, .{})
+            .border(.simple(.palette(.text_color)))
+            .shadow(.card(.palette(.text_color)))
+            .hover(.{
+                .transform = .scale(),
+                .border = .simple(.palette(.tint)),
+                .new_shadow = .card(.palette(.tint)),
+            })
             .width(.percent(20))
+            .responsive(.mobile, .{ .size = .{ .width = .percent(60) } })
             .cursor(.pointer)
             .children({
-            Text("Increment")
+            Text(text)
                 .fontFamily("IBM Plex Mono,monospace")
                 .font(22, 700, color)
                 .end();
@@ -87,7 +103,7 @@ fn counter() void {
 
 fn cycleExample() void {
     Stack().margin(.tb(12, 32)).spacing(48).width(.percent(100)).layout(.center).children({
-        Button(increment_cycle)
+        Button(increment_cycle, .{})
             .shadow(.card(color))
             .padding(.all(8))
             .border(.simple(color))
@@ -110,26 +126,26 @@ fn cycleExample() void {
 
 pub fn init() void {
     content.init();
-    Vapor.Kit.fetch("/documents/reactivity_page.md", handlePage, .{ .method = .GET });
+    f = Fetch.fetch("/documents/reactivity_page.md", .{ .method = .GET });
+    f.?.handle(handlePage, .{});
 }
 
-fn handlePage(resp: Vapor.Kit.Response) void {
+fn handlePage(resp: Vapor.Fetch.Result) void {
     switch (resp) {
-        .Ok => |data| {
+        .ok => |data| {
             content.content_text = data.body;
             page = data.body;
             markdown.compile(page) catch |err| {
-                Vapor.printErr("Failed to compile markdown: {any}", .{err});
+                std.log.err("Failed to compile markdown: {any}", .{err});
                 return;
             };
-            markdown_loaded = true;
         },
-        .Err => |err| {
-            Vapor.printErr("Failed to fetch: {s}", .{err.message});
+        .err => |err| {
+            std.log.err("Failed to fetch: {s}", .{err.message});
             return;
         },
     }
-    Vapor.cycle();
+    Vapor.onLayout(reinit, .{});
 }
 
 fn component() void {
@@ -138,6 +154,18 @@ fn component() void {
 
 // Render
 pub fn render() void {
-    if (!markdown_loaded) return;
-    content.content(component);
+    if (f) |h| {
+        switch (h.state()) {
+            .idle => {},
+            .loading => {
+                Loader.render();
+            },
+            .ok => {
+                content.content(component);
+            },
+            .err => {
+                Error.render();
+            },
+        }
+    }
 }

@@ -1,40 +1,60 @@
+const std = @import("std");
 const Vapor = @import("vapor");
 const Content = @import("../../../../../../components/Content.zig");
+const reinit = @import("../../../../../../components/DocNavbar.zig").reinit;
+const DocNavBar = @import("../../../../../../components/DocNavbar.zig");
 const Compiler = @import("../../../../../../main.zig");
+const Fetch = Vapor.Fetch.Fetch;
+const Loader = @import("components").Loader;
+const Error = @import("components").Error;
 
 var content: Content.new("") = undefined;
 var markdown: Compiler.vaporize.MarkDown(.{}) = .{};
-var markdown_loaded: bool = false;
 var page: []const u8 = "";
+var f: ?*Fetch = null;
 
 pub fn init() void {
-    Vapor.Kit.fetch("/documents/from_js_to_zig_page.md", handlePage, .{ .method = .GET });
+    f = Fetch.fetch("/documents/from_js_to_zig_page.md", .{ .method = .GET });
+    f.?.handle(handlePage, .{});
+    content.init();
 }
 
-fn handlePage(resp: Vapor.Kit.Response) void {
+fn handlePage(resp: Vapor.Fetch.Result) void {
     switch (resp) {
-        .Ok => |data| {
+        .ok => |data| {
             content.content_text = data.body;
             page = data.body;
             markdown.compile(page) catch |err| {
-                Vapor.printErr("Failed to compile markdown: {any}", .{err});
+                std.log.err("Failed to compile markdown: {any}", .{err});
                 return;
             };
-            markdown_loaded = true;
+
         },
-        .Err => |err| {
-            Vapor.printErr("Failed to fetch: {s}", .{err.message});
+        .err => |err| {
+            std.log.err("Failed to fetch: {s}", .{err.message});
             return;
         },
     }
-    Vapor.cycle();
+    Vapor.onLayout(reinit, .{});
 }
 
 pub fn render() void {
-    content.content(component);
+    if (f) |h| {
+        switch (h.state()) {
+            .idle => {},
+            .loading => {
+                Loader.render();
+            },
+            .ok => {
+                content.content(component);
+            },
+            .err => {
+                Error.render();
+            },
+        }
+    }
 }
 
 fn component() void {
-    if (!markdown_loaded) return;
     markdown.render() catch unreachable;
 }

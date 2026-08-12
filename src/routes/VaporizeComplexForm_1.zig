@@ -3,7 +3,7 @@ const Vaporize = @import("vaporize");
 const Validation = Vaporize.Validation;
 const ValidationError = Vaporize.ValidationError;
 
-const Box = Vapor.Box;
+const Row = Vapor.Row;
 const Text = Vapor.Text;
 const Compiler = @import("../main.zig");
 const Select = @import("../components/Opaque.zig").Select;

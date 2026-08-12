@@ -1,13 +1,13 @@
 const Vapor = @import("vapor");
+const std = @import("std");
 const Vaporize = @import("vaporize");
 const Validation = Vaporize.Validation;
 const ValidationError = Vaporize.ValidationError;
 
-const Box = Vapor.Box;
+const Row = Vapor.Row;
 const Text = Vapor.Text;
 const Compiler = @import("../main.zig");
-const Select = @import("../components/Select.zig").Select;
-const new = @import("../components/Select.zig").new;
+const Select = @import("opaque-ui").Select;
 
 const Currency = enum { usd, eur };
 
@@ -55,6 +55,10 @@ const CheckoutForm = struct {
         .password = Validation{ .field_type = .password },
         .confirm_password = Validation{ .field_type = .password, .target_field = "password", .match = true },
         .phone = Validation{ .field_type = .telephone, .depends_on = "country" },
+        .method = Validation{
+            .field_type = .radio,
+            .required = true,
+        },
         .card_number = Validation{ .field_type = .credit_card },
         .expiry = Validation{ .field_type = .expiry, .placeholder = "MM/YY" },
         .cvv = Validation{ .field_type = .cvv, .placeholder = "123", .err = "CVV is required" },
@@ -71,19 +75,27 @@ const CheckoutForm = struct {
     };
 };
 fn PaymentMethodComponent(_: *CheckoutForm, _: ?ValidationError) void {
-    payment_method.render();
+    return Vapor.Stack()
+        .width(.percent(100))
+        .children({
+        payment_method.render();
+    });
 }
 
 fn CountryComponent(_: *CheckoutForm, _: ?ValidationError) void {
-    country.render();
+    return Vapor.Stack()
+        .width(.percent(100))
+        .children({
+        country.render();
+    });
 }
 
 fn sameAsBilling(form: *CheckoutForm) void {
-    Vapor.print("sameAsBilling {any}", .{form.shipping_details.shipping_same_as_billing.value});
+    std.log.info("sameAsBilling {any}", .{form.shipping_details.shipping_same_as_billing.value});
 }
 
 fn onSubmit(form: CheckoutForm) void {
-    Vapor.print("Submitted {any}", .{form});
+    std.log.info("Submitted {any}", .{form});
 }
 
 const FormCheckout = Vaporize.Form(CheckoutForm);
@@ -95,8 +107,6 @@ var country: Select(Country) = undefined;
 var payment_method: Select(PaymentMethod) = undefined;
 
 pub fn init() void {
-    new();
-    // compile the struct into a UI form
     login_form.compile() catch unreachable;
 
     payment_method = .fromItems(&.{

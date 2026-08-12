@@ -2,8 +2,10 @@ const std = @import("std");
 const Vapor = @import("vapor");
 const Allocator = std.mem.Allocator;
 const Signal = Vapor.Signal;
-const Static = Vapor.Static;
-const Pure = Vapor.Pure;
+const Row = Vapor.Row;
+const Button = Vapor.Button;
+const Text = Vapor.Text;
+const TextFmt = Vapor.TextFmt;
 
 /// Counter component
 const Counter = @This();
@@ -30,8 +32,8 @@ pub fn deinit(counter: *Counter) void {
 }
 
 pub fn render(counter: *Counter) void {
-    Static.Box().layout(.center).spacing(16).padding(.all(20)).children({
-        Static.CtxButton(decrement, .{counter})
+    Row().layout(.center).spacing(16).padding(.all(20)).children({
+        Button(decrement, .{counter})
             .shadow(.card(.palette(.text_color)))
             .padding(.all(8))
             .border(.simple(.palette(.text_color)))
@@ -41,12 +43,12 @@ pub fn render(counter: *Counter) void {
             .width(.percent(20))
             .cursor(.pointer)
             .children({
-            Static.Text("-").font(18, null, .palette(.text_color)).end();
+            Text("-").font(18, null, .palette(.text_color)).end();
         });
 
-        Static.TextFmt("Instance State: {d}", .{counter.count.get()}).font(24, 700, .palette(.text_color)).end();
+        TextFmt("Instance State: {d}", .{counter.count.get()}).font(24, 700, .palette(.text_color)).end();
 
-        Static.CtxButton(increment, .{counter})
+        Button(increment, .{counter})
             .shadow(.card(.palette(.text_color)))
             .padding(.all(8))
             .border(.simple(.palette(.text_color)))
@@ -56,7 +58,7 @@ pub fn render(counter: *Counter) void {
             .width(.percent(20))
             .cursor(.pointer)
             .children({
-            Static.Text("+").font(18, null, .palette(.text_color)).end();
+            Text("+").font(18, null, .palette(.text_color)).end();
         });
     });
 }

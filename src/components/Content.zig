@@ -1,20 +1,19 @@
 const std = @import("std");
 const Vapor = @import("vapor");
-const Box = Vapor.Static.Box;
-const Hooks = Vapor.Static.Hooks;
-const Text = Vapor.Static.Text;
-const Button = Vapor.Static.Button;
-const TextFmt = Vapor.Static.TextFmt;
-const Icon = Vapor.Static.Icon;
+const Row = Vapor.Row;
+const Hooks = Vapor.Hooks;
+const Text = Vapor.Text;
+const Button = Vapor.Button;
+const TextFmt = Vapor.TextFmt;
+const Icon = Vapor.Icon;
 const Custom = @import("../components/Custom.zig");
 const DocNavbar = @import("../components/DocNavbar.zig");
 const ListItem = Vapor.ListItem;
 const List = Vapor.List;
-const CtxButton = Vapor.CtxButton;
 
-pub var boxes: []BoxNumber = undefined;
+pub var boxes: []RowNumber = undefined;
 // var bounds: Vapor.lib.Bounds = undefined;
-const BoxNumber = struct {
+const RowNumber = struct {
     id: []const u8,
     number: usize,
     bounds: Vapor.lib.Bounds = .{},
@@ -22,27 +21,32 @@ const BoxNumber = struct {
     link: []const u8 = "",
 };
 
-pub fn initBoxes() void {
-    boxes = Vapor.arena(.view).alloc(BoxNumber, 0) catch unreachable;
+pub fn initRowes() void {
+    boxes = Vapor.arena(.view).alloc(RowNumber, 0) catch unreachable;
 }
 
-pub fn reinitBoxes() void {
+pub fn reinitRowes() void {
     const ids = Vapor.queryComponentIds(.Intersection) catch unreachable;
     var count: usize = 0;
     for (ids) |id| {
         if (std.mem.startsWith(u8, id, "Inte_")) continue;
         count += 1;
     }
-    boxes = Vapor.arena(.view).alloc(BoxNumber, count) catch unreachable;
-    for (ids, 0..) |id, i| {
+    boxes = Vapor.arena(.view).alloc(RowNumber, count) catch unreachable;
+    var i: usize = 0;
+    for (ids) |id| {
         if (std.mem.startsWith(u8, id, "Inte_")) continue;
         const bounds = Vapor.getComponentBounds(id) orelse unreachable;
         const box_id = std.fmt.allocPrint(Vapor.arena(.view), "box-{d}", .{i}) catch unreachable;
         boxes[i] = .{ .id = box_id, .number = i, .bounds = bounds };
+        i += 1;
+    }
+    if (ids.len == 0) {
+        std.log.warn("No Sections", .{});
     }
 }
 
-pub fn deinitBoxes() void {
+pub fn deinitRowes() void {
     Vapor.arena(.view).free(boxes);
 }
 
@@ -63,32 +67,29 @@ pub fn new(default_text: []const u8) type {
             Vapor.Clipboard.copy(self.content_text);
             copied = true;
             // Vapor.cycle();
-            Vapor.registerCtxTimeout("markdown_copy", 1000, toggleIcon, .{{}});
+            Vapor.timeout("markdown_copy", 1000, toggleIcon, .{{}});
         }
 
         pub fn content(self: *Self, render: *const fn () void) void {
-
-            // Hooks(.{ .mounted = mount })({
-            Box().style(&.{
-                .size = .hw(.percent(100), .percent(100)),
-                .layout = .top_center,
-                .padding = .horizontal(12),
-                .visual = .{
-                    .layer = .grid(32, 1, .transparentizeHex(.palette(.grid_color), 0.9)),
-                    .border = .{
-                        .thickness = .lr(1),
-                        .color = .palette(.border_color_light),
+            Row()
+                .style(&.{
+                    .size = .hw(.percent(100), .percent(100)),
+                    .layout = .top_center,
+                    .padding = .horizontal(12),
+                    .visual = .{
+                        .layer = .grid(32, 1, .transparentizeHex(.palette(.grid_color), 0.9)),
+                        .border = .{
+                            .thickness = .lr(1),
+                            .color = .palette(.border_color_light),
+                        },
                     },
-                },
-                .position = .relative,
-            }).children({
+                    .position = .relative,
+                }).children({
                 if (Vapor.isDesktop()) {
                     List().layout(.{}).pos(.tr(.px(0), .px(0), .absolute)).children({
                         for (boxes) |box| {
                             const color: Vapor.Types.Color = if (box.active) .palette(.tint) else .palette(.border_color_light);
                             ListItem().id(box.id)
-                                // .pos(.tl(.px(box.bounds.top + (box.bounds.height - 56) / 2), .px(box.bounds.left - 56 - 12), .absolute)).zIndex(999)
-                                // .pos(.tr(.px(box.bounds.top + (box.bounds.height - 56) / 2 - 90), .px(-56), .absolute)).zIndex(999)
                                 .pos(.tr(.px(box.bounds.top - 80), .px(-56), .absolute)).zIndex(999)
                                 .width(.px(56))
                                 .height(.px(56))
@@ -101,13 +102,13 @@ pub fn new(default_text: []const u8) type {
                     });
                 }
 
-                Box().style(&.{
+                Row().style(&.{
                     .size = .w(.percent(100)),
                     .child_gap = 16,
                     .direction = .column,
                     .layout = .{ .x = .start, .y = .start },
                 }).children({
-                    Box().style(&.{
+                    Row().style(&.{
                         .size = .w(.percent(100)),
                         .layout = .x_between_center,
                     }).children({
@@ -116,7 +117,7 @@ pub fn new(default_text: []const u8) type {
                             .font_family = "IBM Plex Sans",
                             .size = .w(.grow),
                         }).end();
-                        CtxButton(copy, .{self})
+                        Button(copy, .{self})
                             .ariaLabel("copy-markdown")
                             .style(&.{
                                 .visual = .{ .background = .transparent, .cursor = .pointer },
@@ -137,7 +138,7 @@ pub fn new(default_text: []const u8) type {
                             }
                         });
                     });
-                    Box().style(&.{
+                    Row().style(&.{
                         .child_gap = 4,
                         .direction = .column,
                         .size = .hw(.percent(100), .percent(100)),
@@ -147,7 +148,6 @@ pub fn new(default_text: []const u8) type {
                     });
                 });
             });
-            // });
         }
     };
 }

@@ -3,7 +3,7 @@ const Fabric = @import("fabric");
 const Static = Fabric.Static;
 const Player = enum { x, o }; // 🚧
 
-const GridBox = struct { // 🚧
+const GridRow = struct { // 🚧
     clicked: bool = false,
     player: Player = undefined,
 };
@@ -17,17 +17,17 @@ fn drawO() void { // 🚧
     Static.Svg(@embedFile("../assets/O.svg"), .{ .width = .px(42), .height = .px(42) });
 }
 
-var grid_boxes: [9]GridBox = undefined;
+var grid_boxes: [9]GridRow = undefined;
 var current_player: Player = .x; // 🚧
 
 /// Initialise the board for a new game.
 pub fn init() void {
-    for (&grid_boxes) |*box| box.* = GridBox{};
+    for (&grid_boxes) |*box| box.* = GridRow{};
     current_player = .x; // 🚧
 }
 
 /// Button callback when a square is selected. // 🚧
-fn selectBox(box: *GridBox) void {
+fn selectRow(box: *GridRow) void {
     Fabric.println("Selecting a box!", .{});
     if (box.clicked) return; // Ignore already‑played squares
 
@@ -47,13 +47,13 @@ fn selectBox(box: *GridBox) void {
 
 /// Render the interactive grid.
 pub fn render() void {
-    Static.FlexBox(.{
+    Static.FlexRow(.{
         .width = .percent(100),
         .height = .percent(100),
         .flex_wrap = .wrap,
     })({
         for (&grid_boxes) |*box| {
-            Static.CtxButton(selectBox, .{box}, .{
+            Static.CtxButton(selectRow, .{box}, .{
                 .display = .Center, // 🚧
                 .border_color = .hex("#CCCCCC"),
                 .border_thickness = .all(1),

@@ -6,7 +6,7 @@ const Static = Vapor.Static;
 const Pure = Vapor.Pure;
 const CodeEditor = @import("../CodeEditor.zig");
 const Vaporize = @import("vaporize");
-const Box = Static.Box;
+const Row = Static.Row;
 const Content = @import("../../../../../../components/Content.zig");
 var content: Content.new(@embedFile("project_page.md")) = .{};
 

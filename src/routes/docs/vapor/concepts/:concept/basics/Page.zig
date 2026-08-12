@@ -7,7 +7,7 @@ const Pure = Vapor.Pure;
 const Page = Vapor.Page;
 const Custom = @import("../../../../../../components/Custom.zig");
 const Vaporize = @import("vaporize");
-const Box = Static.Box;
+const Row = Static.Row;
 const Text = Static.Text;
 const Link = Static.Link;
 const Image = Static.Image;
@@ -18,55 +18,49 @@ const ListItem = Static.ListItem;
 const Stack = Static.Stack;
 const Heading = Static.Heading;
 const Icon = Pure.Icon;
-const Counter = @import("instance_sample.zig");
+// const Counter = @import("instance_sample.zig");
 const Content = @import("../../../../../../components/Content.zig");
+const reinit = @import("../../../../../../components/DocNavbar.zig").reinit;
 const Compiler = @import("../../../../../../main.zig");
+const Fetch = Vapor.Fetch.Fetch;
+const Loader = @import("components").Loader;
+const Error = @import("components").Error;
 const Comptime = @import("Comptime.zig");
 const global = @import("global_sample.zig");
 var mark_up: *Vaporize.Node = undefined;
-var counter: Counter = undefined;
-var counter2: Counter = undefined;
+// var counter: Counter = undefined;
+// var counter2: Counter = undefined;
 
 const i32_counter = Comptime.Counter(i32, -1);
 const u32_counter = Comptime.Counter(u32, 1);
 
 // Initialization
 var content: Content.new("") = undefined;
-const components = .{
-    .{ .tag = "global_sample", .function = global.render },
-    .{ .tag = "instance_sample", .function = Counter.render, .args = &counter },
-    .{ .tag = "instance_sample2", .function = Counter.render, .args = &counter2 },
-    .{ .tag = "i32_sample", .function = i32_counter.render },
-    .{ .tag = "u32_sample", .function = u32_counter.render },
-};
-var markdown: Compiler.vaporize.MarkDown(components) = .{};
-var markdown_loaded: bool = false;
+var markdown: Compiler.vaporize.MarkDown(.{}) = .{};
 var page: []const u8 = "";
+var f: ?*Fetch = null;
 pub fn init() void {
-    Vapor.Kit.fetch("/documents/basics_page.md", handlePage, .{ .method = .GET });
+    f = Fetch.fetch("/documents/basics_page.md", .{ .method = .GET });
+    f.?.handle(handlePage, .{});
     content.init();
-    counter.init();
-    counter2.init();
-    // markdown.compile(@embedFile("basics_page.md")) catch unreachable;
 }
 
-fn handlePage(resp: Vapor.Kit.Response) void {
+fn handlePage(resp: Vapor.Fetch.Result) void {
     switch (resp) {
-        .Ok => |data| {
+        .ok => |data| {
             content.content_text = data.body;
             page = data.body;
             markdown.compile(page) catch |err| {
-                Vapor.printErr("Failed to compile markdown: {any}", .{err});
+                std.log.err("Failed to compile markdown: {any}", .{err});
                 return;
             };
-            markdown_loaded = true;
         },
-        .Err => |err| {
-            Vapor.printErr("Failed to fetch: {s}", .{err.message});
+        .err => |err| {
+            std.log.err("Failed to fetch: {s}", .{err.message});
             return;
         },
     }
-    Vapor.cycle();
+    Vapor.onLayout(reinit, .{});
 }
 
 // Deinitialization
@@ -109,10 +103,9 @@ fn decrement2() void {
 }
 
 fn component() void {
-    if (!markdown_loaded) return;
     markdown.render() catch unreachable;
 
-    // Static.Box().layout(.center).spacing(16).padding(.all(20)).children({
+    // Static.Row().layout(.center).spacing(16).padding(.all(20)).children({
     //     Static.Button(.{ .on_press = decrement })
     //         .padding(.all(8))
     //         .border(.simple(.palette(.border_color_light)))
@@ -132,7 +125,7 @@ fn component() void {
     //     });
     // });
     //
-    // Static.Box().layout(.center).spacing(16).padding(.all(20)).children({
+    // Static.Row().layout(.center).spacing(16).padding(.all(20)).children({
     //     Static.Button(.{ .on_press = decrement2 })
     //         .padding(.all(8))
     //         .border(.simple(.palette(.border_color_light)))
@@ -155,5 +148,18 @@ fn component() void {
 
 // Render
 pub fn render() void {
-    content.content(component);
+    if (f) |h| {
+        switch (h.state()) {
+            .idle => {},
+            .loading => {
+                Loader.render();
+            },
+            .ok => {
+                content.content(component);
+            },
+            .err => {
+                Error.render();
+            },
+        }
+    }
 }

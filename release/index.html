@@ -1,0 +1,1470 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <title>Vapor UI</title>
+  <meta charset="utf-8" />
+  <meta name="google-site-verification" content="12aR_338F0VaglKbfvPLczdZV_Ej6AVx9Ef7M4ULfLU" />
+  <meta name="description" content="Senet Application" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" href="/assets/icon.svg" type="image/svg+xml" />
+  <link rel="preload" href="/zig-out/bin/vapor.wasm" as="fetch" type="application/wasm" crossorigin />
+
+  <!-- <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script> -->
+
+  <!-- Preconnect stays the same -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
+
+  <link
+    href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,100..700;1,100..700&family=Montserrat:wght@400;700&display=swap"
+    rel="stylesheet" media="print" onload="this.media = 'all'" />
+
+  <link rel="preload" href="/assets/css/bootstrap-icons.css" as="style" onload="
+        this.onload = null;
+        this.rel = 'stylesheet';
+      " />
+  <!-- <script type="module" src="/web/bundle.min.js"></script> -->
+  <script type="module" src="/web/wasi_obj.js"></script>
+
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: Montserrat;
+      font-optical-sizing: auto;
+      height: 100dvh;
+      width: 100%;
+      box-sizing: border-box;
+      flex-shrink: 0;
+      background-color: rgba(var(--background));
+      color: rgb(var(--text_color));
+      transition:
+        background-color 0.3s ease,
+        color 0.3s ease;
+      scrollbar-width: none;
+      /* Firefox */
+      -ms-overflow-style: none;
+      /* IE/Edge */
+    }
+
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+      -webkit-scrollbar: display: none;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+      /* Chrome, Safari, Opera */
+      margin: 0;
+    }
+
+    p,
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6,
+    textarea {
+      line-height: 1.5;
+      font-size-adjust: 0.5;
+    }
+
+    table {
+      border-collapse: separate;
+      border-spacing: 0;
+    }
+
+    div {
+      min-width: 0;
+    }
+
+    button p {
+      font-family: inherit;
+    }
+
+    button {
+      font-family: inherit;
+      font-size: inherit;
+      line-height: inherit;
+      color: inherit;
+    }
+
+    input[type="file"]::file-selector-button {
+      background: transparent;
+      color: transparent;
+      border: none;
+    }
+
+
+    input:-webkit-autofill {
+      -webkit-box-shadow: 0 0 0 1000px transparent inset;
+      -webkit-text-fill-color: inherit;
+      caret-color: inherit;
+      transition: background-color 5000s ease-in-out 0s;
+    }
+
+    .reload-indicator {
+      position: fixed;
+      top: 16px;
+      right: 16px;
+      background: #1a1a1a;
+      color: #fff;
+      padding: 10px 16px;
+      border-radius: 6px;
+      display: none;
+      align-items: center;
+      gap: 10px;
+      font-family: system-ui, sans-serif;
+      font-size: 14px;
+      z-index: 99999;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    }
+
+    .reload-indicator.visible {
+      display: flex;
+    }
+
+    .reload-spinner {
+      width: 14px;
+      height: 14px;
+      border: 2px solid #333;
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+
+
+    /* The gear disc - moves DOWN and LEFT when switched ON */
+    #gearDisc {
+      transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    /* The star disc - moves UP and RIGHT when switched ON */
+    #starDisc {
+      transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+  </style>
+  <link rel="stylesheet" href="/static/style.css" />
+  <link rel="stylesheet" href="/static/style_variables.css" /></head>
+
+<body>
+  <main id="contents" style="display: contents"><div  id="Flex_OIm3f-gk" data-vp="" class="lay_FcuM62 pos_e8wtf3 mapa_CrkEb2 vis_v3yFP4 ">
+<div  id="Flex_zqROb2-gk" data-vp="" class="lay_IVosO pos_e8wtf3 mapa_CrkEb2 vis_v3yFP4 ">
+<div  id="Flex_7DQKK-gk" data-vp="" class="lay_3TY5J3 pos_DPkrs2 mapa_TK4ER4 vis_MS01a2 ">
+<div  id="Flex_6EqO93-gk" data-vp="" class="lay_hhXQ03 pos_Q1Qi11 mapa_CrkEb2 vis_XNUlm1 intr_uZ0Xk ">
+<p  id="Text_qmW4P3-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_pqgTj3 ">01</p>
+</div>
+<div  id="Flex_PAImx3-gk" data-vp="" class="lay_hhXQ03 pos_WhgdP2 mapa_CrkEb2 vis_XNUlm1 intr_XVmbC3 ">
+<p  id="Text_K7r662-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_pqgTj3 ">02</p>
+</div>
+<div  id="Flex_VOidX4-gk" data-vp="" class="lay_hhXQ03 pos_o4X4v mapa_CrkEb2 vis_XNUlm1 intr_yAulD3 ">
+<p  id="Text_9Xnbw3-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_pqgTj3 ">03</p>
+</div>
+<p  id="Text_Ko4Es1-gk" data-vp="" class="lay_1I8dE4 pos_rXZzd mapa_CrkEb2 vis_0m7yN ">.layout = .center, .layer = .grid(14, 1, .palette(.grid_color))</p>
+<p  id="Text_xSX3H4-gk" data-vp="" class="lay_1I8dE4 pos_OnY5E4 mapa_CrkEb2 vis_0m7yN ">.transform = .direction_scale(.down, .px(4), 1.05), .border = .simple(.palette(.tint)))</p>
+<div  id="Flex_zOA4X3-gk" data-vp="" class="lay_ph40P4 pos_e8wtf3 mapa_V8jPI3 vis_v3yFP4 ">
+<p  id="Text_nMUkT3-gk" data-vp="" class="lay_LsrmU pos_e8wtf3 mapa_CrkEb2 vis_6zOk31 ">codex-engine rendered in 0.00ms</p>
+
+<div  id="Flex_s69dR3-gk" data-vp="" class="lay_2TkWG4 pos_e8wtf3 mapa_CrkEb2 vis_v3yFP4 ">
+<p  id="Text_nTHBL4-gk" data-vp="" class="big-heading">A </p>
+<p  id="Text_Hnf6s2-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_bxGxf1 ">toolbox</p>
+<p  id="Text_2R9Wh-gk" data-vp="" class="big-heading"> for the Web</p>
+</div>
+</div>
+<div  id="Flex_FhIGM2-gk" data-vp="" class="lay_lT8SV3 pos_e8wtf3 mapa_LsvRW3 vis_v3yFP4 ">
+<p  id="Html_vDZi2-gk" data-vp="" class="lay_LsrmU pos_e8wtf3 mapa_CrkEb2 vis_Ox6AK4 "><strong style="color: rgb(var(--tint))">Senet</strong>
+includes a <a style="text-decoration: none; color: rgb(var(--text_color));" href="/docs/vapor"><i>Frontend [0]</i></a>, 
+<a style="text-decoration: none; color: rgb(var(--text_color)); "href="/docs/reverb"><i>Backend [1]</i></a>, and 
+<a style="text-decoration: none; color: rgb(var(--text_color)); "href="/docs/metal"><i>CLI [2]</i></a>.
+Yet ships with <strong style="color: rgb(var(--text_color))"><i>zero</i></strong> dependencies.</p>
+<p  id="Html_WJ1Mq3-gk" data-vp="" class="lay_LsrmU pos_e8wtf3 mapa_CrkEb2 vis_Ox6AK4 "><strong style="color: rgb(var(--tint))">Out of the Box</strong> production defaults, and
+<strong style="color: rgb(var(--text_color))"><i>+100 UI Components</i></strong>.</p>
+</div>
+<div  id="Flex_uqW2s2-gk" data-vp="" class="lay_qVvW83 pos_e8wtf3 mapa_CrkEb2 vis_v3yFP4 ">
+<a  id="Link_oizct3-gk" data-vp="" class="lay_K5w7u3 pos_e8wtf3 mapa_CrkEb2 vis_R4L7j2 intr_52LY73 " href="/huh">
+<p  id="Text_MX81c4-gk" data-vp="" class="lay_f9Iec pos_e8wtf3 mapa_CrkEb2 vis_v3yFP4 ">Huh?</p>
+</a>
+<a  id="Link_gcTFJ-gk" data-vp="" class="lay_K5w7u3 pos_e8wtf3 mapa_CrkEb2 vis_34KGm intr_o69ge2 " href="/install">
+<p  id="Text_Vb2Kp2-gk" data-vp="" class="lay_f9Iec pos_e8wtf3 mapa_CrkEb2 vis_v3yFP4 ">Install</p>
+<i  id="Icon_8k2Sw3-gk" data-vp="" class="bi bi-cloud-download-fill lay_OG6Dc2 pos_e8wtf3 mapa_CrkEb2 vis_v3yFP4 ">
+</i>
+</a>
+</div>
+<div  id="Flex_KZXXN1-gk" data-vp="" class="lay_CC1qM3 pos_QjPnQ4 mapa_CrkEb2 vis_v3yFP4 ">
+<p  id="Html_RhpI04-gk" data-vp="" class="lay_f9Iec pos_e8wtf3 mapa_CrkEb2 vis_rbcvg "><strong style="color: rgb(var(--text_color))">THIS</strong>
+entire website, is just a mere
+<strong style="color: rgb(var(--text_color))"><i>~300kb</i></strong>
+.</p>
+</div>
+<div  id="Flex_zEb6N2-gk" data-vp="" class="lay_Hi19x pos_e8wtf3 mapa_CrkEb2 vis_v3yFP4 ">
+</div>
+</div>
+<div  id="Flex_ux4xS1-gk" data-vp="" class="lay_is06t pos_LstSE1 mapa_jigL04 vis_nlc8k ">
+<div  id="Flex_i9M391-gk" data-vp="" class="lay_odoqC1 pos_e8wtf3 mapa_CrkEb2 vis_v3yFP4 ">
+<p  id="Text_0tVZy-gk" data-vp="" class="lay_1I8dE4 pos_e8wtf3 mapa_CrkEb2 vis_gF0OH2 ">Powered By</p>
+<div  id="Flex_Pixbj1-gk" data-vp="" class="lay_t5OKY pos_e8wtf3 mapa_LsvRW3 vis_v3yFP4 ">
+<div  id="Grap_uQs3L4-gk" data-vp="" class="lay_W73Dz3 pos_e8wtf3 mapa_CrkEb2 vis_2TMoP4 ">
+</div>
+</div>
+</div>
+<div  id="Flex_VXaU82-gk" data-vp="" class="lay_Mnd8c4 pos_e8wtf3 mapa_CrkEb2 vis_v3yFP4 ">
+<p  id="Text_bTItW-gk" data-vp="" class="lay_1I8dE4 pos_e8wtf3 mapa_CrkEb2 vis_gF0OH2 ">Used By</p>
+<div  id="Flex_BLuaK3-gk" data-vp="" class="lay_t5OKY pos_e8wtf3 mapa_LsvRW3 vis_v3yFP4 ">
+<div  id="Grap_p7UpR3-gk" data-vp="" class="lay_W73Dz3 pos_e8wtf3 mapa_CrkEb2 vis_2TMoP4 ">
+</div>
+</div>
+</div>
+</div>
+</div>
+<div  id="Flex_4IigU-gk" data-vp="" class="lay_q6jDz2 pos_t0s233 mapa_G9G2i vis_v3yFP4 ">
+<div  id="Flex_qxY1K2-gk" data-vp="" class="lay_lT8SV3 pos_e8wtf3 mapa_CrkEb2 vis_v3yFP4 ">
+<p  id="Text_Xuz703-gk" data-vp="" class="lay_1I8dE4 pos_e8wtf3 mapa_CrkEb2 vis_xGIud1 ">Vaporization</p>
+<p  id="Html_J3WT8-gk" data-vp="" class="lay_1I8dE4 pos_e8wtf3 mapa_CrkEb2 vis_RqjXT1 ">Vaporization is a tool that allows you to generate UI from data such as 
+<i style="color: rgb(var(--tint))"><code>structs</code></i>,
+<i style="color: rgb(var(--tint))"><code>strings</code></i>,
+<i style="color: rgb(var(--tint))"><code>numbers</code></i>, and
+<i style="color: rgb(var(--tint))"><code>arrays</code></i>, or even
+<i style="color: rgb(var(--tint))"><code>markdown</code></i>.</p>
+<p  id="Text_ahi7v1-gk" data-vp="" class="lay_1I8dE4 pos_e8wtf3 mapa_CrkEb2 vis_aaIbB3 ">Vaporization cuts, down on boilerplate, and repetition.</p>
+<p  id="Text_ZfHI03-gk" data-vp="" class="lay_1I8dE4 pos_e8wtf3 mapa_CrkEb2 vis_aaIbB3 ">Vaporizing structs returns forms with, error handling, tooltips, and validations.</p>
+</div>
+<div  id="Flex_sK7ll1-gk" data-vp="" class="lay_R9QM34 pos_e8wtf3 mapa_CrkEb2 vis_v3yFP4 ">
+
+<section  id="Inte_FRxmt1-gk" data-vp="" class="lay_nbtlm pos_e8wtf3 mapa_QGYQT3 vis_dYjh9 ">
+<p  id="Text_pRW032-gk" data-vp="" class="lay_zki7q pos_e8wtf3 mapa_9SPU2 vis_2VUT54 ">Account</p>
+<div  id="Flex_PWzDz3-gk" data-vp="" style="flex: 1 1 150px; min-width: 0; align-self: stretch;max-width: 100%;" class="lay_AVRrd3 pos_e8wtf3 mapa_CrkEb2 vis_v3yFP4 ">
+<div  id="Flex_XT2v7-gk" data-vp="" class="lay_cSNLB4 pos_t0s233 mapa_CrkEb2 vis_ZWHXg4 ">
+<label for="email_Flex_XT2v7-gk"  id="Labe_eFWcg1-gk" data-vp="" style="transform: translateY(-50%) scale(1); z-index: 0; text-align: center;" class="lay_1I8dE4 pos_7GSMa1 mapa_sgnwh vis_nVVBE3 ">Email</label>
+
+<input  id="email_Flex_XT2v7-gk" data-vp="" class="lay_kSFpR4 pos_h7ld4 mapa_TK4ER4 vis_GfkI44 "name="email"type="email"placeholder=""/>
+
+</div>
+<div  id="Flex_Tex8T2-gk" data-vp="" style="min-width: 0;
+max-width: 100%;" class="lay_OLZEg2 pos_e8wtf3 mapa_CrkEb2 vis_v3yFP4 ">
+</div>
+</div>
+<div  id="Flex_ReG8L-gk" data-vp="" style="flex: 1 1 150px; min-width: 0; align-self: stretch;max-width: 100%;" class="lay_AVRrd3 pos_e8wtf3 mapa_CrkEb2 vis_v3yFP4 ">
+<div  id="Flex_l9fzH4-gk" data-vp="" class="lay_cSNLB4 pos_t0s233 mapa_CrkEb2 vis_4vGtq1 ">
+<label for="password_Flex_l9fzH4-gk"  id="Labe_X8Ls74-gk" data-vp="" style="transform: translateY(-50%) scale(1); z-index: 0; text-align: center;" class="lay_1I8dE4 pos_7GSMa1 mapa_sgnwh vis_nVVBE3 ">Password</label>
+
+<input  id="password_Flex_l9fzH4-gk" data-vp="" class="lay_kSFpR4 pos_h7ld4 mapa_TK4ER4 vis_GfkI44 "name="password"/>
+
+</div>
+<div  id="Flex_XcX4X4-gk" data-vp="" style="min-width: 0;
+max-width: 100%;" class="lay_OLZEg2 pos_e8wtf3 mapa_CrkEb2 vis_v3yFP4 ">
+</div>
+</div>
+<div  id="Flex_lOwei3-gk" data-vp="" style="flex: 1 1 150px; min-width: 0; align-self: stretch;max-width: 100%;" class="lay_AVRrd3 pos_e8wtf3 mapa_CrkEb2 vis_v3yFP4 ">
+<div  id="Flex_w3ofi3-gk" data-vp="" class="lay_cSNLB4 pos_t0s233 mapa_CrkEb2 vis_NANE6 ">
+<label for="password_Flex_w3ofi3-gk"  id="Labe_lz4Mq1-gk" data-vp="" style="transform: translateY(-50%) scale(1); z-index: 0; text-align: center;" class="lay_1I8dE4 pos_7GSMa1 mapa_sgnwh vis_nVVBE3 ">Confirm password</label>
+
+<input  id="password_Flex_w3ofi3-gk" data-vp="" class="lay_kSFpR4 pos_h7ld4 mapa_TK4ER4 vis_GfkI44 "name="confirm_password"/>
+
+</div>
+<div  id="Flex_bBDhk3-gk" data-vp="" style="min-width: 0;
+max-width: 100%;" class="lay_OLZEg2 pos_e8wtf3 mapa_CrkEb2 vis_v3yFP4 ">
+</div>
+</div>
+<div  id="Flex_t24Pj-gk" data-vp="" class="lay_NyTnY2 pos_e8wtf3 mapa_CrkEb2 vis_v3yFP4 ">
+<label for="Notes_Text_OBd3X4-gk"  id="Labe_vbLN43-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_Mv9GL4 ">Notes</label>
+
+<textarea  id="Notes_Text_OBd3X4-gk" data-vp="" style="field-sizing: content;" class="lay_vSIuj1 pos_e8wtf3 mapa_GjRnP2 vis_3DSAm1 "name="notes"type="email"placeholder=""></textarea>
+
+<div  id="Flex_51AyI2-gk" data-vp="" style="min-width: 0;
+max-width: 100%;" class="lay_OLZEg2 pos_e8wtf3 mapa_CrkEb2 vis_v3yFP4 ">
+</div>
+</div>
+<section  id="Inte_O1V0h2-gk" data-vp="" class="lay_WFBlO3 pos_e8wtf3 mapa_QGYQT3 vis_dYjh9 ">
+<p  id="Text_Dkndr3-gk" data-vp="" class="lay_zki7q pos_e8wtf3 mapa_LsvRW3 vis_K2lCN1 ">Contact</p>
+<div  id="Flex_EiMMg-gk" data-vp="" style="flex: 1 1 150px; min-width: 0; align-self: stretch;max-width: 100%;" class="lay_AVRrd3 pos_e8wtf3 mapa_CrkEb2 vis_v3yFP4 ">
+<div  id="Flex_dPd4o-gk" data-vp="" class="lay_cSNLB4 pos_t0s233 mapa_CrkEb2 vis_wLGsw2 ">
+<label for="telephone_Flex_dPd4o-gk"  id="Labe_7fB0X-gk" data-vp="" style="transform: translateY(-50%) scale(1); z-index: 0; text-align: center;" class="lay_1I8dE4 pos_7GSMa1 mapa_sgnwh vis_nVVBE3 ">Phone</label>
+
+<input  id="telephone_Flex_dPd4o-gk" data-vp="" class="lay_kSFpR4 pos_h7ld4 mapa_TK4ER4 vis_GfkI44 "name="phone"/>
+
+</div>
+<div  id="Flex_3LY9J-gk" data-vp="" style="min-width: 0;
+max-width: 100%;" class="lay_OLZEg2 pos_e8wtf3 mapa_CrkEb2 vis_v3yFP4 ">
+</div>
+</div>
+</section>
+</section>
+<section  id="Inte_5C9X51-gk" data-vp="" class="lay_nbtlm pos_e8wtf3 mapa_CrkEb2 vis_AymhS3 ">
+<p  id="Text_xKdtg3-gk" data-vp="" class="lay_zki7q pos_e8wtf3 mapa_9SPU2 vis_2VUT54 ">Payment</p>
+<div  id="Flex_tzaGp3-gk" data-vp="" class="lay_oSHHV pos_e8wtf3 mapa_CrkEb2 vis_v3yFP4 ">
+<div  id="Flex_ZLRCf-gk" data-vp="" class="lay_0bp1k1 pos_t0s233 mapa_CrkEb2 vis_v3yFP4 ">
+<div  id="Flex_vpxMj1-gk" data-vp="" class="lay_tupWc4 pos_e8wtf3 mapa_CrkEb2 vis_v3yFP4 ">
+<button  id="CtxB_MCktT2-gk" data-vp="" class="lay_ipwPq1 pos_e8wtf3 mapa_RM5YV3 vis_C1g6z3 intr_fJwAB1 "aria-label="Select Dropdown">
+<div  id="Flex_xV0iv1-gk" data-vp="" class="lay_LfISh3 pos_e8wtf3 mapa_CrkEb2 vis_v3yFP4 ">
+<p  id="Text_WKuM61-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_RM5YV3 vis_s2Yeo1 ">Payment Method</p>
+<i  id="Icon_JrTy5-gk" data-vp="" class="bi bi-chevron-down lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_zQRr44 ">
+</i>
+</div>
+</button>
+</div>
+<div  id="Flex_40Plh3-gk" data-vp="" class="lay_AEgkh1 pos_4MMng3 mapa_CrkEb2 vis_v3yFP4 tran_akFuA3 ">
+</div>
+</div>
+</div>
+<div  id="Flex_eLqWG-gk" data-vp="" style="flex: 1 1 150px; min-width: 0; align-self: stretch;max-width: 100%;" class="lay_AVRrd3 pos_e8wtf3 mapa_CrkEb2 vis_v3yFP4 ">
+<div  id="Flex_kLunw3-gk" data-vp="" class="lay_cSNLB4 pos_t0s233 mapa_CrkEb2 vis_9esly3 ">
+<label for="expiry_Flex_kLunw3-gk"  id="Labe_FgvoY1-gk" data-vp="" style="transform: translateY(-50%) scale(0.9); z-index: 0; text-align: center;" class="lay_1I8dE4 pos_RoAtR4 mapa_sgnwh vis_nVVBE3 ">Expiry</label>
+
+<input  id="expiry_Flex_kLunw3-gk" data-vp="" class="lay_kSFpR4 pos_h7ld4 mapa_TK4ER4 vis_GfkI44 "name="expiry"/>
+
+</div>
+<div  id="Flex_tQ8ez1-gk" data-vp="" style="min-width: 0;
+max-width: 100%;" class="lay_OLZEg2 pos_e8wtf3 mapa_CrkEb2 vis_v3yFP4 ">
+</div>
+</div>
+<div  id="Flex_x9rGp-gk" data-vp="" style="flex: 1 1 150px; min-width: 0; align-self: stretch;max-width: 100%;" class="lay_AVRrd3 pos_e8wtf3 mapa_CrkEb2 vis_v3yFP4 ">
+<div  id="Flex_A8FpG3-gk" data-vp="" class="lay_cSNLB4 pos_t0s233 mapa_CrkEb2 vis_NyF9E4 ">
+<label for="cvv_Flex_A8FpG3-gk"  id="Labe_SChgY4-gk" data-vp="" style="transform: translateY(-50%) scale(0.9); z-index: 0; text-align: center;" class="lay_1I8dE4 pos_RoAtR4 mapa_sgnwh vis_nVVBE3 ">Cvv</label>
+
+<input  id="cvv_Flex_A8FpG3-gk" data-vp="" class="lay_kSFpR4 pos_h7ld4 mapa_TK4ER4 vis_GfkI44 "name="cvv"/>
+
+</div>
+<div  id="Flex_3GREy1-gk" data-vp="" style="min-width: 0;
+max-width: 100%;" class="lay_OLZEg2 pos_e8wtf3 mapa_CrkEb2 vis_v3yFP4 ">
+</div>
+</div>
+<div  id="Flex_KQHeA4-gk" data-vp="" style="flex: 1 1 150px; min-width: 0; align-self: stretch;max-width: 100%;" class="lay_AVRrd3 pos_e8wtf3 mapa_CrkEb2 vis_v3yFP4 ">
+<div  id="Flex_cgPY71-gk" data-vp="" class="lay_cSNLB4 pos_t0s233 mapa_CrkEb2 vis_8o3ju3 ">
+<label for="string_Flex_cgPY71-gk"  id="Labe_rUQgF-gk" data-vp="" style="transform: translateY(-50%) scale(1); z-index: 0; text-align: center;" class="lay_1I8dE4 pos_7GSMa1 mapa_sgnwh vis_nVVBE3 ">Billing address</label>
+
+<input  id="string_Flex_cgPY71-gk" data-vp="" class="lay_kSFpR4 pos_h7ld4 mapa_TK4ER4 vis_GfkI44 "name="billing_address"/>
+
+</div>
+<div  id="Flex_rhUvt1-gk" data-vp="" style="min-width: 0;
+max-width: 100%;" class="lay_OLZEg2 pos_e8wtf3 mapa_CrkEb2 vis_v3yFP4 ">
+</div>
+</div>
+<div  id="Flex_kUAtP3-gk" data-vp="" style="flex: 1 1 150px; min-width: 0; align-self: stretch;max-width: 100%;" class="lay_AVRrd3 pos_e8wtf3 mapa_CrkEb2 vis_v3yFP4 ">
+<div  id="Flex_df7HU-gk" data-vp="" class="lay_cSNLB4 pos_t0s233 mapa_CrkEb2 vis_7thVv2 ">
+<label for="credit_card_Flex_df7HU-gk"  id="Labe_vuWIW3-gk" data-vp="" style="transform: translateY(-50%) scale(1); z-index: 0; text-align: center;" class="lay_1I8dE4 pos_7GSMa1 mapa_sgnwh vis_nVVBE3 ">Card number</label>
+
+<input  id="credit_card_Flex_df7HU-gk" data-vp="" class="lay_kSFpR4 pos_h7ld4 mapa_TK4ER4 vis_GfkI44 "name="card_number"/>
+
+</div>
+<div  id="Flex_CFPd34-gk" data-vp="" style="min-width: 0;
+max-width: 100%;" class="lay_OLZEg2 pos_e8wtf3 mapa_CrkEb2 vis_v3yFP4 ">
+</div>
+</div>
+</section>
+<section  id="Inte_RuP6m2-gk" data-vp="" class="lay_nbtlm pos_e8wtf3 mapa_CrkEb2 vis_AymhS3 ">
+<p  id="Text_tfDmF2-gk" data-vp="" class="lay_zki7q pos_e8wtf3 mapa_9SPU2 vis_2VUT54 ">Shipping details</p>
+<div  id="Flex_Vc0uh3-gk" data-vp="" class="lay_og0z53 pos_e8wtf3 mapa_CrkEb2 vis_v3yFP4 ">
+<p  id="Text_M8l1n-gk" data-vp="" class="lay_KGzRd2 pos_e8wtf3 mapa_CrkEb2 vis_jGV7Q2 ">Shipping same as billing</p>
+<div  id="Flex_n9CQU1-gk" data-vp="" style="background-image: linear-gradient(to bottom, #d5d5d5, #EDEDED);
+box-shadow: 0 1px 1px rgb(255 255 255 / .1);" class="lay_3sHNs pos_e8wtf3 mapa_oqVwJ1 vis_ytw8Y1 ">
+<button  id="CtxB_Y1lMA1-gk" data-vp="" style="box-shadow: inset 0 0 .0625em .125em rgb(255 255 255 / .2), inset 0 .0625em .125em rgb(0 0 0 / .4);" class="lay_6qFfU1 pos_e8wtf3 mapa_CrkEb2 vis_OPg3k1 "aria-label="shipping_same_as_billing">
+<div  id="Flex_rs6282-gk" data-vp="" style="transform: translateX(0px);" class="lay_ofZo52 pos_e8wtf3 mapa_CrkEb2 vis_GWfi84 ">
+</div>
+</button>
+</div>
+</div>
+</section>
+
+<p  id="Text_6edym2-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_v3yFP4 ">Submit</p>
+
+
+</div>
+</div>
+<div  id="Flex_2TZKc1-gk" data-vp="" class="lay_NkInj3 pos_t0s233 mapa_Gr8yX vis_qlHHN2 ">
+<div  id="Flex_gi9fk1-gk" data-vp="" class="lay_lT8SV3 pos_e8wtf3 mapa_CrkEb2 vis_v3yFP4 ">
+<p  id="Text_4CXhe-gk" data-vp="" class="lay_1I8dE4 pos_e8wtf3 mapa_CrkEb2 vis_xGIud1 ">Vapor/React Form Comparison</p>
+<p  id="Html_nbmhk1-gk" data-vp="" class="lay_1I8dE4 pos_e8wtf3 mapa_CrkEb2 vis_RqjXT1 ">Below is a code line comparison of a Vapor form, and a React form.
+The React version uses Zod, React-Hook Form, Tailwind, and shadcn/ui.</p>
+</div>
+<div  id="Flex_2vlmV-gk" data-vp="" class="lay_MNY7F pos_e8wtf3 mapa_CrkEb2 vis_v3yFP4 ">
+<div  id="Flex_wONlh3-gk" data-vp="" class="lay_GfoIA1 pos_e8wtf3 mapa_CrkEb2 vis_v3yFP4 ">
+<p  id="Text_DDjE22-gk" data-vp="" class="lay_1I8dE4 pos_e8wtf3 mapa_CrkEb2 vis_7YvK33 ">~120 Lines</p>
+<div  id="Flex_gjvom-gk" data-vp="" class="lay_DLEtj3 pos_e8wtf3 mapa_rPfvm1 vis_ntTUD1 ">
+<div  id="Flex_0wP5o1-gk" data-vp="" class="lay_DLEtj3 pos_e8wtf3 mapa_cLPMR vis_tooOO3 ">
+<div  id="Flex_x5l1G1-gk" data-vp="" class="lay_DgBhg2 pos_e8wtf3 mapa_jigL04 vis_v3yFP4 ">
+<div  id="Flex_oTtwJ4-gk" data-vp="" class="lay_yIkX62 pos_e8wtf3 mapa_rPfvm1 vis_oYVh3 ">
+<p  id="Text_am3Ix3-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_RRJfk1 ">vaporize.zig</p>
+</div>
+</div>
+<div  id="Flex_Q7itx1-gk" data-vp="" class="lay_q8rEj1 pos_e8wtf3 mapa_CrkEb2 vis_RjVdX4 ">
+<div  id="Flex_bke6J4-gk" data-vp="" class="lay_CenWL3 pos_t0s233 mapa_CrkEb2 vis_v3yFP4 ">
+<div  id="Flex_bWegH2-gk" data-vp="" class="lay_Ds5922 pos_e8wtf3 mapa_Fls5t vis_v3yFP4 ">
+<div  id="Flex_6eYm03-gk" data-vp="" class="lay_XPGVo2 pos_t0s233 mapa_CrkEb2 vis_v3yFP4 ">
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div  id="Flex_v5Ypk2-gk" data-vp="" class="lay_GfoIA1 pos_e8wtf3 mapa_CrkEb2 vis_v3yFP4 ">
+<p  id="Text_O49hF2-gk" data-vp="" class="lay_1I8dE4 pos_e8wtf3 mapa_CrkEb2 vis_7YvK33 ">~560 Lines</p>
+<div  id="Flex_f27Jo2-gk" data-vp="" class="lay_DLEtj3 pos_e8wtf3 mapa_rPfvm1 vis_ntTUD1 ">
+<div  id="Flex_9zq1D1-gk" data-vp="" class="lay_DLEtj3 pos_e8wtf3 mapa_cLPMR vis_tooOO3 ">
+<div  id="Flex_g6fPX1-gk" data-vp="" class="lay_DgBhg2 pos_e8wtf3 mapa_jigL04 vis_v3yFP4 ">
+<div  id="Flex_RDZai3-gk" data-vp="" class="lay_yIkX62 pos_e8wtf3 mapa_rPfvm1 vis_oYVh3 ">
+<p  id="Text_lgaFG1-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_RRJfk1 ">react-hook-zod-shad.zig</p>
+</div>
+</div>
+<div  id="Flex_nUyW11-gk" data-vp="" class="lay_q8rEj1 pos_e8wtf3 mapa_CrkEb2 vis_RjVdX4 ">
+<div  id="Flex_Ap3Tr3-gk" data-vp="" class="lay_CenWL3 pos_t0s233 mapa_CrkEb2 vis_v3yFP4 ">
+<div  id="Flex_A9NCA4-gk" data-vp="" class="lay_Ds5922 pos_e8wtf3 mapa_Fls5t vis_v3yFP4 ">
+<div  id="Flex_BxCW02-gk" data-vp="" class="lay_XPGVo2 pos_t0s233 mapa_CrkEb2 vis_v3yFP4 ">
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div  id="Flex_67ZmG2-gk" data-vp="" class="lay_Vknxi1 pos_e8wtf3 mapa_320yE1 vis_nlc8k ">
+<div  id="Flex_1bRoG-gk" data-vp="" class="lay_NmlFA4 pos_e8wtf3 mapa_CrkEb2 vis_v3yFP4 ">
+<div  id="Flex_t4NWb2-gk" data-vp="" class="lay_h9qyR1 pos_e8wtf3 mapa_CrkEb2 vis_v3yFP4 ">
+<div  id="Flex_krPTW4-gk" data-vp="" class="lay_egUEe2 pos_e8wtf3 mapa_CrkEb2 vis_v3yFP4 ">
+<svg viewBox="0 0 107 68" fill="none" xmlns="http://www.w3.org/2000/svg"   id="Svg_2aHWb-gk" data-vp="" class="lay_tqK4p3 pos_e8wtf3 mapa_CrkEb2 vis_VlVoe4 ">
+
+<path d="M105.561 33.7069C105.56 32.9829 105.082 32.2599 104.126 31.7069L56.494 4.20691C54.581 3.10291 51.479 3.10291 49.566 4.20691L1.935 31.7069C0.978 32.2599 0.5 32.9829 0.5 33.7069M105.561 33.7069C105.561 34.4309 105.082 35.1549 104.126 35.7069L56.494 63.2069C54.581 64.3119 51.479 64.3119 49.566 63.2069L1.935 35.7069C0.978 35.1549 0.5 34.4309 0.5 33.7069M105.561 33.7069V36.7069C105.561 37.4309 105.082 38.1549 104.126 38.7069L56.494 66.2069C54.581 67.3119 51.479 67.3119 49.566 66.2069L1.935 38.7069C0.978 38.1549 0.5 37.4309 0.5 36.7069V33.7069" stroke="black" stroke-opacity="0.4"/>
+<path opacity="0.1" d="M4.53428 34.207C4.05628 33.931 4.05628 33.483 4.53428 33.207L52.1663 5.707C52.6443 5.431 53.4193 5.431 53.8983 5.707L56.4963 7.207C56.9743 7.483 56.9743 7.931 56.4963 8.207L8.86428 35.707C8.38628 35.983 7.61128 35.983 7.13228 35.707L4.53428 34.207Z"  />
+<g opacity="0.1">
+<path d="M13.1952 39.207C12.7162 38.931 12.7162 38.483 13.1952 38.207L60.8252 10.707C61.3052 10.431 62.0802 10.431 62.5582 10.707L82.4762 22.207C82.9552 22.483 82.9552 22.931 82.4762 23.207L34.8462 50.707C34.3662 50.983 33.5912 50.983 33.1132 50.707L13.1952 39.207Z"  />
+<path d="M27.9178 28.707C27.4388 28.431 27.4388 27.983 27.9178 27.707L42.6398 19.207C43.1178 18.931 43.8938 18.931 44.3718 19.207L67.7548 32.707C68.2328 32.983 68.2328 33.431 67.7548 33.707L53.0318 42.207C52.5538 42.483 51.7788 42.483 51.2998 42.207L27.9178 28.707Z"  />
+</g>
+<path opacity="0.1" d="M39.1749 54.207C38.6969 53.931 38.6969 53.483 39.1749 53.207L86.8069 25.707C87.2849 25.431 88.0609 25.431 88.5389 25.707L101.529 33.207C102.008 33.483 102.008 33.931 101.529 34.207L53.8979 61.707C53.4199 61.983 52.6439 61.983 52.1659 61.707L39.1749 54.207Z" />
+<path d="M4.53428 29.207C4.05628 28.931 4.05628 28.483 4.53428 28.207L52.1663 0.707C52.6443 0.431 53.4193 0.431 53.8983 0.707L56.4963 2.207C56.9743 2.483 56.9743 2.931 56.4963 3.207L8.86428 30.707C8.38628 30.983 7.61128 30.983 7.13228 30.707L4.53428 29.207Z" />
+<path d="M13.1952 34.207C12.7162 33.931 12.7162 33.483 13.1952 33.207L60.8252 5.707C61.3052 5.431 62.0802 5.431 62.5582 5.707L82.4762 17.207C82.9552 17.483 82.9552 17.931 82.4762 18.207L34.8462 45.707C34.3662 45.983 33.5912 45.983 33.1132 45.707L13.1952 34.207Z" />
+<path d="M31.3819 41.707C30.9039 41.431 30.9039 40.983 31.3819 40.707L40.9079 35.207C41.3869 34.931 42.1619 34.931 42.6399 35.207L44.3719 36.207C44.8509 36.483 44.8509 36.931 44.3719 37.207L34.8459 42.707C34.3679 42.983 33.5919 42.983 33.1139 42.707L31.3819 41.707Z"  stroke-opacity="0.3"/>
+<path d="M27.9178 23.707C27.4388 23.431 27.4388 22.983 27.9178 22.707L42.6398 14.207C43.1178 13.931 43.8938 13.931 44.3718 14.207L67.7548 27.707C68.2328 27.983 68.2328 28.431 67.7548 28.707L53.0318 37.207C52.5538 37.483 51.7788 37.483 51.2998 37.207L27.9178 23.707Z" />
+<path d="M49.5702 33.207C49.0912 32.931 49.0912 32.483 49.5702 32.207L59.0962 26.707C59.5742 26.431 60.3502 26.431 60.8282 26.707L62.5602 27.707C63.0382 27.983 63.0382 28.431 62.5602 28.707L53.0342 34.207C52.5552 34.483 51.7802 34.483 51.3022 34.207L49.5702 33.207ZM64.2922 22.707C63.8142 22.431 63.8142 21.983 64.2922 21.707L73.8182 16.207C74.2972 15.931 75.0722 15.931 75.5512 16.207L77.2832 17.207C77.7612 17.483 77.7612 17.931 77.2832 18.207L67.7562 23.707C67.2782 23.983 66.5022 23.983 66.0242 23.707L64.2922 22.707Z"  stroke-opacity="0.3"/>
+<path d="M39.1749 49.207C38.6969 48.931 38.6969 48.483 39.1749 48.207L86.8069 20.707C87.2849 20.431 88.0609 20.431 88.5389 20.707L101.529 28.207C102.008 28.483 102.008 28.931 101.529 29.207L53.8979 56.707C53.4199 56.983 52.6439 56.983 52.1659 56.707L39.1749 49.207Z" />
+<path d="M86.8069 31.707C86.3289 31.431 86.3289 30.983 86.8069 30.707L92.8689 27.207C93.3469 26.931 94.1229 26.931 94.6009 27.207L96.3329 28.207C96.8109 28.483 96.8109 28.931 96.3329 29.207L90.2709 32.707C89.7929 32.983 89.0169 32.983 88.5389 32.707L86.8069 31.707ZM71.2179 40.707C70.7399 40.431 70.7399 39.983 71.2179 39.707L82.4759 33.207C82.9539 32.931 83.7299 32.931 84.2079 33.207L85.9399 34.207C86.4189 34.483 86.4189 34.931 85.9399 35.207L74.6819 41.707C74.2039 41.983 73.4279 41.983 72.9499 41.707L71.2179 40.707Z"  stroke-opacity="0.3"/>
+
+</svg>
+<p  id="Text_P2jBI1-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_oawB61 ">Templates</p>
+</div>
+<div  id="Flex_Hi2oA3-gk" data-vp="" class="lay_uix3P4 pos_e8wtf3 mapa_CfvRs vis_v3yFP4 ">
+<button  id="CtxB_nUAk2-gk" data-vp="" class="lay_1I8dE4 pos_e8wtf3 mapa_CrkEb2 vis_HgGbm ">
+<p  id="Text_mlsUs3-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_Kd52d2 intr_YnhBe2 ">{dashboard.zig}</p>
+</button>
+<button  id="CtxB_CwoI93-gk" data-vp="" class="lay_1I8dE4 pos_e8wtf3 mapa_CrkEb2 vis_HgGbm ">
+<p  id="Text_e1neM3-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_je5VA2 intr_YnhBe2 ">{kanan.zig}</p>
+</button>
+<button  id="CtxB_q6Eyu3-gk" data-vp="" class="lay_1I8dE4 pos_e8wtf3 mapa_CrkEb2 vis_HgGbm ">
+<p  id="Text_TsClq-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_je5VA2 intr_YnhBe2 ">{chat.zig}</p>
+</button>
+</div>
+</div>
+<div  id="Flex_imHpp2-gk" data-vp="" class="lay_q2bOd3 pos_e8wtf3 mapa_CrkEb2 vis_v3yFP4 ">
+<div  id="Flex_rSohk2-gk" data-vp="" class="lay_GGkn52 pos_e8wtf3 mapa_CrkEb2 vis_v3yFP4 ">
+<p  id="Text_3P3Kk-gk" data-vp="" class="lay_1I8dE4 pos_e8wtf3 mapa_CrkEb2 vis_oawB61 ">A framework so simple, even</p>
+<p  id="Text_dYxPB3-gk" data-vp="" class="lay_1I8dE4 pos_e8wtf3 mapa_CrkEb2 vis_QAx7c1 ">Claude built the following with just the docs!</p>
+<p  id="Text_fSSog1-gk" data-vp="" class="lay_1I8dE4 pos_e8wtf3 mapa_CrkEb2 vis_IdGie ">Senet, has been tested, by real users and is currently running in production, the goal was to create documentation
+that is easy to read, and easy to navigate. But also, can be fed into LLMs, so that one can query, and create.</p>
+</div>
+<div  id="Flex_5TSBW2-gk" data-vp="" class="lay_nbCSp1 pos_t0s233 mapa_rPfvm1 vis_ntTUD1 ">
+
+
+<button  id="CtxB_SasnO2-gk" data-vp="" class="lay_MymkL3 pos_rLJOu mapa_CrkEb2 vis_HgGbm "aria-label="toggle video">
+<svg viewBox="0 0 134 134" fill="none" xmlns="http://www.w3.org/2000/svg"   id="Svg_wwTom-gk" data-vp="" class="lay_tqK4p3 pos_e8wtf3 mapa_CrkEb2 vis_2TMoP4 ">
+
+<mask id="path-1-inside-1_6024_6226" fill="white">
+<path d="M67 0C104.003 0 134 29.9969 134 67C134 104.003 104.003 134 67 134C29.9969 134 0 104.003 0 67C0 29.9969 29.9969 0 67 0ZM46 103.373L109 67L46 30.627V103.373Z"/>
+</mask>
+<path d="M67 0C104.003 0 134 29.9969 134 67C134 104.003 104.003 134 67 134C29.9969 134 0 104.003 0 67C0 29.9969 29.9969 0 67 0ZM46 103.373L109 67L46 30.627V103.373Z" fill="#1900FF"/>
+<path d="M46 103.373H45V105.105L46.5 104.239L46 103.373ZM109 67L109.5 67.866L111 67L109.5 66.134L109 67ZM46 30.627L46.5 29.7609L45 28.8949V30.627H46ZM67 0V1C103.451 1 133 30.5492 133 67H134H135C135 29.4446 104.555 -1 67 -1V0ZM134 67H133C133 103.451 103.451 133 67 133V134V135C104.555 135 135 104.555 135 67H134ZM67 134V133C30.5492 133 1 103.451 1 67H0H-1C-1 104.555 29.4446 135 67 135V134ZM0 67H1C1 30.5492 30.5492 1 67 1V0V-1C29.4446 -1 -1 29.4446 -1 67H0ZM46 103.373L46.5 104.239L109.5 67.866L109 67L108.5 66.134L45.5 102.507L46 103.373ZM109 67L109.5 66.134L46.5 29.7609L46 30.627L45.5 31.493L108.5 67.866L109 67ZM46 30.627H45V103.373H46H47V30.627H46Z" fill="black" mask="url(#path-1-inside-1_6024_6226)"/>
+
+</svg>
+</button>
+</div>
+</div>
+</div>
+</div>
+<div  id="Flex_9HcLS1-gk" data-vp="" class="lay_MqIUB1 pos_t0s233 mapa_320yE1 vis_UBQb53 ">
+<p  id="Text_LDnsF4-gk" data-vp="" class="lay_jXzf62 pos_tWhKd2 mapa_CrkEb2 vis_0m7yN ">.width(.percent(100)).padding(.tb(64, 64)).layout(.x_even).border(.top(.hex("#E4E4E4")))</p>
+<div  id="Flex_f1XoC4-gk" data-vp="" class="lay_d0VRn2 pos_e8wtf3 mapa_CrkEb2 vis_v3yFP4 ">
+<p  id="Text_C3veq2-gk" data-vp="" class="lay_1I8dE4 pos_e8wtf3 mapa_CrkEb2 vis_e87QX2 ">Vapor</p>
+<p  id="Html_SGWcb4-gk" data-vp="" class="lay_1I8dE4 pos_e8wtf3 mapa_CrkEb2 vis_HMDRU ">Is a Compile-Time UI Engine, which takes a programmer first approach to building UIs <br> <span>ZIG → WASM → UI</span></p>
+</div>
+<div  id="Flex_KaiIr1-gk" data-vp="" class="lay_d0VRn2 pos_e8wtf3 mapa_CrkEb2 vis_v3yFP4 ">
+<p  id="Text_jRzcG3-gk" data-vp="" class="lay_1I8dE4 pos_e8wtf3 mapa_CrkEb2 vis_e87QX2 ">Reverb</p>
+<p  id="Html_x5XK-gk" data-vp="" class="lay_1I8dE4 pos_e8wtf3 mapa_CrkEb2 vis_HMDRU ">Is a simple, yet powerful, backend framework for Zig. Zero runtime allocations, High performance, Express like.</p>
+</div>
+<div  id="Flex_8omTu-gk" data-vp="" class="lay_d0VRn2 pos_e8wtf3 mapa_CrkEb2 vis_v3yFP4 ">
+<p  id="Text_sDrrl3-gk" data-vp="" class="lay_1I8dE4 pos_e8wtf3 mapa_CrkEb2 vis_e87QX2 ">Metal</p>
+<p  id="Html_I5S3p3-gk" data-vp="" class="lay_1I8dE4 pos_e8wtf3 mapa_CrkEb2 vis_HMDRU ">Metal a full featured cli tool for deploying, building, and managing Senet Applications.</p>
+</div>
+</div>
+<div  id="Flex_Vi8Xc1-gk" data-vp="" class="lay_g6bCi2 pos_t0s233 mapa_G9G2i vis_v3yFP4 ">
+<p  id="Text_ikuUm-gk" data-vp="" class="lay_jXzf62 pos_ZPBFR3 mapa_CrkEb2 vis_0m7yN ">.dots(0.5, 8, .black).shadow(.card(.black))</p>
+<div  id="Flex_WFawT1-gk" data-vp="" class="lay_TrVza3 pos_e8wtf3 mapa_CrkEb2 vis_v3yFP4 ">
+<div  id="Flex_xAkeS-gk" data-vp="" class="lay_q9cYN3 pos_e8wtf3 mapa_rPfvm1 vis_ntTUD1 ">
+<div  id="Flex_wAd2W2-gk" data-vp="" class="lay_DLEtj3 pos_e8wtf3 mapa_cLPMR vis_tooOO3 ">
+<div  id="Flex_CSBOR3-gk" data-vp="" class="lay_DgBhg2 pos_e8wtf3 mapa_jigL04 vis_v3yFP4 ">
+<div  id="Flex_SgvSU2-gk" data-vp="" class="lay_yIkX62 pos_e8wtf3 mapa_rPfvm1 vis_oYVh3 ">
+<p  id="Text_pcvoO2-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_RRJfk1 ">vapor.zig</p>
+</div>
+</div>
+<div  id="Flex_V21Sv-gk" data-vp="" class="lay_q8rEj1 pos_e8wtf3 mapa_CrkEb2 vis_RjVdX4 ">
+<div  id="Flex_n1tVD3-gk" data-vp="" class="lay_CenWL3 pos_t0s233 mapa_CrkEb2 vis_v3yFP4 ">
+<div  id="Flex_IQ8ND4-gk" data-vp="" class="lay_Ds5922 pos_e8wtf3 mapa_Fls5t vis_v3yFP4 ">
+<div  id="Flex_Ai8ta2-gk" data-vp="" class="lay_t89xb4 pos_t0s233 mapa_CrkEb2 vis_v3yFP4 ">
+<div  id="Flex_7pBEE3-gk" data-vp="" style="transform: translate3d(0px, 0px, 0px);" class="lay_5T1361 pos_EzcyX4 mapa_CrkEb2 vis_2alHF ">
+<p  id="Text_8IFhC2-gk" data-vp="" class="lay_yMYoc2 pos_e8wtf3 mapa_CrkEb2 vis_uYgqX ">1</p>
+<div  id="Flex_yGiLD2-gk" data-vp="" class="lay_4PUDp2 pos_e8wtf3 mapa_t79Oh3 vis_EoBE12 ">
+<p  id="Text_DWBrZ2-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_dER0U1 ">// All normal Zig code</p>
+</div>
+</div>
+<div  id="Flex_Bk8YC-gk" data-vp="" style="transform: translate3d(0px, 22.5px, 0px);" class="lay_5T1361 pos_EzcyX4 mapa_CrkEb2 vis_2alHF ">
+<p  id="Text_wGjLD4-gk" data-vp="" class="lay_yMYoc2 pos_e8wtf3 mapa_CrkEb2 vis_uYgqX ">2</p>
+<div  id="Flex_4l4x64-gk" data-vp="" class="lay_4PUDp2 pos_e8wtf3 mapa_t79Oh3 vis_EoBE12 ">
+<p  id="Text_YWgoq-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_6SioS3 ">const</p>
+<p  id="Text_f3DCf1-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_i8StO3 "> Vapor = @import(</p>
+<p  id="Text_Wqcv7-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_l7A5G1 ">"vapor"</p>
+<p  id="Text_fb6lE4-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_i8StO3 ">);</p>
+</div>
+</div>
+<div  id="Flex_aAngr3-gk" data-vp="" style="transform: translate3d(0px, 45px, 0px);" class="lay_5T1361 pos_EzcyX4 mapa_CrkEb2 vis_2alHF ">
+<p  id="Text_9ts0f1-gk" data-vp="" class="lay_yMYoc2 pos_e8wtf3 mapa_CrkEb2 vis_uYgqX ">3</p>
+<div  id="Flex_plc0q3-gk" data-vp="" class="lay_4PUDp2 pos_e8wtf3 mapa_t79Oh3 vis_EoBE12 ">
+</div>
+</div>
+<div  id="Flex_TciFU3-gk" data-vp="" style="transform: translate3d(0px, 67.5px, 0px);" class="lay_5T1361 pos_EzcyX4 mapa_CrkEb2 vis_2alHF ">
+<p  id="Text_rnZGE2-gk" data-vp="" class="lay_yMYoc2 pos_e8wtf3 mapa_CrkEb2 vis_uYgqX ">4</p>
+<div  id="Flex_H5Ca1-gk" data-vp="" class="lay_4PUDp2 pos_e8wtf3 mapa_t79Oh3 vis_EoBE12 ">
+<p  id="Text_JPKwn-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_dER0U1 ">// No useState gymnastics</p>
+</div>
+</div>
+<div  id="Flex_bC1Rv1-gk" data-vp="" style="transform: translate3d(0px, 90px, 0px);" class="lay_5T1361 pos_EzcyX4 mapa_CrkEb2 vis_2alHF ">
+<p  id="Text_XGXi33-gk" data-vp="" class="lay_yMYoc2 pos_e8wtf3 mapa_CrkEb2 vis_uYgqX ">5</p>
+<div  id="Flex_EYX2Y1-gk" data-vp="" class="lay_4PUDp2 pos_e8wtf3 mapa_t79Oh3 vis_EoBE12 ">
+<p  id="Text_oNLXG2-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_6SioS3 ">var</p>
+<p  id="Text_rvBhV3-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_i8StO3 "> counter: i32 = </p>
+<p  id="Text_MIStK2-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_i8StO3 ">0</p>
+<p  id="Text_8Opta4-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_i8StO3 ">;</p>
+</div>
+</div>
+<div  id="Flex_b9JKd3-gk" data-vp="" style="transform: translate3d(0px, 112.5px, 0px);" class="lay_5T1361 pos_EzcyX4 mapa_CrkEb2 vis_2alHF ">
+<p  id="Text_CZFwO3-gk" data-vp="" class="lay_yMYoc2 pos_e8wtf3 mapa_CrkEb2 vis_uYgqX ">6</p>
+<div  id="Flex_DabWp1-gk" data-vp="" class="lay_4PUDp2 pos_e8wtf3 mapa_t79Oh3 vis_EoBE12 ">
+<p  id="Text_qsMbG1-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_6SioS3 ">fn</p>
+<p  id="Text_TaWyl-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_i8StO3 "> </p>
+<p  id="Text_NoHKM3-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_KZQQ1 ">increment</p>
+<p  id="Text_n1kSg1-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_i8StO3 ">() void { counter += </p>
+<p  id="Text_j2CVX4-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_i8StO3 ">1</p>
+<p  id="Text_MRpnm3-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_i8StO3 ">; }</p>
+</div>
+</div>
+<div  id="Flex_b75p41-gk" data-vp="" style="transform: translate3d(0px, 135px, 0px);" class="lay_5T1361 pos_EzcyX4 mapa_CrkEb2 vis_2alHF ">
+<p  id="Text_NcExC-gk" data-vp="" class="lay_yMYoc2 pos_e8wtf3 mapa_CrkEb2 vis_uYgqX ">7</p>
+<div  id="Flex_eZrSI-gk" data-vp="" class="lay_4PUDp2 pos_e8wtf3 mapa_t79Oh3 vis_EoBE12 ">
+<p  id="Text_MrQXU3-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_6SioS3 ">fn</p>
+<p  id="Text_ymYtd3-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_i8StO3 "> </p>
+<p  id="Text_iB89X4-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_KZQQ1 ">decrement</p>
+<p  id="Text_INSVz3-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_i8StO3 ">() void { counter -= </p>
+<p  id="Text_R4wB74-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_i8StO3 ">1</p>
+<p  id="Text_oDZ9y3-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_i8StO3 ">; }</p>
+</div>
+</div>
+<div  id="Flex_f8xxp2-gk" data-vp="" style="transform: translate3d(0px, 157.5px, 0px);" class="lay_5T1361 pos_EzcyX4 mapa_CrkEb2 vis_2alHF ">
+<p  id="Text_riQyi2-gk" data-vp="" class="lay_yMYoc2 pos_e8wtf3 mapa_CrkEb2 vis_uYgqX ">8</p>
+<div  id="Flex_DbxW63-gk" data-vp="" class="lay_4PUDp2 pos_e8wtf3 mapa_t79Oh3 vis_EoBE12 ">
+</div>
+</div>
+<div  id="Flex_FY5P42-gk" data-vp="" style="transform: translate3d(0px, 180px, 0px);" class="lay_5T1361 pos_EzcyX4 mapa_CrkEb2 vis_2alHF ">
+<p  id="Text_9KUTU3-gk" data-vp="" class="lay_yMYoc2 pos_e8wtf3 mapa_CrkEb2 vis_uYgqX ">9</p>
+<div  id="Flex_vGhyp3-gk" data-vp="" class="lay_4PUDp2 pos_e8wtf3 mapa_t79Oh3 vis_EoBE12 ">
+<p  id="Text_GcRFl1-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_dER0U1 ">// Render</p>
+</div>
+</div>
+<div  id="Flex_JKZAd1-gk" data-vp="" style="transform: translate3d(0px, 202.5px, 0px);" class="lay_5T1361 pos_EzcyX4 mapa_CrkEb2 vis_2alHF ">
+<p  id="Text_kQHza3-gk" data-vp="" class="lay_yMYoc2 pos_e8wtf3 mapa_CrkEb2 vis_uYgqX ">10</p>
+<div  id="Flex_vUC2F3-gk" data-vp="" class="lay_4PUDp2 pos_e8wtf3 mapa_t79Oh3 vis_EoBE12 ">
+<p  id="Text_gvCI-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_6SioS3 ">pub</p>
+<p  id="Text_CiDQw2-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_i8StO3 "> </p>
+<p  id="Text_d0uPE1-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_6SioS3 ">fn</p>
+<p  id="Text_ggt2V4-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_i8StO3 "> </p>
+<p  id="Text_6cDkB-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_LHFPL ">ButtonComponent</p>
+<p  id="Text_jFCjp1-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_i8StO3 ">() void {</p>
+</div>
+</div>
+<div  id="Flex_TXFbD2-gk" data-vp="" style="transform: translate3d(0px, 225px, 0px);" class="lay_5T1361 pos_EzcyX4 mapa_CrkEb2 vis_2alHF ">
+<p  id="Text_NUuV41-gk" data-vp="" class="lay_yMYoc2 pos_e8wtf3 mapa_CrkEb2 vis_uYgqX ">11</p>
+<div  id="Flex_B76cS3-gk" data-vp="" class="lay_4PUDp2 pos_e8wtf3 mapa_t79Oh3 vis_EoBE12 ">
+<p  id="Text_QrPrH4-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_i8StO3 ">    </p>
+<p  id="Text_8AAIE3-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_LHFPL ">Button</p>
+<p  id="Text_JaeFv2-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_i8StO3 ">(increment, .{}).</p>
+<p  id="Text_h7q4R4-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_KZQQ1 ">children</p>
+<p  id="Text_dEty54-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_i8StO3 ">({</p>
+</div>
+</div>
+<div  id="Flex_yHPik2-gk" data-vp="" style="transform: translate3d(0px, 247.5px, 0px);" class="lay_5T1361 pos_EzcyX4 mapa_CrkEb2 vis_2alHF ">
+<p  id="Text_VyfRS-gk" data-vp="" class="lay_yMYoc2 pos_e8wtf3 mapa_CrkEb2 vis_uYgqX ">12</p>
+<div  id="Flex_dA2gr1-gk" data-vp="" class="lay_4PUDp2 pos_e8wtf3 mapa_t79Oh3 vis_EoBE12 ">
+<p  id="Text_NHkpy3-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_i8StO3 ">        </p>
+<p  id="Text_7G8z81-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_LHFPL ">Text</p>
+<p  id="Text_SySEf3-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_i8StO3 ">(</p>
+<p  id="Text_O1JDy1-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_l7A5G1 ">"+"</p>
+<p  id="Text_EREn04-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_i8StO3 ">).</p>
+<p  id="Text_aYI1l1-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_KZQQ1 ">end</p>
+<p  id="Text_cGn6N1-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_i8StO3 ">();</p>
+</div>
+</div>
+<div  id="Flex_6JgLc-gk" data-vp="" style="transform: translate3d(0px, 270px, 0px);" class="lay_5T1361 pos_EzcyX4 mapa_CrkEb2 vis_2alHF ">
+<p  id="Text_4PKEk3-gk" data-vp="" class="lay_yMYoc2 pos_e8wtf3 mapa_CrkEb2 vis_uYgqX ">13</p>
+<div  id="Flex_vlAnU4-gk" data-vp="" class="lay_4PUDp2 pos_e8wtf3 mapa_t79Oh3 vis_EoBE12 ">
+<p  id="Text_Y6zoc2-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_i8StO3 ">    });</p>
+</div>
+</div>
+<div  id="Flex_lsD604-gk" data-vp="" style="transform: translate3d(0px, 292.5px, 0px);" class="lay_5T1361 pos_EzcyX4 mapa_CrkEb2 vis_2alHF ">
+<p  id="Text_doWRt-gk" data-vp="" class="lay_yMYoc2 pos_e8wtf3 mapa_CrkEb2 vis_uYgqX ">14</p>
+<div  id="Flex_OY5m74-gk" data-vp="" class="lay_4PUDp2 pos_e8wtf3 mapa_t79Oh3 vis_EoBE12 ">
+</div>
+</div>
+<div  id="Flex_yx17P4-gk" data-vp="" style="transform: translate3d(0px, 315px, 0px);" class="lay_5T1361 pos_EzcyX4 mapa_CrkEb2 vis_2alHF ">
+<p  id="Text_JagaU4-gk" data-vp="" class="lay_yMYoc2 pos_e8wtf3 mapa_CrkEb2 vis_uYgqX ">15</p>
+<div  id="Flex_k9PXM4-gk" data-vp="" class="lay_4PUDp2 pos_e8wtf3 mapa_t79Oh3 vis_EoBE12 ">
+<p  id="Text_10GBy-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_i8StO3 ">    </p>
+<p  id="Text_VT07Z2-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_LHFPL ">Text</p>
+<p  id="Text_t19jA1-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_i8StO3 ">(counter).</p>
+<p  id="Text_iN5z5-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_KZQQ1 ">font</p>
+<p  id="Text_K8inl2-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_i8StO3 ">(</p>
+<p  id="Text_hXKBU4-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_i8StO3 ">24</p>
+<p  id="Text_CRb75-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_i8StO3 ">, </p>
+<p  id="Text_k3Aqb2-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_i8StO3 ">700</p>
+<p  id="Text_yTSLc1-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_i8StO3 ">, .blue).</p>
+<p  id="Text_RBBuO-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_KZQQ1 ">end</p>
+<p  id="Text_zaf1r-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_i8StO3 ">();</p>
+</div>
+</div>
+<div  id="Flex_f0UTg1-gk" data-vp="" style="transform: translate3d(0px, 337.5px, 0px);" class="lay_5T1361 pos_EzcyX4 mapa_CrkEb2 vis_2alHF ">
+<p  id="Text_AvXIo-gk" data-vp="" class="lay_yMYoc2 pos_e8wtf3 mapa_CrkEb2 vis_uYgqX ">16</p>
+<div  id="Flex_DQlUj1-gk" data-vp="" class="lay_4PUDp2 pos_e8wtf3 mapa_t79Oh3 vis_EoBE12 ">
+</div>
+</div>
+<div  id="Flex_H0Ogs2-gk" data-vp="" style="transform: translate3d(0px, 360px, 0px);" class="lay_5T1361 pos_EzcyX4 mapa_CrkEb2 vis_2alHF ">
+<p  id="Text_EM4Lf2-gk" data-vp="" class="lay_yMYoc2 pos_e8wtf3 mapa_CrkEb2 vis_uYgqX ">17</p>
+<div  id="Flex_IUxND4-gk" data-vp="" class="lay_4PUDp2 pos_e8wtf3 mapa_t79Oh3 vis_EoBE12 ">
+<p  id="Text_RMcmV1-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_i8StO3 ">    </p>
+<p  id="Text_6fMKH3-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_LHFPL ">Button</p>
+<p  id="Text_tdQoM4-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_i8StO3 ">(decrement, .{}).</p>
+<p  id="Text_T3atV2-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_KZQQ1 ">hoverScale</p>
+<p  id="Text_RD8rZ-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_i8StO3 ">().</p>
+<p  id="Text_IjY4H-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_KZQQ1 ">border</p>
+<p  id="Text_ATvMt3-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_i8StO3 ">(.simple).</p>
+<p  id="Text_NbgMC1-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_KZQQ1 ">children</p>
+<p  id="Text_JqUM62-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_i8StO3 ">({</p>
+</div>
+</div>
+<div  id="Flex_LHRer2-gk" data-vp="" style="transform: translate3d(0px, 382.5px, 0px);" class="lay_5T1361 pos_EzcyX4 mapa_CrkEb2 vis_2alHF ">
+<p  id="Text_6lQ553-gk" data-vp="" class="lay_yMYoc2 pos_e8wtf3 mapa_CrkEb2 vis_uYgqX ">18</p>
+<div  id="Flex_uFEEC3-gk" data-vp="" class="lay_4PUDp2 pos_e8wtf3 mapa_t79Oh3 vis_EoBE12 ">
+<p  id="Text_Nbg5i2-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_i8StO3 ">        </p>
+<p  id="Text_9JNaL3-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_LHFPL ">Text</p>
+<p  id="Text_UO2GT-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_i8StO3 ">(</p>
+<p  id="Text_RR1xy3-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_l7A5G1 ">"-"</p>
+<p  id="Text_rbSIa1-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_i8StO3 ">).</p>
+<p  id="Text_nNCpP2-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_KZQQ1 ">bold</p>
+<p  id="Text_yahxt-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_i8StO3 ">().</p>
+<p  id="Text_eg8cr1-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_KZQQ1 ">end</p>
+<p  id="Text_p7OT92-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_i8StO3 ">();</p>
+</div>
+</div>
+<div  id="Flex_HTY7P2-gk" data-vp="" style="transform: translate3d(0px, 405px, 0px);" class="lay_5T1361 pos_EzcyX4 mapa_CrkEb2 vis_2alHF ">
+<p  id="Text_lugUD-gk" data-vp="" class="lay_yMYoc2 pos_e8wtf3 mapa_CrkEb2 vis_uYgqX ">19</p>
+<div  id="Flex_3J2PV3-gk" data-vp="" class="lay_4PUDp2 pos_e8wtf3 mapa_t79Oh3 vis_EoBE12 ">
+<p  id="Text_l2VDT-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_i8StO3 ">    });</p>
+</div>
+</div>
+<div  id="Flex_8vGGM-gk" data-vp="" style="transform: translate3d(0px, 427.5px, 0px);" class="lay_5T1361 pos_EzcyX4 mapa_CrkEb2 vis_2alHF ">
+<p  id="Text_tyc6n2-gk" data-vp="" class="lay_yMYoc2 pos_e8wtf3 mapa_CrkEb2 vis_uYgqX ">20</p>
+<div  id="Flex_vWNxy-gk" data-vp="" class="lay_4PUDp2 pos_e8wtf3 mapa_t79Oh3 vis_EoBE12 ">
+<p  id="Text_s22rV-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_i8StO3 ">}</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div  id="Flex_HPJhu-gk" data-vp="" class="lay_QG7Fv3 pos_e8wtf3 mapa_TK4ER4 vis_v3yFP4 ">
+<div  id="Flex_8ICrx2-gk" data-vp="" class="lay_hfcn54 pos_e8wtf3 mapa_CrkEb2 vis_v3yFP4 ">
+<p  id="Text_0wZcO-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_oawB61 ">Vapor Code Sample</p>
+</div>
+<p  id="Html_zwM2J1-gk" data-vp="" class="lay_1I8dE4 pos_e8wtf3 mapa_CrkEb2 vis_RqjXT1 ">Vapor lets you build user interfaces using a simple, <strong>what you see is what you get</strong> approach.
+The code on the left shows two core concepts that make Vapor special: <i style="color: rgb(var(--tint))">automatic UI updates</i>
+ and <i style="color: rgb(var(--tint))">flexible styling</i>.</p>
+<p  id="Html_tAmIS1-gk" data-vp="" class="lay_1I8dE4 pos_e8wtf3 mapa_CrkEb2 vis_RqjXT1 ">Notice how the counter updates?
+We use a plain variable <i style="color: rgb(var(--tint))"><code>counter</code></i>
+for the state, <strong>no special hooks or functions.</strong> <i style="color: rgb(var(--tint))"><code>Text</code></i>
+automatically updates when <i style="color: rgb(var(--tint))"><code>counter</code></i> changes.</p>
+<p  id="Html_RihZO1-gk" data-vp="" class="lay_1I8dE4 pos_e8wtf3 mapa_CrkEb2 vis_RqjXT1 ">The <i style="color: rgb(var(--tint))"><code>Inline Style</code></i> Method (Chaining) For quick or unique styles, you can "chain"
+modifiers directly onto the component. This is fast, readable, and keeps the styles right next to the component they affect.</p>
+<div  id="Flex_G8qOU4-gk" data-vp="" class="lay_Sxijj3 pos_e8wtf3 mapa_CrkEb2 vis_v3yFP4 ">
+<div  id="Flex_zfS891-gk" data-vp="" class="lay_Annfr2 pos_e8wtf3 mapa_CrkEb2 vis_v3yFP4 ">
+<div  id="Flex_xCsZN2-gk" data-vp="" class="lay_bjyfY3 pos_e8wtf3 mapa_CrkEb2 vis_v3yFP4 ">
+<button  id="CtxB_yNqeA1-gk" data-vp="" class="lay_RsFFE3 pos_e8wtf3 mapa_rPfvm1 vis_UcPYc intr_52LY73 ">
+<p  id="Text_qZY7t1-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_lQrtA4 ">+</p>
+</button>
+<p  id="Text_fC78D1-gk" data-vp="" class="lay_Vrv2d2 pos_e8wtf3 mapa_CrkEb2 vis_1Ftsg ">0</p>
+<button  id="CtxB_l9JbD3-gk" data-vp="" class="lay_RsFFE3 pos_e8wtf3 mapa_rPfvm1 vis_liDBq3 intr_52LY73 ">
+<p  id="Text_BRHb04-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_lQrtA4 ">-</p>
+</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div  id="Flex_FUg0J1-gk" data-vp="" class="lay_WFYMN3 pos_e8wtf3 mapa_CrkEb2 vis_Oi48S ">
+<div  id="Flex_0D9Hy2-gk" data-vp="" class="lay_erITT4 pos_e8wtf3 mapa_CrkEb2 vis_v3yFP4 ">
+<div  id="Flex_ISzvT2-gk" data-vp="" class="lay_OQSOa2 pos_e8wtf3 mapa_CrkEb2 vis_v3yFP4 ">
+<div  id="Flex_Pq3rr2-gk" data-vp="" class="lay_Eyd7H3 pos_e8wtf3 mapa_CrkEb2 vis_v3yFP4 ">
+<p  id="Text_QnCuZ4-gk" data-vp="" class="lay_1I8dE4 pos_e8wtf3 mapa_CrkEb2 vis_xGIud1 ">Reverb</p>
+<p  id="Html_vSOMf1-gk" data-vp="" class="lay_1I8dE4 pos_e8wtf3 mapa_CrkEb2 vis_RqjXT1 ">Reverb is a backend web framework that is built on top of
+<i style="color: rgb(var(--tint))"><code>Loom</code></i>.</p>
+<p  id="Html_mAQCB3-gk" data-vp="" class="lay_1I8dE4 pos_e8wtf3 mapa_CrkEb2 vis_RqjXT1 "><i style="color: rgb(var(--tint))"><code>Reverb</code></i>,
+has a focus on performance, built-in defaults, and a simple API.</p>
+<div  id="Grap_alC3z-gk" data-vp="" class="lay_gUiP44 pos_e8wtf3 mapa_CrkEb2 vis_FqQnQ2 intr_5eKvy3 ">
+</div>
+</div>
+</div>
+<div  id="Flex_LR3pF3-gk" data-vp="" class="lay_OQSOa2 pos_e8wtf3 mapa_CrkEb2 vis_v3yFP4 ">
+<div  id="Flex_EvD2U3-gk" data-vp="" class="lay_q9cYN3 pos_e8wtf3 mapa_rPfvm1 vis_ntTUD1 ">
+<div  id="Flex_jIbwM-gk" data-vp="" class="lay_DLEtj3 pos_e8wtf3 mapa_cLPMR vis_tooOO3 ">
+<div  id="Flex_YhLAp1-gk" data-vp="" class="lay_DgBhg2 pos_e8wtf3 mapa_jigL04 vis_v3yFP4 ">
+<div  id="Flex_WoBh13-gk" data-vp="" class="lay_yIkX62 pos_e8wtf3 mapa_rPfvm1 vis_oYVh3 ">
+<p  id="Text_CHucr1-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_RRJfk1 ">reverb.zig</p>
+</div>
+</div>
+<div  id="Flex_WWWU22-gk" data-vp="" class="lay_q8rEj1 pos_e8wtf3 mapa_CrkEb2 vis_RjVdX4 ">
+<div  id="Flex_9vz2H4-gk" data-vp="" class="lay_CenWL3 pos_t0s233 mapa_CrkEb2 vis_v3yFP4 ">
+<div  id="Flex_hfBn73-gk" data-vp="" class="lay_Ds5922 pos_e8wtf3 mapa_Fls5t vis_v3yFP4 ">
+<div  id="Flex_5L2ca3-gk" data-vp="" class="lay_o7kuT3 pos_t0s233 mapa_CrkEb2 vis_v3yFP4 ">
+<div  id="Flex_Ntyav3-gk" data-vp="" style="transform: translate3d(0px, 0px, 0px);" class="lay_5T1361 pos_EzcyX4 mapa_CrkEb2 vis_2alHF ">
+<p  id="Text_Qimub2-gk" data-vp="" class="lay_yMYoc2 pos_e8wtf3 mapa_CrkEb2 vis_uYgqX ">1</p>
+<div  id="Flex_G5g4B4-gk" data-vp="" class="lay_4PUDp2 pos_e8wtf3 mapa_t79Oh3 vis_EoBE12 ">
+<p  id="Text_yPlBV-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_6SioS3 ">const</p>
+<p  id="Text_TgxD74-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_i8StO3 "> std = @import(</p>
+<p  id="Text_FLOqZ4-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_l7A5G1 ">"std"</p>
+<p  id="Text_KxQU4-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_i8StO3 ">);</p>
+</div>
+</div>
+<div  id="Flex_jKgzN4-gk" data-vp="" style="transform: translate3d(0px, 22.5px, 0px);" class="lay_5T1361 pos_EzcyX4 mapa_CrkEb2 vis_2alHF ">
+<p  id="Text_ZpPjb-gk" data-vp="" class="lay_yMYoc2 pos_e8wtf3 mapa_CrkEb2 vis_uYgqX ">2</p>
+<div  id="Flex_SfAtg2-gk" data-vp="" class="lay_4PUDp2 pos_e8wtf3 mapa_t79Oh3 vis_EoBE12 ">
+<p  id="Text_zVo2V4-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_6SioS3 ">const</p>
+<p  id="Text_6TilG4-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_i8StO3 "> Reverb = @import(</p>
+<p  id="Text_tpb8w1-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_l7A5G1 ">"reverb"</p>
+<p  id="Text_ba4Le4-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_i8StO3 ">);</p>
+</div>
+</div>
+<div  id="Flex_Prteq3-gk" data-vp="" style="transform: translate3d(0px, 45px, 0px);" class="lay_5T1361 pos_EzcyX4 mapa_CrkEb2 vis_2alHF ">
+<p  id="Text_0bzYd2-gk" data-vp="" class="lay_yMYoc2 pos_e8wtf3 mapa_CrkEb2 vis_uYgqX ">3</p>
+<div  id="Flex_qvoE4-gk" data-vp="" class="lay_4PUDp2 pos_e8wtf3 mapa_t79Oh3 vis_EoBE12 ">
+</div>
+</div>
+<div  id="Flex_E9jH31-gk" data-vp="" style="transform: translate3d(0px, 67.5px, 0px);" class="lay_5T1361 pos_EzcyX4 mapa_CrkEb2 vis_2alHF ">
+<p  id="Text_F7IA31-gk" data-vp="" class="lay_yMYoc2 pos_e8wtf3 mapa_CrkEb2 vis_uYgqX ">4</p>
+<div  id="Flex_ujj0A4-gk" data-vp="" class="lay_4PUDp2 pos_e8wtf3 mapa_t79Oh3 vis_EoBE12 ">
+<p  id="Text_aQXH91-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_6SioS3 ">fn</p>
+<p  id="Text_NDNWG2-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_i8StO3 "> </p>
+<p  id="Text_sDRWx3-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_KZQQ1 ">ping</p>
+<p  id="Text_IYjPM1-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_i8StO3 ">(ctx: *Reverb.Context) !void {</p>
+</div>
+</div>
+<div  id="Flex_ZMoFc3-gk" data-vp="" style="transform: translate3d(0px, 90px, 0px);" class="lay_5T1361 pos_EzcyX4 mapa_CrkEb2 vis_2alHF ">
+<p  id="Text_0YMID4-gk" data-vp="" class="lay_yMYoc2 pos_e8wtf3 mapa_CrkEb2 vis_uYgqX ">5</p>
+<div  id="Flex_zFLv51-gk" data-vp="" class="lay_4PUDp2 pos_e8wtf3 mapa_t79Oh3 vis_EoBE12 ">
+<p  id="Text_nTmQu-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_i8StO3 ">    </p>
+<p  id="Text_F4PRC3-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_6SioS3 ">try</p>
+<p  id="Text_trlgd2-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_i8StO3 "> ctx.</p>
+<p  id="Text_7CJxS4-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_LHFPL ">STRING</p>
+<p  id="Text_7HIOa2-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_i8StO3 ">(</p>
+<p  id="Text_XtW4p3-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_l7A5G1 ">"Hello World!"</p>
+<p  id="Text_qlFRI1-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_i8StO3 ">);</p>
+</div>
+</div>
+<div  id="Flex_LDaOI2-gk" data-vp="" style="transform: translate3d(0px, 112.5px, 0px);" class="lay_5T1361 pos_EzcyX4 mapa_CrkEb2 vis_2alHF ">
+<p  id="Text_bGZax3-gk" data-vp="" class="lay_yMYoc2 pos_e8wtf3 mapa_CrkEb2 vis_uYgqX ">6</p>
+<div  id="Flex_Euw5H4-gk" data-vp="" class="lay_4PUDp2 pos_e8wtf3 mapa_t79Oh3 vis_EoBE12 ">
+<p  id="Text_Wj6tU-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_i8StO3 ">}</p>
+</div>
+</div>
+<div  id="Flex_rtBS52-gk" data-vp="" style="transform: translate3d(0px, 135px, 0px);" class="lay_5T1361 pos_EzcyX4 mapa_CrkEb2 vis_2alHF ">
+<p  id="Text_kYlDO-gk" data-vp="" class="lay_yMYoc2 pos_e8wtf3 mapa_CrkEb2 vis_uYgqX ">7</p>
+<div  id="Flex_mRMJZ1-gk" data-vp="" class="lay_4PUDp2 pos_e8wtf3 mapa_t79Oh3 vis_EoBE12 ">
+</div>
+</div>
+<div  id="Flex_8sb141-gk" data-vp="" style="transform: translate3d(0px, 157.5px, 0px);" class="lay_5T1361 pos_EzcyX4 mapa_CrkEb2 vis_2alHF ">
+<p  id="Text_buHQC-gk" data-vp="" class="lay_yMYoc2 pos_e8wtf3 mapa_CrkEb2 vis_uYgqX ">8</p>
+<div  id="Flex_gRo9A3-gk" data-vp="" class="lay_4PUDp2 pos_e8wtf3 mapa_t79Oh3 vis_EoBE12 ">
+<p  id="Text_DfMrA2-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_6SioS3 ">pub</p>
+<p  id="Text_ZTLxD4-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_i8StO3 "> </p>
+<p  id="Text_SQS7H2-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_6SioS3 ">fn</p>
+<p  id="Text_muoK8-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_i8StO3 "> </p>
+<p  id="Text_HbMWy1-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_KZQQ1 ">main</p>
+<p  id="Text_Aggih2-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_i8StO3 ">() !void {</p>
+</div>
+</div>
+<div  id="Flex_EJBjr-gk" data-vp="" style="transform: translate3d(0px, 180px, 0px);" class="lay_5T1361 pos_EzcyX4 mapa_CrkEb2 vis_2alHF ">
+<p  id="Text_zqmu12-gk" data-vp="" class="lay_yMYoc2 pos_e8wtf3 mapa_CrkEb2 vis_uYgqX ">9</p>
+<div  id="Flex_4IyyJ-gk" data-vp="" class="lay_4PUDp2 pos_e8wtf3 mapa_t79Oh3 vis_EoBE12 ">
+<p  id="Text_6RLsX4-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_i8StO3 ">    </p>
+<p  id="Text_2pkLv-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_6SioS3 ">var</p>
+<p  id="Text_BdmX51-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_i8StO3 "> gpa: std.heap.</p>
+<p  id="Text_jr7KQ4-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_LHFPL ">DebugAllocator</p>
+<p  id="Text_45hdQ2-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_i8StO3 ">(.{}) = .</p>
+<p  id="Text_RjEgB1-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_KZQQ1 ">init</p>
+<p  id="Text_6fjp14-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_i8StO3 ">();</p>
+</div>
+</div>
+<div  id="Flex_LkhhT3-gk" data-vp="" style="transform: translate3d(0px, 202.5px, 0px);" class="lay_5T1361 pos_EzcyX4 mapa_CrkEb2 vis_2alHF ">
+<p  id="Text_SNO4x3-gk" data-vp="" class="lay_yMYoc2 pos_e8wtf3 mapa_CrkEb2 vis_uYgqX ">10</p>
+<div  id="Flex_C6JO73-gk" data-vp="" class="lay_4PUDp2 pos_e8wtf3 mapa_t79Oh3 vis_EoBE12 ">
+<p  id="Text_d48rY-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_i8StO3 ">    </p>
+<p  id="Text_rwz9D3-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_6SioS3 ">defer</p>
+<p  id="Text_YyEMV3-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_i8StO3 "> </p>
+<p  id="Text_PTvSU1-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_6SioS3 ">if</p>
+<p  id="Text_aNoY82-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_i8StO3 "> (gpa.</p>
+<p  id="Text_eGzs53-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_KZQQ1 ">deinit</p>
+<p  id="Text_3ngkq-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_i8StO3 ">() != .ok) @panic(</p>
+<p  id="Text_Tn8IX2-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_l7A5G1 ">"Memmory leak..."</p>
+<p  id="Text_jUXla1-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_i8StO3 ">);</p>
+</div>
+</div>
+<div  id="Flex_wV2nE1-gk" data-vp="" style="transform: translate3d(0px, 225px, 0px);" class="lay_5T1361 pos_EzcyX4 mapa_CrkEb2 vis_2alHF ">
+<p  id="Text_YaLdH4-gk" data-vp="" class="lay_yMYoc2 pos_e8wtf3 mapa_CrkEb2 vis_uYgqX ">11</p>
+<div  id="Flex_dbbuO-gk" data-vp="" class="lay_4PUDp2 pos_e8wtf3 mapa_t79Oh3 vis_EoBE12 ">
+<p  id="Text_TcYhF3-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_i8StO3 ">    </p>
+<p  id="Text_FlTe71-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_6SioS3 ">const</p>
+<p  id="Text_D8iSY-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_i8StO3 "> allocator = gpa.</p>
+<p  id="Text_xH7jp-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_KZQQ1 ">allocator</p>
+<p  id="Text_098r62-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_i8StO3 ">();</p>
+</div>
+</div>
+<div  id="Flex_0ebtV2-gk" data-vp="" style="transform: translate3d(0px, 247.5px, 0px);" class="lay_5T1361 pos_EzcyX4 mapa_CrkEb2 vis_2alHF ">
+<p  id="Text_iKkvl1-gk" data-vp="" class="lay_yMYoc2 pos_e8wtf3 mapa_CrkEb2 vis_uYgqX ">12</p>
+<div  id="Flex_JXHkB-gk" data-vp="" class="lay_4PUDp2 pos_e8wtf3 mapa_t79Oh3 vis_EoBE12 ">
+</div>
+</div>
+<div  id="Flex_m7iwp1-gk" data-vp="" style="transform: translate3d(0px, 270px, 0px);" class="lay_5T1361 pos_EzcyX4 mapa_CrkEb2 vis_2alHF ">
+<p  id="Text_GFQ301-gk" data-vp="" class="lay_yMYoc2 pos_e8wtf3 mapa_CrkEb2 vis_uYgqX ">13</p>
+<div  id="Flex_C2dwn-gk" data-vp="" class="lay_4PUDp2 pos_e8wtf3 mapa_t79Oh3 vis_EoBE12 ">
+<p  id="Text_q3kZS-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_i8StO3 ">    </p>
+<p  id="Text_Z2Oqk-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_6SioS3 ">const</p>
+<p  id="Text_w4Gj11-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_i8StO3 "> server = .</p>
+<p  id="Text_ODpdK-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_KZQQ1 ">new</p>
+<p  id="Text_qbDqv3-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_i8StO3 ">(.{}, allocator);</p>
+</div>
+</div>
+<div  id="Flex_Ultxm-gk" data-vp="" style="transform: translate3d(0px, 292.5px, 0px);" class="lay_5T1361 pos_EzcyX4 mapa_CrkEb2 vis_2alHF ">
+<p  id="Text_6oVvi-gk" data-vp="" class="lay_yMYoc2 pos_e8wtf3 mapa_CrkEb2 vis_uYgqX ">14</p>
+<div  id="Flex_KPFyN3-gk" data-vp="" class="lay_4PUDp2 pos_e8wtf3 mapa_t79Oh3 vis_EoBE12 ">
+</div>
+</div>
+<div  id="Flex_5kipo1-gk" data-vp="" style="transform: translate3d(0px, 315px, 0px);" class="lay_5T1361 pos_EzcyX4 mapa_CrkEb2 vis_2alHF ">
+<p  id="Text_zxYGD-gk" data-vp="" class="lay_yMYoc2 pos_e8wtf3 mapa_CrkEb2 vis_uYgqX ">15</p>
+<div  id="Flex_FCxtn3-gk" data-vp="" class="lay_4PUDp2 pos_e8wtf3 mapa_t79Oh3 vis_EoBE12 ">
+<p  id="Text_TX7ZL2-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_i8StO3 ">    </p>
+<p  id="Text_JDnda-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_6SioS3 ">try</p>
+<p  id="Text_a27GH4-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_i8StO3 "> server.</p>
+<p  id="Text_HRVIb2-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_KZQQ1 ">get</p>
+<p  id="Text_suQ4D-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_i8StO3 ">(</p>
+<p  id="Text_g94Zn1-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_l7A5G1 ">"/"</p>
+<p  id="Text_bn93X4-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_i8StO3 ">, ping, &.{});</p>
+</div>
+</div>
+<div  id="Flex_ZVwwJ3-gk" data-vp="" style="transform: translate3d(0px, 337.5px, 0px);" class="lay_5T1361 pos_EzcyX4 mapa_CrkEb2 vis_2alHF ">
+<p  id="Text_E97qY3-gk" data-vp="" class="lay_yMYoc2 pos_e8wtf3 mapa_CrkEb2 vis_uYgqX ">16</p>
+<div  id="Flex_MdUay1-gk" data-vp="" class="lay_4PUDp2 pos_e8wtf3 mapa_t79Oh3 vis_EoBE12 ">
+</div>
+</div>
+<div  id="Flex_4cS1b2-gk" data-vp="" style="transform: translate3d(0px, 360px, 0px);" class="lay_5T1361 pos_EzcyX4 mapa_CrkEb2 vis_2alHF ">
+<p  id="Text_Q8ExI2-gk" data-vp="" class="lay_yMYoc2 pos_e8wtf3 mapa_CrkEb2 vis_uYgqX ">17</p>
+<div  id="Flex_ttd1y3-gk" data-vp="" class="lay_4PUDp2 pos_e8wtf3 mapa_t79Oh3 vis_EoBE12 ">
+<p  id="Text_0kzUK3-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_i8StO3 ">    </p>
+<p  id="Text_e7lIC2-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_6SioS3 ">try</p>
+<p  id="Text_O115R2-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_i8StO3 "> server.</p>
+<p  id="Text_dmQXA4-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_KZQQ1 ">listen</p>
+<p  id="Text_lrC2j1-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_i8StO3 ">();</p>
+</div>
+</div>
+<div  id="Flex_Fo0zB2-gk" data-vp="" style="transform: translate3d(0px, 382.5px, 0px);" class="lay_5T1361 pos_EzcyX4 mapa_CrkEb2 vis_2alHF ">
+<p  id="Text_bj2AW4-gk" data-vp="" class="lay_yMYoc2 pos_e8wtf3 mapa_CrkEb2 vis_uYgqX ">18</p>
+<div  id="Flex_svqDD2-gk" data-vp="" class="lay_4PUDp2 pos_e8wtf3 mapa_t79Oh3 vis_EoBE12 ">
+<p  id="Text_gtv9V3-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_i8StO3 ">}</p>
+</div>
+</div>
+<div  id="Flex_kIjEH4-gk" data-vp="" style="transform: translate3d(0px, 405px, 0px);" class="lay_5T1361 pos_EzcyX4 mapa_CrkEb2 vis_2alHF ">
+<p  id="Text_PLDys3-gk" data-vp="" class="lay_yMYoc2 pos_e8wtf3 mapa_CrkEb2 vis_uYgqX ">19</p>
+<div  id="Flex_uMF7F1-gk" data-vp="" class="lay_4PUDp2 pos_e8wtf3 mapa_t79Oh3 vis_EoBE12 ">
+</div>
+</div>
+<div  id="Flex_l8PXU3-gk" data-vp="" style="transform: translate3d(0px, 427.5px, 0px);" class="lay_5T1361 pos_EzcyX4 mapa_CrkEb2 vis_2alHF ">
+<p  id="Text_xwLSd4-gk" data-vp="" class="lay_yMYoc2 pos_e8wtf3 mapa_CrkEb2 vis_uYgqX ">20</p>
+<div  id="Flex_aQ6xk1-gk" data-vp="" class="lay_4PUDp2 pos_e8wtf3 mapa_t79Oh3 vis_EoBE12 ">
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div  id="Flex_OMI6k3-gk" data-vp="" class="lay_WFYMN3 pos_e8wtf3 mapa_CrkEb2 vis_Oi48S ">
+<div  id="Flex_XXg274-gk" data-vp="" class="lay_erITT4 pos_e8wtf3 mapa_CrkEb2 vis_v3yFP4 ">
+<div  id="Flex_iW2bR1-gk" data-vp="" class="lay_OQSOa2 pos_e8wtf3 mapa_CrkEb2 vis_v3yFP4 ">
+<div  id="Flex_HY9Dw3-gk" data-vp="" class="lay_Eyd7H3 pos_e8wtf3 mapa_CrkEb2 vis_v3yFP4 ">
+<p  id="Text_PHICE3-gk" data-vp="" class="lay_1I8dE4 pos_e8wtf3 mapa_CrkEb2 vis_xGIud1 ">Simple Routing & Powerful Middleware</p>
+<p  id="Html_eznUu2-gk" data-vp="" class="lay_1I8dE4 pos_e8wtf3 mapa_CrkEb2 vis_RqjXT1 ">Send data to client, and database with one liners. Automatic handling of errors, middleware, and more.</p>
+</div>
+</div>
+<div  id="Flex_WClcm1-gk" data-vp="" class="lay_OQSOa2 pos_e8wtf3 mapa_CrkEb2 vis_v3yFP4 ">
+<div  id="Flex_SoMeQ2-gk" data-vp="" class="lay_q9cYN3 pos_e8wtf3 mapa_rPfvm1 vis_ntTUD1 ">
+<div  id="Flex_QuScT4-gk" data-vp="" class="lay_DLEtj3 pos_e8wtf3 mapa_cLPMR vis_tooOO3 ">
+<div  id="Flex_jcT9g2-gk" data-vp="" class="lay_DgBhg2 pos_e8wtf3 mapa_jigL04 vis_v3yFP4 ">
+<div  id="Flex_Wdlg23-gk" data-vp="" class="lay_yIkX62 pos_e8wtf3 mapa_rPfvm1 vis_oYVh3 ">
+<p  id="Text_MpVrA3-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_RRJfk1 ">reverb_middleware.zig</p>
+</div>
+</div>
+<div  id="Flex_qvC0e3-gk" data-vp="" class="lay_q8rEj1 pos_e8wtf3 mapa_CrkEb2 vis_RjVdX4 ">
+<div  id="Flex_Ft4uN2-gk" data-vp="" class="lay_CenWL3 pos_t0s233 mapa_CrkEb2 vis_v3yFP4 ">
+<div  id="Flex_pcEMi1-gk" data-vp="" class="lay_Ds5922 pos_e8wtf3 mapa_Fls5t vis_v3yFP4 ">
+<div  id="Flex_gY02h1-gk" data-vp="" class="lay_tnxGL3 pos_t0s233 mapa_CrkEb2 vis_v3yFP4 ">
+<div  id="Flex_rCfJS2-gk" data-vp="" style="transform: translate3d(0px, 0px, 0px);" class="lay_5T1361 pos_EzcyX4 mapa_CrkEb2 vis_2alHF ">
+<p  id="Text_CQztO1-gk" data-vp="" class="lay_yMYoc2 pos_e8wtf3 mapa_CrkEb2 vis_uYgqX ">1</p>
+<div  id="Flex_xIy2e2-gk" data-vp="" class="lay_4PUDp2 pos_e8wtf3 mapa_t79Oh3 vis_EoBE12 ">
+<p  id="Text_JdhsB4-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_6SioS3 ">const</p>
+<p  id="Text_j0pcB2-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_i8StO3 "> std = @import(</p>
+<p  id="Text_0ZqM5-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_l7A5G1 ">"std"</p>
+<p  id="Text_N9tcH4-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_i8StO3 ">);</p>
+</div>
+</div>
+<div  id="Flex_TTOBd4-gk" data-vp="" style="transform: translate3d(0px, 22.5px, 0px);" class="lay_5T1361 pos_EzcyX4 mapa_CrkEb2 vis_2alHF ">
+<p  id="Text_Tq3TT1-gk" data-vp="" class="lay_yMYoc2 pos_e8wtf3 mapa_CrkEb2 vis_uYgqX ">2</p>
+<div  id="Flex_PjoN01-gk" data-vp="" class="lay_4PUDp2 pos_e8wtf3 mapa_t79Oh3 vis_EoBE12 ">
+<p  id="Text_di4u42-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_6SioS3 ">const</p>
+<p  id="Text_vsLvF-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_i8StO3 "> Canopy = @import(</p>
+<p  id="Text_Cfuk44-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_l7A5G1 ">"canopy"</p>
+<p  id="Text_b7wlM4-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_i8StO3 ">);</p>
+</div>
+</div>
+<div  id="Flex_9ERgK-gk" data-vp="" style="transform: translate3d(0px, 45px, 0px);" class="lay_5T1361 pos_EzcyX4 mapa_CrkEb2 vis_2alHF ">
+<p  id="Text_XPfbB1-gk" data-vp="" class="lay_yMYoc2 pos_e8wtf3 mapa_CrkEb2 vis_uYgqX ">3</p>
+<div  id="Flex_ohvAP2-gk" data-vp="" class="lay_4PUDp2 pos_e8wtf3 mapa_t79Oh3 vis_EoBE12 ">
+</div>
+</div>
+<div  id="Flex_0FLJg-gk" data-vp="" style="transform: translate3d(0px, 67.5px, 0px);" class="lay_5T1361 pos_EzcyX4 mapa_CrkEb2 vis_2alHF ">
+<p  id="Text_bLhSv2-gk" data-vp="" class="lay_yMYoc2 pos_e8wtf3 mapa_CrkEb2 vis_uYgqX ">4</p>
+<div  id="Flex_dVbH43-gk" data-vp="" class="lay_4PUDp2 pos_e8wtf3 mapa_t79Oh3 vis_EoBE12 ">
+<p  id="Text_XqQKW-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_6SioS3 ">const</p>
+<p  id="Text_9MjMD3-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_i8StO3 "> User = </p>
+<p  id="Text_8RrYQ2-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_6SioS3 ">struct</p>
+<p  id="Text_Qwwy53-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_i8StO3 "> {</p>
+</div>
+</div>
+<div  id="Flex_7dom11-gk" data-vp="" style="transform: translate3d(0px, 90px, 0px);" class="lay_5T1361 pos_EzcyX4 mapa_CrkEb2 vis_2alHF ">
+<p  id="Text_RRTvk-gk" data-vp="" class="lay_yMYoc2 pos_e8wtf3 mapa_CrkEb2 vis_uYgqX ">5</p>
+<div  id="Flex_CAe5y-gk" data-vp="" class="lay_4PUDp2 pos_e8wtf3 mapa_t79Oh3 vis_EoBE12 ">
+<p  id="Text_utH3m3-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_i8StO3 ">    name: []</p>
+<p  id="Text_vdrEe2-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_6SioS3 ">const</p>
+<p  id="Text_tIEN02-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_i8StO3 "> u8,</p>
+</div>
+</div>
+<div  id="Flex_2f7Sd3-gk" data-vp="" style="transform: translate3d(0px, 112.5px, 0px);" class="lay_5T1361 pos_EzcyX4 mapa_CrkEb2 vis_2alHF ">
+<p  id="Text_ummMS4-gk" data-vp="" class="lay_yMYoc2 pos_e8wtf3 mapa_CrkEb2 vis_uYgqX ">6</p>
+<div  id="Flex_Atp3o1-gk" data-vp="" class="lay_4PUDp2 pos_e8wtf3 mapa_t79Oh3 vis_EoBE12 ">
+<p  id="Text_e9aPo3-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_i8StO3 ">};</p>
+</div>
+</div>
+<div  id="Flex_FC0RV-gk" data-vp="" style="transform: translate3d(0px, 135px, 0px);" class="lay_5T1361 pos_EzcyX4 mapa_CrkEb2 vis_2alHF ">
+<p  id="Text_cstJ34-gk" data-vp="" class="lay_yMYoc2 pos_e8wtf3 mapa_CrkEb2 vis_uYgqX ">7</p>
+<div  id="Flex_MjDwS1-gk" data-vp="" class="lay_4PUDp2 pos_e8wtf3 mapa_t79Oh3 vis_EoBE12 ">
+</div>
+</div>
+<div  id="Flex_hikWF3-gk" data-vp="" style="transform: translate3d(0px, 157.5px, 0px);" class="lay_5T1361 pos_EzcyX4 mapa_CrkEb2 vis_2alHF ">
+<p  id="Text_ULc0c-gk" data-vp="" class="lay_yMYoc2 pos_e8wtf3 mapa_CrkEb2 vis_uYgqX ">8</p>
+<div  id="Flex_Q1PZU4-gk" data-vp="" class="lay_4PUDp2 pos_e8wtf3 mapa_t79Oh3 vis_EoBE12 ">
+<p  id="Text_x07zB1-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_dER0U1 ">// Get a user by ID</p>
+</div>
+</div>
+<div  id="Flex_Fi4HZ-gk" data-vp="" style="transform: translate3d(0px, 180px, 0px);" class="lay_5T1361 pos_EzcyX4 mapa_CrkEb2 vis_2alHF ">
+<p  id="Text_O67pb2-gk" data-vp="" class="lay_yMYoc2 pos_e8wtf3 mapa_CrkEb2 vis_uYgqX ">9</p>
+<div  id="Flex_spplH4-gk" data-vp="" class="lay_4PUDp2 pos_e8wtf3 mapa_t79Oh3 vis_EoBE12 ">
+<p  id="Text_YFE894-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_6SioS3 ">fn</p>
+<p  id="Text_ePWr92-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_i8StO3 "> </p>
+<p  id="Text_cY0XM-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_KZQQ1 ">getUser</p>
+<p  id="Text_Snr482-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_i8StO3 ">(ctx: *Context) !void {</p>
+</div>
+</div>
+<div  id="Flex_5ITHb4-gk" data-vp="" style="transform: translate3d(0px, 202.5px, 0px);" class="lay_5T1361 pos_EzcyX4 mapa_CrkEb2 vis_2alHF ">
+<p  id="Text_kF37w3-gk" data-vp="" class="lay_yMYoc2 pos_e8wtf3 mapa_CrkEb2 vis_uYgqX ">10</p>
+<div  id="Flex_IFV2j1-gk" data-vp="" class="lay_4PUDp2 pos_e8wtf3 mapa_t79Oh3 vis_EoBE12 ">
+<p  id="Text_Y4HA4-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_i8StO3 ">    </p>
+<p  id="Text_58VpV1-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_6SioS3 ">const</p>
+<p  id="Text_ocaPP1-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_i8StO3 "> id = </p>
+<p  id="Text_YRa9M-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_6SioS3 ">try</p>
+<p  id="Text_oMBfN-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_i8StO3 "> ctx.</p>
+<p  id="Text_8hM2c2-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_KZQQ1 ">param</p>
+<p  id="Text_yDMn22-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_i8StO3 ">(</p>
+<p  id="Text_vfmOh-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_l7A5G1 ">"id"</p>
+<p  id="Text_WCyQ9-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_i8StO3 ">);</p>
+</div>
+</div>
+<div  id="Flex_EesDG3-gk" data-vp="" style="transform: translate3d(0px, 225px, 0px);" class="lay_5T1361 pos_EzcyX4 mapa_CrkEb2 vis_2alHF ">
+<p  id="Text_CnhcU4-gk" data-vp="" class="lay_yMYoc2 pos_e8wtf3 mapa_CrkEb2 vis_uYgqX ">11</p>
+<div  id="Flex_RqOPB-gk" data-vp="" class="lay_4PUDp2 pos_e8wtf3 mapa_t79Oh3 vis_EoBE12 ">
+<p  id="Text_3Zm282-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_i8StO3 ">    </p>
+<p  id="Text_qqxmO2-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_6SioS3 ">const</p>
+<p  id="Text_z9xdv2-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_i8StO3 "> user = </p>
+<p  id="Text_1MXXQ1-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_6SioS3 ">try</p>
+<p  id="Text_vbl4E1-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_i8StO3 "> Canopy.db.</p>
+<p  id="Text_YV3TQ-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_KZQQ1 ">get</p>
+<p  id="Text_jPDsM4-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_i8StO3 ">(User, id);</p>
+</div>
+</div>
+<div  id="Flex_ZrivF1-gk" data-vp="" style="transform: translate3d(0px, 247.5px, 0px);" class="lay_5T1361 pos_EzcyX4 mapa_CrkEb2 vis_2alHF ">
+<p  id="Text_z85D51-gk" data-vp="" class="lay_yMYoc2 pos_e8wtf3 mapa_CrkEb2 vis_uYgqX ">12</p>
+<div  id="Flex_9yN6G4-gk" data-vp="" class="lay_4PUDp2 pos_e8wtf3 mapa_t79Oh3 vis_EoBE12 ">
+<p  id="Text_OthLL-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_i8StO3 ">    </p>
+<p  id="Text_wvnUO4-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_6SioS3 ">try</p>
+<p  id="Text_M61Sp2-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_i8StO3 "> ctx.</p>
+<p  id="Text_o0qG92-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_LHFPL ">JSON</p>
+<p  id="Text_Yi8353-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_i8StO3 ">(user);</p>
+</div>
+</div>
+<div  id="Flex_bSwvf3-gk" data-vp="" style="transform: translate3d(0px, 270px, 0px);" class="lay_5T1361 pos_EzcyX4 mapa_CrkEb2 vis_2alHF ">
+<p  id="Text_hmwoK1-gk" data-vp="" class="lay_yMYoc2 pos_e8wtf3 mapa_CrkEb2 vis_uYgqX ">13</p>
+<div  id="Flex_Bogup3-gk" data-vp="" class="lay_4PUDp2 pos_e8wtf3 mapa_t79Oh3 vis_EoBE12 ">
+<p  id="Text_7fzAv-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_i8StO3 ">}</p>
+</div>
+</div>
+<div  id="Flex_qa2Mn3-gk" data-vp="" style="transform: translate3d(0px, 292.5px, 0px);" class="lay_5T1361 pos_EzcyX4 mapa_CrkEb2 vis_2alHF ">
+<p  id="Text_zTxzx2-gk" data-vp="" class="lay_yMYoc2 pos_e8wtf3 mapa_CrkEb2 vis_uYgqX ">14</p>
+<div  id="Flex_Rm8LW4-gk" data-vp="" class="lay_4PUDp2 pos_e8wtf3 mapa_t79Oh3 vis_EoBE12 ">
+</div>
+</div>
+<div  id="Flex_jVV4U2-gk" data-vp="" style="transform: translate3d(0px, 315px, 0px);" class="lay_5T1361 pos_EzcyX4 mapa_CrkEb2 vis_2alHF ">
+<p  id="Text_VU89Y3-gk" data-vp="" class="lay_yMYoc2 pos_e8wtf3 mapa_CrkEb2 vis_uYgqX ">15</p>
+<div  id="Flex_tZPGE2-gk" data-vp="" class="lay_4PUDp2 pos_e8wtf3 mapa_t79Oh3 vis_EoBE12 ">
+<p  id="Text_mkrSS-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_dER0U1 ">// Create a new user</p>
+</div>
+</div>
+<div  id="Flex_Plp6w1-gk" data-vp="" style="transform: translate3d(0px, 337.5px, 0px);" class="lay_5T1361 pos_EzcyX4 mapa_CrkEb2 vis_2alHF ">
+<p  id="Text_F2Unz1-gk" data-vp="" class="lay_yMYoc2 pos_e8wtf3 mapa_CrkEb2 vis_uYgqX ">16</p>
+<div  id="Flex_5Sejk-gk" data-vp="" class="lay_4PUDp2 pos_e8wtf3 mapa_t79Oh3 vis_EoBE12 ">
+<p  id="Text_Yiw1o1-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_6SioS3 ">fn</p>
+<p  id="Text_roxx22-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_i8StO3 "> </p>
+<p  id="Text_sXESx3-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_KZQQ1 ">createUser</p>
+<p  id="Text_vXa9Z-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_i8StO3 ">(ctx: *Context) !void {</p>
+</div>
+</div>
+<div  id="Flex_gO08E-gk" data-vp="" style="transform: translate3d(0px, 360px, 0px);" class="lay_5T1361 pos_EzcyX4 mapa_CrkEb2 vis_2alHF ">
+<p  id="Text_KdiIp1-gk" data-vp="" class="lay_yMYoc2 pos_e8wtf3 mapa_CrkEb2 vis_uYgqX ">17</p>
+<div  id="Flex_sNoje1-gk" data-vp="" class="lay_4PUDp2 pos_e8wtf3 mapa_t79Oh3 vis_EoBE12 ">
+<p  id="Text_p8yJ2-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_i8StO3 ">    </p>
+<p  id="Text_pmVd13-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_6SioS3 ">var</p>
+<p  id="Text_v8KNc2-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_i8StO3 "> user: User = undefined;</p>
+</div>
+</div>
+<div  id="Flex_EhMBK4-gk" data-vp="" style="transform: translate3d(0px, 382.5px, 0px);" class="lay_5T1361 pos_EzcyX4 mapa_CrkEb2 vis_2alHF ">
+<p  id="Text_XBy8T-gk" data-vp="" class="lay_yMYoc2 pos_e8wtf3 mapa_CrkEb2 vis_uYgqX ">18</p>
+<div  id="Flex_dZUVB3-gk" data-vp="" class="lay_4PUDp2 pos_e8wtf3 mapa_t79Oh3 vis_EoBE12 ">
+<p  id="Text_GoRMg2-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_i8StO3 ">    </p>
+<p  id="Text_PwpYf1-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_6SioS3 ">try</p>
+<p  id="Text_swAZc3-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_i8StO3 "> ctx.</p>
+<p  id="Text_DNBcD3-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_KZQQ1 ">bind</p>
+<p  id="Text_2q0Ep-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_i8StO3 ">(User, &user);</p>
+</div>
+</div>
+<div  id="Flex_7mpRQ4-gk" data-vp="" style="transform: translate3d(0px, 405px, 0px);" class="lay_5T1361 pos_EzcyX4 mapa_CrkEb2 vis_2alHF ">
+<p  id="Text_MWOg13-gk" data-vp="" class="lay_yMYoc2 pos_e8wtf3 mapa_CrkEb2 vis_uYgqX ">19</p>
+<div  id="Flex_iISKb1-gk" data-vp="" class="lay_4PUDp2 pos_e8wtf3 mapa_t79Oh3 vis_EoBE12 ">
+<p  id="Text_8Ge172-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_i8StO3 ">    </p>
+<p  id="Text_Dmoke3-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_6SioS3 ">try</p>
+<p  id="Text_k7dgO1-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_i8StO3 "> Canopy.db.</p>
+<p  id="Text_sq7Bc-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_KZQQ1 ">insert</p>
+<p  id="Text_vuhN3-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_i8StO3 ">(user);</p>
+</div>
+</div>
+<div  id="Flex_ncWjL1-gk" data-vp="" style="transform: translate3d(0px, 427.5px, 0px);" class="lay_5T1361 pos_EzcyX4 mapa_CrkEb2 vis_2alHF ">
+<p  id="Text_f9KVs3-gk" data-vp="" class="lay_yMYoc2 pos_e8wtf3 mapa_CrkEb2 vis_uYgqX ">20</p>
+<div  id="Flex_Komdg3-gk" data-vp="" class="lay_4PUDp2 pos_e8wtf3 mapa_t79Oh3 vis_EoBE12 ">
+<p  id="Text_2uZ6t-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_i8StO3 ">    </p>
+<p  id="Text_1StbZ4-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_6SioS3 ">try</p>
+<p  id="Text_XnVEe1-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_i8StO3 "> ctx.</p>
+<p  id="Text_83jZA1-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_LHFPL ">STRING</p>
+<p  id="Text_yjpmj3-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_i8StO3 ">(</p>
+<p  id="Text_a6Xrm2-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_l7A5G1 ">"User created!"</p>
+<p  id="Text_zHh7q2-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_i8StO3 ">);</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div  id="Flex_ianBE-gk" data-vp="" class="lay_g6bCi2 pos_t0s233 mapa_G9G2i vis_Oi48S ">
+<div  id="Flex_fKwKe3-gk" data-vp="" class="lay_G2qHX2 pos_e8wtf3 mapa_CrkEb2 vis_v3yFP4 ">
+<div  id="Flex_Hcsa71-gk" data-vp="" class="lay_OQSOa2 pos_e8wtf3 mapa_CrkEb2 vis_v3yFP4 ">
+<div  id="Flex_sM4aR4-gk" data-vp="" class="lay_q9cYN3 pos_e8wtf3 mapa_rPfvm1 vis_ntTUD1 ">
+<div  id="Flex_TQuqS2-gk" data-vp="" class="lay_DLEtj3 pos_e8wtf3 mapa_cLPMR vis_tooOO3 ">
+<div  id="Flex_UDYWP4-gk" data-vp="" class="lay_DgBhg2 pos_e8wtf3 mapa_jigL04 vis_v3yFP4 ">
+<div  id="Flex_GU0G6-gk" data-vp="" class="lay_yIkX62 pos_e8wtf3 mapa_rPfvm1 vis_oYVh3 ">
+<p  id="Text_GcNJj-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_RRJfk1 ">websocket.zig</p>
+</div>
+</div>
+<div  id="Flex_uv61i1-gk" data-vp="" class="lay_q8rEj1 pos_e8wtf3 mapa_CrkEb2 vis_RjVdX4 ">
+<div  id="Flex_6GSBT3-gk" data-vp="" class="lay_CenWL3 pos_t0s233 mapa_CrkEb2 vis_v3yFP4 ">
+<div  id="Flex_jeJC14-gk" data-vp="" class="lay_Ds5922 pos_e8wtf3 mapa_Fls5t vis_v3yFP4 ">
+<div  id="Flex_tm4r43-gk" data-vp="" class="lay_IXl2H3 pos_t0s233 mapa_CrkEb2 vis_v3yFP4 ">
+<div  id="Flex_i2uxp1-gk" data-vp="" style="transform: translate3d(0px, 0px, 0px);" class="lay_5T1361 pos_EzcyX4 mapa_CrkEb2 vis_2alHF ">
+<p  id="Text_4hxaK1-gk" data-vp="" class="lay_yMYoc2 pos_e8wtf3 mapa_CrkEb2 vis_uYgqX ">1</p>
+<div  id="Flex_9IOVX2-gk" data-vp="" class="lay_4PUDp2 pos_e8wtf3 mapa_t79Oh3 vis_EoBE12 ">
+<p  id="Text_7a80i3-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_6SioS3 ">const</p>
+<p  id="Text_Zw0ZS4-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_i8StO3 "> std = @import(</p>
+<p  id="Text_K2tuf3-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_l7A5G1 ">"std"</p>
+<p  id="Text_tLVJd3-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_i8StO3 ">);</p>
+</div>
+</div>
+<div  id="Flex_XE25S-gk" data-vp="" style="transform: translate3d(0px, 22.5px, 0px);" class="lay_5T1361 pos_EzcyX4 mapa_CrkEb2 vis_2alHF ">
+<p  id="Text_xleBK1-gk" data-vp="" class="lay_yMYoc2 pos_e8wtf3 mapa_CrkEb2 vis_uYgqX ">2</p>
+<div  id="Flex_9Pvgm3-gk" data-vp="" class="lay_4PUDp2 pos_e8wtf3 mapa_t79Oh3 vis_EoBE12 ">
+<p  id="Text_FzLJX3-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_6SioS3 ">const</p>
+<p  id="Text_QWbTT3-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_i8StO3 "> loom = @import(</p>
+<p  id="Text_sOTxj1-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_l7A5G1 ">"loom"</p>
+<p  id="Text_UWODy-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_i8StO3 ">);</p>
+</div>
+</div>
+<div  id="Flex_hsEwm1-gk" data-vp="" style="transform: translate3d(0px, 45px, 0px);" class="lay_5T1361 pos_EzcyX4 mapa_CrkEb2 vis_2alHF ">
+<p  id="Text_INiom1-gk" data-vp="" class="lay_yMYoc2 pos_e8wtf3 mapa_CrkEb2 vis_uYgqX ">3</p>
+<div  id="Flex_a9JOu-gk" data-vp="" class="lay_4PUDp2 pos_e8wtf3 mapa_t79Oh3 vis_EoBE12 ">
+<p  id="Text_FExeR-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_6SioS3 ">const</p>
+<p  id="Text_uXSJs2-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_i8StO3 "> Server = @import(</p>
+<p  id="Text_8HIc83-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_l7A5G1 ">"reverb"</p>
+<p  id="Text_3PGFp1-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_i8StO3 ">).Server;</p>
+</div>
+</div>
+<div  id="Flex_inLcX4-gk" data-vp="" style="transform: translate3d(0px, 67.5px, 0px);" class="lay_5T1361 pos_EzcyX4 mapa_CrkEb2 vis_2alHF ">
+<p  id="Text_UVdqd3-gk" data-vp="" class="lay_yMYoc2 pos_e8wtf3 mapa_CrkEb2 vis_uYgqX ">4</p>
+<div  id="Flex_C6MhU3-gk" data-vp="" class="lay_4PUDp2 pos_e8wtf3 mapa_t79Oh3 vis_EoBE12 ">
+<p  id="Text_ChPrG-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_6SioS3 ">const</p>
+<p  id="Text_Bt7TO4-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_i8StO3 "> Context = @import(</p>
+<p  id="Text_XNOPU3-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_l7A5G1 ">"reverb"</p>
+<p  id="Text_H9bFU-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_i8StO3 ">).Context;</p>
+</div>
+</div>
+<div  id="Flex_F6wSY4-gk" data-vp="" style="transform: translate3d(0px, 90px, 0px);" class="lay_5T1361 pos_EzcyX4 mapa_CrkEb2 vis_2alHF ">
+<p  id="Text_IyBEG4-gk" data-vp="" class="lay_yMYoc2 pos_e8wtf3 mapa_CrkEb2 vis_uYgqX ">5</p>
+<div  id="Flex_vtn8Y3-gk" data-vp="" class="lay_4PUDp2 pos_e8wtf3 mapa_t79Oh3 vis_EoBE12 ">
+<p  id="Text_hjQHk1-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_6SioS3 ">const</p>
+<p  id="Text_q7jYT1-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_i8StO3 "> Websocket = loom.WebSocket;</p>
+</div>
+</div>
+<div  id="Flex_UXZJY1-gk" data-vp="" style="transform: translate3d(0px, 112.5px, 0px);" class="lay_5T1361 pos_EzcyX4 mapa_CrkEb2 vis_2alHF ">
+<p  id="Text_U0YLk1-gk" data-vp="" class="lay_yMYoc2 pos_e8wtf3 mapa_CrkEb2 vis_uYgqX ">6</p>
+<div  id="Flex_o3JFM4-gk" data-vp="" class="lay_4PUDp2 pos_e8wtf3 mapa_t79Oh3 vis_EoBE12 ">
+</div>
+</div>
+<div  id="Flex_n0peQ1-gk" data-vp="" style="transform: translate3d(0px, 135px, 0px);" class="lay_5T1361 pos_EzcyX4 mapa_CrkEb2 vis_2alHF ">
+<p  id="Text_406Zd4-gk" data-vp="" class="lay_yMYoc2 pos_e8wtf3 mapa_CrkEb2 vis_uYgqX ">7</p>
+<div  id="Flex_SFqlY1-gk" data-vp="" class="lay_4PUDp2 pos_e8wtf3 mapa_t79Oh3 vis_EoBE12 ">
+<p  id="Text_O1FLm1-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_6SioS3 ">fn</p>
+<p  id="Text_UzrgG1-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_i8StO3 "> </p>
+<p  id="Text_hqGvR4-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_KZQQ1 ">onConnection</p>
+<p  id="Text_uEzHY1-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_i8StO3 ">(ws: *Websocket) !void {</p>
+</div>
+</div>
+<div  id="Flex_7uM731-gk" data-vp="" style="transform: translate3d(0px, 157.5px, 0px);" class="lay_5T1361 pos_EzcyX4 mapa_CrkEb2 vis_2alHF ">
+<p  id="Text_ej5hp2-gk" data-vp="" class="lay_yMYoc2 pos_e8wtf3 mapa_CrkEb2 vis_uYgqX ">8</p>
+<div  id="Flex_Ck2wQ3-gk" data-vp="" class="lay_4PUDp2 pos_e8wtf3 mapa_t79Oh3 vis_EoBE12 ">
+<p  id="Text_F7gd2-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_i8StO3 ">    std.debug.</p>
+<p  id="Text_iV4Pm3-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_KZQQ1 ">print</p>
+<p  id="Text_kcalP2-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_i8StO3 ">(</p>
+<p  id="Text_1zCGR3-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_l7A5G1 ">"onConnection\n"</p>
+<p  id="Text_ccfHH1-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_i8StO3 ">, .{});</p>
+</div>
+</div>
+<div  id="Flex_oLFDS4-gk" data-vp="" style="transform: translate3d(0px, 180px, 0px);" class="lay_5T1361 pos_EzcyX4 mapa_CrkEb2 vis_2alHF ">
+<p  id="Text_24EH8-gk" data-vp="" class="lay_yMYoc2 pos_e8wtf3 mapa_CrkEb2 vis_uYgqX ">9</p>
+<div  id="Flex_aa2sZ3-gk" data-vp="" class="lay_4PUDp2 pos_e8wtf3 mapa_t79Oh3 vis_EoBE12 ">
+<p  id="Text_ffqFx-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_i8StO3 ">    </p>
+<p  id="Text_8zmtq2-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_6SioS3 ">try</p>
+<p  id="Text_ZMTUC3-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_i8StO3 "> ws.</p>
+<p  id="Text_MS9lz2-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_KZQQ1 ">sendText</p>
+<p  id="Text_Ayvxj1-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_i8StO3 ">(</p>
+<p  id="Text_i0UuV1-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_l7A5G1 ">"Hello from Reverb!"</p>
+<p  id="Text_98stQ3-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_i8StO3 ">);</p>
+</div>
+</div>
+<div  id="Flex_2Tm6E1-gk" data-vp="" style="transform: translate3d(0px, 202.5px, 0px);" class="lay_5T1361 pos_EzcyX4 mapa_CrkEb2 vis_2alHF ">
+<p  id="Text_tgfnO-gk" data-vp="" class="lay_yMYoc2 pos_e8wtf3 mapa_CrkEb2 vis_uYgqX ">10</p>
+<div  id="Flex_Ekws61-gk" data-vp="" class="lay_4PUDp2 pos_e8wtf3 mapa_t79Oh3 vis_EoBE12 ">
+<p  id="Text_h0xOh-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_i8StO3 ">}</p>
+</div>
+</div>
+<div  id="Flex_XmCau-gk" data-vp="" style="transform: translate3d(0px, 225px, 0px);" class="lay_5T1361 pos_EzcyX4 mapa_CrkEb2 vis_2alHF ">
+<p  id="Text_nZ5OZ4-gk" data-vp="" class="lay_yMYoc2 pos_e8wtf3 mapa_CrkEb2 vis_uYgqX ">11</p>
+<div  id="Flex_xS3Jd1-gk" data-vp="" class="lay_4PUDp2 pos_e8wtf3 mapa_t79Oh3 vis_EoBE12 ">
+</div>
+</div>
+<div  id="Flex_mHF6t3-gk" data-vp="" style="transform: translate3d(0px, 247.5px, 0px);" class="lay_5T1361 pos_EzcyX4 mapa_CrkEb2 vis_2alHF ">
+<p  id="Text_soyLz1-gk" data-vp="" class="lay_yMYoc2 pos_e8wtf3 mapa_CrkEb2 vis_uYgqX ">12</p>
+<div  id="Flex_wAFta2-gk" data-vp="" class="lay_4PUDp2 pos_e8wtf3 mapa_t79Oh3 vis_EoBE12 ">
+<p  id="Text_Lh4qv2-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_6SioS3 ">fn</p>
+<p  id="Text_g4Pnk1-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_i8StO3 "> </p>
+<p  id="Text_jJxqK-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_KZQQ1 ">onMessage</p>
+<p  id="Text_IZ0CU2-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_i8StO3 ">(ws: *Websocket, message: Websocket.Message) !void {</p>
+</div>
+</div>
+<div  id="Flex_Qt1x8-gk" data-vp="" style="transform: translate3d(0px, 270px, 0px);" class="lay_5T1361 pos_EzcyX4 mapa_CrkEb2 vis_2alHF ">
+<p  id="Text_dLccE-gk" data-vp="" class="lay_yMYoc2 pos_e8wtf3 mapa_CrkEb2 vis_uYgqX ">13</p>
+<div  id="Flex_RL56m2-gk" data-vp="" class="lay_4PUDp2 pos_e8wtf3 mapa_t79Oh3 vis_EoBE12 ">
+<p  id="Text_0Spvx3-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_i8StO3 ">    </p>
+<p  id="Text_uhX6m3-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_6SioS3 ">switch</p>
+<p  id="Text_SIix03-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_i8StO3 "> (message) {</p>
+</div>
+</div>
+<div  id="Flex_9jGvH2-gk" data-vp="" style="transform: translate3d(0px, 292.5px, 0px);" class="lay_5T1361 pos_EzcyX4 mapa_CrkEb2 vis_2alHF ">
+<p  id="Text_Jj32T3-gk" data-vp="" class="lay_yMYoc2 pos_e8wtf3 mapa_CrkEb2 vis_uYgqX ">14</p>
+<div  id="Flex_z3zv01-gk" data-vp="" class="lay_4PUDp2 pos_e8wtf3 mapa_t79Oh3 vis_EoBE12 ">
+<p  id="Text_EKC0c-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_i8StO3 ">        .Text => |text| {</p>
+</div>
+</div>
+<div  id="Flex_bMKMi-gk" data-vp="" style="transform: translate3d(0px, 315px, 0px);" class="lay_5T1361 pos_EzcyX4 mapa_CrkEb2 vis_2alHF ">
+<p  id="Text_cyHEM4-gk" data-vp="" class="lay_yMYoc2 pos_e8wtf3 mapa_CrkEb2 vis_uYgqX ">15</p>
+<div  id="Flex_4ALkl1-gk" data-vp="" class="lay_4PUDp2 pos_e8wtf3 mapa_t79Oh3 vis_EoBE12 ">
+<p  id="Text_rSiaL1-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_i8StO3 ">            std.debug.</p>
+<p  id="Text_Fpr733-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_KZQQ1 ">print</p>
+<p  id="Text_Cq7e13-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_i8StO3 ">(</p>
+<p  id="Text_PRxK83-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_l7A5G1 ">"Text: {s}\n"</p>
+<p  id="Text_QraWg3-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_i8StO3 ">, .{text});</p>
+</div>
+</div>
+<div  id="Flex_sBKlc3-gk" data-vp="" style="transform: translate3d(0px, 337.5px, 0px);" class="lay_5T1361 pos_EzcyX4 mapa_CrkEb2 vis_2alHF ">
+<p  id="Text_endEk3-gk" data-vp="" class="lay_yMYoc2 pos_e8wtf3 mapa_CrkEb2 vis_uYgqX ">16</p>
+<div  id="Flex_Oj7Xq-gk" data-vp="" class="lay_4PUDp2 pos_e8wtf3 mapa_t79Oh3 vis_EoBE12 ">
+<p  id="Text_QsOGD-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_i8StO3 ">        },</p>
+</div>
+</div>
+<div  id="Flex_BB9A4-gk" data-vp="" style="transform: translate3d(0px, 360px, 0px);" class="lay_5T1361 pos_EzcyX4 mapa_CrkEb2 vis_2alHF ">
+<p  id="Text_zIWHA-gk" data-vp="" class="lay_yMYoc2 pos_e8wtf3 mapa_CrkEb2 vis_uYgqX ">17</p>
+<div  id="Flex_LLf66-gk" data-vp="" class="lay_4PUDp2 pos_e8wtf3 mapa_t79Oh3 vis_EoBE12 ">
+<p  id="Text_trnng3-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_i8StO3 ">        .Binary => |binary| {</p>
+</div>
+</div>
+<div  id="Flex_3zVye-gk" data-vp="" style="transform: translate3d(0px, 382.5px, 0px);" class="lay_5T1361 pos_EzcyX4 mapa_CrkEb2 vis_2alHF ">
+<p  id="Text_tSgp01-gk" data-vp="" class="lay_yMYoc2 pos_e8wtf3 mapa_CrkEb2 vis_uYgqX ">18</p>
+<div  id="Flex_PTI7u1-gk" data-vp="" class="lay_4PUDp2 pos_e8wtf3 mapa_t79Oh3 vis_EoBE12 ">
+<p  id="Text_ElLg94-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_i8StO3 ">            std.debug.</p>
+<p  id="Text_NFqpY4-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_KZQQ1 ">print</p>
+<p  id="Text_UC7e82-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_i8StO3 ">(</p>
+<p  id="Text_oMpCx-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_l7A5G1 ">"Binary: {any}\n"</p>
+<p  id="Text_PgjYx1-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_i8StO3 ">, .{binary});</p>
+</div>
+</div>
+<div  id="Flex_XbW2R-gk" data-vp="" style="transform: translate3d(0px, 405px, 0px);" class="lay_5T1361 pos_EzcyX4 mapa_CrkEb2 vis_2alHF ">
+<p  id="Text_iscsH4-gk" data-vp="" class="lay_yMYoc2 pos_e8wtf3 mapa_CrkEb2 vis_uYgqX ">19</p>
+<div  id="Flex_6XBFk2-gk" data-vp="" class="lay_4PUDp2 pos_e8wtf3 mapa_t79Oh3 vis_EoBE12 ">
+<p  id="Text_fg5OV-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_i8StO3 ">        },</p>
+</div>
+</div>
+<div  id="Flex_kJFMn2-gk" data-vp="" style="transform: translate3d(0px, 427.5px, 0px);" class="lay_5T1361 pos_EzcyX4 mapa_CrkEb2 vis_2alHF ">
+<p  id="Text_nUuuZ4-gk" data-vp="" class="lay_yMYoc2 pos_e8wtf3 mapa_CrkEb2 vis_uYgqX ">20</p>
+<div  id="Flex_bznRN4-gk" data-vp="" class="lay_4PUDp2 pos_e8wtf3 mapa_t79Oh3 vis_EoBE12 ">
+<p  id="Text_aQias-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_i8StO3 ">        .Pong => |pong| {</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div  id="Flex_Wopnu3-gk" data-vp="" class="lay_OQSOa2 pos_e8wtf3 mapa_CrkEb2 vis_v3yFP4 ">
+<div  id="Flex_qspmF3-gk" data-vp="" class="lay_Eyd7H3 pos_e8wtf3 mapa_CrkEb2 vis_v3yFP4 ">
+<p  id="Text_7GR7Z3-gk" data-vp="" class="lay_1I8dE4 pos_e8wtf3 mapa_CrkEb2 vis_xGIud1 ">Builtin WebSockets</p>
+<p  id="Html_PCMGa-gk" data-vp="" class="lay_1I8dE4 pos_e8wtf3 mapa_CrkEb2 vis_RqjXT1 ">Setup websockets with ease, and use them to communicate with anyone.</p>
+<p  id="Html_mDbC52-gk" data-vp="" class="lay_1I8dE4 pos_e8wtf3 mapa_CrkEb2 vis_RqjXT1 "><strong>Senet</strong> has a built-in WebSocket server.</p>
+<p  id="Html_OPVC1-gk" data-vp="" class="lay_1I8dE4 pos_e8wtf3 mapa_CrkEb2 vis_RqjXT1 "><strong>Vapor</strong> also has a built-in WebSocket client.</p>
+</div>
+</div>
+</div>
+</div>
+<div  id="Flex_MYiJI-gk" data-vp="" class="lay_Vknxi1 pos_e8wtf3 mapa_CrkEb2 vis_7so5U ">
+<div  id="Flex_ED6V72-gk" data-vp="" class="lay_3iUeZ pos_e8wtf3 mapa_CrkEb2 vis_v3yFP4 ">
+<div  id="Grap_d9YXu-gk" data-vp="" class="lay_AAqfn3 pos_e8wtf3 mapa_CrkEb2 vis_v3yFP4 ">
+</div>
+</div>
+</div>
+<div  id="Flex_YthgV3-gk" data-vp="" class="lay_SZEWt3 pos_e8wtf3 mapa_Fls5t vis_VslSa4 ">
+<div  id="Flex_hAkde-gk" data-vp="" class="lay_UMIkr pos_e8wtf3 mapa_x8DNe2 vis_v3yFP4 ">
+<p  id="Text_v2ocq3-gk" data-vp="" class="lay_1I8dE4 pos_e8wtf3 mapa_CrkEb2 vis_YUzl43 ">Community</p>
+<div  id="Flex_yVwVW3-gk" data-vp="" class="lay_xSV7v1 pos_e8wtf3 mapa_CrkEb2 vis_v3yFP4 ">
+<a  id="Redi_qIILr2-gk" data-vp="" class="lay_1I8dE4 pos_e8wtf3 mapa_CrkEb2 vis_MtwNU4 " href="https://github.com/senet-toolbox">
+<p  id="Text_uGjUt2-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_DdKD81 intr_CuhSW1 ">Github</p>
+</a>
+<div  id="Flex_lCqqw2-gk" data-vp="" class="lay_Hi19x pos_e8wtf3 mapa_CrkEb2 vis_MtwNU4 ">
+<p  id="Text_OIneG1-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_DdKD81 intr_CuhSW1 ">Discord</p>
+</div>
+<div  id="Flex_syFQH1-gk" data-vp="" class="lay_Hi19x pos_e8wtf3 mapa_CrkEb2 vis_MtwNU4 ">
+<p  id="Text_jDNTH3-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_DdKD81 intr_CuhSW1 ">Youtube</p>
+</div>
+</div>
+</div>
+<div  id="Flex_TjamJ-gk" data-vp="" class="lay_UMIkr pos_e8wtf3 mapa_x8DNe2 vis_v3yFP4 ">
+<p  id="Text_ErnrM4-gk" data-vp="" class="lay_1I8dE4 pos_e8wtf3 mapa_CrkEb2 vis_YUzl43 ">Resources</p>
+<div  id="Flex_MrqcK-gk" data-vp="" class="lay_j1WNg1 pos_e8wtf3 mapa_CrkEb2 vis_v3yFP4 ">
+<a  id="Link_aQImZ-gk" data-vp="" class="lay_1I8dE4 pos_e8wtf3 mapa_CrkEb2 vis_MtwNU4 " href="/docs/vapor">
+<p  id="Text_wu4kt1-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_DdKD81 intr_CuhSW1 ">Vapor Docs</p>
+</a>
+<a  id="Link_7nnk44-gk" data-vp="" class="lay_1I8dE4 pos_e8wtf3 mapa_CrkEb2 vis_MtwNU4 " href="/docs/reverb">
+<p  id="Text_SLnGS3-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_DdKD81 intr_CuhSW1 ">Reverb Docs</p>
+</a>
+<a  id="Link_2CDSx-gk" data-vp="" class="lay_1I8dE4 pos_e8wtf3 mapa_CrkEb2 vis_MtwNU4 " href="/docs/metal">
+<p  id="Text_zThyY4-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_DdKD81 intr_CuhSW1 ">Metal Docs</p>
+</a>
+<a  id="Redi_s8Zry2-gk" data-vp="" class="lay_1I8dE4 pos_e8wtf3 mapa_CrkEb2 vis_MtwNU4 " href="https://vicrokx.com">
+<p  id="Text_6nB4L2-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_DdKD81 intr_CuhSW1 ">Me</p>
+</a>
+</div>
+</div>
+<div  id="Flex_9RISS4-gk" data-vp="" class="lay_UMIkr pos_e8wtf3 mapa_x8DNe2 vis_v3yFP4 ">
+<p  id="Text_No0rJ3-gk" data-vp="" class="lay_1I8dE4 pos_e8wtf3 mapa_CrkEb2 vis_YUzl43 ">Projects</p>
+<div  id="Flex_gyb9o1-gk" data-vp="" class="lay_j1WNg1 pos_e8wtf3 mapa_CrkEb2 vis_v3yFP4 ">
+<a  id="Redi_swha43-gk" data-vp="" class="lay_1I8dE4 pos_e8wtf3 mapa_CrkEb2 vis_MtwNU4 " href="https://heightsandminds.org">
+<p  id="Text_ujSxT4-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_DdKD81 intr_CuhSW1 ">Heights & Minds</p>
+</a>
+<a  id="Redi_YUAZX3-gk" data-vp="" class="lay_1I8dE4 pos_e8wtf3 mapa_CrkEb2 vis_MtwNU4 " href="https://kyber.run">
+<p  id="Text_pO2Z61-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_DdKD81 intr_CuhSW1 ">Kyber</p>
+</a>
+<a  id="Redi_Q7ZxO1-gk" data-vp="" class="lay_1I8dE4 pos_e8wtf3 mapa_CrkEb2 vis_MtwNU4 " href="https://assembler.kyber.run">
+<p  id="Text_4qVgH4-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_DdKD81 intr_CuhSW1 ">Assembler</p>
+</a>
+<a  id="Redi_8E3cT3-gk" data-vp="" class="lay_1I8dE4 pos_e8wtf3 mapa_CrkEb2 vis_MtwNU4 " href="https://ryven.kyber.run">
+<p  id="Text_r1GzT3-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_DdKD81 intr_CuhSW1 ">Ryven</p>
+</a>
+<a  id="Redi_Ygx2p-gk" data-vp="" class="lay_1I8dE4 pos_e8wtf3 mapa_CrkEb2 vis_MtwNU4 " href="https://vapor-ui.com">
+<p  id="Text_bsVXu-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_DdKD81 intr_CuhSW1 ">Vapor UI</p>
+</a>
+</div>
+</div>
+<div  id="Flex_d9Pdm1-gk" data-vp="" class="lay_UMIkr pos_e8wtf3 mapa_x8DNe2 vis_v3yFP4 ">
+<div  id="Flex_Q1zQK4-gk" data-vp="" class="lay_egUEe2 pos_e8wtf3 mapa_CrkEb2 vis_v3yFP4 ">
+<p  id="Text_Ll8Dy1-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_YUzl43 ">SENET</p>
+<div  id="Grap_fHTJf2-gk" data-vp="" class="lay_geRE14 pos_e8wtf3 mapa_CrkEb2 vis_37cXW3 ">
+</div>
+</div>
+<p  id="Text_7VrE42-gk" data-vp="" class="lay_1I8dE4 pos_e8wtf3 mapa_CrkEb2 vis_sKfCc1 ">Lace up 🤘</p>
+</div>
+</div>
+</div>
+<div  id="nav" data-vp="" class="lay_Nnqgw1 pos_SdsMW2 mapa_CrkEb2 vis_0NcNJ ">
+<div  id="Flex_MMGqT1-gk" data-vp="" class="lay_4zlTI pos_e8wtf3 mapa_TK4ER4 vis_Wu9Xr2 ">
+<div  id="Flex_4ybt13-gk" data-vp="" class="lay_afHcj1 pos_e8wtf3 mapa_CrkEb2 vis_v3yFP4 ">
+<button  id="CtxB_atj8r1-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_HgGbm "aria-label="home page of tether">
+<div  id="Flex_1qr8r1-gk" data-vp="" class="lay_j3qXP4 pos_e8wtf3 mapa_3GodU4 vis_tIU5C3 intr_52LY73 ">
+<svg viewBox="0 0 528 379" xmlns="http://www.w3.org/2000/svg"   id="Svg_6U6Sf4-gk" data-vp="" class="lay_j73IP1 pos_e8wtf3 mapa_CrkEb2 vis_ZqgdG3 intr_sU6F11 ">
+
+<path d="M461.476 368.124L398.86 308.458C410.272 302.742 420.984 295.314 430.58 286.17C440.176 277.026 447.972 266.818 453.971 255.944L516.586 315.61C531.805 330.111 531.804 353.623 516.586 368.124C501.369 382.625 476.694 382.626 461.476 368.124Z" />
+<path d="M170.056 214.559C154.837 200.057 154.838 176.545 170.056 162.044C185.274 147.543 209.948 147.543 225.167 162.044L290.715 224.505C311.698 244.499 345.719 244.499 366.702 224.505C387.685 204.51 387.685 172.093 366.702 152.098L281.906 71.2982C328.525 54.6994 383.072 64.2597 420.56 99.9817C471.749 148.76 471.749 227.844 420.56 276.622C369.929 324.867 288.181 325.394 236.872 278.199L236.857 278.213L170.056 214.559Z" />
+<path d="M300.318 214.559L236.857 154.088C215.874 134.093 181.854 134.093 160.871 154.088C139.888 174.082 139.888 206.5 160.871 226.494L245.666 307.295C199.047 323.893 144.501 314.333 107.013 278.611C55.8232 229.833 55.824 150.748 107.013 101.971C158.201 53.1941 241.196 53.1933 292.386 101.971L355.429 162.044C370.647 176.546 370.647 200.058 355.429 214.559C340.211 229.06 315.536 229.06 300.318 214.559Z" />
+<path d="M66.5244 10.8759C51.306 -3.62559 26.6314 -3.62501 11.4136 10.8759C-3.80422 25.3767 -3.80483 48.8889 11.4136 63.3904L74.0293 123.056C80.0283 112.182 87.8238 101.974 97.4199 92.8304C107.016 83.6863 117.728 76.2581 129.14 70.5417L66.5244 10.8759Z" />
+
+</svg>
+</div>
+</button>
+<ul  id="List_o0PMd-gk" data-vp="" class="lay_2tI5F1 pos_e8wtf3 mapa_CrkEb2 vis_v3yFP4 ">
+<li  id="List_tAGMW1-gk" data-vp="" class="lay_FQDJS1 pos_e8wtf3 mapa_CrkEb2 vis_e2CyO intr_8mH5m3 "">
+<a  id="Link_ta1uU-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_v3yFP4 " href="/docs/vapor">
+<p  id="Text_zDY1p-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_UN1pV2 ">[0] = Vapor</p>
+</a>
+</li>
+<li  id="List_nr8yN1-gk" data-vp="" class="lay_FQDJS1 pos_e8wtf3 mapa_CrkEb2 vis_e2CyO intr_8mH5m3 "">
+<a  id="Link_6K1094-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_v3yFP4 " href="/docs/reverb">
+<p  id="Text_IiAbv1-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_UN1pV2 ">[1] = Reverb</p>
+</a>
+</li>
+<li  id="List_djNuA-gk" data-vp="" class="lay_FQDJS1 pos_e8wtf3 mapa_CrkEb2 vis_e2CyO intr_8mH5m3 "">
+<a  id="Link_uD1qd-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_v3yFP4 " href="/docs/metal">
+<p  id="Text_5fFfU3-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_UN1pV2 ">[2] = Metal</p>
+</a>
+</li>
+</ul>
+</div>
+<div  id="Flex_KMPCR-gk" data-vp="" class="lay_zKcgy2 pos_e8wtf3 mapa_CrkEb2 vis_v3yFP4 ">
+<button  id="CtxB_A4Rfh-gk" data-vp="" class="lay_k17UT4 pos_e8wtf3 mapa_4hFg71 vis_UtHGI4 intr_KF2VL "aria-label="Search Dialog">
+<div  id="Flex_MndHJ2-gk" data-vp="" class="lay_u0Lld pos_e8wtf3 mapa_CrkEb2 vis_v3yFP4 ">
+<i  id="Icon_WIjMo1-gk" data-vp="" class="bi bi-search lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_RNIVW2 ">
+</i>
+<p  id="Text_hqnn6-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_SsSDA3 ">Search...</p>
+</div>
+<i  id="Icon_N7sCf-gk" data-vp="" class="bi bi-command lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_RNIVW2 ">
+</i>
+</button>
+<a  id="Redi_vQpCL2-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_v3yFP4 "aria-label="redirect link to tether github repo" href="https://github.com/vic-Rokx/vapor">
+<i  id="Icon_j9HEg4-gk" data-vp="" class="bi bi-github lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_S8eyU2 intr_x7QX4 ">
+</i>
+</a>
+<a  id="Redi_DX3GM2-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_v3yFP4 "aria-label="redirect link to discord" href="https://github.com/vic-Rokx/vapor">
+<i  id="Icon_UNvGX2-gk" data-vp="" class="bi bi-discord lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_S8eyU2 intr_x7QX4 ">
+</i>
+</a>
+<a  id="Redi_8bLGC3-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_v3yFP4 "aria-label="redirect link to ziglang" href="https://ziglang.org/">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 153 140"   id="Svg_YzdfN4-gk" data-vp="" class="lay_U5b1u1 pos_e8wtf3 mapa_ybnu51 vis_soR1C1 intr_5eKvy3 ">
+
+<g>
+	<g>
+		<polygon points="46,22 28,44 19,30"/>
+		<polygon points="46,22 33,33 28,44 22,44 22,95 31,95 20,100 12,117 0,117 0,22" shape-rendering="crispEdges"/>
+		<polygon points="31,95 12,117 4,106"/>
+	</g>
+	<g>
+		<polygon points="56,22 62,36 37,44"/>
+		<polygon points="56,22 111,22 111,44 37,44 56,32" shape-rendering="crispEdges"/>
+		<polygon points="116,95 97,117 90,104"/>
+		<polygon points="116,95 100,104 97,117 42,117 42,95" shape-rendering="crispEdges"/>
+		<polygon points="150,0 52,117 3,140 101,22"/>
+	</g>
+	<g>
+		<polygon points="141,22 140,40 122,45"/>
+		<polygon points="153,22 153,117 106,117 120,105 125,95 131,95 131,45 122,45 132,36 141,22" shape-rendering="crispEdges"/>
+		<polygon points="125,95 130,110 106,117"/>
+	</g>
+</g>
+
+</svg>
+</a>
+<button  id="CtxB_Kbvvh1-gk" data-vp="" class="lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_5CkVD2 "aria-label="toggle theme">
+<i  id="Icon_AP4Ib4-gk" data-vp="" class="bi bi-cloud-moon lay_jXzf62 pos_e8wtf3 mapa_CrkEb2 vis_S8eyU2 intr_x7QX4 ">
+</i>
+</button>
+</div>
+</div>
+</div>
+
+
+</main>
+</body>
+</html>

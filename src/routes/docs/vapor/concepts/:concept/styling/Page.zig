@@ -2,23 +2,26 @@ const std = @import("std");
 const Vapor = @import("vapor");
 const Signal = Vapor.Signal;
 const Style = Vapor.Style;
-const Static = Vapor.Static;
 const Pure = Vapor.Pure;
 const Custom = @import("../../../../../../components/Custom.zig");
 const Content = @import("../../../../../../components/Content.zig");
+const reinit = @import("../../../../../../components/DocNavbar.zig").reinit;
 const HtmlText = Custom.Chain.HtmlText;
-const Box = Static.Box;
-const Text = Static.Text;
-const Link = Static.Link;
-const Image = Static.Image;
-const Svg = Static.Svg;
-const Button = Static.Button;
-const Center = Static.Center;
-const List = Static.List;
-const ListItem = Static.ListItem;
-const Stack = Static.Stack;
+const Row = Vapor.Row;
+const Text = Vapor.Text;
+const Link = Vapor.Link;
+const Image = Vapor.Image;
+const Svg = Vapor.Svg;
+const Button = Vapor.Button;
+const Center = Vapor.Center;
+const List = Vapor.List;
+const ListItem = Vapor.ListItem;
+const Stack = Vapor.Stack;
 const Vaporize = @import("vaporize");
 const Compiler = @import("../../../../../../main.zig");
+const Fetch = Vapor.Fetch.Fetch;
+const Loader = @import("components").Loader;
+const Error = @import("components").Error;
 
 // Initialization
 var content: Content.new("") = undefined;
@@ -26,28 +29,29 @@ var markdown: Compiler.vaporize.MarkDown(.{
     .{ .tag = "styling_samples", .function = samples },
 }) = .{};
 var page: []const u8 = "";
-var markdown_loaded: bool = false;
+var f: ?*Fetch = null;
 pub fn init() void {
-    Vapor.Kit.fetch("/documents/styling_page.md", handlePage, .{ .method = .GET });
+    f = Fetch.fetch("/documents/styling_page.md", .{ .method = .GET });
+    f.?.handle(handlePage, .{});
+    content.init();
 }
 
-fn handlePage(resp: Vapor.Kit.Response) void {
+fn handlePage(resp: Vapor.Fetch.Result) void {
     switch (resp) {
-        .Ok => |data| {
+        .ok => |data| {
             content.content_text = data.body;
             page = data.body;
             markdown.compile(page) catch |err| {
-                Vapor.printErr("Failed to compile markdown: {any}", .{err});
+                std.log.err("Failed to compile markdown: {any}", .{err});
                 return;
             };
-            markdown_loaded = true;
         },
-        .Err => |err| {
-            Vapor.printErr("Failed to fetch: {s}", .{err.message});
+        .err => |err| {
+            std.log.err("Failed to fetch: {s}", .{err.message});
             return;
         },
     }
-    Vapor.cycle();
+    Vapor.onLayout(reinit, .{});
 }
 
 pub fn Txt(text: []const u8) void {
@@ -59,8 +63,20 @@ pub fn component() void {
 }
 
 pub fn render() void {
-    if (!markdown_loaded) return;
-    content.content(component);
+    if (f) |h| {
+        switch (h.state()) {
+            .idle => {},
+            .loading => {
+                Loader.render();
+            },
+            .ok => {
+                content.content(component);
+            },
+            .err => {
+                Error.render();
+            },
+        }
+    }
 }
 
 const common_style = Style{
@@ -79,7 +95,7 @@ pub const pill_button_base = Style{
     .size = .hw(.px(45), .px(160)),
     .visual = .pill(.hex("#000000")),
     .transition = .{ .duration = 100 },
-    .interactive = .hover_scale(),
+    .interactive = .{ .hover = .{ .transform = .scale() } },
     .child_gap = 8,
 };
 
@@ -96,7 +112,7 @@ fn clicked() void {
 
 fn samples() void {
     Stack().height(.grow).spacing(16).direction(.column).children({
-        Box()
+        Row()
             .layer(.dot(0.5, 20, .white))
             .background(.vapor_blue)
             .width(.percent(100))
@@ -107,21 +123,21 @@ fn samples() void {
                 .font(48, 700, .white).fontFamily("Montserrat").end();
         });
 
-        Box().style(&common_style).children({
+        Row().style(&common_style).children({
             Text("Top right Text").fontSize(14).end();
         });
 
         // Here we use the baseStyle, now we can override the default style
-        Box().baseStyle(&common_style).layout(.top_left).children({
+        Row().baseStyle(&common_style).layout(.top_left).children({
             Text("Top left Text").fontSize(14).end();
         });
 
-        Button(clicked).style(&pill_button_base).children({
+        Button(clicked, .{}).style(&pill_button_base).children({
             Text("Click Me").fontSize(18).end();
         });
 
         // Here we merge the pill style,
-        Button(clicked).style(&mergedStyle()).children({
+        Button(clicked, .{}).style(&mergedStyle()).children({
             Text("Click Me").fontSize(18).end();
         });
     });

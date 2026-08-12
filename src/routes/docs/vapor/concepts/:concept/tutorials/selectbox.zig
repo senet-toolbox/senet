@@ -1,4 +1,4 @@
-fn selectBox(box: *GridBox) void {
+fn selectRow(box: *GridRow) void {
     if (box.clicked or winner != null) return; // ignore if game over
 
     box.clicked = true;

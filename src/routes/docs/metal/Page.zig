@@ -1,24 +1,22 @@
 const std = @import("std");
 const Vapor = @import("vapor");
-const Signal = Vapor.Signal;
 const Style = Vapor.Style;
-const Static = Vapor.Static;
 const Pure = Vapor.Pure;
 const Page = Vapor.Page;
 const Custom = @import("../../../components/Custom.zig");
-const HtmlText = Custom.Chain.HtmlText;
+const Html = Vapor.Html;
 const Snippet = @import("../../../components/Snippet.zig");
 const root = @import("../../../main.zig");
 const code_snippet = Custom.code_snippet_single;
-const Box = Static.Box;
-const Svg = Static.Svg;
-const Graphic = Static.Graphic;
-const Center = Static.Center;
-const Text = Static.Text;
-const Stack = Static.Stack;
-const List = Static.List;
-const ListItem = Static.ListItem;
-const Heading = Static.Heading;
+const Row = Vapor.Row;
+const Svg = Vapor.Svg;
+const Graphic = Vapor.Graphic;
+const Center = Vapor.Center;
+const Text = Vapor.Text;
+const Stack = Vapor.Stack;
+const List = Vapor.List;
+const ListItem = Vapor.ListItem;
+const Heading = Vapor.Heading;
 
 // Initialization
 var snippet: Snippet = .{};
@@ -35,31 +33,6 @@ const description =
     \\platforms—from web browsers to iOS and macOS apps. Unlike black-box solutions, Vapor gives you direct access to the 
     \\rendering pipeline, so you can customize and optimize the engine for your exact use case.
 ;
-
-const Route = struct {
-    title: []const u8,
-    path: []const u8,
-};
-
-const routes = [_]Route{
-    .{ .title = "Introduction", .path = "/docs/vapor/concepts/introduction" },
-    .{ .title = "Vapor Basics", .path = "/docs/vapor/concepts/basics" },
-    .{ .title = "Static, Pure, Dynamic, Grain", .path = "/docs/vapor/concepts/reactivity" },
-    .{ .title = "Routing", .path = "/docs/vapor/concepts/routing" },
-    .{ .title = "Theme and Style", .path = "/docs/vapor/concepts/theme-and-style" },
-    .{ .title = "Reactivity & Signals", .path = "/docs/vapor/concepts/reactivity-signals" },
-    .{ .title = "Styling", .path = "/docs/vapor/concepts/styling" },
-    .{ .title = "Kit", .path = "/docs/vapor/concepts/kit" },
-    .{ .title = "Icons and Svgs", .path = "/docs/vapor/concepts/icons-and-svgs" },
-    .{ .title = "Authentication", .path = "/docs/vapor/concepts/authentication" },
-    .{ .title = "Using JS Libraries", .path = "/docs/vapor/concepts/using-js-libraries" },
-    .{ .title = "Wasm Bridge", .path = "/docs/vapor/concepts/wasm-bridge" },
-    .{ .title = "Custom Components", .path = "/docs/vapor/concepts/custom-components" },
-    .{ .title = "Renderers & UI-Tree", .path = "/docs/vapor/concepts/renderers-ui-tree" },
-    .{ .title = "Building a UI Layout Algorithmn", .path = "/docs/vapor/concepts/building-ui-layout-algorithm" },
-    .{ .title = "Building a Reconciler", .path = "/docs/vapor/concepts/building-reconciler" },
-    .{ .title = "Building a Renderer", .path = "/docs/vapor/concepts/building-renderer" },
-};
 
 var last_time: i64 = 0;
 pub fn throttle() bool {
@@ -80,45 +53,39 @@ fn openMenu() void {
 }
 
 fn Txt(text: []const u8) void {
-    HtmlText(text).style(&.{
+    Html(text).style(&.{
         .visual = .font(16, null, null),
-    });
+    }).end();
 }
 
 pub fn render() void {
-    Box().style(&.{
+    Row().style(&.{
         .padding = .horizontal(12),
         .direction = if (!Vapor.isMobile()) .row else .column,
         .size = .hw(.percent(100), .percent(100)),
     }).children({
-        Box().style(&.{
+        Row().style(&.{
             .size = .hw(.percent(100), .percent(100)),
             .layout = .top_center,
         }).children({
-            Box().style(&.{
+            Row().style(&.{
                 .size = .w(.mobile_desktop_percent(100, 48)),
                 .child_gap = 16,
                 .direction = .column,
                 .layout = .{ .x = .start, .y = .start },
                 .padding = .tb(80, 80),
             }).children({
-                Box().style(&.{
+                Row().style(&.{
                     .child_gap = 16,
                     .direction = .column,
                     .margin = .{ .bottom = 32 },
                     .size = .w(.percent(100)),
                 }).children({
-                    Box().style(&.{
+                    Row().style(&.{
                         .layout = .x_between_center,
                         .margin = .{ .top = 0, .bottom = 32 },
                         .child_gap = 32,
                     }).children({
-                        // Center.style(&.{ .size = .w(.percent(50)), .margin = .{ .top = 32 } }).children({
-                        //     Graphic(.{ .src = "/src/routes/docs/metal/metal.svg" }).style(&.{
-                        //         .layout = .center,
-                        //         .size = .w(.percent(90)),
-                        //     });
-                        // });
                         Stack().style(&.{
                             .size = .w(.percent(100)),
                         }).children({
@@ -127,21 +94,15 @@ pub fn render() void {
                                 .ml(-16)
                                 .layout(.in_line)
                                 .end();
-                            // Graphic(.{ .src = "/src/routes/docs/metal/metal_text.svg" }).style(&.{
-                            //     .layout = .center,
-                            //     .size = .w(.percent(70)),
-                            //     .visual = .{ .fill = .palette(.text_color) },
-                            // });
-
-                            HtmlText(
+                            Html(
                                 \\<strong>Vapor, Reverb, Canopy</strong> all run on Metal, there 
                                 \\is no need for Docker Containers or
                                 \\Runtimes.
-                            ).style(&.{ .visual = .font(24, null, null) });
+                            ).style(&.{ .visual = .font(24, null, null) }).end();
                         });
                     });
 
-                    Box().style(&.{
+                    Row().style(&.{
                         .child_gap = 8,
                         .direction = .column,
                         .margin = .{ .bottom = 32 },
@@ -150,7 +111,7 @@ pub fn render() void {
                     }).children({
                         code_snippet("curl -sSL https://raw.githubusercontent.com/senet-toolbox/metal/main/install.sh | bash");
                         code_snippet("metal create myapp");
-                        code_snippet("my-app && metal run web");
+                        code_snippet("my-app && metal vapor run");
                     });
 
                     Text("It runs on my Machine!").style(&.{
@@ -174,7 +135,7 @@ pub fn render() void {
                         .font_family = "IBM Plex Sans",
                     }).end();
 
-                    HtmlText(
+                    Html(
                         \\Metal is how Vapor, Reverb and Canopy, compile and build the binaries. Depending on persmissions,
                         \\Vapor will use wasm-opt and brotli, to compress the WASM binaries, this will reduce the total bundle size. For example, the raw
                         \\WASM binary of this site it 7MB, after compressing using Metal, we result in 180kb total. While other frameworks may ship 100kb-200kb by default.
@@ -183,7 +144,7 @@ pub fn render() void {
                         \\And again, we only have one binary file running the Vapor server, and one vapor.wasm file which contains our UI, and client side functionality.
                     ).style(&.{
                         .visual = .font(16, null, null),
-                    });
+                    }).end();
 
                     Stack().spacing(16).children({
                         Text("Total file count").style(&.{

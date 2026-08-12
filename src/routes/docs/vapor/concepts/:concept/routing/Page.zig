@@ -3,7 +3,7 @@ const Vapor = @import("vapor");
 const Signal = Vapor.Signal;
 const Style = Vapor.Style;
 const Static = Vapor.Static;
-const Box = Static.Box;
+const Row = Static.Row;
 const Text = Static.Text;
 const Link = Static.Link;
 const Image = Static.Image;
@@ -16,12 +16,16 @@ const Stack = Static.Stack;
 const Graphic = Static.Graphic;
 const Vaporize = @import("vaporize");
 const Compiler = @import("../../../../../../main.zig");
+const Fetch = Vapor.Fetch.Fetch;
+const Loader = @import("components").Loader;
+const Error = @import("components").Error;
 
 const Page = Vapor.Page;
 const Custom = @import("../../../../../../components/Custom.zig");
 const HtmlText = Custom.Chain.HtmlText;
 
 const Content = @import("../../../../../../components/Content.zig");
+const reinit = @import("../../../../../../components/DocNavbar.zig").reinit;
 var content: Content.new("") = undefined;
 
 const items: []const []const u8 = &.{
@@ -35,29 +39,30 @@ const items: []const []const u8 = &.{
 };
 var markdown: Compiler.vaporize.MarkDown(.{}) = .{};
 var page: []const u8 = "";
-var markdown_loaded: bool = false;
+var f: ?*Fetch = null;
 
 pub fn init() void {
-    Vapor.Kit.fetch("/documents/routing_page.md", handlePage, .{ .method = .GET });
+    f = Fetch.fetch("/documents/routing_page.md", .{ .method = .GET });
+    f.?.handle(handlePage, .{});
+    content.init();
 }
 
-fn handlePage(resp: Vapor.Kit.Response) void {
+fn handlePage(resp: Vapor.Fetch.Result) void {
     switch (resp) {
-        .Ok => |data| {
+        .ok => |data| {
             content.content_text = data.body;
             page = data.body;
             markdown.compile(page) catch |err| {
-                Vapor.printErr("Failed to compile markdown: {any}", .{err});
+                std.log.err("Failed to compile markdown: {any}", .{err});
                 return;
             };
-            markdown_loaded = true;
         },
-        .Err => |err| {
-            Vapor.printErr("Failed to fetch: {s}", .{err.message});
+        .err => |err| {
+            std.log.err("Failed to fetch: {s}", .{err.message});
             return;
         },
     }
-    Vapor.cycle();
+    Vapor.onLayout(reinit, .{});
 }
 
 fn component() void {
@@ -66,6 +71,18 @@ fn component() void {
 
 // Render
 pub fn render() void {
-    if (!markdown_loaded) return;
-    content.content(component);
+    if (f) |h| {
+        switch (h.state()) {
+            .idle => {},
+            .loading => {
+                Loader.render();
+            },
+            .ok => {
+                content.content(component);
+            },
+            .err => {
+                Error.render();
+            },
+        }
+    }
 }

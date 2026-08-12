@@ -1,25 +1,23 @@
 const std = @import("std");
 const Vapor = @import("vapor");
-const Static = Vapor.Static;
 const println = Vapor.println;
 const root = @import("../main.zig");
 const Search = @import("Search.zig");
 const Kit = Vapor.Kit;
-const Text = Static.Text;
-const Box = Static.Box;
-const Link = Static.Link;
-const Stack = Static.Stack;
-const Image = Static.Image;
-const Svg = Static.Svg;
-const Center = Static.Center;
-const Icon = Static.Icon;
-const List = Static.List;
-const ListItem = Static.ListItem;
-const CtxButton = Static.CtxButton;
-const RedirectLink = Static.RedirectLink;
-const Button = Static.Button;
+const Text = Vapor.Text;
+const Row = Vapor.Row;
+const Link = Vapor.Link;
+const Stack = Vapor.Stack;
+const Image = Vapor.Image;
+const Svg = Vapor.Svg;
+const Center = Vapor.Center;
+const Icon = Vapor.Icon;
+const List = Vapor.List;
+const ListItem = Vapor.ListItem;
+const RedirectLink = Vapor.RedirectLink;
+const Button = Vapor.Button;
 const Theme = @import("theme");
-const Graphic = Static.Graphic;
+const Graphic = Vapor.Graphic;
 const OverlayManager = @import("OverlayManager.zig");
 
 const Ghost = @embedFile("ghost.svg");
@@ -71,7 +69,7 @@ inline fn routes() void {
             Link(.{ .url = url.url, .aria_label = url.title }).style(&.{
                 .visual = .{ .text_decoration = .none },
             }).children({
-                Text(url.title).style(&.{ .visual = .font(18, 300, .palette(.text_color)), .font_family = "IBM Plex Mono,monospace" }).end();
+                Text(url.title).style(&.{ .visual = .font(16, 300, .palette(.text_color)), .font_family = "IBM Plex Mono,monospace" }).end();
             });
         });
     }
@@ -128,131 +126,156 @@ fn goto(url: []const u8) void {
 
 pub fn render() void {
     if (Vapor.isDesktop()) {
-        Box().id("nav").style(&.{
+        Stack().id("nav").style(&.{
             .position = .nav,
             .size = .hw(.px(60), .grow),
-            .layout = .x_between_center,
-            .padding = .horizontal(50),
+            .layout = .center,
+            // .padding = .horizontal(50),
             .visual = .{ .blur = 2 },
         }).children({
-            Box().style(&.{
-                .size = .{ .height = .px(50) },
-                .direction = .row,
-                .layout = .left_center,
-                .child_gap = 10,
-            }).children({
-                CtxButton(goto, .{"/"})
-                    .ariaLabel("home page of tether")
+            // Row().width(.percent(100)).height(.px(32)).background(.transparent)
+            //     .children({
+            //     Image(.{ .src = "/assets/gradientbg.png", .alt = "background-banner" }).width(.percent(100))
+            //         .position(.absolute)
+            //         .end();
+            //     Row().width(.percent(100))
+            //         .spacing(16)
+            //         .children({});
+            // });
+            Row()
+                .height(.px(60))
+                .padding(.horizontal(12))
+                .width(.percent(90)).height(.expand).layout(.x_between_center)
+                .border(.sharp(.tblr(0, 1, 1, 1), .palette(.border_color_light)))
+                .children({
+                Row()
+                    .style(&.{
+                        .size = .{ .height = .px(50) },
+                        .direction = .row,
+                        .layout = .left_center,
+                        .child_gap = 10,
+                    }).children({
+                    Button(goto, .{"/"})
+                        .ariaLabel("home page of tether")
+                        .style(&.{
+                            .visual = .{ .text_decoration = .none },
+                        }).children({
+                        Center().style(&.{
+                            .size = .{ .width = .px(45) },
+                            .margin = .{ .right = 30 },
+                            .transition = .{ .duration = 100 },
+                            .interactive = .{ .hover = .{ .transform = .scale() } },
+                            .visual = .{ .text_color = .palette(.text_color) },
+                        }).children({
+                            Svg(.{ .svg = @embedFile("logonormal.svg") }).style(&.{
+                                .size = .{ .width = .percent(100), .height = .percent(100) },
+                                .visual = .{ .fill = .palette(.text_color), .stroke = .palette(.text_color) },
+                                .transition = .{ .duration = 100 },
+                                .interactive = .{ .hover = .{
+                                    .fill = .palette(.tint),
+                                    .stroke = .palette(.tint),
+                                } },
+                            }).end();
+                        });
+                    });
+                    List().style(&.{
+                        .child_gap = 42,
+                        .layout = .center,
+                        .size = .hw(.percent(100), .percent(100)),
+                    }).children({
+                        routes();
+                    });
+                });
+
+                Center().style(&.{
+                    .child_gap = 16,
+                    .size = .w(.percent(40)),
+                }).children({
+                    Button(openDialog, .{})
+                        .ariaLabel("Search Dialog")
+                        .layout(.x_between_center)
+                        .size(.hw(.px(38), .percent(70)))
+                        .padding(.xy(8, 4))
+                        .border(.simple(.hex("#E1E1E1")))
+                        .cursor(.pointer)
+                        .background(.palette(.background))
+                        .hover(.{
+                            .border = .simple(.palette(.tint)),
+                        })
+                        .children({
+                        Row().style(&.{ .layout = .left_center, .child_gap = 24 }).children({
+                            Icon(.search).style(&.{
+                                .visual = .{ .font_size = 16, .text_color = .palette(.icon_color) },
+                            }).end();
+                            Text("Search...").style(&.{
+                                .visual = .font(16, 500, .transparentizeHex(.palette(.text_color), 0.5)),
+                                .font_family = "IBM Plex Mono,monospace",
+                            }).end();
+                        });
+                        Icon(.command).style(&.{
+                            .visual = .{ .font_size = 16, .text_color = .palette(.icon_color) },
+                        }).end();
+                    });
+                    RedirectLink(.{ .url = "https://github.com/vic-Rokx/vapor", .aria_label = "redirect link to tether github repo" })
+                    .ariaLabel("redirect link to tether github repo")
                     .style(&.{
                         .visual = .{ .text_decoration = .none },
                     }).children({
-                    Center().style(&.{
-                        .size = .{ .width = .px(45) },
-                        .margin = .{ .right = 30 },
-                        .transition = .{ .duration = 100 },
-                        .interactive = .{ .hover = .{ .transform = .scale() } },
-                        .visual = .{ .text_color = .palette(.text_color) },
-                    }).children({
-                        Graphic(.{ .src = "/src/assets/logonormal.svg" }).style(&.{
-                            .size = .{ .width = .percent(100), .height = .percent(100) },
-                            .visual = .{ .fill = .palette(.text_color), .stroke = .palette(.text_color) },
-                            .transition = .{ .duration = 100 },
-                            .interactive = .{ .hover = .{
-                                .fill = .palette(.tint),
-                                .stroke = .palette(.tint),
-                            } },
+                        Icon(.github).style(&.{
+                            .visual = .{ .font_size = 18, .text_color = .palette(.icon_color) },
+                            .interactive = .{ .hover = .{ .text_color = .palette(.tint) } },
                         }).end();
                     });
-                });
-                List().style(&.{
-                    .child_gap = 60,
-                    .layout = .center,
-                    .size = .hw(.percent(100), .percent(100)),
-                }).children({
-                    routes();
-                });
-            });
-
-            Center().style(&.{
-                .child_gap = 24,
-                .size = .w(.percent(30)),
-            }).children({
-                Button(openDialog)
-                    .ariaLabel("Search Dialog")
+                    RedirectLink(.{ .url = "https://github.com/vic-Rokx/vapor", .aria_label = "redirect link to discord" })
+                    .ariaLabel("redirect link to discord")
                     .style(&.{
-                        .layout = .x_between_center,
-                        .size = .hw(.px(38), .percent(70)),
-                        .padding = .tblr(4, 4, 8, 8),
-                        .visual = .{ .border = .simple(.hex("#E1E1E1")), .cursor = .pointer, .background = .palette(.background) },
-                        .interactive = .{ .hover = .{
-                            .border = .simple(.palette(.tint)),
-                        } },
+                        .visual = .{ .text_decoration = .none },
                     }).children({
-                    Box().style(&.{ .layout = .left_center, .child_gap = 24 }).children({
-                        Icon(.search).style(&.{
-                            .visual = .{ .font_size = 16, .text_color = .palette(.icon_color) },
-                        }).end();
-                        Text("Search...").style(&.{
-                            .visual = .font(16, 500, .transparentizeHex(.palette(.text_color), 0.5)),
-                            .font_family = "IBM Plex Mono,monospace",
+                        Icon(.discord).style(&.{
+                            .visual = .{ .font_size = 18, .text_color = .palette(.icon_color) },
+                            .interactive = .{ .hover = .{ .text_color = .palette(.tint) } },
                         }).end();
                     });
-                    Icon(.command).style(&.{
-                        .visual = .{ .font_size = 16, .text_color = .palette(.icon_color) },
-                    }).end();
-                });
-                RedirectLink(.{ .url = "https://github.com/vic-Rokx/vapor", .aria_label = "redirect link to tether github repo" }).style(&.{
-                    .visual = .{ .text_decoration = .none },
-                }).children({
-                    Icon(.github).style(&.{
-                        .visual = .{ .font_size = 24, .text_color = .palette(.icon_color) },
-                        .interactive = .{ .hover = .{ .text_color = .palette(.tint) } },
-                    }).end();
-                });
-                RedirectLink(.{ .url = "https://github.com/vic-Rokx/vapor", .aria_label = "redirect link to discord" }).style(&.{
-                    .visual = .{ .text_decoration = .none },
-                }).children({
-                    Icon(.discord).style(&.{
-                        .visual = .{ .font_size = 24, .text_color = .palette(.icon_color) },
-                        .interactive = .{ .hover = .{ .text_color = .palette(.tint) } },
-                    }).end();
-                });
-                RedirectLink(.{ .url = "https://ziglang.org/", .aria_label = "redirect link to ziglang" }).style(&.{
-                    .visual = .{ .text_decoration = .none },
-                }).children({
-                    Graphic(.{ .src = "/src/assets/zig_simple.svg" }).style(&.{
-                        .size = .{ .height = .px(24), .width = .px(24) },
-                        .visual = .{ .fill = .palette(.icon_color) },
-                        .interactive = .{ .hover = .{ .fill = .palette(.tint) } },
-                    }).end();
-                });
-                Button(toggleTheme)
-                    .ariaLabel("toggle theme")
+                    RedirectLink(.{ .url = "https://ziglang.org/", .aria_label = "redirect link to ziglang" })
+                    .ariaLabel("redirect link to ziglang")
                     .style(&.{
-                        .visual = .{
-                            .background = .transparent,
-                            .cursor = .pointer,
-                        },
-                        .padding = .all(0),
-                        .margin = .all(0),
+                        .visual = .{ .text_decoration = .none },
                     }).children({
-                    // Vapor.Svg(.{ .svg = Ghost, .override = true })
-                    //     .class("ghost")
-                    //     .hover(.{
-                    //         .animation = "look-around",
-                    //     })
-                    //     .size(.hw_px(24, 24))
-                    //     .end();
-                    Icon(.cloud_moon).style(&.{
-                        .visual = .{ .font_size = 24, .text_color = .palette(.icon_color) },
-                        .interactive = .{ .hover = .{ .text_color = .palette(.tint) } },
-                    }).end();
+                        Svg(.{ .svg = @embedFile("zig_simple.svg") }).style(&.{
+                            .size = .{ .height = .px(18), .width = .px(18) },
+                            .margin = .t(4),
+                            .visual = .{ .fill = .palette(.icon_color) },
+                            .interactive = .{ .hover = .{ .fill = .palette(.tint) } },
+                        }).end();
+                    });
+                    Button(toggleTheme, .{})
+                        .ariaLabel("toggle theme")
+                        .style(&.{
+                            .visual = .{
+                                .background = .transparent,
+                                .cursor = .pointer,
+                            },
+                            .padding = .all(0),
+                            .margin = .all(0),
+                        }).children({
+                        // Vapor.Svg(.{ .svg = Ghost, .override = true })
+                        //     .class("ghost")
+                        //     .hover(.{
+                        //         .animation = "look-around",
+                        //     })
+                        //     .size(.hw_px(24, 24))
+                        //     .end();
+                        Icon(.cloud_moon).style(&.{
+                            .visual = .{ .font_size = 18, .text_color = .palette(.icon_color) },
+                            .interactive = .{ .hover = .{ .text_color = .palette(.tint) } },
+                        }).end();
+                    });
                 });
             });
         });
         Search.render();
     } else {
-        Box().style(&.{
+        Row().style(&.{
             .layout = .x_between_center,
             .child_gap = 8,
             .padding = .horizontal(16),
@@ -262,7 +285,7 @@ pub fn render() void {
                 .background = .palette(.background),
             },
         }).children({
-            Box().style(&.{ .layout = .left_center }).children({
+            Row().style(&.{ .layout = .left_center }).children({
                 Link(.{ .url = "/", .aria_label = "home page of tether" }).style(&.{
                     .visual = .{ .text_decoration = .none },
                     .size = .h(.px(48)),
@@ -273,8 +296,8 @@ pub fn render() void {
                     }).end();
                 });
             });
-            Box().style(&.{ .layout = .right_center }).children({
-                Button(openMenu).style(&.{
+            Row().style(&.{ .layout = .right_center }).children({
+                Button(openMenu, .{}).style(&.{
                     .size = .hw(.px(36), .px(48)),
                     .visual = .bg(.palette(.background)),
                 }).children({
@@ -284,7 +307,7 @@ pub fn render() void {
                     }).end();
                 });
 
-                Button(toggleTheme).style(&.{
+                Button(toggleTheme, .{}).style(&.{
                     .visual = .{ .cursor = .pointer, .background = .palette(.background) },
                     .size = .hw(.px(36), .px(48)),
                 }).children({
@@ -293,7 +316,7 @@ pub fn render() void {
                     }).end();
                 });
 
-                Button(openMenu).style(&.{
+                Button(openMenu, .{}).style(&.{
                     .size = .hw(.px(36), .px(48)),
                     .visual = .bg(.palette(.background)),
                 }).children({
@@ -312,7 +335,7 @@ pub fn render() void {
             });
         });
         if (menu) {
-            Box().style(&.{
+            Row().style(&.{
                 .position = .{ .type = .fixed, .top = .px(80), .left = .px(0), .z_index = 999 },
                 .size = .w(.percent(100)),
                 // .visual = .{ .background = Theme.background, .border = .tb(.hex("#E4E4E4")) },
@@ -328,7 +351,7 @@ pub fn render() void {
                         ListItem().style(&.{
                             .size = .w(.percent(70)),
                         }).children({
-                            CtxButton(navigate, .{item.url}).style(&.{
+                            Button(navigate, .{item.url}).style(&.{
                                 .size = .w(.percent(100)),
                                 .layout = .left_center,
                                 .child_gap = 12,
