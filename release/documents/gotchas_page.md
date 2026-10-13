@@ -159,3 +159,57 @@ fn increment(counter: *Counter) void {
     counter.count += 1;  // ✅ Works!
 }
 ```
+
+## Moving Elements Need an `.id()`
+
+Vapor names every element automatically, from its type and its position among
+its siblings. The reconciler matches the old tree to the new one by that name,
+so an element that **moves** gets a new name and is treated as a delete plus an
+insert — not as the same element in a new place.
+
+```zig
+// ❌ Reorder this list and every row below the change is destroyed and rebuilt
+for (todos.items) |todo| {
+    Row().children({
+        Text(todo.title).end();
+    });
+}
+
+// ✅ The id travels with the row, so a move stays a move
+for (todos.items) |todo| {
+    Row().id(todo.id).children({
+        Text(todo.title).end();
+    });
+}
+```
+
+Use an id whenever:
+
+- a list can reorder, sort, or filter
+- items are inserted or removed anywhere except the end
+- an element sits **after** a sibling that renders conditionally
+
+That last one is the surprising case. A switch that toggles an extra field into
+a form renumbers everything below it, so the submit button underneath is torn
+down and rebuilt on every toggle:
+
+```zig
+Form(submit, .{}).children({
+    if (show_details) {
+        TextField(.string).end();
+    }
+    Button(save, .{}).id("save-btn").children({   // ← keeps its identity
+        Text("Save").end();
+    });
+});
+```
+
+The symptoms of a missing id are an element that briefly appears twice — the
+outgoing copy is held while its exit animation runs — or one that loses DOM
+state it should have kept: scroll position, focus, text selection, or an
+in-flight CSS transition.
+
+The value becomes the element's DOM id as well, so it has to be unique in the
+document. `.src(@src())` is a shortcut that derives one from the call site,
+which is enough when an element only needs to be distinguished from its
+siblings rather than tracked across moves.

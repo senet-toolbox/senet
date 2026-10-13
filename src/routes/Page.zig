@@ -286,7 +286,7 @@ pub fn init() void {
 
     ComplexForm.init();
     // login_form.compile() catch unreachable;
-    // Vapor.lib.runOnAnimationFrame(Vapor.print, .{ "hello", .{} });
+    // _ = Vapor.lib.runOnAnimationFrame(std.log.info, .{ "hello", .{} });
     // performance_monitor.startMonitoring();
     // Vapor.lib.onCommitCtx(measureTotalRenderTime, .{Vapor.lib.nowMs()});
     Vapor.Page(.{ .route = "/" }, render, null);
@@ -537,7 +537,7 @@ pub fn render() void {
             .size(.full)
             .layout(.center)
             .scroll(.none())
-           .children({
+            .children({
             if (Vapor.isDesktop()) {
                 Stack()
                     .style(&.{

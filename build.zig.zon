@@ -28,7 +28,7 @@
 
     // Tracks the earliest Zig version that the package considers to be a
     // supported use case.
-    .minimum_zig_version = "0.15.2",
+    .minimum_zig_version = "0.16.0",
 
     // This field is optional.
     // Each dependency must either provide a `url` and `hash`, or a `path`.
@@ -40,7 +40,8 @@
             .path = "../vaporize",
         },
         .vapor = .{
-            .path = "../vapor",
+            .url = "git+https://github.com/senet-toolbox/vapor#2aac8ad4a86648a137a9add18e05969279563a92",
+            .hash = "vapor-2.0.1-VGoNddPdEADzjGytihvkqgjGQ5WS2ZgJhnWs9qB5UX69",
         },
         .opaque_ui = .{
             .path = "../opaque-ui",
