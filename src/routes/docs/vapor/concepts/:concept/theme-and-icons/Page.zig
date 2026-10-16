@@ -10,7 +10,7 @@ const Content = @import("../../../../../../components/Content.zig");
 const reinit = @import("../../../../../../components/DocNavbar.zig").reinit;
 const snippet = Custom.code_snippet_single;
 const Compiler = @import("../../../../../../main.zig");
-const Fetch = Vapor.Fetch.Fetch;
+const Fetch = Vapor.Fetch.Request;
 const Loader = @import("components").Loader;
 const Error = @import("components").Error;
 
@@ -66,7 +66,7 @@ pub fn render() void {
                 content.content(component);
                 Row()
                     .background(.palette(.background))
-                    .border(.simple(.palette(.border_color)))
+                    .border(.thin(.palette(.border_color)))
                     .font(16, 500, .palette(.text_color))
                     .children({
                     //...

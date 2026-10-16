@@ -1,30 +1,28 @@
 # Kit
 
-Vapor Kit is a utilities module: fetching, navigation, parsing, and URL encoding/decoding.
+Vapor Kit is a utilities module: parsing, URL encoding/decoding, throttling and observers. HTTP requests live at the root as `Vapor.fetch` (types under `Vapor.Fetch`), and navigation as `Vapor.navigate`; fetching is documented here.
 
 {#fetch}
 
 ## Fetch
 
-`fetch` takes a URL and an `HttpReq`, dispatches the request, and returns a `*Fetch` — a handle whose state and result the rest of your UI reads from. There's no separate "is it loading" boolean to keep in sync: the handle *is* the source of truth, and because a completed fetch is an [event into Vapor](reactivity.md#one-rule), the UI reconciles on its own when the response lands.
+`Vapor.fetch` takes a URL and a `Fetch.Options`, dispatches the request, and returns a `*Fetch.Request` — a handle whose state and result the rest of your UI reads from. There's no separate "is it loading" boolean to keep in sync: the handle *is* the source of truth, and because a completed fetch is an [event into Vapor](reactivity.md#one-rule), the UI reconciles on its own when the response lands.
 
 ```zig
 const std = @import("std");
 const Vapor = @import("vapor");
-const Kit = Vapor.Kit;
-const Fetch = Vapor.Kit.Fetch;
+const Fetch = Vapor.Fetch;
 
 pub export fn init() void {
     Vapor.init(.{});
-    Kit.init(); // Kit must be initialized before any fetch
 
     Vapor.Page(.{ .route = "/" }, render, null);
 
-    var f = Fetch.fetch("/documents/kit_page.md", .{ .method = .GET });
+    const f = Vapor.fetch("/documents/kit_page.md", .{ .method = .GET });
     f.handle(handleResponse, .{});
 }
 
-fn handleResponse(result: Kit.Fetch.Result) void {
+fn handleResponse(result: Fetch.Result) void {
     switch (result) {
         .ok => |data| {
             std.debug.print("Status: {d}\n", .{data.status});
@@ -39,7 +37,7 @@ fn handleResponse(result: Kit.Fetch.Result) void {
 
 Two things to get right up front:
 
-- **`fetch` returns a pointer, `*Fetch`.** Store the pointer you get back; read `state()` and `response()` off it from render. How long that pointer stays valid depends on the request — see [Handle lifetime](#lifetime).
+- **`fetch` returns a pointer, `*Fetch.Request`.** Store the pointer you get back; read `state()` and `response()` off it from render. How long that pointer stays valid depends on the request — see [Handle lifetime](#lifetime).
 - **`handle` takes two arguments**: the callback and an args tuple. Pass `.{}` when the callback needs nothing extra; the tuple is how you hand it context without globals (see [Passing context](#passing-context)).
 
 {#result}
@@ -95,13 +93,12 @@ The callback model gives you a clean three-step flow. Because the `Fetch` handle
 
 ```zig
 const Vapor = @import("vapor");
-const Kit = Vapor.Kit;
-const Fetch = Vapor.Kit.Fetch;
+const Fetch = Vapor.Fetch;
 
-var current_req: ?*Fetch = null;
+var current_req: ?*Fetch.Request = null;
 
 fn getTodo() void {
-    var f = Fetch.fetch("https://some-api.com/todos/1", .{ .method = .GET });
+    const f = Vapor.fetch("https://some-api.com/todos/1", .{ .method = .GET });
     f.handle(handleResponse, .{});
     current_req = f;
 }
@@ -126,7 +123,7 @@ fn render() void {
         switch (f.state()) {
             .idle, .loading => {
                 Vapor.Svg(.{ .svg = @embedFile("loader.svg"), .override = true })
-                    .size(.px(36))
+                    .size(.squarePx(36))
                     .end();
             },
             .ok => {
@@ -149,13 +146,13 @@ fn render() void {
 }
 ```
 
-`state()` returns a `Kit.FetchState` (`.idle`, `.loading`, `.ok`, `.err`); `response()` returns `?Result` (the last result, or `null` before one arrives).
+`state()` returns a `Fetch.State` (`.idle`, `.loading`, `.ok`, `.err`); `response()` returns `?Result` (the last result, or `null` before one arrives).
 
 {#lifetime}
 
 ### Handle lifetime
 
-How long a `*Fetch` stays valid depends on how the request is keyed. This is the one thing about fetch that isn't "just a pointer," so it's worth understanding.
+How long a `*Fetch.Request` stays valid depends on how the request is keyed. This is the one thing about fetch that isn't "just a pointer," so it's worth understanding.
 
 - **GET / OPTIONS, or any method given an explicit `key`** are *registered*. They live in a persistent registry and are never recycled, so the pointer is valid for the life of the app. Stash it in a store, read it from render forever — it stays correct. This is the common case, and it's why the lifecycle example above can hold `current_req` indefinitely.
 
@@ -178,7 +175,7 @@ The `key` overrides both. It *is* the request's identity: give two calls the sam
 
 ```zig
 // Double-submit protection: repeated taps coalesce onto one in-flight request.
-var f = Fetch.fetch("/todos", .{
+const f = Vapor.fetch("/todos", .{
     .method = .POST,
     .body = "{\"title\":\"Walk the dog\"}",
     .body_type = .json,
@@ -200,7 +197,7 @@ const Item = struct { id: u32, loaded: bool = false };
 var item = Item{ .id = 1 };
 
 fn getItem() void {
-    var f = Fetch.fetch("https://some-api.com/items/1", .{ .method = .GET });
+    const f = Vapor.fetch("https://some-api.com/items/1", .{ .method = .GET });
     f.handle(onItem, .{ &item }); // onItem receives (result, &item)
 }
 
@@ -225,11 +222,11 @@ if (current_req) |f| f.cancel();
 
 ### POST and other methods, with a body
 
-`HttpReq` covers all standard methods and request options. For a body, set `body` and the matching `body_type`:
+`Fetch.Options` covers all standard methods and request options. For a body, set `body` and the matching `body_type`:
 
 ```zig
 fn createTodo() void {
-    var f = Fetch.fetch("https://some-api.com/todos", .{
+    const f = Vapor.fetch("https://some-api.com/todos", .{
         .method = .POST,
         .body = "{\"title\":\"Walk the dog\",\"done\":false}",
         .body_type = .json,
@@ -239,16 +236,16 @@ fn createTodo() void {
 }
 ```
 
-The full `HttpReq` shape:
+The full `Fetch.Options` shape:
 
 | Field | Type | Default | |
 |---|---|---|---|
-| `method` | `Methods` | — | `GET`, `POST`, `PATCH`, `DELETE`, `PUT`, `OPTIONS` |
+| `method` | `Method` | `.GET` | `GET`, `POST`, `PATCH`, `DELETE`, `PUT`, `OPTIONS` |
 | `body` | `?[]const u8` | `null` | |
 | `body_type` | `BodyType` | `.string` | `.string` or `.json` |
 | `key` | `?[]const u8` | `null` | dedup identity / stable-handle opt-in (see above) |
 | `headers` | `?Headers` | `null` | |
-| `extra_headers` | `[]const HttpHeader` | `&.{}` | |
+| `extra_headers` | `[]const Header` | `&.{}` | |
 | `mode` | `?[]const u8` | `null` | passthrough to the underlying fetch |
 | `redirect` | `?[]const u8` | `null` | passthrough |
 | `referrer_policy` | `?[]const u8` | `null` | passthrough |
@@ -276,10 +273,10 @@ pub const Mock = union(enum) {
 **Force an error.** Note `debug` and `mock` are set *before* `handle`:
 
 ```zig
-var current_fetch: ?*Fetch = null;
+var current_fetch: ?*Fetch.Request = null;
 
 fn getTodo() void {
-    var f = Fetch.fetch("https://some-api.com/todos/1", .{ .method = .GET });
+    const f = Vapor.fetch("https://some-api.com/todos/1", .{ .method = .GET });
     f.debug = true;
     f.mock = .{ .error_response = .{
         .code = 404,
@@ -300,7 +297,7 @@ With this set, `state()` is `.err` and the `.err` branch always renders.
 
 ```zig
 fn getTodo() void {
-    var f = Fetch.fetch("https://some-api.com/todos/1", .{ .method = .GET });
+    const f = Vapor.fetch("https://some-api.com/todos/1", .{ .method = .GET });
     f.mock = .infinite_loading;
     f.handle(handleResponse, .{});
     current_fetch = f;
@@ -313,7 +310,7 @@ The handle stays in `.loading`, so the `.loading` branch always renders.
 
 ```zig
 fn getTodo() void {
-    var f = Fetch.fetch("https://some-api.com/todos/1", .{ .method = .GET });
+    const f = Vapor.fetch("https://some-api.com/todos/1", .{ .method = .GET });
     f.mock = .{ .ok_response = .{
         .status = 200,
         .body = "{\"id\":1,\"title\":\"Mocked todo\"}",

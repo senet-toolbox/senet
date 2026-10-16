@@ -3,7 +3,7 @@ const Vapor = @import("vapor");
 const Compiler = @import("../../../../../../main.zig");
 const Content = @import("../../../../../../components/Content.zig");
 const reinit = @import("../../../../../../components/DocNavbar.zig").reinit;
-const Fetch = Vapor.Fetch.Fetch;
+const Fetch = Vapor.Fetch.Request;
 const Loader = @import("components").Loader;
 const Error = @import("components").Error;
 

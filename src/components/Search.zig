@@ -1,6 +1,6 @@
 const std = @import("std");
 const Vapor = @import("vapor");
-const Binded = Vapor.Binded;
+const Binded = Vapor.Element;
 const HooksCtx = Vapor.HooksCtx;
 const menu_items = @import("../components/DocNavbar.zig").menu_items;
 const MenuItem = @import("../components/DocNavbar.zig").MenuItem;
@@ -19,12 +19,12 @@ const ListItem = Vapor.ListItem;
 const Text = Vapor.Text;
 const Null = Vapor.Null;
 
-var search_box: Vapor.Binded = Vapor.Binded{};
+var search_box: Vapor.Element = Vapor.Element{};
 var binded: Binded = .{};
 var show: bool = false;
 var current_index: usize = 0;
-var dynamic_menu_items = Vapor.persist.Array(MenuItem);
-var uuids = Vapor.persist.Array([]const u8);
+var dynamic_menu_items = Vapor.persist.array(MenuItem);
+var uuids = Vapor.persist.array([]const u8);
 pub fn init() void {
     dynamic_menu_items.appendSlice(menu_items);
     current_item = dynamic_menu_items.items[0];
@@ -209,7 +209,7 @@ pub fn render() void {
                     .right = .percent(0),
                     .z_index = 1100,
                 },
-                .size = .square_percent(100),
+                .size = .squarePercent(100),
                 .direction = .row,
             }).children({
             // Row().bind(&background).style(&.{
@@ -223,14 +223,14 @@ pub fn render() void {
                         .bottom = .px(0),
                         .z_index = 1100,
                     },
-                    .visual = .{ .background = .transparentizeHex(.hex("#000000"), if (Theme.mode == .light) 0.1 else 0.7) },
+                    .visual = .{ .background = .transparentize(.hex("#000000"), if (Theme.mode == .light) 0.1 else 0.7) },
                 }).children({});
             Row()
                 // .ref(&binded)
                 .style(&.{
-                    .size = .{ .width = .mobile_desktop_percent(90, 40), .height = .percent(80) },
+                    .size = .{ .width = .mobileDesktopPercent(90, 40), .height = .percent(80) },
                     .visual = .{
-                        .border = .simple(.palette(.text_color)),
+                        .border = .thin(.palette(.text_color)),
                         // .border_radius = .all(8),
                         .background = .palette(.background),
                     },
@@ -246,10 +246,10 @@ pub fn render() void {
                     .padding = .horizontal(12),
                     .interactive = .{
                         .hover = .{
-                            .border = .simple(.palette(.tint)),
+                            .border = .thin(.palette(.tint)),
                         },
                     },
-                    .visual = .{ .border = .simple(.hex("#E1E1E1")), .cursor = .pointer, .background = .palette(.background) },
+                    .visual = .{ .border = .thin(.hex("#E1E1E1")), .cursor = .pointer, .background = .palette(.background) },
                 }).children({
                     Icon(.search).style(&.{
                         .visual = .{ .font_size = 16 },
@@ -258,7 +258,7 @@ pub fn render() void {
                         .ref(&search_box)
                         .onChange(search, .{}).style(&.{
                             .size = .hw(.px(38), .grow),
-                            .padding = .tblr(4, 4, 8, 8),
+                            .padding = .xy(8, 4),
                             .visual = .{
                                 .border = .none,
                                 .font_size = 18,
@@ -283,12 +283,12 @@ pub fn render() void {
                     .size = .{ .width = .percent(100), .height = .percent(100) },
                     .list_style = .none,
                     .padding = .all(0),
-                    .scroll = .scroll_y(),
+                    .scroll = .scrollY(),
                     .child_gap = 16,
                 }).children({
                     uuids.clearRetainingCapacity();
                     for (dynamic_menu_items.items, 0..) |item, j| {
-                        const border: Vapor.Types.BorderGrouped = if (j != 0) .sharp(.tblr(1, 1, 1, 1), .palette(.text_color)) else .simple(.palette(.text_color));
+                        const border: Vapor.Types.Border = if (j != 0) .sharp(.all(1), .palette(.text_color)) else .thin(.palette(.text_color));
                         var list_item: Vapor.Builder(.static) = ListItem();
                         uuids.append(list_item.getUUID());
                         list_item
@@ -300,11 +300,11 @@ pub fn render() void {
                                     .cursor = .pointer,
                                     .border = border,
                                 },
-                                .margin = .b(-1),
-                                .padding = .tblr(8, 8, 8, 8),
+                                .margin = .{ .bottom = -1 },
+                                .padding = .all(8),
                                 .interactive = .{
                                     .hover = .{
-                                        .border = .simple(.palette(.tint)),
+                                        .border = .thin(.palette(.tint)),
                                     },
                                     .hover_position = .{ .z_index = 1000, .type = .relative },
                                 },

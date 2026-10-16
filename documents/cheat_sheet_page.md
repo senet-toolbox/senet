@@ -37,13 +37,13 @@ const TextFmt = Vapor.TextFmt;
 
 // Static Components (never update)
 const Static = Vapor.Builder(.static);
-const StaticClose = Vapor.BuilderClose(.static);
+const StaticClose = Vapor.Builder(.static);
 
 // Hooks
 const HooksCtx = Vapor.Hooks;
 
 // Utilities
-const Binded = Vapor.Binded;
+const Binded = Vapor.Element;
 const Animation = Vapor.Animation;
 ```
 
@@ -241,7 +241,7 @@ Box()
     .style(&.{
         .visual = .{
             .background = .palette(.background),
-            .border = .simple(.palette(.border_color)),
+            .border = .thin(.palette(.border_color)),
         },
     }).children({ /* children */ });
 ```
@@ -283,7 +283,7 @@ Button(handleAction, .{ item, index }).children({
 
 // Styled button
 Button(submit)
-    .padding(.tblr(12, 12, 24, 24))
+    .padding(.xy(24, 12))
     .background(.palette(.tint))
     .border(.round(.transparent, .all(8)))
     .cursor(.pointer)
@@ -369,7 +369,7 @@ fn handleKeyDown(evt: *Vapor.Event) void {
 // With context
 TextField(.string)
     .bind(&text)
-    .onEventCtx(.keydown, handleKeyDownCtx, form_id)
+    .onEvent(.keydown, handleKeyDownCtx, form_id)
     .end();
 
 fn handleKeyDownCtx(id: u32, evt: *Vapor.Event) void {
@@ -551,14 +551,14 @@ Anchors allow you to position elements relative to other elements (tooltips, pop
 ```zig
 const anchor_name = "myAnchor";
 Anchor(anchor_name)
-    .anchorPlacement(.top)
+    .placement(.top)
     .children({
         Text("My Anchor").end();
     });
 
 Box()
-    .onEventCtx(.pointerenter, onHover, .{tooltip})
-    .onEventCtx(.pointerleave, onLeave, .{tooltip})
+    .onEvent(.pointerenter, onHover, .{tooltip})
+    .onEvent(.pointerleave, onLeave, .{tooltip})
     .anchorSource(anchor_name)
     .children({
     @call(.auto, trigger, args);
@@ -576,7 +576,7 @@ Code(404).end();
 
 // Styled
 Code("npm install vapor")
-    .padding(.tblr(4, 4, 8, 8))
+    .padding(.xy(8, 4))
     .background(.palette(.surface))
     .border(.round(.palette(.border_color), .all(4)))
     .fontSize(14)
@@ -654,7 +654,7 @@ if (condition) {
 // Shorthand
 .hw(.px(100), .px(200))       // height, width
 .size(.full)                  // width & height 100%
-.size(.square_px(100))        // Square 100x100
+.size(.squarePx(100))        // Square 100x100
 .size(.hw(.px(100), .percent(100)))
 ```
 
@@ -665,14 +665,14 @@ if (condition) {
 .padding(.all(20))            // All sides
 .padding(.horizontal(16))     // Left & right
 .padding(.vertical(12))       // Top & bottom
-.padding(.tblr(10, 10, 20, 20)) // top, bottom, left, right
-.padding(.tb(12, 12))         // top, bottom
+.padding(.xy(20, 10)) // top, bottom, left, right
+.padding(.vertical(12))         // top, bottom
 .padding(.xy(12, 12))         // horizontal, vertical
 .margin(.all(8))
-.margin(.b(16))               // Bottom only
-.margin(.t(16))               // Top only
-.margin(.l(8))                // Left only
-.margin(.r(8))                // Right only
+.margin(.{ .bottom = 16 })               // Bottom only
+.margin(.{ .top = 16 })               // Top only
+.margin(.{ .left = 8 })                // Left only
+.margin(.{ .right = 8 })                // Right only
 ```
 
 ### Direction & Wrapping
@@ -713,7 +713,7 @@ if (condition) {
 
 ```zig
 .border(.none)
-.border(.simple(.palette(.border_color)))
+.border(.thin(.palette(.border_color)))
 .border(.round(.palette(.border_color), .all(8)))
 .border(.solid(.all(2), .palette(.tint), .all(12)))
 .border(.bottom(.palette(.border_color)))
@@ -775,8 +775,8 @@ if (condition) {
 ### Scroll
 
 ```zig
-.scroll(.scroll_y())                   // Vertical scroll
-.scroll(.scroll_x())                   // Horizontal scroll
+.scroll(.scrollY())                   // Vertical scroll
+.scroll(.scrollX())                   // Horizontal scroll
 .scroll(.none())                       // No scroll
 .scroll(.{ .x = .scroll, .y = .hidden }) // x scroll, y hidden
 ```
@@ -791,7 +791,7 @@ if (condition) {
 const button_style = Vapor.Style{
     .layout = .center,
     .size = .hw(.px(48), .px(160)),
-    .padding = .tblr(12, 12, 24, 24),
+    .padding = .xy(24, 12),
     .visual = .{
         .background = .palette(.tint),
         .border = .round(.transparent, .all(8)),
@@ -800,7 +800,7 @@ const button_style = Vapor.Style{
         .text_color = .white,
     },
     .transition = .{ .duration = 200 },
-    .interactive = .hover_scale(),
+    .interactive = .{ .hover = .{ .transform = .scale() } },
 };
 
 // Apply with .style()
@@ -808,8 +808,8 @@ Button(action).style(&button_style).children({
     Text("Click").end();
 });
 
-// Or with .baseStyle() to allow overrides
-Box().baseStyle(&card_style).padding(.all(32)).children({
+// Chained methods override the shared style
+Box().style(&card_style).padding(.all(32)).children({
     // children
 });
 
@@ -858,7 +858,7 @@ Box()
 
 ## Inline Styles
 
-For cases where you need to emit raw CSS (e.g., CSS properties not yet in Vapor's type system), use `.inlineStyle()` or `.inlineStyleStr()`.
+For cases where you need to emit raw CSS (e.g., CSS properties not yet in Vapor's type system), use `.inlineStyle(fmt, args)`. It is a format string, so write a literal `{` or `}` in the CSS as `{{` or `}}`.
 
 ```zig
 // Formatted inline style
@@ -868,7 +868,7 @@ Box()
 
 // Static inline style string
 Box()
-    .inlineStyleStr("clip-path: circle(50%)")
+    .inlineStyle("clip-path: circle(50%)", .{})
     .children({ /* ... */ });
 ```
 
@@ -1124,7 +1124,7 @@ fn handleLeave(_: *Vapor.Event) void {
 
 // Context events
 Box()
-    .onEventCtx(.pointerenter, handleHoverItem, .{item})
+    .onEvent(.pointerenter, handleHoverItem, .{item})
     .children({ /* ... */ });
 
 fn handleHoverItem(item: *Item, _: *Vapor.Event) void {
@@ -1133,8 +1133,8 @@ fn handleHoverItem(item: *Item, _: *Vapor.Event) void {
 
 // Focus/Blur
 TextField(.string)
-    .onEventCtx(.focus, handleFocus, .{id})
-    .onEventCtx(.blur, handleBlur, .{id})
+    .onEvent(.focus, handleFocus, .{id})
+    .onEvent(.blur, handleBlur, .{id})
     .end();
 
 fn handleFocus(id: []const u8, _: *Vapor.Event) void {
@@ -1600,14 +1600,14 @@ export fn init() void {
 
 ```zig
 fn navigate(url: []const u8) void {
-    Vapor.Kit.navigate(url);
+    Vapor.navigate(url);
 }
 
 // Usage
 Button(goHome).children({ Text("Home").end(); });
 
 fn goHome() void {
-    Vapor.Kit.navigate("/");
+    Vapor.navigate("/");
 }
 ```
 
@@ -1712,8 +1712,8 @@ Text("Loading")
 ## Binded Elements
 
 ```zig
-var binded_box: Vapor.Binded = .{};
-var search_box: Vapor.Binded = .{};
+var binded_box: Vapor.Element = .{};
+var search_box: Vapor.Element = .{};
 
 fn mount() void {
     search_box.focus();
@@ -1862,7 +1862,7 @@ File.downloadFile("data.json", json_content, .@"application/json");
 | `Component().style(&style).children({ ... });`       | Apply style struct with children |
 | `.children({ ... })`                                 | Block for child elements         |
 | `Button(fn, .{args})`                             | Button with context arguments    |
-| `.onEventCtx(.event, fn, .{args})`                   | Event handler with context       |
+| `.onEvent(.event, fn, .{args})`                   | Event handler with context       |
 | `Vapor.Hooks(.mounted, fn, .{})({ ... });` | Lifecycle hook                   |
 | `for (items) \|item\| { ... }`                       | Loop over items                  |
 | `if (cond) { ... }`                                  | Conditional render               |

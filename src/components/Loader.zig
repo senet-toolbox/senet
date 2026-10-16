@@ -13,7 +13,7 @@ pub fn init() void {
 pub fn render() void {
     Vapor.Center().size(.full).children({
         Vapor.Svg(.{ .svg = @embedFile("loader.svg"), .override = true })
-            .size(.px(36))
+            .size(.squarePx(36))
             .end();
     });
 }

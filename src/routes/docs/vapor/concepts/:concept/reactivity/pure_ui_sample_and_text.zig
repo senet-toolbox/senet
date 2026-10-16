@@ -18,5 +18,5 @@ pub fn render() void {
     Button(.{ .on_press = increment }).plain()({
         Text(text).plain(); // This now updates
     });
-    TextFmt("{d}", .{counter}).plain(); // This still updates 
+    TextFmt("{d}", .{counter}).plain(); // This still updates
 }

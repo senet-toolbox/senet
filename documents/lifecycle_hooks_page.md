@@ -166,7 +166,7 @@ pub fn reinitBoxes() void {
 
 
 fn goto(url: []const u8) void {
-    Vapor.Kit.navigate(url);
+    Vapor.navigate(url);
     Vapor.onLayout(reinitBoxes); // This will triger at the end of the current cycle
 }
 ```

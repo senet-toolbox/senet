@@ -16,8 +16,7 @@ const Loader = @import("components").Loader;
 const LoaderText = @import("components").LoaderText;
 
 const OverlayManager = @import("components/OverlayManager.zig");
-const Fetch = Vapor.Fetch.Fetch;
-
+const Fetch = Vapor.Fetch.Request;
 
 fn registerLayouts() !void {
     initLayouts();
@@ -75,7 +74,7 @@ const style_config = Vaporize.StyleConfig{
     .code_style = .{ .visual = .{
         .text_color = .palette(.tint),
         .background = .palette(.background),
-        .border = .simple(.palette(.text_color)),
+        .border = .thin(.palette(.text_color)),
     } },
     .text_style = .{
         .visual = .{ .text_color = .palette(.text_color) },
@@ -83,17 +82,17 @@ const style_config = Vaporize.StyleConfig{
     .heading_style = .{ .visual = .{ .text_color = .palette(.text_color) } },
     .text_field_style = .{
         .size = .hw(.px(38), .percent(100)),
-        .padding = .tblr(4, 4, 8, 8),
+        .padding = .xy(8, 4),
         .transition = .{ .duration = 100 },
         .visual = .{
             .outline = .none,
-            .border = .simple(.palette(.text_color)),
+            .border = .thin(.palette(.text_color)),
             .background = .palette(.background),
             .font_size = 18,
         },
         .interactive = .{
             .hover = .{
-                .border = .simple(.palette(.tint)),
+                .border = .thin(.palette(.tint)),
             },
         },
         .font_family = "Montserrat",
@@ -125,24 +124,24 @@ const style_config = Vaporize.StyleConfig{
         .size = .w(.percent(100)),
         .margin = .{ .top = 32 },
         .visual = .{
-            .border = .round(.transparentizeHex(.palette(.alternate_background), 0.5), .all(4)),
-            .background = .transparentizeHex(.palette(.alternate_background), 0.9),
+            .border = .round(.transparentize(.palette(.alternate_background), 0.5), .all(4)),
+            .background = .transparentize(.palette(.alternate_background), 0.9),
             .cursor = .pointer,
             .font_size = 16,
             .text_color = .white,
             .new_shadow = Vapor.Types.NewShadow.init()
-                .inset(0, -2, .transparentizeHex(.palette(.alternate_background), 0.5))
-                .drop(0, 1, 3, .transparentizeHex(.palette(.alternate_background), 0.1)),
+                .inset(0, -2, .transparentize(.palette(.alternate_background), 0.5))
+                .drop(0, 1, 3, .transparentize(.palette(.alternate_background), 0.1)),
         },
         .transition = .{ .duration = 100 },
         .interactive = .{
             .hover = .{
                 .new_shadow = Vapor.Types.NewShadow.init()
-                    .inset(0, -2, .transparentizeHex(.black, 0))
-                    .drop(0, 1, 3, .transparentizeHex(.black, 0)),
+                    .inset(0, -2, .transparentize(.black, 0))
+                    .drop(0, 1, 3, .transparentize(.black, 0)),
             },
         },
-        .padding = .tblr(4, 4, 8, 8),
+        .padding = .xy(8, 4),
         .child_gap = 8,
         .font_family = "IBM Plex Sans,monospace",
     },
@@ -181,7 +180,6 @@ pub export fn init() void {
     LoaderText.init();
 
     vaporize = Vaporize.init(Vapor.persist.arena(), style_config) catch unreachable; // this causes issues
-
 
     OverlayManager.init();
     Opaque.initAnimations();

@@ -185,7 +185,7 @@ const button_style = Vapor.Style{
     .layout = .center,
     .size = .hw(.px(48), .px(160)),
     .padding = .all(8),
-    .visual = .{ .border = .simple(.black), .background = .white },
+    .visual = .{ .border = .thin(.black), .background = .white },
 };
 ```
 
@@ -276,7 +276,7 @@ style="display: flex; justify-content: center, align-items: center, border-radiu
 While in Vapor we can do the following,
 
 ```zig
-Style{ .layout = .center, .visual = .{ .border = .round(.palette(.tint)) } }
+Style{ .layout = .center, .visual = .{ .border = .round(.palette(.tint), .all(8)) } }
 ```
 
 or...
@@ -292,41 +292,37 @@ or...
 As you may have noticed, `Style` is a struct, and has fields, which means it also has methods.
 when we create a new Vapor project, we get the following default methods:
 
-- visual `.font(size: u32, weight: ?u32, color: ?color)`
+- visual `.font(size: u8, weight: ?u16, color: ?Color)`
 
-- when `.pill(color: color)`
+- visual `.pill(color: Color)`
 
-- bg `.hex(hex_str: []const u8)`
+- visual `.bg(background: Color)`
 
-- interactive `.hover_scale()`
+- color `.hex(hex_str: []const u8)`
 
-- style `.extend(base: *style, extension: style)`
+- style `.merge(base: *const Style, override: Style) Style`
 
-- padding `.tblr(top: u32, bottom: u32, left: u32, right: u32)`
+- style `.extend(self: *Style, target: Style)`
 
-- size `.hw(height: sizing, width: sizing)`
+- padding `.all(n)`, `.xy(x, y)`, `.vertical(n)`, `.horizontal(n)`, or a literal `.{ .top = 8, .left = 12 }`
 
-- size `.square_percent(size: f32)`
+- size `.hw(height: Sizing, width: Sizing)`
 
-- width `.mobile_desktop_percent(mobile: f32, desktop: f32)`
+- size `.squarePercent(size: f32)`
 
-- background `.grid(size: f32, thickness: i32, color: color)`
+- width `.mobileDesktopPercent(mobile: f32, desktop: f32)`
 
-- background `.hex(hex_str: []const u8)`
+- background `.grid(size: u8, thickness: u8, color: Color)`
 
-- background `.linear_gradient(start: color, end: color)`
+- background `.gradient(gradient_type: GradientType, dir: GradientDirection, colors: []const Color)`
 
-- border `.simple(color: color)`
+- border `.thin(color: Color)`
 
-- border `.round(color: color)`
+- border `.round(color: Color, radius: BorderRadius)`
 
-- border `.solid(color: color, thickness: i32)`
+- border `.solid(thickness: BorderThickness, color: Color, radius: BorderRadius)`
 
-- border `.dashed(color: color, thickness: i32)`
-
-- merge `.merge(style: style)`
-
-- extend `.extend(style: style)`
+- border `.sharp(thickness: BorderThickness, color: Color)`
 
 - and much more...
 
@@ -361,14 +357,14 @@ pub const pill_button_base = Style{
     .size = .hw(.px(45), .px(160)),
     .visual = .pill(.hex("#000000")),
     .transition = .{ .duration = 100 },
-    .interactive = .hover_scale(),
+    .interactive = .{ .hover = .{ .transform = .scale() } },
     .child_gap = 8,
 };
 
 fn mergedstyle() style {
     var base = pill_button_base;
     return base.merge(style{
-        .visual = .{ .border = .simple(.hex("#e1e1e1")) },
+        .visual = .{ .border = .thin(.hex("#e1e1e1")) },
     });
 }
 

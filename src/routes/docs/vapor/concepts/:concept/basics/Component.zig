@@ -28,12 +28,3 @@ pub fn render() void {
         Text(init_text).plain();
     });
 }
-
-
-
-
-
-
-
-
-

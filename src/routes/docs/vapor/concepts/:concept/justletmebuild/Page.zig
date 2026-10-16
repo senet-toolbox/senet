@@ -47,12 +47,12 @@ fn code_snippet_single(text: []const u8) void {
     CtxButton(copy, .{text})
         .style(&.{
             .visual = .{
-                .border = .simple(.palette(.border_color_light)),
+                .border = .thin(.palette(.border_color_light)),
                 .text_color = .palette(.text_color),
                 .cursor = .pointer,
             },
             .padding = .all(8),
-            .size = .square_percent(100),
+            .size = .squarePercent(100),
             .direction = .column,
             .layout = .flex,
             .interactive = .{
@@ -62,10 +62,10 @@ fn code_snippet_single(text: []const u8) void {
         }).children({
             Row().style(&.{
                 .position = .{ .type = .absolute, .right = .px(8), .top = .px(8) },
-                .size = .square_px(22),
+                .size = .squarePx(22),
                 .transition = .{ .duration = 100 },
                 .visual = .{
-                    .border_radius = .all(4),
+                    .border = .{ .radius = .all(4) },
                     .background = .transparent,
                     .cursor = .pointer,
                 },

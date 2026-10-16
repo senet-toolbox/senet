@@ -112,7 +112,7 @@ pub fn Box(value: anytype) Self {
     };
 
     const ui_node = LifeCycle.open(elem_decl) orelse {
-        Vapor.printSrcErr("Could not add component Link to lifecycle {any}\n", .{error.CouldNotAllocate}, @src());
+        std.log.err("Could not add component Link to lifecycle {any}", .{error.CouldNotAllocate});
         unreachable;
     };
 

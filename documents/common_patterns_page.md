@@ -122,7 +122,7 @@ fn render() void {
 
 ```zig
 var items: []Item = undefined;
-var dynamic_list = Vapor.persist.Array(Item);
+var dynamic_list = Vapor.persist.array(Item);
 
 fn init() void {
     // We want to use the persist arena for items
@@ -130,7 +130,7 @@ fn init() void {
     items = Vapor.persist.alloc(Item, 100);
 
     // We only use the numbers inside the init function so we can use frame arena
-    var numbers = Vapor.frame.Array(i32);
+    var numbers = Vapor.frame.array(i32);
     for (0..4) |i| {
         numbers.append(i);
     }
@@ -351,7 +351,7 @@ fn renderInput() void {
                 .bind(&input)
                 .placeholder("add a new task…")
                 .width(.expand)
-                .padding(.tblr(14, 14, 12, 16))
+                .padding(.{ .top = 14, .bottom = 14, .left = 12, .right = 16 })
                 .background(.transparent)
                 .border(.none)
                 .font(15, 400, C.text)
@@ -359,7 +359,7 @@ fn renderInput() void {
                 .end();
 
             Button(addTodo, .{})
-                .padding(.tblr(10, 10, 16, 16))
+                .padding(.xy(16, 10))
                 .background(C.accent)
                 .border(.round(.transparent, .all(10)))
                 .pointer()
@@ -379,7 +379,7 @@ fn renderFilterBar() void {
         Spacer(8).end();
         if (hasDone()) {
             Button(clearDone, .{})
-                .padding(.tblr(6, 6, 12, 12))
+                .padding(.xy(12, 6))
                 .background(.transparent)
                 .border(.round(C.danger, .all(8)))
                 .pointer()
@@ -396,7 +396,7 @@ fn renderFilterBar() void {
 fn filterBtn(label: []const u8, f: Filter) void {
     const active = filter == f;
     Button(setFilter, .{f})
-        .padding(.tblr(6, 6, 14, 14))
+        .padding(.xy(14, 6))
         .background(if (active) C.accent else .transparent)
         .border(.round(if (active) C.accent else C.border, .all(8)))
         .pointer()
@@ -410,7 +410,7 @@ fn renderTodoItem(t: Todo) void {
     Row()
         .width(.percent(100))
         .spacing(12)
-        .padding(.tblr(14, 14, 16, 16))
+        .padding(.xy(16, 14))
         .background(C.card)
         .border(.round(C.border, .all(12)))
         .animationEnter("slideIn")
@@ -485,11 +485,11 @@ fn render() void {
         .size(.full)
         .background(C.bg)
         .layout(.top_left)
-        .scroll(.scroll_y())
+        .scroll(.scrollY())
         .children({
             Stack()
                 .width(.percent(100))
-                .padding(.tblr(60, 80, 0, 0))
+                .padding(.{ .top = 60, .bottom = 80 })
                 .layout(.top_left)
                 .children({
                     Stack()

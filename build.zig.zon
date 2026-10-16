@@ -40,8 +40,8 @@
             .path = "../vaporize",
         },
         .vapor = .{
-            .url = "git+https://github.com/senet-toolbox/vapor#2aac8ad4a86648a137a9add18e05969279563a92",
-            .hash = "vapor-2.0.1-VGoNddPdEADzjGytihvkqgjGQ5WS2ZgJhnWs9qB5UX69",
+            .url = "git+https://github.com/senet-toolbox/vapor#17eb9d2ea748fe3b779cbd015c181a9a512272f4",
+            .hash = "vapor-3.1.0-VGoNdfzpEwANQgFjk27hTc5WVg2sMRW6JtUOnWCmjVHz",
         },
         .opaque_ui = .{
             .path = "../opaque-ui",

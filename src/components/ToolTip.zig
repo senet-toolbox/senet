@@ -12,7 +12,7 @@ pub var svg_color: Vapor.Types.Color = .palette(.alternate_background);
 pub var border_color: Vapor.Types.Color = .hex("#e4e4e4");
 var tooltips: std.AutoHashMap(usize, *ToolTip) = undefined;
 pub var alternate_text_color: Vapor.Types.Color = .palette(.alternate_text_color);
-pub var border: Vapor.Types.BorderGrouped = .round(.transparent, .all(6));
+pub var border: Vapor.Types.Border = .round(.transparent, .all(6));
 
 pub const animateEnter = Vapor.Animation.init("opaque-tooltip-enter")
     .prop(.opacity, 0, 1)
@@ -106,14 +106,14 @@ fn getTransformOrigin(position: Vapor.Types.AnchorPlacement) Vapor.Types.Transfo
 
 fn getMargin(position: Vapor.Types.AnchorPlacement) Vapor.Types.Margin {
     return switch (position) {
-        .top => .b(2),
-        .bottom => .t(2),
-        .left => .r(2),
-        .right => .l(2),
-        .bottom_left => .t(2),
-        .bottom_right => .t(2),
-        .top_left => .b(2),
-        .top_right => .b(2),
+        .top => .{ .bottom = 2 },
+        .bottom => .{ .top = 2 },
+        .left => .{ .right = 2 },
+        .right => .{ .left = 2 },
+        .bottom_left => .{ .top = 2 },
+        .bottom_right => .{ .top = 2 },
+        .top_left => .{ .bottom = 2 },
+        .top_right => .{ .bottom = 2 },
         else => unreachable,
     };
 }
@@ -137,7 +137,7 @@ const TooltipOptions = struct {
     container: Vapor.Builder(.pure),
     background: Vapor.Types.Color = .palette(.alternate_background),
     stroke_color: Vapor.Types.Color = .palette(.alternate_background),
-    border: Vapor.Types.BorderGrouped = .round(.transparent, .all(6)),
+    border: Vapor.Types.Border = .round(.transparent, .all(6)),
     position: Vapor.Types.AnchorPlacement = .top,
 };
 
@@ -174,7 +174,7 @@ const Options = struct {
     trigger_ctx: ?*const fn (ctx: ?*anyopaque) void = null,
     background: Vapor.Types.Color = .palette(.alternate_background),
     stroke_color: Vapor.Types.Color = .palette(.alternate_background),
-    border: Vapor.Types.BorderGrouped = .round(.transparent, .all(6)),
+    border: Vapor.Types.Border = .round(.transparent, .all(6)),
     position: Vapor.Types.AnchorPlacement = .top,
 };
 
@@ -227,8 +227,8 @@ pub fn Trigger(tooltip: *ToolTip, trigger: anytype, args: anytype) *ToolTip {
     const anchor_name = tooltip.options.anchor_name;
     container
         .width(.fit)
-        .onEventCtx(.pointerenter, onHover, .{tooltip})
-        .onEventCtx(.pointerleave, onLeave, .{tooltip})
+        .onEvent(.pointerenter, onHover, .{tooltip})
+        .onEvent(.pointerleave, onLeave, .{tooltip})
         .anchorSource(anchor_name)
         .children({
         @call(.auto, trigger, args);
@@ -244,10 +244,10 @@ pub fn Component(tooltip: *ToolTip, component: anytype, args: anytype) *ToolTip 
     const corner_svg = getCornerSvg(position);
 
     Anchor(anchor_name)
-        .anchorPlacement(position)
+        .placement(position)
         .zIndex(1000)
-        .onEventCtx(.pointerenter, onHover, .{tooltip})
-        .onEventCtx(.pointerleave, onLeave, .{tooltip})
+        .onEvent(.pointerenter, onHover, .{tooltip})
+        .onEvent(.pointerleave, onLeave, .{tooltip})
         .children({
         Vapor.Static.HooksCtx(.destroy, destroy, .{tooltip})({
             if (tooltip.options.show) {
@@ -295,10 +295,10 @@ pub fn end(tooltip: *ToolTip) void {
     const corner_svg = getCornerSvg(position);
 
     Anchor(anchor_name)
-        .anchorPlacement(position)
+        .placement(position)
         .zIndex(1000)
-        .onEventCtx(.pointerenter, onHover, .{tooltip})
-        .onEventCtx(.pointerleave, onLeave, .{tooltip})
+        .onEvent(.pointerenter, onHover, .{tooltip})
+        .onEvent(.pointerleave, onLeave, .{tooltip})
         .children({
         Vapor.Static.HooksCtx(.destroy, destroy, .{tooltip})({
             if (tooltip.options.show) {
@@ -315,7 +315,7 @@ pub fn end(tooltip: *ToolTip) void {
                     .children({
                     Row()
                         .background(tooltip.options.background)
-                        .padding(.tblr(6, 6, 12, 12))
+                        .padding(.xy(12, 6))
                         .border(.round(.transparent, .all(6)))
                         .layout(.center)
                         .direction(.column)
@@ -373,8 +373,8 @@ pub fn simpleWithPosition(title: []const u8, content: []const u8, position: Vapo
     const corner_svg = getCornerSvg(position);
 
     hover_box
-        .onEventCtx(.pointerenter, onHover, .{tooltip})
-        .onEventCtx(.pointerleave, onLeave, .{tooltip})
+        .onEvent(.pointerenter, onHover, .{tooltip})
+        .onEvent(.pointerleave, onLeave, .{tooltip})
         .anchorSource(anchor_name)
         .children({
         if (tooltip.options.trigger) |trigger| {
@@ -383,7 +383,7 @@ pub fn simpleWithPosition(title: []const u8, content: []const u8, position: Vapo
             @call(.auto, trigger, .{tooltip.options.ctx});
         } else {
             Row()
-                .padding(.tblr(4, 4, 12, 12))
+                .padding(.xy(12, 4))
                 .background(background)
                 .duration(100)
                 .hover(.{
@@ -396,10 +396,10 @@ pub fn simpleWithPosition(title: []const u8, content: []const u8, position: Vapo
         }
     });
     Anchor(anchor_name)
-        .anchorPlacement(position)
+        .placement(position)
         .zIndex(1000)
-        .onEventCtx(.pointerenter, onHover, .{tooltip})
-        .onEventCtx(.pointerleave, onLeave, .{tooltip})
+        .onEvent(.pointerenter, onHover, .{tooltip})
+        .onEvent(.pointerleave, onLeave, .{tooltip})
         .children({
         Vapor.Static.HooksCtx(.destroy, destroy, .{tooltip})({
             if (tooltip.options.show) {
@@ -416,7 +416,7 @@ pub fn simpleWithPosition(title: []const u8, content: []const u8, position: Vapo
                     .children({
                     Row()
                         .background(alternate_background)
-                        .padding(.tblr(6, 6, 12, 12))
+                        .padding(.xy(12, 6))
                         .border(.round(.transparent, .all(6)))
                         .layout(.center)
                         .direction(.column)
@@ -481,8 +481,8 @@ pub fn render(tooltip_options: Options) void {
     const corner_svg = getCornerSvg(position);
 
     hover_box
-        .onEventCtx(.pointerenter, onHover, .{tooltip})
-        .onEventCtx(.pointerleave, onLeave, .{tooltip})
+        .onEvent(.pointerenter, onHover, .{tooltip})
+        .onEvent(.pointerleave, onLeave, .{tooltip})
         .anchorSource(anchor_name)
         .children({
         if (tooltip.options.trigger) |trigger| {
@@ -491,7 +491,7 @@ pub fn render(tooltip_options: Options) void {
             @call(.auto, trigger, .{tooltip.options.ctx});
         } else {
             Row()
-                .padding(.tblr(4, 4, 12, 12))
+                .padding(.xy(12, 4))
                 .background(background)
                 .duration(100)
                 .hover(.{
@@ -507,8 +507,8 @@ pub fn render(tooltip_options: Options) void {
         .transformOrigin(transform_origin)
         .placement(.anchor_center)
         .zIndex(1000)
-        .onEventCtx(.pointerenter, onHover, .{tooltip})
-        .onEventCtx(.pointerleave, onLeave, .{tooltip})
+        .onEvent(.pointerenter, onHover, .{tooltip})
+        .onEvent(.pointerleave, onLeave, .{tooltip})
         // .inlineStyleStr(position_style)
         .children({
         Vapor.Static.HooksCtx(.destroy, destroy, .{tooltip})({
@@ -527,7 +527,7 @@ pub fn render(tooltip_options: Options) void {
                     .children({
                     Row()
                         .background(alternate_background)
-                        .padding(.tblr(6, 6, 12, 12))
+                        .padding(.xy(12, 6))
                         .border(.round(.transparent, .all(6)))
                         .layout(.center)
                         .direction(.column)

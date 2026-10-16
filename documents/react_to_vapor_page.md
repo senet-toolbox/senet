@@ -34,7 +34,7 @@ Vapor replaces the complex hook system with predictable Zig entry points.
 | **Initial Load** | `useEffect(fn, [])` | `pub fn init() { ... }` (Global) or `.mounted` (Component). |
 | **Component Mount**| `useLayoutEffect` | `Hooks(.{ .mounted = func })`. |
 | **Data Cleanup** | `return () => cleanup` | `.destroy` hook or `deinit` function in Routing. |
-| **Route Navigation**| `useNavigate` | `Vapor.Kit.navigate("/url")`. |
+| **Route Navigation**| `useNavigate` | `Vapor.navigate("/url")`. |
 
 ## 4. Memory Management: The "Web Dev Hack"
 

@@ -35,7 +35,6 @@ const CommonPatterns = @import("common-patterns/Page.zig");
 const Gotchas = @import("gotchas/Page.zig");
 const AskAnLLM = @import("ask-an-llm/Page.zig");
 
-
 const Routes = enum {
     basics,
     @"new-to-zig",
@@ -196,12 +195,12 @@ fn getRender(path: []const u8) ?*const fn () void {
 
 // Render
 pub fn render() void {
-    const path = Vapor.Kit.getWindowPath() orelse "/";
+    const path = Vapor.currentPath();
     const render_page = getRender(path) orelse return;
     Row().style(&.{
         .layout = .x_between,
         .direction = .column,
-        .size = .square_percent(100),
+        .size = .squarePercent(100),
     }).children({
         Row().style(&.{
             .padding = .horizontal(12),
@@ -210,17 +209,17 @@ pub fn render() void {
         }).children({
             Center().style(&.{
                 .size = .w(.percent(100)),
-                .padding = .tb(60, 120),
+                .padding = .{ .top = 60, .bottom = 120 },
                 .direction = .column,
             }).children({
                 Row().style(&.{
-                    .size = .w(.mobile_desktop_percent(100, 50)),
+                    .size = .w(.mobileDesktopPercent(100, 50)),
                     // .width = .mobile_desktop_percent(100, 64),
                     // .size = .w(.percent(100)),
                     .child_gap = 32,
                     .direction = .column,
-                    .padding = .bottom(80),
-                    .margin = .tb(32, 32),
+                    .padding = .{ .bottom = 80 },
+                    .margin = .vertical(32),
                 }).children({
                     render_page();
                     Footer.render();

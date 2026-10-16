@@ -31,7 +31,7 @@ const ProgressBar = Opaque.ProgressBar;
 const Tooltip = Opaque.Tooltip;
 const Svg = Vapor.Svg;
 
-var video_binded: Vapor.Binded = .{};
+var video_binded: Vapor.Element = .{};
 
 fn CodeRow(code: *SyntaxHighlighter, title: []const u8) void {
     Stack().width(.percent(100))
@@ -68,7 +68,7 @@ fn CodeRow(code: *SyntaxHighlighter, title: []const u8) void {
             }
             Center().width(.percent(100))
                 .height(.expand)
-                .scroll(.scroll_y())
+                .scroll(.scrollY())
                 .border(.round(.hex("#383735"), .all(6)))
                 .background(.hex("#282828"))
                 .children({
@@ -90,7 +90,7 @@ const PerformanceMonitor = struct {
         const delta = currentTime - self.lastFrameTime;
 
         self.frameTimes.append(delta) catch |err| {
-            Vapor.printErr("append failed: {}", .{err});
+            Vapor.print(.err, "append failed: {}", .{err});
             return;
         };
 
@@ -207,7 +207,7 @@ pub fn sample() void {
             .width(.percent(100)).height(.percent(30)).children({
             // Chaining styles
             Button(increment, .{})
-                .border(.simple(.palette(.text_color)))
+                .border(.thin(.palette(.text_color)))
                 .duration(100)
                 .hoverScale()
                 .padding(.all(8))
@@ -225,7 +225,7 @@ pub fn sample() void {
                 .fontFamily("IBM Plex Mono,monospace")
                 .end();
             Button(decrement, .{})
-                .border(.simple(.palette(.text_color)))
+                .border(.thin(.palette(.text_color)))
                 .duration(100)
                 .hoverScale()
                 .padding(.all(8))
@@ -242,8 +242,8 @@ pub fn sample() void {
 
 var performance_monitor: PerformanceMonitor = undefined;
 
-const fetch = Vapor.Fetch.Fetch.fetch;
-var current_fetch: ?*Vapor.Fetch.Fetch = null;
+const fetch = Vapor.Fetch.Request.fetch;
+var current_fetch: ?*Vapor.Fetch.Request = null;
 pub fn init() void {
     const allocator = Vapor.persist.arena();
 
@@ -304,7 +304,7 @@ fn handlePageForm(resp: Vapor.Fetch.Result) void {
             complex_form_highlighter.parse(data.body) catch unreachable;
         },
         .err => |err| {
-            Vapor.printErr("Failed to fetch: {s}", .{err.message});
+            Vapor.print(.err, "Failed to fetch: {s}", .{err.message});
             return;
         },
     }
@@ -316,7 +316,7 @@ fn handlePageReactFormModern(resp: Vapor.Fetch.Result) void {
             react_form_highlighter_modern.parse(Vapor.dupe(data.body, .persist)) catch unreachable;
         },
         .err => |err| {
-            Vapor.printErr("Failed to fetch: {s}", .{err.message});
+            Vapor.print(.err, "Failed to fetch: {s}", .{err.message});
             return;
         },
     }
@@ -362,7 +362,7 @@ fn boxes() void {
     // 2. Base Styles
     // =========================================================================
     const visual_base = Vapor.Types.Visual{
-        .border = .simple(.palette(.border_color_light)),
+        .border = .thin(.palette(.border_color_light)),
         .font_size = 22,
         .text_color = .palette(.text_color),
         .background = .palette(.background),
@@ -376,8 +376,8 @@ fn boxes() void {
         .transition = .{ .duration = 100 },
         .interactive = .{
             .hover = .{
-                .transform = .distAndScale(.up, 4, 1.05),
-                .border = .simple(.palette(.tint)),
+                .transform = .directionScale(.up, 4, 1.05),
+                .border = .thin(.palette(.tint)),
                 .text_color = .palette(.tint),
             },
         },
@@ -411,12 +411,12 @@ fn boxes() void {
     var box_2_style = box_style_base.merge(.{
         .position = .tr(.px(top2), .px(-height), .absolute),
     });
-    box_2_style.interactive.?.hover.?.transform = .distAndScale(.right, 4, 1.05);
+    box_2_style.interactive.?.hover.?.transform = .directionScale(.right, 4, 1.05);
 
     var box_3_style = box_style_base.merge(.{
         .position = .bl(.px(-height), .px(unit * 22), .absolute),
     });
-    box_3_style.interactive.?.hover.?.transform = .distAndScale(.down, 4, 1.05);
+    box_3_style.interactive.?.hover.?.transform = .directionScale(.down, 4, 1.05);
 
     // =========================================================================
     // 5. Pick each box up as the navbar passes its top
@@ -454,7 +454,7 @@ fn boxes() void {
 }
 var text: []const u8 = "";
 
-var binded_textfield: Vapor.Binded = .{};
+var binded_textfield: Vapor.Element = .{};
 
 fn log(evt: *Vapor.Event) void {
     Vapor.println("From binded Text: {s}", .{evt.text()});
@@ -528,7 +528,7 @@ fn trackScroll(evt: *Vapor.Event) void {
 // var boxes_container: Vapor.Binded = .{};
 pub fn render() void {
     Stack()
-        .scroll(.scroll_y())
+        .scroll(.scrollY())
         .width(.percent(100))
         .height(.percent(100))
         .children({
@@ -542,12 +542,12 @@ pub fn render() void {
                 Stack()
                     .style(&.{
                         .position = .{ .type = .relative, .z_index = 10 },
-                        .size = .hw(.percent(60), .mobile_desktop_percent(100, 70)),
+                        .size = .hw(.percent(60), .mobileDesktopPercent(100, 70)),
                         .child_gap = 12,
                         .layout = .center,
                         .visual = .{
                             .layer = .grid(14, 1, .palette(.grid_color)),
-                            .border = .simple(.palette(.border_color_light)),
+                            .border = .thin(.palette(.border_color_light)),
                         },
                         .padding = .horizontal(12),
                     }).children({
@@ -568,7 +568,7 @@ pub fn render() void {
                     Stack().style(&.{
                         .size = Styles.full_width.size,
                         .child_gap = 0,
-                        .margin = .t(64),
+                        .margin = .{ .top = 64 },
                         .layout = .center,
                     }).children({
                         TextFmt("codex-engine rendered in {d:.2}ms", .{totalRenderTime}).style(&.{
@@ -591,7 +591,7 @@ pub fn render() void {
                     });
                     Stack().style(&.{
                         .child_gap = 16,
-                        .margin = .t(12),
+                        .margin = .{ .top = 12 },
                         .size = .w(.percent(80)),
                         .layout = .center,
                     }).children({
@@ -619,7 +619,7 @@ pub fn render() void {
                         .layout = .center,
                     }).children({
                         Link(.{ .url = "/huh", .aria_label = "what is tether?" })
-                            .baseStyle(&link_style.style(.light))
+                            .style(&link_style.style(.light))
                             .children({
                             Text("Huh?").style(&link_style.text(.light)).end();
                         });
@@ -634,7 +634,7 @@ pub fn render() void {
                         .position = .right,
                         .background = .palette(.background),
                         .stroke_color = .palette(.border_color_light),
-                        .border = .simple(.palette(.border_color_light)),
+                        .border = .thin(.palette(.border_color_light)),
                     })
                         .Trigger(This, .{})
                         .Component(Details, .{})
@@ -645,7 +645,7 @@ pub fn render() void {
             if (Vapor.isMobile()) {
                 Stack().style(&.{
                     .layout = .center,
-                    .margin = .t(60),
+                    .margin = .{ .top = 60 },
                     .child_gap = 24,
                     .size = .hw(.percent(100), .percent(100)),
                 }).children({
@@ -716,7 +716,7 @@ pub fn render() void {
                 }).children({
                     Stack().style(&.{ .layout = .bottom_left }).children({
                         Text("Powered By").style(&Styles.muted_text).end();
-                        Row().style(&.{ .margin = .t(12), .layout = .x_even_center }).children({
+                        Row().style(&.{ .margin = .{ .top = 12 }, .layout = .x_even_center }).children({
                             Graphic(.{ .src = "src/assets/zig.svg" }).style(&.{
                                 .size = .{ .height = .px(28), .width = .px(64) },
                                 .visual = .{ .fill = .palette(.text_color), .stroke = .palette(.text_color) },
@@ -725,7 +725,7 @@ pub fn render() void {
                     });
                     Stack().style(&.{ .layout = .bottom_right }).children({
                         Text("Used By").style(&Styles.muted_text).end();
-                        Row().style(&.{ .margin = .t(12), .layout = .x_even_center }).children({
+                        Row().style(&.{ .margin = .{ .top = 12 }, .layout = .x_even_center }).children({
                             Graphic(.{ .src = "/assets/ryven.svg" }).style(&.{
                                 .size = .{ .height = .px(28), .width = .px(64) },
                                 .visual = .{ .fill = .palette(.text_color), .stroke = .palette(.text_color) },
@@ -740,7 +740,7 @@ pub fn render() void {
             .layout(.center)
             .width(.percent(100))
             .spacing(16)
-            .margin(.tb(64, 64))
+            .margin(.vertical(64))
             .pos(.relative)
             .children({
             Stack().width(.percent(80)).spacing(16).layout(.center).children({
@@ -766,7 +766,7 @@ pub fn render() void {
             });
             Stack()
                 // .layout(.top_center)
-                .width(.mobile_desktop_percent(80, 40))
+                .width(.mobileDesktopPercent(80, 40))
                 .children({
                 ComplexForm.LoginComponent();
             });
@@ -780,9 +780,9 @@ pub fn render() void {
             .layer(.dot(0.5, 16, .palette(.border_color)))
             .pos(.relative)
             .padding(.vertical(if (Vapor.isMobile()) 12 else 36))
-            .baseStyle(&Vapor.Types.Style{
+            .style(&Vapor.Types.Style{
                 .visual = .{
-                    .border = .solid(.tb(1), .palette(.border_color_light), .all(0)),
+                    .border = .solid(.vertical(1), .palette(.border_color_light), .all(0)),
                 },
             })
             .children({
@@ -800,8 +800,8 @@ pub fn render() void {
                 .direction(if (Vapor.isMobile()) .column else .row)
                 .layout(if (Vapor.isMobile()) .y_even_center else .x_even)
                 .children({
-                Stack().width(.mobile_desktop_percent(100, 40))
-                    .height(.mobile_desktop_percent(35, 80))
+                Stack().width(.mobileDesktopPercent(100, 40))
+                    .height(.mobileDesktopPercent(35, 80))
                     .layout(.center)
                     .spacing(16)
                     .children({
@@ -811,8 +811,8 @@ pub fn render() void {
                     CodeRow(&complex_form_highlighter, "vaporize.zig");
                 });
 
-                Stack().width(.mobile_desktop_percent(100, 40))
-                    .height(.mobile_desktop_percent(35, 80))
+                Stack().width(.mobileDesktopPercent(100, 40))
+                    .height(.mobileDesktopPercent(35, 80))
                     .spacing(16)
                     .layout(.center)
                     .children({
@@ -839,7 +839,7 @@ pub fn render() void {
                 .direction(if (Vapor.isMobile()) .column else .row)
                 .children({
                 Row()
-                    .hw(.mobile_desktop(.fit, .percent(100)), .mobile_desktop_percent(90, 30))
+                    .hw(.mobileDesktop(.fit, .percent(100)), .mobileDesktopPercent(90, 30))
                     .layout(.top_left)
                     .direction(.column)
                     .spacing(if (Vapor.isMobile()) 32 else 64)
@@ -850,7 +850,7 @@ pub fn render() void {
                         .children({
                         Vapor.Svg(.{ .svg = template, .override = true })
                             .stroke(.palette(.tint))
-                            .size(.hw_px(48, 48))
+                            .size(.hwPx(48, 48))
                             .end();
                         Text("Templates").style(&Styles.subheading).end();
                     });
@@ -860,7 +860,7 @@ pub fn render() void {
                         // .height(.grow)
                         .layout(.top_left)
                         .direction(if (Vapor.isMobile()) .row else .column)
-                        .padding(if (Vapor.isMobile()) .tb(8, 8) else .all(52))
+                        .padding(if (Vapor.isMobile()) .vertical(8) else .all(52))
                         .children({
                         Button(switchVideo, .{Videos.dashboard})
                             .children({
@@ -884,12 +884,12 @@ pub fn render() void {
                 });
                 Row()
                     .direction(.column)
-                    .hw(.percent(100), .mobile_desktop_percent(100, 65))
+                    .hw(.percent(100), .mobileDesktopPercent(100, 65))
                     .spacing(32)
                     .children({
                     Row()
                         .direction(.column)
-                        .hw(.fit, .mobile_desktop_percent(100, 55))
+                        .hw(.fit, .mobileDesktopPercent(100, 55))
                         .spacing(16)
                         .layout(.top_left)
                         .children({
@@ -904,7 +904,7 @@ pub fn render() void {
                         .pos(.relative)
                         .background(.palette(.border_color_light))
                         .radius(.all(18))
-                        .hw(.fit, .mobile_desktop_percent(100, 90))
+                        .hw(.fit, .mobileDesktopPercent(100, 90))
                         .padding(.xy(8, 8))
                         .layout(.top_center)
                         .children({
@@ -947,11 +947,11 @@ pub fn render() void {
         if (Vapor.isDesktop()) {
             Row().style(&.{
                 .size = .hw(.percent(70), .percent(100)),
-                .padding = .tb(64, 64),
+                .padding = .vertical(64),
                 .layout = .x_even_center,
                 .position = .relative,
                 .visual = .{
-                    .border = .tb(.palette(.border_color_light)),
+                    .border = .vertical(1, .palette(.border_color_light)),
                 },
             }).children({
                 Text(".width(.percent(100)).padding(.tb(64, 64)).layout(.x_even).border(.top(.hex(\"#E4E4E4\")))").style(&.{
@@ -979,8 +979,8 @@ pub fn render() void {
         // Content
         // ---------------------------------------------------------------------------------------------
         Row().style(&.{
-            .size = .{ .width = .percent(100), .height = .mobile_desktop(.expand, .percent(90)) },
-            .margin = .tb(64, 64),
+            .size = .{ .width = .percent(100), .height = .mobileDesktop(.expand, .percent(90)) },
+            .margin = .vertical(64),
             .layout = if (Vapor.isMobile()) .top_center else .x_even_center,
             .direction = if (Vapor.isMobile()) .column else .row,
             .child_gap = 16,
@@ -992,12 +992,12 @@ pub fn render() void {
                 .font_family = "IBM Plex Mono,monospace",
             }).end();
             Row()
-                .size(.hw(.mobile_desktop(.percent(30), .percent(60)), .mobile_desktop_percent(100, 40)))
+                .size(.hw(.mobileDesktop(.percent(30), .percent(60)), .mobileDesktopPercent(100, 40)))
                 .children({
                 CodeRow(&highlighter, "vapor.zig");
             });
             Stack().style(&.{
-                .size = .hw(.mobile_desktop(.percent(60), .percent(60)), .mobile_desktop_percent(100, 40)),
+                .size = .hw(.mobileDesktop(.percent(60), .percent(60)), .mobileDesktopPercent(100, 40)),
                 .child_gap = 24,
                 .layout = .left_center,
                 .padding = .horizontal(12),
@@ -1032,7 +1032,7 @@ pub fn render() void {
         // Reverb
         // ---------------------------------------------------------------------------------------------
         Stack().style(&.{
-            .size = .{ .width = .percent(100), .height = .mobile_desktop_percent(100, 60) },
+            .size = .{ .width = .percent(100), .height = .mobileDesktopPercent(100, 60) },
             .visual = .{ .border = .top(1, .palette(.border_color_light)) },
             .layout = .center,
             .child_gap = 32,
@@ -1046,7 +1046,7 @@ pub fn render() void {
             }).children({
                 Row()
                     .layout(if (Vapor.isMobile()) .top_center else .center)
-                    .width(.mobile_desktop_percent(100, 40)).height(.mobile_desktop(.fit, .percent(100))).children({
+                    .width(.mobileDesktopPercent(100, 40)).height(.mobileDesktop(.fit, .percent(100))).children({
                     Stack().width(.percent(100)).spacing(16).layout(.center).children({
                         Text("Reverb")
                             .font(if (Vapor.isMobile()) 48 else 64, 700, .palette(.text_color))
@@ -1069,7 +1069,7 @@ pub fn render() void {
                 });
                 Row()
                     .layout(if (Vapor.isMobile()) .top_center else .center)
-                    .width(.mobile_desktop_percent(100, 40)).height(.mobile_desktop_percent(40, 100))
+                    .width(.mobileDesktopPercent(100, 40)).height(.mobileDesktopPercent(40, 100))
                     // .scroll(.scroll_y())
                     // .border(.simple(.palette(.text_color)))
                     .children({
@@ -1080,21 +1080,21 @@ pub fn render() void {
         });
 
         Stack().style(&.{
-            .size = .{ .width = .percent(100), .height = .mobile_desktop(.fit, .percent(60)) },
+            .size = .{ .width = .percent(100), .height = .mobileDesktop(.fit, .percent(60)) },
             .visual = .{ .border = .top(1, .palette(.border_color_light)) },
             .layout = .center,
             .child_gap = 32,
             .padding = if (Vapor.isMobile()) .xy(12, 12) else .all(0),
         }).children({
             Row().style(&.{
-                .size = .{ .width = .percent(100), .height = .mobile_desktop(.fit, .percent(80)) },
+                .size = .{ .width = .percent(100), .height = .mobileDesktop(.fit, .percent(80)) },
                 .layout = if (Vapor.isMobile()) .top_center else .x_even_center,
                 .direction = if (Vapor.isMobile()) .column else .row,
                 .child_gap = if (Vapor.isMobile()) 32 else 0,
             }).children({
                 Row()
                     .layout(if (Vapor.isMobile()) .top_center else .center)
-                    .width(.mobile_desktop_percent(100, 40)).height(.mobile_desktop(.fit, .percent(100))).children({
+                    .width(.mobileDesktopPercent(100, 40)).height(.mobileDesktop(.fit, .percent(100))).children({
                     Stack().width(.percent(100)).spacing(16).layout(.center).children({
                         Text("Simple Routing & Powerful Middleware")
                             .font(if (Vapor.isMobile()) 32 else 64, 700, .palette(.text_color))
@@ -1106,7 +1106,7 @@ pub fn render() void {
                 });
                 Row()
                     .layout(if (Vapor.isMobile()) .top_center else .center)
-                    .width(.mobile_desktop_percent(100, 40)).height(.mobile_desktop_percent(40, 100))
+                    .width(.mobileDesktopPercent(100, 40)).height(.mobileDesktopPercent(40, 100))
                     .children({
                     CodeRow(&reverb_middleware_highlighter, "reverb_middleware.zig");
                 });
@@ -1114,8 +1114,8 @@ pub fn render() void {
         });
 
         Row().style(&.{
-            .size = .{ .width = .percent(100), .height = .mobile_desktop(.expand, .percent(90)) },
-            .margin = .tb(64, 64),
+            .size = .{ .width = .percent(100), .height = .mobileDesktop(.expand, .percent(90)) },
+            .margin = .vertical(64),
             .layout = if (Vapor.isMobile()) .top_center else .x_even_center,
             .direction = if (Vapor.isMobile()) .column else .row,
             .visual = .{ .border = .top(1, .palette(.border_color_light)) },
@@ -1132,7 +1132,7 @@ pub fn render() void {
                 if (Vapor.isMobile()) {
                     Row()
                         .layout(if (Vapor.isMobile()) .top_center else .center)
-                        .width(.mobile_desktop_percent(100, 40)).height(.mobile_desktop(.fit, .percent(100))).children({
+                        .width(.mobileDesktopPercent(100, 40)).height(.mobileDesktop(.fit, .percent(100))).children({
                         Stack().width(.percent(100)).spacing(16).layout(.center).children({
                             Text("Builtin WebSockets").font(if (Vapor.isMobile()) 32 else 64, 700, .palette(.text_color)).end();
                             Html(
@@ -1149,7 +1149,7 @@ pub fn render() void {
                 }
                 Row()
                     .layout(if (Vapor.isMobile()) .top_center else .center)
-                    .width(.mobile_desktop_percent(100, 40)).height(.mobile_desktop_percent(40, 100))
+                    .width(.mobileDesktopPercent(100, 40)).height(.mobileDesktopPercent(40, 100))
                     .children({
                     CodeRow(&websocket_highlighter, "websocket.zig");
                 });
@@ -1157,7 +1157,7 @@ pub fn render() void {
                 if (Vapor.isDesktop()) {
                     Row()
                         .layout(if (Vapor.isMobile()) .top_center else .center)
-                        .width(.mobile_desktop_percent(100, 40)).height(.mobile_desktop(.fit, .percent(100))).children({
+                        .width(.mobileDesktopPercent(100, 40)).height(.mobileDesktop(.fit, .percent(100))).children({
                         Stack().width(.percent(100)).spacing(16).layout(.center).children({
                             Text("Builtin WebSockets").font(64, 700, .palette(.text_color)).end();
                             Html(
@@ -1176,7 +1176,7 @@ pub fn render() void {
         });
 
         Row().style(&.{
-            .size = .hw(.mobile_desktop(.percent(40), .percent(100)), .percent(100)),
+            .size = .hw(.mobileDesktop(.percent(40), .percent(100)), .percent(100)),
             .layout = .center,
             .visual = .{
                 .layer = .grid(14, 1, .palette(.grid_color)),
@@ -1185,8 +1185,8 @@ pub fn render() void {
             // .layout = .x_even,
         }).children({
             Stack()
-                .width(.mobile_desktop(.percent(90), .percent(60)))
-                .height(.mobile_desktop(.percent(100), .percent(60)))
+                .width(.mobileDesktop(.percent(90), .percent(60)))
+                .height(.mobileDesktop(.percent(100), .percent(60)))
                 .layout(.center)
                 .children({
                 Graphic(.{ .src = "/src/assets/tether.svg" })
@@ -1207,40 +1207,40 @@ pub fn render() void {
                     .gradient(.linear, .deg(145), &.{ .hex("#0d0d0d"), .hex("#0d0d0d"), .hex("#1a1a1a"), .hex("#0a0a0a") }),
                 },
             },
-            .size = .hw(.mobile_desktop(.fit, .percent(50)), .percent(100)),
+            .size = .hw(.mobileDesktop(.fit, .percent(50)), .percent(100)),
             .layout = if (Vapor.isMobile()) .x_even else .x_even_center,
             .flex_wrap = .wrap,
             .padding = .all(12),
         }).children({
             Stack().style(&.{
                 .child_gap = 24,
-                .size = .hw(.mobile_desktop(.fit, .percent(50)), .mobile_desktop(.percent(40), .fit)),
+                .size = .hw(.mobileDesktop(.fit, .percent(50)), .mobileDesktop(.percent(40), .fit)),
                 .padding = .vertical(12),
             }).children({
                 Text("Community").font(18, 100, .white).end();
-                Stack().style(&.{ .child_gap = 16, .size = .hw(.mobile_desktop_percent(100, 50), .percent(100)) }).children({
+                Stack().style(&.{ .child_gap = 16, .size = .hw(.mobileDesktopPercent(100, 50), .percent(100)) }).children({
                     RedirectLink(.{ .url = "https://github.com/senet-toolbox", .aria_label = "github page of tether" }).style(&.{
                         .visual = .{ .text_color = .white, .text_decoration = .none },
                     }).children({
-                        Text("Github").hover(.{ .text_decoration = .underline }).duration(100).baseStyle(&Styles.muted_text).end();
+                        Text("Github").hover(.{ .text_decoration = .underline }).duration(100).style(&Styles.muted_text).end();
                     });
                     // RedirectLink(.{ .url = "https://discord.gg/tether", .aria_label = "discord page of tether" }).style(&.{
                     Row().style(&.{
                         .visual = .{ .text_color = .white, .text_decoration = .none },
                     }).children({
-                        Text("Discord").hover(.{ .text_decoration = .underline }).duration(100).baseStyle(&Styles.muted_text).end();
+                        Text("Discord").hover(.{ .text_decoration = .underline }).duration(100).style(&Styles.muted_text).end();
                     });
                     // RedirectLink(.{ .url = "https://youtube.com/tetherlabs", .aria_label = "youtube page of tether" }).style(&.{
                     Row().style(&.{
                         .visual = .{ .text_color = .white, .text_decoration = .none },
                     }).children({
-                        Text("Youtube").hover(.{ .text_decoration = .underline }).duration(100).baseStyle(&Styles.muted_text).end();
+                        Text("Youtube").hover(.{ .text_decoration = .underline }).duration(100).style(&Styles.muted_text).end();
                     });
                 });
             });
             Stack().style(&.{
                 .child_gap = 24,
-                .size = .hw(.mobile_desktop(.fit, .percent(50)), .mobile_desktop(.percent(40), .fit)),
+                .size = .hw(.mobileDesktop(.fit, .percent(50)), .mobileDesktop(.percent(40), .fit)),
                 .padding = .vertical(12),
             }).children({
                 Text("Resources").font(18, 100, .white).end();
@@ -1248,28 +1248,28 @@ pub fn render() void {
                     Link(.{ .url = "/docs/vapor", .aria_label = "docs page for vapor" }).style(&.{
                         .visual = .{ .text_color = .white, .text_decoration = .none },
                     }).children({
-                        Text("Vapor Docs").hover(.{ .text_decoration = .underline }).duration(100).baseStyle(&Styles.muted_text).end();
+                        Text("Vapor Docs").hover(.{ .text_decoration = .underline }).duration(100).style(&Styles.muted_text).end();
                     });
                     Link(.{ .url = "/docs/reverb", .aria_label = "docs page for reverb" }).style(&.{
                         .visual = .{ .text_color = .white, .text_decoration = .none },
                     }).children({
-                        Text("Reverb Docs").hover(.{ .text_decoration = .underline }).duration(100).baseStyle(&Styles.muted_text).end();
+                        Text("Reverb Docs").hover(.{ .text_decoration = .underline }).duration(100).style(&Styles.muted_text).end();
                     });
                     Link(.{ .url = "/docs/metal", .aria_label = "docs page for canopy" }).style(&.{
                         .visual = .{ .text_color = .white, .text_decoration = .none },
                     }).children({
-                        Text("Metal Docs").hover(.{ .text_decoration = .underline }).duration(100).baseStyle(&Styles.muted_text).end();
+                        Text("Metal Docs").hover(.{ .text_decoration = .underline }).duration(100).style(&Styles.muted_text).end();
                     });
                     RedirectLink(.{ .url = "https://vicrokx.com", .aria_label = "personal blog of vicrokx" }).style(&.{
                         .visual = .{ .text_color = .white, .text_decoration = .none },
                     }).children({
-                        Text("Me").hover(.{ .text_decoration = .underline }).duration(100).baseStyle(&Styles.muted_text).end();
+                        Text("Me").hover(.{ .text_decoration = .underline }).duration(100).style(&Styles.muted_text).end();
                     });
                 });
             });
             Stack().style(&.{
                 .child_gap = 24,
-                .size = .hw(.mobile_desktop(.fit, .percent(50)), .mobile_desktop(.percent(40), .fit)),
+                .size = .hw(.mobileDesktop(.fit, .percent(50)), .mobileDesktop(.percent(40), .fit)),
                 .padding = .vertical(12),
             }).children({
                 Text("Projects").font(18, 100, .white).end();
@@ -1277,34 +1277,34 @@ pub fn render() void {
                     RedirectLink(.{ .url = "https://heightsandminds.org", .aria_label = "heights and minds website" }).style(&.{
                         .visual = .{ .text_color = .white, .text_decoration = .none },
                     }).children({
-                        Text("Heights & Minds").hover(.{ .text_decoration = .underline }).duration(100).baseStyle(&Styles.muted_text).end();
+                        Text("Heights & Minds").hover(.{ .text_decoration = .underline }).duration(100).style(&Styles.muted_text).end();
                     });
                     RedirectLink(.{ .url = "https://kyber.run", .aria_label = "Kyber website" }).style(&.{
                         .visual = .{ .text_color = .white, .text_decoration = .none },
                     }).children({
-                        Text("Kyber").hover(.{ .text_decoration = .underline }).duration(100).baseStyle(&Styles.muted_text).end();
+                        Text("Kyber").hover(.{ .text_decoration = .underline }).duration(100).style(&Styles.muted_text).end();
                     });
                     RedirectLink(.{ .url = "https://assembler.kyber.run", .aria_label = "Assembler website" }).style(&.{
                         .visual = .{ .text_color = .white, .text_decoration = .none },
                     }).children({
-                        Text("Assembler").hover(.{ .text_decoration = .underline }).duration(100).baseStyle(&Styles.muted_text).end();
+                        Text("Assembler").hover(.{ .text_decoration = .underline }).duration(100).style(&Styles.muted_text).end();
                     });
                     RedirectLink(.{ .url = "https://ryven.kyber.run", .aria_label = "Ryven website" }).style(&.{
                         .visual = .{ .text_color = .white, .text_decoration = .none },
                     }).children({
-                        Text("Ryven").hover(.{ .text_decoration = .underline }).duration(100).baseStyle(&Styles.muted_text).end();
+                        Text("Ryven").hover(.{ .text_decoration = .underline }).duration(100).style(&Styles.muted_text).end();
                     });
                     RedirectLink(.{ .url = "https://vapor-ui.com", .aria_label = "Vapor UI website" }).style(&.{
                         .visual = .{ .text_color = .white, .text_decoration = .none },
                     }).children({
-                        Text("Vapor UI").hover(.{ .text_decoration = .underline }).duration(100).baseStyle(&Styles.muted_text).end();
+                        Text("Vapor UI").hover(.{ .text_decoration = .underline }).duration(100).style(&Styles.muted_text).end();
                     });
                 });
             });
 
             Stack().style(&.{
                 .child_gap = 24,
-                .size = .hw(.mobile_desktop(.fit, .percent(50)), .mobile_desktop(.percent(40), .fit)),
+                .size = .hw(.mobileDesktop(.fit, .percent(50)), .mobileDesktop(.percent(40), .fit)),
                 .padding = .vertical(12),
             }).children({
                 Row().style(&.{ .child_gap = 8, .layout = .left_center }).children({
@@ -1372,8 +1372,8 @@ const link_style = struct {
         base.extend(.{
             .visual = .when(
                 mode == .dark,
-                .{ .border = .simple(.palette(.text_tint_color)), .background = .palette(.alternate_background), .text_color = .white, .text_decoration = .none },
-                .{ .border = .simple(.palette(.alternate_border_color)), .background = .palette(.background), .text_color = .palette(.text_color), .text_decoration = .none },
+                .{ .border = .thin(.palette(.text_tint_color)), .background = .palette(.alternate_background), .text_color = .white, .text_decoration = .none },
+                .{ .border = .thin(.palette(.alternate_border_color)), .background = .palette(.background), .text_color = .palette(.text_color), .text_decoration = .none },
             ),
         });
         return base;
@@ -1399,14 +1399,14 @@ pub fn VideoStack(active: *bool) Vapor.ButtonBuilder(.static) {
         .direction(.column)
         .height(.percent(70))
         .width(.percent(24))
-        .shadow(.card(.transparentizeHex(.palette(.tint), 0.1)))
-        .border(.simple(.transparentizeHex(.palette(.tint), 0.1)))
-        .layer(.grid(4, 1, .transparentizeHex(.palette(.tint), 0.05)))
+        .shadow(.card(.transparentize(.palette(.tint), 0.1)))
+        .border(.thin(.transparentize(.palette(.tint), 0.1)))
+        .layer(.grid(4, 1, .transparentize(.palette(.tint), 0.05)))
         .background(.palette(.background))
         .duration(100)
         .hover(.{
-            .border = .simple(.transparentizeHex(.palette(.tint), 0.5)),
-            .shadow = .card(.transparentizeHex(.palette(.tint), 0.5)),
+            .border = .thin(.transparentize(.palette(.tint), 0.5)),
+            .shadow = .card(.transparentize(.palette(.tint), 0.5)),
             .transform = .scaleDecimal(1.02),
         })
         .padding(.all(8))

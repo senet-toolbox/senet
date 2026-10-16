@@ -42,7 +42,7 @@ pub fn init() void {
     Page(.{ .src = @src() }, render, null);
 }
 
-var text_area: Vapor.Binded = .{};
+var text_area: Vapor.Element = .{};
 
 var last_time: i64 = 0;
 pub fn throttle() bool {
@@ -186,7 +186,7 @@ fn handleEnter() void {
 
     text = std.fmt.bufPrint(&buffer, "{s}", .{total}) catch unreachable;
     parse();
-    Vapor.onEnd(updateCursorPosition);
+    Vapor.onLayout(updateCursorPosition, .{});
 }
 
 fn handleTab(shift: bool) void {
@@ -212,7 +212,7 @@ fn handleTab(shift: bool) void {
             text = std.fmt.bufPrint(&buffer, "{s}", .{total}) catch unreachable;
             new_cursor_pos = cursor_pos + indent.len;
             parse();
-            Vapor.onEnd(updateCursorPosition);
+            Vapor.onLayout(updateCursorPosition, .{});
         }
     }
 }
@@ -241,7 +241,7 @@ fn handleIndent(start: usize, end: usize) void {
     text = std.fmt.bufPrint(&buffer, "{s}", .{total}) catch unreachable;
     new_cursor_pos = start + 2;
     parse();
-    Vapor.onEnd(updateCursorPosition);
+    Vapor.onLayout(updateCursorPosition, .{});
 }
 
 fn handleOutdent(start: usize, end: usize) void {
@@ -274,7 +274,7 @@ fn handleOutdent(start: usize, end: usize) void {
     text = std.fmt.bufPrint(&buffer, "{s}", .{total}) catch unreachable;
     new_cursor_pos = if (start >= 2) start - 2 else start;
     parse();
-    Vapor.onEnd(updateCursorPosition);
+    Vapor.onLayout(updateCursorPosition, .{});
 }
 
 fn indentCurrentLine() void {
@@ -288,7 +288,7 @@ fn indentCurrentLine() void {
     text = std.fmt.bufPrint(&buffer, "{s}", .{total}) catch unreachable;
     new_cursor_pos = cursor_pos + 2;
     parse();
-    Vapor.onEnd(updateCursorPosition);
+    Vapor.onLayout(updateCursorPosition, .{});
 }
 
 fn outdentCurrentLine() void {
@@ -311,7 +311,7 @@ fn outdentCurrentLine() void {
     text = std.fmt.bufPrint(&buffer, "{s}", .{total}) catch unreachable;
     new_cursor_pos = if (cursor_pos >= skip) cursor_pos - skip else cursor_pos;
     parse();
-    Vapor.onEnd(updateCursorPosition);
+    Vapor.onLayout(updateCursorPosition, .{});
 }
 
 const LineBounds = struct {
@@ -344,7 +344,7 @@ fn moveLineUp() void {
     text = std.fmt.bufPrint(&buffer, "{s}", .{total}) catch unreachable;
     new_cursor_pos = prev_line_start + (cursor_pos - line_bounds.start);
     parse();
-    Vapor.onEnd(updateCursorPosition);
+    Vapor.onLayout(updateCursorPosition, .{});
 }
 
 fn moveLineDown() void {
@@ -366,7 +366,7 @@ fn moveLineDown() void {
     text = std.fmt.bufPrint(&buffer, "{s}", .{total}) catch unreachable;
     new_cursor_pos = next_line_start + next_line.len + 1 + (cursor_pos - line_bounds.start);
     parse();
-    Vapor.onEnd(updateCursorPosition);
+    Vapor.onLayout(updateCursorPosition, .{});
 }
 
 fn duplicateLine() void {
@@ -380,7 +380,7 @@ fn duplicateLine() void {
     text = std.fmt.bufPrint(&buffer, "{s}", .{total}) catch unreachable;
     new_cursor_pos = line_bounds.end + 1 + (cursor_pos - line_bounds.start);
     parse();
-    Vapor.onEnd(updateCursorPosition);
+    Vapor.onLayout(updateCursorPosition, .{});
 }
 
 fn deleteLine() void {
@@ -394,7 +394,7 @@ fn deleteLine() void {
     text = std.fmt.bufPrint(&buffer, "{s}", .{total}) catch unreachable;
     new_cursor_pos = line_bounds.start;
     parse();
-    Vapor.onEnd(updateCursorPosition);
+    Vapor.onLayout(updateCursorPosition, .{});
 }
 
 // Add a second buffer for the closing brace line
@@ -438,7 +438,7 @@ fn onScroll(_: *Vapor.Event) void {
     binded_highlighter.scrollToTop(scroll_top);
 }
 
-var binded_highlighter: Vapor.Binded = .{};
+var binded_highlighter: Vapor.Element = .{};
 
 var copied: bool = false;
 fn copy() void {
@@ -469,7 +469,7 @@ fn render() void {
             Vapor.Button(.{ .on_press = copy })
                 .cursor(.pointer)
                 .background(.transparent)
-                .size(.square_px(24))
+                .size(.squarePx(24))
                 .children({
                 if (copied) {
                     Vapor.Image(.{ .src = "/assets/check.svg" })
@@ -493,8 +493,8 @@ fn render() void {
                 .height(.px(container_height))
                 .width(.px(420))
                 .padding(.horizontal(12))
-                .scroll(.scroll_y())
-                .border(.simple(.palette(.text_color)))
+                .scroll(.scrollY())
+                .border(.thin(.palette(.text_color)))
                 // .background(.hex("#1e1e1e"))
                 .pos(.tl(.percent(0), .percent(0), .absolute)).children({
                 highlighter.renderAST(highlighter.root) catch unreachable;
@@ -515,10 +515,10 @@ fn render() void {
                     .border(.none)
                     .resize(.none)
                     .onScroll(onScroll)
-                    .border(.simple(.transparent))
+                    .border(.thin(.transparent))
                     .height(.percent(100))
-                    .whitespace(.pre)
-                    .padding(.tblr(12, 12, 36, 0))
+                    .whiteSpace(.pre)
+                    .padding(.{ .top = 12, .bottom = 12, .left = 36 })
                     .caret(.{ .type = .block, .color = .palette(.text_color) })
                     .font(15, null, .transparent)
                     .fontFamily("DM Mono, monospace")
@@ -530,7 +530,7 @@ fn render() void {
         Row()
             .width(.percent(100))
             .height(.px(64))
-            .scroll(.scroll_y())
+            .scroll(.scrollY())
             .layout(.center)
             .children({
             highlighter.renderErrors() catch unreachable;

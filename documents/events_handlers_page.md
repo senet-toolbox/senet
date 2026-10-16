@@ -44,11 +44,11 @@ and update the values. For example, there is no need to do the typical `getText`
 ```zig
 const std = @import("std");
 const Vapor = @import("vapor");
-const Binded = Vapor.Binded;
+const Binded = Vapor.Element;
 const TextField = Vapor.TextField;
 const Text = Vapor.Text;
 
-var binded_textfield: Vapor.Binded = .{};
+var binded_textfield: Vapor.Element = .{};
 var text: []const u8 = "";
 fn onWrite(evt: *Vapor.Event) void {
     const input_text = evt.text(); // this is from the event itself, only exsist within this function scope.

@@ -562,7 +562,7 @@ fn toggleModal() void {
 fn render() void {
     Center().children({
         Button(toggleModal)
-            .hoverAnimation("buttonHover")
+            .hover(.{ .animation_name = "buttonHover" })
             .children({
                 Text("toggle modal").end();
         });

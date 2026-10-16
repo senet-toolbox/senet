@@ -41,7 +41,7 @@ fn builder() void {
 var vapor_page: []const u8 = "";
 var markdown: Compiler.vaporize.MarkDown(components) = .{};
 var markdown_loaded: bool = false;
-const fetch = Vapor.Fetch.Fetch.fetch;
+const fetch = Vapor.Fetch.Request.fetch;
 pub fn init() void {
     Page(.{ .src = @src() }, render, null);
     fetch("/documents/vapor_page.md", .{ .method = .GET }).handle(handlePage, .{});
@@ -54,13 +54,13 @@ fn handlePage(resp: Vapor.Fetch.Result) void {
             content.content_text = data.body;
             vapor_page = data.body;
             markdown.compile(vapor_page) catch |err| {
-                Vapor.printErr("Failed to compile markdown: {any}", .{err});
+                Vapor.print(.err, "Failed to compile markdown: {any}", .{err});
                 return;
             };
             markdown_loaded = true;
         },
         .err => |err| {
-            Vapor.printErr("Failed to fetch: {s}", .{err.message});
+            Vapor.print(.err, "Failed to fetch: {s}", .{err.message});
             return;
         },
     }
@@ -182,7 +182,7 @@ var video: Vapor.Types.Video = .{
 
 fn Demo() void {
     Row().style(&.{
-        .margin = .tb(24, 48),
+        .margin = .{ .top = 24, .bottom = 48 },
         .size = .hw(.percent(100), .percent(100)),
         .layout = .center,
     }).children({
@@ -194,11 +194,11 @@ fn Demo() void {
 }
 
 fn counter() void {
-    Row().margin(.tb(12, 32)).spacing(48).width(.percent(100)).layout(.center).children({
+    Row().margin(.{ .top = 12, .bottom = 32 }).spacing(48).width(.percent(100)).layout(.center).children({
         Button(increment, .{})
             .shadow(.card(.palette(.text_color)))
             .padding(.all(8))
-            .border(.simple(.palette(.text_color)))
+            .border(.thin(.palette(.text_color)))
             .background(.palette(.background))
             .duration(100)
             .hoverScale()
@@ -223,10 +223,10 @@ fn alert() void {
 const Counter = struct {
     count: u32 = 0,
     pub fn render(self: *Counter) void {
-        Row().margin(.tb(12, 32)).spacing(16).width(.percent(100)).layout(.center).children({
+        Row().margin(.{ .top = 12, .bottom = 32 }).spacing(16).width(.percent(100)).layout(.center).children({
             Button(counterIncrement, .{self})
                 .padding(.all(8))
-                .border(.simple(.palette(.text_color)))
+                .border(.thin(.palette(.text_color)))
                 .background(.palette(.background))
                 .duration(100)
                 .hoverScale()
@@ -248,11 +248,11 @@ const Counter = struct {
 };
 
 fn alertComponent() void {
-    Row().margin(.tb(12, 32)).spacing(16).width(.percent(100)).layout(.center).children({
+    Row().margin(.{ .top = 12, .bottom = 32 }).spacing(16).width(.percent(100)).layout(.center).children({
         Button(alert, .{})
             .shadow(.card(.palette(.text_color)))
             .padding(.all(8))
-            .border(.simple(.palette(.text_color)))
+            .border(.thin(.palette(.text_color)))
             .background(.palette(.background))
             .duration(100)
             .hoverScale()
@@ -277,7 +277,7 @@ pub fn render() void {
     Row().style(&.{
         .layout = .x_between,
         .direction = .column,
-        .size = .square_percent(100),
+        .size = .squarePercent(100),
     }).children({
         Row().style(&.{
             .padding = .horizontal(12),
@@ -287,17 +287,17 @@ pub fn render() void {
             Row().style(&.{
                 .layout = .center,
                 .size = .w(.percent(100)),
-                .padding = .tb(60, 120),
+                .padding = .{ .top = 60, .bottom = 120 },
                 .direction = .column,
             }).children({
                 Row().style(&.{
-                    .size = .w(.mobile_desktop_percent(100, 50)),
+                    .size = .w(.mobileDesktopPercent(100, 50)),
                     // .width = .mobile_desktop_percent(100, 64),
                     // .size = .w(.percent(100)),
                     .child_gap = 32,
                     .direction = .column,
-                    .padding = .bottom(80),
-                    .margin = .tb(32, 32),
+                    .padding = .{ .bottom = 80 },
+                    .margin = .vertical(32),
                 }).children({
                     if (markdown_loaded) {
                         content.content(component);

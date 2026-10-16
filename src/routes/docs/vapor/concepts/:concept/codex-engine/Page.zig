@@ -7,7 +7,7 @@ const Graphic = Vapor.Graphic;
 const Content = @import("../../../../../../components/Content.zig");
 const reinit = @import("../../../../../../components/DocNavbar.zig").reinit;
 const Compiler = @import("../../../../../../main.zig");
-const Fetch = Vapor.Fetch.Fetch;
+const Fetch = Vapor.Fetch.Request;
 const Loader = @import("components").Loader;
 const Error = @import("components").Error;
 const Button = Vapor.Button;
@@ -56,7 +56,7 @@ pub fn compiler_image() void {
         .pos(.{ .type = pos_type, .left = .percent(0), .top = .percent(0) })
         .layout(.center)
         .zIndex(999)
-        .size(.square_percent(100))
+        .size(.squarePercent(100))
         .background(background)
         .layer(.dot(0.5, 4, .palette(.text_color)))
         .children({

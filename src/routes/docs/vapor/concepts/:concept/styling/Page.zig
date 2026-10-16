@@ -19,7 +19,7 @@ const ListItem = Vapor.ListItem;
 const Stack = Vapor.Stack;
 const Vaporize = @import("vaporize");
 const Compiler = @import("../../../../../../main.zig");
-const Fetch = Vapor.Fetch.Fetch;
+const Fetch = Vapor.Fetch.Request;
 const Loader = @import("components").Loader;
 const Error = @import("components").Error;
 
@@ -102,7 +102,7 @@ pub const pill_button_base = Style{
 fn mergedStyle() Style {
     var base = pill_button_base;
     return base.merge(Style{
-        .visual = .{ .border = .simple(.hex("#E1E1E1")) },
+        .visual = .{ .border = .thin(.hex("#E1E1E1")) },
     });
 }
 
@@ -128,7 +128,7 @@ fn samples() void {
         });
 
         // Here we use the baseStyle, now we can override the default style
-        Row().baseStyle(&common_style).layout(.top_left).children({
+        Row().style(&common_style).layout(.top_left).children({
             Text("Top left Text").fontSize(14).end();
         });
 

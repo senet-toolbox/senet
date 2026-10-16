@@ -181,7 +181,7 @@ for (current.sections) |section| {
             .pointer()
             .noDecoration()
             .cursor(.pointer)
-            .border(.l(2, if (active) .palette(.tint) else .transparent))
+            .border(.left(2, if (active) .palette(.tint) else .transparent))
             .pl(6)
             .width(.full)
             .layout(.left_center)
@@ -201,20 +201,18 @@ Everything Vapor-specific there is the element builders. The `for`, the `orelse 
 ```zig
 const std = @import("std");
 const Vapor = @import("vapor");
-const Kit = Vapor.Kit;
-const Fetch = Vapor.Kit.Fetch;
+const Fetch = Vapor.Fetch;
 
 pub export fn init() void {
     Vapor.init(.{});
-    Kit.init();
     Vapor.Page(.{ .route = "/" }, render, null);
 
-    var f = Fetch.fetch("/documents/kit_page.md", .{ .method = .GET });
+    const f = Vapor.fetch("/documents/kit_page.md", .{});
     f.debug = true;
     f.handle(handleResponse, .{});
 }
 
-fn handleResponse(response: Kit.Fetch.Result) void {
+fn handleResponse(response: Fetch.Result) void {
     switch (response) {
         .ok => |data| {
             std.debug.print("Status: {d}\n", .{data.status});

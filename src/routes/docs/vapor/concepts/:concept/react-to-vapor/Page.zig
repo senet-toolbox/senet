@@ -1,7 +1,7 @@
 const std = @import("std");
 const Vapor = @import("vapor");
 const Compiler = @import("../../../../../../main.zig");
-const Fetch = Vapor.Fetch.Fetch;
+const Fetch = Vapor.Fetch.Request;
 const Loader = @import("components").Loader;
 const Error = @import("components").Error;
 const Content = @import("../../../../../../components/Content.zig");
@@ -61,11 +61,11 @@ pub fn render() void {
                 Row().style(&.{
                     .size = .w(.percent(100)),
                     .layout = .top_center,
-                    .padding = .tblr(64, 64, 12, 12),
+                    .padding = .xy(12, 64),
                     .visual = .{
-                        .layer = .grid(32, 1, .transparentizeHex(.palette(.grid_color), 0.9)),
+                        .layer = .grid(32, 1, .transparentize(.palette(.grid_color), 0.9)),
                         .border = .{
-                            .thickness = .lr(1),
+                            .thickness = .horizontal(1),
                             .color = .palette(.border_color_light),
                         },
                     },

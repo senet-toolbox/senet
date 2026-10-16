@@ -37,20 +37,20 @@ def main():
     parser.add_argument("--docs", default="documents", help="directory of markdown docs")
     args = parser.parse_args()
 
-    root = public_symbols(os.path.join(args.vapor, "src/comptime.zig"))
+    root = public_symbols(os.path.join(args.vapor, "src/root.zig"))
     if root is None:
         sys.exit(f"error: no vapor checkout at {args.vapor}")
 
     # Namespaces the docs reach into directly.
     namespaces = {}
     for prefix, rel in {
-        "Vapor.lib": "src/lib/Vapor.zig",
+        "Vapor.lib": "src/lib/vapor.zig",
         "Vapor.Types": "src/lib/types.zig",
-        "Vapor.Kit": "src/lib/kit/Kit.zig",
-        "Vapor.KeyStone": "src/lib/keystone/KeyStone.zig",
+        "Vapor.Kit": "src/lib/kit/kit.zig",
         "Vapor.Animation": "src/lib/Animation.zig",
         "Vapor.DateTime": "src/lib/DateTime.zig",
-        "Vapor.Fetch": "src/lib/Fetch.zig",
+        "Vapor.Fetch": "src/lib/fetch.zig",
+        "Vapor.Browser": "src/lib/browser.zig",
     }.items():
         symbols = public_symbols(os.path.join(args.vapor, rel))
         if symbols is not None:

@@ -19,7 +19,7 @@ fn onCreate() void {
     Kit.fetch("/user?id=123", setUserName, .{ .method = .GET, .use_credentials = true });
 }
 
-fn setUserName(response: *Kit.Response) void {
+fn setUserName(response: *Vapor.Fetch.Result) void {
     const parsed = Kit.glue(User, response.body) catch return;
     user = parsed.value;
 }

@@ -16,7 +16,7 @@ const Stack = Static.Stack;
 const Graphic = Static.Graphic;
 const Vaporize = @import("vaporize");
 const Compiler = @import("../../../../../../main.zig");
-const Fetch = Vapor.Fetch.Fetch;
+const Fetch = Vapor.Fetch.Request;
 const Loader = @import("components").Loader;
 const Error = @import("components").Error;
 

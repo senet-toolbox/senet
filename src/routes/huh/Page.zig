@@ -60,12 +60,12 @@ const muted_text = &Style{
 pub fn render() void {
     Center().style(&.{
         .size = .w(.percent(100)),
-        .padding = .tb(120, 80),
+        .padding = .{ .top = 120, .bottom = 80 },
     }).children({
         Row().style(&.{
             .child_gap = 24,
             .direction = .column,
-            .size = .w(.mobile_desktop_percent(100, 60)),
+            .size = .w(.mobileDesktopPercent(100, 60)),
             .padding = .horizontal(12),
         }).children({
             Text("What is Senet?").style(heading).end();

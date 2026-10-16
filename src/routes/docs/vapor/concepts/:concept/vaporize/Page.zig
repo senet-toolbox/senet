@@ -1,7 +1,7 @@
 const std = @import("std");
 const Vapor = @import("vapor");
 const Compiler = @import("../../../../../../main.zig");
-const Fetch = Vapor.Fetch.Fetch;
+const Fetch = Vapor.Fetch.Request;
 const Loader = @import("components").Loader;
 const Error = @import("components").Error;
 const Content = @import("../../../../../../components/Content.zig");
@@ -87,7 +87,7 @@ fn SimpleFormComponent() void {
         Stack()
             .width(.percent(100)).layout(.center).spacing(16)
             .background(.palette(.background))
-            .border(.simple(.palette(.text_color)))
+            .border(.thin(.palette(.text_color)))
             .children({
             Stack()
                 .width(.percent(100)).layout(.center).spacing(16).padding(.all(20))
@@ -112,12 +112,12 @@ pub fn init() void {
     f.?.handle(handlePage, .{});
     content.init();
     generated_markdown.compile(table) catch |err| {
-        Vapor.printErr("Failed to compile markdown: {any} invalid input", .{err});
+        Vapor.print(.err, "Failed to compile markdown: {any} invalid input", .{err});
         return;
     };
     // ComplexForm.init();
     simple_form.compile() catch |err| {
-        Vapor.printErr("Failed to compile form: {any}", .{err});
+        Vapor.print(.err, "Failed to compile form: {any}", .{err});
         return;
     };
     new_form.compile() catch unreachable;
@@ -144,7 +144,7 @@ fn handlePage(resp: Vapor.Fetch.Result) void {
 
 fn onChange(evt: *Vapor.Event) void {
     generated_markdown.compile(evt.text()) catch |err| {
-        Vapor.printErr("Failed to compile markdown: {any} invalid input", .{err});
+        Vapor.print(.err, "Failed to compile markdown: {any} invalid input", .{err});
         return;
     };
 }
@@ -152,13 +152,13 @@ fn onChange(evt: *Vapor.Event) void {
 fn RealtimeMarkdown() void {
     Stack()
         .layout(.center)
-        .margin(.tb(12, 32))
+        .margin(.{ .top = 12, .bottom = 32 })
         .padding(.all(8))
         .width(.percent(100))
-        .border(.simple(.transparentizeHex(.palette(.tint), 0.1)))
+        .border(.thin(.transparentize(.palette(.tint), 0.1)))
         .children({
         generated_markdown.render() catch |err| {
-            Vapor.printErr("Failed to render markdown: {any}", .{err});
+            Vapor.print(.err, "Failed to render markdown: {any}", .{err});
             return;
         };
     });
@@ -175,8 +175,8 @@ fn text_area() void {
     Vapor.TextArea()
         .val(&table)
         .height(.px(128))
-        .shadow(.card(.transparentizeHex(.palette(.tint), 0.3)))
-        .border(.simple(.transparentizeHex(.palette(.tint), 0.1)))
+        .shadow(.card(.transparentize(.palette(.tint), 0.3)))
+        .border(.thin(.transparentize(.palette(.tint), 0.1)))
         .outline(.none, null)
         .layer(.grid(4, 1, .palette(.grid_color)))
         .spacing(4)
@@ -192,12 +192,12 @@ pub fn LoginForm() void {
         .direction(.column).layout(.top_center).width(.full).height(.percent(50)).children({
         Stack()
             .width(.percent(80)).layout(.center).padding(.all(16))
-            .border(.sharp(.tblr(1, 0, 0, 1), .palette(.text_color)))
+            .border(.sharp(.{ .top = 1, .right = 1 }, .palette(.text_color)))
             .children({
             Stack()
                 .width(.percent(100)).layout(.center).spacing(16)
                 .background(.palette(.background))
-                .border(.simple(.palette(.text_color)))
+                .border(.thin(.palette(.text_color)))
                 .children({
                 Text("SIGN UP").font(84, 900, .palette(.text_color))
                     .padding(.horizontal(12))

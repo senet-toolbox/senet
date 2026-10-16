@@ -76,15 +76,15 @@ pub fn show() void {
 }
 
 fn goto(url: []const u8) void {
-    Vapor.Kit.navigate(url);
+    Vapor.navigate(url);
     // sheet.toggle();
 }
 
 fn render() void {
-    const current_path = Vapor.Kit.getWindowPath();
+    const current_path = Vapor.currentPath();
     Row().style(&.{
         .position = .{ .type = .fixed, .top = .px(60), .left = .percent(2), .z_index = 999 },
-        .size = .hw(.percent(100), .mobile_desktop_percent(100, 14)),
+        .size = .hw(.percent(100), .mobileDesktopPercent(100, 14)),
     })({
         List().style(&.{
             .list_style = .none,
@@ -92,7 +92,7 @@ fn render() void {
             .padding = .{ .top = 16, .bottom = 64, .right = 8, .left = 8 },
             .child_gap = 12,
             .size = .hw(.percent(95), .percent(100)),
-            .scroll = .scroll_y(),
+            .scroll = .scrollY(),
             .show_scrollbar = false,
             .layout = .{},
         })({
@@ -103,13 +103,13 @@ fn render() void {
                     .style(&.{
                     .size = .hw(.fit, .percent(100)),
                     .visual = .{
-                        .background = if (std.mem.eql(u8, current_path, item.link)) .transparentizeHex(.palette(.tint), 0.1) else .transparent,
-                        .border = .r(1, if (std.mem.eql(u8, current_path, item.link)) .palette(.tint) else .transparent),
-                        .layer = if (std.mem.eql(u8, current_path, item.link)) .dot(0.5, 6, .transparentizeHex(.palette(.tint), 0.3)) else null,
+                        .background = if (std.mem.eql(u8, current_path, item.link)) .transparentize(.palette(.tint), 0.1) else .transparent,
+                        .border = .right(1, if (std.mem.eql(u8, current_path, item.link)) .palette(.tint) else .transparent),
+                        .layer = if (std.mem.eql(u8, current_path, item.link)) .dot(0.5, 6, .transparentize(.palette(.tint), 0.3)) else null,
                     },
                     .interactive = .{
                         .hover = .{
-                            .background = if (std.mem.eql(u8, current_path, item.link)) .transparentizeHex(.palette(.tint), 0.1) else .palette(.highlight_color),
+                            .background = if (std.mem.eql(u8, current_path, item.link)) .transparentize(.palette(.tint), 0.1) else .palette(.highlight_color),
                         },
                     },
                 })({
@@ -122,7 +122,7 @@ fn render() void {
                         .size = .w(.percent(100)),
                         .layout = .left_center,
                         .child_gap = 12,
-                        .padding = .tblr(10, 10, 8, 8),
+                        .padding = .xy(8, 10),
                     })({
                         // Icon(item.icon).style(&.{
                         //     // .visual = .{ .text_color = if (std.mem.eql(u8, current_path, item.link)) .palette(.tint) else .palette(.text_color) },

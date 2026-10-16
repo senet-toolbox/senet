@@ -4,7 +4,7 @@ const Types = Vapor.Types;
 const Signal = Vapor.Signal;
 const Kit = Vapor.Kit;
 const println = Vapor.println;
-const Binded = Vapor.Binded;
+const Binded = Vapor.Element;
 const Search = @import("Search.zig");
 const Row = Vapor.Row;
 const Image = Vapor.Image;
@@ -643,14 +643,14 @@ pub fn goto(url: []const u8) void {
     if (Vapor.isMobile()) {
         menu = false;
     }
-    Vapor.Kit.navigate(url);
-    Kit.scrollTo(0, 0);
+    Vapor.navigate(url);
+    Vapor.scrollTo(0, 0);
     Vapor.onLayout(reinit, .{}); // This will triger at the end of the current cycle
 
 }
 
 fn handlePopState() void {
-    const url = Vapor.Kit.getWindowPath() orelse "/";
+    const url = Vapor.currentPath();
     sections.clearRetainingCapacity();
     for (current_docs[current_doc].items) |item| {
         if (std.mem.eql(u8, url, item.link)) {
@@ -660,7 +660,7 @@ fn handlePopState() void {
             }
         }
     }
-    Kit.scrollTo(0, 0);
+    Vapor.scrollTo(0, 0);
     reinit(); // This will triger at the end of the current cycle
 }
 
@@ -671,7 +671,7 @@ fn handleSection(target: Observer.Target) void {
     if (Content.boxes.len > target.index) {
         if (target.is_in_view) {
             sections.put(current_menu_item.?.sections[target.index].link, true) catch |err| {
-                Vapor.printErr("{any}", .{err});
+                Vapor.print(.err, "{any}", .{err});
                 return;
             };
             Content.boxes[target.index].active = true;
@@ -714,9 +714,9 @@ fn reinitObserver() void {
 
 fn mount() void {
     mounted = true;
-    Vapor.Kit.scrollTo(0, 0);
+    Vapor.scrollTo(0, 0);
     // this runs after the vaporize is mounter
-    const current_path = Vapor.Kit.getWindowPath() orelse "/docs/vapor";
+    const current_path = Vapor.currentPath();
     std.log.info("current_doc: {s}", .{current_path});
     if (std.mem.eql(u8, current_path, "/docs/reverb")) {
         current_doc = 1;
@@ -745,8 +745,8 @@ fn mount() void {
 }
 
 fn home() void {
-    Vapor.Kit.navigate("/");
-    Vapor.Kit.scrollTo(0, 0);
+    Vapor.navigate("/");
+    Vapor.scrollTo(0, 0);
 }
 
 var menu: bool = false;
@@ -766,15 +766,15 @@ fn isSvg(item: MenuItem) bool {
 }
 
 fn list() void {
-    const current_path = Vapor.Kit.getWindowPath() orelse "/docs/vapor";
+    const current_path = Vapor.currentPath();
     Row()
         .onMount(mount, .{})
         .style(&.{
             .layout = .x_between_center,
             .child_gap = 8,
             .padding = .xy(12, 8),
-            .position = .{ .type = .fixed, .top = .px(0), .left = .mobile_desktop_percent(0, 8), .right = .percent(0), .z_index = 400 },
-            .size = .hw(.mobile_desktop_percent(8, 6), .mobile_desktop_percent(100, 100 - 8)),
+            .position = .{ .type = .fixed, .top = .px(0), .left = .mobileDesktopPercent(0, 8), .right = .percent(0), .z_index = 400 },
+            .size = .hw(.mobileDesktopPercent(8, 6), .mobileDesktopPercent(100, 100 - 8)),
             .visual = .{
                 .blur = 3,
             },
@@ -791,14 +791,14 @@ fn list() void {
                 }).children({
                 Image(.{ .src = "/assets/circlelogo.webp", .alt = "tether logo" }).style(&.{
                     .layout = .center,
-                    .size = .square_px(42),
+                    .size = .squarePx(42),
                 }).end();
             });
             Text("Senet").style(&.{
                 .visual = .{ .font_weight = 500, .font_size = 18 },
             }).end();
             Row().style(&.{
-                .visual = .{ .border = .l(1, .rgb(0, 0, 0)) },
+                .visual = .{ .border = .left(1, .rgb(0, 0, 0)) },
                 .size = .{ .height = .px(24) },
             }).children({});
             Text("Docs").style(&.{
@@ -823,13 +823,13 @@ fn list() void {
         if (!Vapor.isMobile()) {
             Button(openDialog, .{})
                 .ariaLabel("search-dialog")
-                .baseStyle(&.{
+                .style(&.{
                     .layout = .x_between_center,
                     .size = .hw(.px(38), .percent(50)),
-                    .padding = .tblr(4, 4, 8, 8),
-                    .visual = .{ .border = .simple(.hex("#E1E1E1")), .background = .transparent, .cursor = .pointer },
+                    .padding = .xy(8, 4),
+                    .visual = .{ .border = .thin(.hex("#E1E1E1")), .background = .transparent, .cursor = .pointer },
                     .interactive = .{ .hover = .{
-                        .border = .simple(.palette(.tint)),
+                        .border = .thin(.palette(.tint)),
                     } },
                 }).background(.palette(.background)).children({
                 Row().style(&.{ .layout = .left_center, .child_gap = 24 }).children({
@@ -867,19 +867,19 @@ fn list() void {
     });
     if (menu or Vapor.isDesktop()) {
         Row()
-            .pos(.tl(.mobile_desktop_percent(8, 8), .mobile_desktop_percent(0, 8), .fixed))
+            .pos(.tl(.mobileDesktopPercent(8, 8), .mobileDesktopPercent(0, 8), .fixed))
             .zIndex(999)
-            .width(.mobile_desktop_percent(100, 14))
+            .width(.mobileDesktopPercent(100, 14))
             .height(.percent(100))
             .background(.palette(.background))
             .children({
             List().style(&.{
                 .list_style = .none,
                 .direction = .column,
-                .padding = .tblr(16, 64, 8, 8),
+                .padding = .{ .top = 16, .bottom = 64, .left = 8, .right = 8 },
                 .child_gap = 12,
                 .size = .hw(.percent(95), .percent(100)),
-                .scroll = .scroll_y(),
+                .scroll = .scrollY(),
                 .show_scrollbar = false,
                 .layout = .{},
             }).children({
@@ -890,13 +890,13 @@ fn list() void {
                         .style(&.{
                             .size = .hw(.fit, .percent(100)),
                             .visual = .{
-                                .background = if (std.mem.eql(u8, current_path, item.link)) .transparentizeHex(.palette(.tint), 0.1) else .transparent,
-                                .border = .r(1, if (std.mem.eql(u8, current_path, item.link)) .palette(.tint) else .transparent),
-                                .layer = if (std.mem.eql(u8, current_path, item.link)) .dot(0.5, 6, .transparentizeHex(.palette(.tint), 0.3)) else null,
+                                .background = if (std.mem.eql(u8, current_path, item.link)) .transparentize(.palette(.tint), 0.1) else .transparent,
+                                .border = .right(1, if (std.mem.eql(u8, current_path, item.link)) .palette(.tint) else .transparent),
+                                .layer = if (std.mem.eql(u8, current_path, item.link)) .dot(0.5, 6, .transparentize(.palette(.tint), 0.3)) else null,
                             },
                             .interactive = .{
                                 .hover = .{
-                                    .background = if (std.mem.eql(u8, current_path, item.link)) .transparentizeHex(.palette(.tint), 0.1) else .palette(.highlight_color),
+                                    .background = if (std.mem.eql(u8, current_path, item.link)) .transparentize(.palette(.tint), 0.1) else .palette(.highlight_color),
                                 },
                             },
                         }).children({
@@ -909,7 +909,7 @@ fn list() void {
                             .size = .w(.percent(100)),
                             .layout = .left_center,
                             .child_gap = 12,
-                            .padding = .tblr(10, 10, 8, 8),
+                            .padding = .xy(8, 10),
                         }).children({
                             if (isSvg(item)) {
                                 Vapor.Svg(.{ .svg = item.icon.svg.?, .override = true }).style(&.{
@@ -941,7 +941,7 @@ fn list() void {
     if (Vapor.isDesktop()) {
         Stack().style(&.{
             .position = .{ .type = .fixed, .top = if (Vapor.isMobile()) .percent(8) else .percent(8), .right = .percent(2), .z_index = 999 },
-            .size = .hw(.percent(100), .mobile_desktop_percent(100, 14)),
+            .size = .hw(.percent(100), .mobileDesktopPercent(100, 14)),
         }).children({
             Row().style(&.{
                 .layout = .left_center,
@@ -953,10 +953,10 @@ fn list() void {
             List().style(&.{
                 .list_style = .none,
                 .direction = .column,
-                .padding = .tb(16, 64),
+                .padding = .{ .top = 16, .bottom = 64 },
                 .child_gap = 8,
                 .size = .hw(.percent(95), .percent(100)),
-                .scroll = .scroll_y(),
+                .scroll = .scrollY(),
                 .show_scrollbar = false,
                 .layout = .{},
             }).children({
@@ -972,7 +972,7 @@ fn list() void {
                                 .pointer()
                                 .noDecoration()
                                 .cursor(.pointer)
-                                .border(.l(2, if (active_section) .palette(.tint) else .transparent))
+                                .border(.left(2, if (active_section) .palette(.tint) else .transparent))
                                 .pl(6)
                                 .width(.full)
                                 .layout(.left_center)
@@ -994,7 +994,7 @@ fn list() void {
 pub fn render() void {
     Row().style(&.{
         .position = .nav,
-        .size = .hw(.mobile_desktop(.fit, .percent(100)), .mobile_desktop_percent(100, 14)),
+        .size = .hw(.mobileDesktop(.fit, .percent(100)), .mobileDesktopPercent(100, 14)),
         // .padding = .{ .bottom = 128 },
     }).children({
         list();

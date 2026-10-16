@@ -21,8 +21,8 @@ var lastY: f32 = 0;
 var key_down_listener: u32 = 0;
 var key_up_listener: u32 = 0;
 pub fn init() void {
-    key_down_listener = Vapor.lib.eventListener(.keydown, shift) orelse unreachable;
-    key_up_listener = Vapor.lib.eventListener(.keyup, unshift) orelse unreachable;
+    key_down_listener = Vapor.addGlobalListener(.keydown, shift) orelse unreachable;
+    key_up_listener = Vapor.addGlobalListener(.keyup, unshift) orelse unreachable;
     Vapor.Page(.{ .route = "/file" }, render, null);
 }
 
@@ -94,14 +94,14 @@ fn upload(evt: *Vapor.Event) void {
     file_reader = .init(evt);
 
     const info = file_reader.fileInfo(0) catch |err| {
-        Vapor.printErr("Failed to get file info: {any}", .{err});
+        Vapor.print(.err, "Failed to get file info: {any}", .{err});
         return;
     };
 
     Vapor.print("File: {s}", .{info.type});
 
     image_src = file_reader.createURLfromFile(0) catch |err| {
-        Vapor.printErr("Failed to create object URL: {any}", .{err});
+        Vapor.print(.err, "Failed to create object URL: {any}", .{err});
         return;
     };
     Vapor.print("Image URL: {s}", .{image_src});
@@ -127,7 +127,7 @@ fn render() void {
         .class("box")
         .width(.px(width))
         .height(.px(height))
-        .border(.simple(.black))
+        .border(.thin(.black))
         .layout(.center)
         .children({
         if (image_src.len > 0) {

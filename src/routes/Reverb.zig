@@ -16,4 +16,3 @@ pub fn main() !void {
 
     try server.listen();
 }
-

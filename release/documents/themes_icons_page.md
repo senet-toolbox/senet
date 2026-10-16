@@ -89,7 +89,7 @@ Reference theme colors in your styles using `.palette()`:
 pub fn render() void {
     Box()
         .background(.palette(.background))
-        .border(.simple(.palette(.border_color)))
+        .border(.thin(.palette(.border_color)))
         .font(16, 500, .palette(.text_color))
         .children({
         //...
@@ -173,16 +173,16 @@ pub const IconTokens = struct {
     web: ?[]const u8 = null,
     svg: ?[]const u8 = null,
 
-    pub const list_task = &IconTokens{ .web = "bi bi-view-list", .svg = "\u{f0e1}" };
-    pub const cloud_download_fill = &IconTokens{ .web = "bi bi-cloud-download-fill", .svg = "\u{f0e2}" };
-    pub const plus = &IconTokens{ .web = "bi bi-plus", .svg = "\u{f0fe}" };
-    pub const arrow_right = &IconTokens{ .web = "bi bi-arrow-right", .svg = "\u{f0e9}" };
-    pub const clipboard = &IconTokens{ .web = "bi bi-clipboard", .svg = "\u{f0ea}" };
-    pub const check = &IconTokens{ .web = "bi bi-check", .svg = "\u{f0e7}" };
-    pub const home = &IconTokens{ .web = "bi bi-house", .svg = "\u{f0e3}" };
-    pub const cloud_moon = &IconTokens{ .web = "bi bi-cloud-moon", .svg = "\u{f0e6}" };
-    pub const search = &IconTokens{ .web = "bi bi-search", .svg = "\u{f0e8}" };
-    pub const command = &IconTokens{ .web = "bi bi-command", .svg = "\u{f0eb}" };
+    pub const list_task = IconTokens{ .web = "bi bi-view-list", .svg = "\u{f0e1}" };
+    pub const cloud_download_fill = IconTokens{ .web = "bi bi-cloud-download-fill", .svg = "\u{f0e2}" };
+    pub const plus = IconTokens{ .web = "bi bi-plus", .svg = "\u{f0fe}" };
+    pub const arrow_right = IconTokens{ .web = "bi bi-arrow-right", .svg = "\u{f0e9}" };
+    pub const clipboard = IconTokens{ .web = "bi bi-clipboard", .svg = "\u{f0ea}" };
+    pub const check = IconTokens{ .web = "bi bi-check", .svg = "\u{f0e7}" };
+    pub const home = IconTokens{ .web = "bi bi-house", .svg = "\u{f0e3}" };
+    pub const cloud_moon = IconTokens{ .web = "bi bi-cloud-moon", .svg = "\u{f0e6}" };
+    pub const search = IconTokens{ .web = "bi bi-search", .svg = "\u{f0e8}" };
+    pub const command = IconTokens{ .web = "bi bi-command", .svg = "\u{f0eb}" };
 };
 ```
 
@@ -271,7 +271,7 @@ fn App() void {
 
         // Theme toggle button
         Button(Theme.toggleTheme)
-            .padding(.tblr(8, 8, 12, 12))
+            .padding(.xy(12, 8))
             .background(.palette(.primary))
             .border(.round(.palette(.border_color), .all(6)))
             .pointer()

@@ -26,7 +26,7 @@ fn getUsers() void {
     });
 }
 
-fn parseUsers(resp: Kit.Response) void {
+fn parseUsers(resp: Vapor.Fetch.Result) void {
     const parsed = Kit.glue([]Users, resp.body) catch {};
     users.init(parsed.value);
 }

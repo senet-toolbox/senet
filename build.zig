@@ -201,6 +201,8 @@ pub fn build(b: *std.Build) void {
     exe.rdynamic = true;
 
     b.installArtifact(exe);
+    b.getInstallStep().dependOn(&b.addInstallBinFile(vapor_dep.namedLazyPath("runtime"), "bundle.min.js").step);
+    b.getInstallStep().dependOn(&b.addInstallBinFile(vapor_dep.namedLazyPath("runtime-browser"), "browser.min.js").step);
 
     // ---------------------
     //  Run step

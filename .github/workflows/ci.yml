@@ -24,6 +24,8 @@ jobs:
       - uses: actions/checkout@v4
         with:
           repository: senet-toolbox/vapor
+          # Keep in step with the vapor tag pinned in build.zig.zon.
+          ref: v3.1.0
           path: vapor
           # Needed only if the repository is private:
           # token: ${{ secrets.WORKFLOW_TOKEN }}
@@ -32,8 +34,9 @@ jobs:
         working-directory: senet-website
         run: python3 scripts/check-docs-api.py --vapor ../vapor
 
-  # The site depends on three sibling packages by path. If any of them is
-  # private, give the checkout steps a PAT via secrets.WORKFLOW_TOKEN.
+  # The site depends on vaporize and opaque-ui by path, and on vapor by the
+  # tag in build.zig.zon. If a sibling is private, give the checkout steps a
+  # PAT via secrets.WORKFLOW_TOKEN.
   build:
     name: Build the site
     runs-on: ubuntu-latest
@@ -44,13 +47,7 @@ jobs:
 
       - uses: actions/checkout@v4
         with:
-          repository: senet-toolbox/vapor
-          path: vapor
-          # token: ${{ secrets.WORKFLOW_TOKEN }}
-
-      - uses: actions/checkout@v4
-        with:
-          repository: tether-labs/vaporize
+          repository: senet-toolbox/vaporize
           path: vaporize
           # token: ${{ secrets.WORKFLOW_TOKEN }}
 

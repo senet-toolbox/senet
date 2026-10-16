@@ -91,7 +91,7 @@ fn openDialog() void {
 }
 
 fn navigate(url: []const u8) void {
-    Kit.navigate(url);
+    Vapor.navigate(url);
     menu = !menu;
 }
 
@@ -121,7 +121,7 @@ pub fn clickEvent(_: *[]const u8, evt: *Vapor.Event) void {
 }
 
 fn goto(url: []const u8) void {
-    Vapor.Kit.navigate(url);
+    Vapor.navigate(url);
 }
 
 pub fn render() void {
@@ -146,7 +146,7 @@ pub fn render() void {
                 .height(.px(60))
                 .padding(.horizontal(12))
                 .width(.percent(90)).height(.expand).layout(.x_between_center)
-                .border(.sharp(.tblr(0, 1, 1, 1), .palette(.border_color_light)))
+                .border(.sharp(.{ .bottom = 1, .left = 1, .right = 1 }, .palette(.border_color_light)))
                 .children({
                 Row()
                     .style(&.{
@@ -196,11 +196,11 @@ pub fn render() void {
                         .layout(.x_between_center)
                         .size(.hw(.px(38), .percent(70)))
                         .padding(.xy(8, 4))
-                        .border(.simple(.hex("#E1E1E1")))
+                        .border(.thin(.hex("#E1E1E1")))
                         .cursor(.pointer)
                         .background(.palette(.background))
                         .hover(.{
-                            .border = .simple(.palette(.tint)),
+                            .border = .thin(.palette(.tint)),
                         })
                         .children({
                         Row().style(&.{ .layout = .left_center, .child_gap = 24 }).children({
@@ -208,7 +208,7 @@ pub fn render() void {
                                 .visual = .{ .font_size = 16, .text_color = .palette(.icon_color) },
                             }).end();
                             Text("Search...").style(&.{
-                                .visual = .font(16, 500, .transparentizeHex(.palette(.text_color), 0.5)),
+                                .visual = .font(16, 500, .transparentize(.palette(.text_color), 0.5)),
                                 .font_family = "IBM Plex Mono,monospace",
                             }).end();
                         });
@@ -217,33 +217,33 @@ pub fn render() void {
                         }).end();
                     });
                     RedirectLink(.{ .url = "https://github.com/vic-Rokx/vapor", .aria_label = "redirect link to tether github repo" })
-                    .ariaLabel("redirect link to tether github repo")
-                    .style(&.{
-                        .visual = .{ .text_decoration = .none },
-                    }).children({
+                        .ariaLabel("redirect link to tether github repo")
+                        .style(&.{
+                            .visual = .{ .text_decoration = .none },
+                        }).children({
                         Icon(.github).style(&.{
                             .visual = .{ .font_size = 18, .text_color = .palette(.icon_color) },
                             .interactive = .{ .hover = .{ .text_color = .palette(.tint) } },
                         }).end();
                     });
                     RedirectLink(.{ .url = "https://github.com/vic-Rokx/vapor", .aria_label = "redirect link to discord" })
-                    .ariaLabel("redirect link to discord")
-                    .style(&.{
-                        .visual = .{ .text_decoration = .none },
-                    }).children({
+                        .ariaLabel("redirect link to discord")
+                        .style(&.{
+                            .visual = .{ .text_decoration = .none },
+                        }).children({
                         Icon(.discord).style(&.{
                             .visual = .{ .font_size = 18, .text_color = .palette(.icon_color) },
                             .interactive = .{ .hover = .{ .text_color = .palette(.tint) } },
                         }).end();
                     });
                     RedirectLink(.{ .url = "https://ziglang.org/", .aria_label = "redirect link to ziglang" })
-                    .ariaLabel("redirect link to ziglang")
-                    .style(&.{
-                        .visual = .{ .text_decoration = .none },
-                    }).children({
+                        .ariaLabel("redirect link to ziglang")
+                        .style(&.{
+                            .visual = .{ .text_decoration = .none },
+                        }).children({
                         Svg(.{ .svg = @embedFile("zig_simple.svg") }).style(&.{
                             .size = .{ .height = .px(18), .width = .px(18) },
-                            .margin = .t(4),
+                            .margin = .{ .top = 4 },
                             .visual = .{ .fill = .palette(.icon_color) },
                             .interactive = .{ .hover = .{ .fill = .palette(.tint) } },
                         }).end();
@@ -343,7 +343,7 @@ pub fn render() void {
                 List().style(&.{
                     .list_style = .none,
                     .direction = .column,
-                    .padding = .tblr(16, 16, 8, 8),
+                    .padding = .xy(8, 16),
                     .child_gap = 16,
                     .size = .w(.percent(100)),
                 }).children({
@@ -355,7 +355,7 @@ pub fn render() void {
                                 .size = .w(.percent(100)),
                                 .layout = .left_center,
                                 .child_gap = 12,
-                                .padding = .tblr(10, 10, 8, 8),
+                                .padding = .xy(8, 10),
                                 .visual = .{ .cursor = .pointer, .background = .white },
                             }).children({
                                 Text(item.title).style(&.{

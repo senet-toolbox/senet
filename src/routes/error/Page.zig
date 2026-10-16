@@ -10,7 +10,7 @@ fn render() void {
             .width(.percent(20))
             .end();
         Vapor.Text("Page Not found").fontSize(32).end();
-        Vapor.Button(Vapor.Kit.back, .{})
+        Vapor.Button(Vapor.back, .{})
             .fontStyle(.italic)
             .duration(100)
             .pointer()

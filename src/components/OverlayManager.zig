@@ -8,7 +8,7 @@ const OverlayManager = @This();
 
 const Item = struct { id: usize, erased_cb: Vapor.lib.ErasedEventCallback };
 
-var stack = Vapor.persist.Array(Item);
+var stack = Vapor.persist.array(Item);
 
 pub fn init() void {
     _ = Vapor.addGlobalListener(.keydown, onKeyDown);

@@ -4,7 +4,7 @@ const Content = @import("../../../../../../components/Content.zig");
 const reinit = @import("../../../../../../components/DocNavbar.zig").reinit;
 const DocNavBar = @import("../../../../../../components/DocNavbar.zig");
 const Compiler = @import("../../../../../../main.zig");
-const Fetch = Vapor.Fetch.Fetch;
+const Fetch = Vapor.Fetch.Request;
 const Loader = @import("components").Loader;
 const Error = @import("components").Error;
 
@@ -28,7 +28,6 @@ fn handlePage(resp: Vapor.Fetch.Result) void {
                 std.log.err("Failed to compile markdown: {any}", .{err});
                 return;
             };
-
         },
         .err => |err| {
             std.log.err("Failed to fetch: {s}", .{err.message});

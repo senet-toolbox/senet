@@ -10,7 +10,7 @@ const Content = @import("../../../../../../components/Content.zig");
 const reinit = @import("../../../../../../components/DocNavbar.zig").reinit;
 const snippet = Custom.code_snippet_single;
 const Compiler = @import("../../../../../../main.zig");
-const Fetch = Vapor.Fetch.Fetch;
+const Fetch = Vapor.Fetch.Request;
 const Loader = @import("components").Loader;
 const Error = @import("components").Error;
 
@@ -36,7 +36,7 @@ pub fn init() void {
     for (0..buffer.len) |i| {
         buffer[i] = .{ .value = i, .id = std.fmt.allocPrint(Vapor.lib.allocator_global, "{d}", .{i}) catch unreachable };
     }
-    list.appendSlice(&buffer) catch |err| Vapor.lib.printlnErr("Error appending {any}", .{err});
+    list.appendSlice(&buffer) catch |err| Vapor.print(.err, "Error appending {any}", .{err});
 }
 
 fn handlePage(resp: Vapor.Fetch.Result) void {

@@ -3,7 +3,7 @@ const Vapor = @import("vapor");
 const Page = Vapor.Page;
 const Vaporize = @import("vaporize");
 const Compiler = @import("../../../../../../main.zig");
-const Fetch = Vapor.Fetch.Fetch;
+const Fetch = Vapor.Fetch.Request;
 const Loader = @import("components").Loader;
 const Error = @import("components").Error;
 const Content = @import("../../../../../../components/Content.zig");
@@ -39,7 +39,7 @@ fn increment_cycle() void {
 fn graphics() void {
     Row().style(&.{
         .size = .{ .width = .percent(100), .height = .percent(100) },
-        .padding = .tb(48, 48),
+        .padding = .vertical(48),
         .layout = .center,
     }).children({
         Vapor.Graphic(.{ .src = "/assets/event_state_diagram.svg" })
@@ -72,18 +72,18 @@ fn onLeave(_: *Vapor.Event) void {
 }
 
 fn counter() void {
-    Row().margin(.tb(12, 32)).spacing(48).width(.percent(100)).layout(.center).children({
+    Row().margin(.{ .top = 12, .bottom = 32 }).spacing(48).width(.percent(100)).layout(.center).children({
         Button(increment, .{})
             .padding(.all(8))
             .background(.palette(.background))
             .duration(100)
             .onHover(onHover, .{})
             .onLeave(onLeave, .{})
-            .border(.simple(.palette(.text_color)))
+            .border(.thin(.palette(.text_color)))
             .shadow(.card(.palette(.text_color)))
             .hover(.{
                 .transform = .scale(),
-                .border = .simple(.palette(.tint)),
+                .border = .thin(.palette(.tint)),
                 .new_shadow = .card(.palette(.tint)),
             })
             .width(.percent(20))
@@ -102,11 +102,11 @@ fn counter() void {
 }
 
 fn cycleExample() void {
-    Stack().margin(.tb(12, 32)).spacing(48).width(.percent(100)).layout(.center).children({
+    Stack().margin(.{ .top = 12, .bottom = 32 }).spacing(48).width(.percent(100)).layout(.center).children({
         Button(increment_cycle, .{})
             .shadow(.card(color))
             .padding(.all(8))
-            .border(.simple(color))
+            .border(.thin(color))
             .background(.palette(.background))
             .duration(100)
             .hoverScale()

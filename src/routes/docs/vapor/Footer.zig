@@ -6,7 +6,7 @@ const Element = Vapor.Element;
 const Signal = Vapor.Signal;
 const Kit = Vapor.Kit;
 const logo = @embedFile("logo.svg");
-const Binded = Vapor.Binded;
+const Binded = Vapor.Element;
 const Row = Vapor.Row;
 const Text = Vapor.Text;
 const Link = Vapor.Link;
@@ -80,7 +80,7 @@ fn renderBtn(btn_type: BtnType, item: MenuItem, callback: anytype) void {
     return Button(callback, .{})
         .class(if (is_prev) "prev-btn" else "next-btn")
         .size(.hw(.px(128), .percent(45)))
-        .border(.simple(.palette(.border_color_light)))
+        .border(.thin(.palette(.border_color_light)))
         .background(.transparent)
         .cursor(.pointer)
         .padding(.all(12))
@@ -89,7 +89,7 @@ fn renderBtn(btn_type: BtnType, item: MenuItem, callback: anytype) void {
         .duration(100)
         .fill(.palette(.text_color))
         .hover(.{
-            .border = .simple(.palette(.tint)),
+            .border = .thin(.palette(.tint)),
             .text_color = .palette(.tint),
             .fill = .palette(.tint),
         })
@@ -106,7 +106,7 @@ fn renderBtn(btn_type: BtnType, item: MenuItem, callback: anytype) void {
 }
 
 pub fn render() void {
-    const path = Vapor.Kit.getWindowPath() orelse "/";
+    const path = Vapor.currentPath();
     setCurrentRoute(path);
     Row().style(&.{
         .size = .w(.percent(100)),

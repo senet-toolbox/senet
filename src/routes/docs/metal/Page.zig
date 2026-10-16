@@ -69,11 +69,11 @@ pub fn render() void {
             .layout = .top_center,
         }).children({
             Row().style(&.{
-                .size = .w(.mobile_desktop_percent(100, 48)),
+                .size = .w(.mobileDesktopPercent(100, 48)),
                 .child_gap = 16,
                 .direction = .column,
                 .layout = .{ .x = .start, .y = .start },
-                .padding = .tb(80, 80),
+                .padding = .vertical(80),
             }).children({
                 Row().style(&.{
                     .child_gap = 16,
@@ -106,7 +106,7 @@ pub fn render() void {
                         .child_gap = 8,
                         .direction = .column,
                         .margin = .{ .bottom = 32 },
-                        .size = .w(.mobile_desktop_percent(100, 100)),
+                        .size = .w(.mobileDesktopPercent(100, 100)),
                         .padding = .horizontal(12),
                     }).children({
                         code_snippet("curl -sSL https://raw.githubusercontent.com/senet-toolbox/metal/main/install.sh | bash");

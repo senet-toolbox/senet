@@ -515,7 +515,7 @@ Button(handleAction, .{ item.id, item.name }).children({
 
 // Styled button
 Button(submit)
-    .padding(.tblr(12, 12, 24, 24))
+    .padding(.xy(24, 12))
     .background(.palette(.tint))
     .border(.round(.transparent, .all(8)))
     .pointer()
@@ -585,7 +585,7 @@ fn handleKeyCtx(form_id: u32, evt: *Vapor.Event) void {
 
 TextField(.string)
     .bind(&input_text)
-    .onEventCtx(.keydown, handleKeyCtx, 1)
+    .onEvent(.keydown, handleKeyCtx, 1)
     .end();
 ```
 
@@ -656,7 +656,7 @@ Label("Password").font(14, 500, .palette(.text_color)).end();
 
 Code("const x = 42;").end();
 Code("npm install vapor")
-    .padding(.tblr(4, 4, 8, 8))
+    .padding(.xy(8, 4))
     .background(.palette(.surface))
     .border(.round(.palette(.border_color), .all(4)))
     .fontSize(14)
@@ -698,12 +698,12 @@ Spacer(32).end();  // 32px vertical space
 ```zig
 // Inline SVG (small elements)
 Svg(.{ .svg = svg_string }).end();
-Svg(.{ .svg = svg_string, .override = true }).size(.px(42)).end();
+Svg(.{ .svg = svg_string, .override = true }).size(.squarePx(42)).end();
 
 // Lazy-loaded SVG (large files)
 Graphic(.{ .src = "/assets/logo.svg" })
     .fill(.palette(.text_color))
-    .size(.px(24))
+    .size(.squarePx(24))
     .end();
 ```
 
@@ -741,7 +741,7 @@ Video(.{
 ```zig
 const anchor_name = "myAnchor";
 
-Anchor(anchor_name).anchorPlacement(.top).children({
+Anchor(anchor_name).placement(.top).children({
     Text("Tooltip content").end();
 });
 
@@ -1007,7 +1007,7 @@ Box()
 const button_style = Vapor.Style{
     .layout = .center,
     .size = .hw(.px(48), .px(160)),
-    .padding = .tblr(12, 12, 24, 24),
+    .padding = .xy(24, 12),
     .visual = .{
         .background = .palette(.tint),
         .border = .round(.transparent, .all(8)),
@@ -1017,24 +1017,22 @@ const button_style = Vapor.Style{
         .shadow = .card(.hex("#00000011")),
     },
     .transition = .{ .duration = 200 },
-    .interactive = .hover_scale(),
+    .interactive = .{ .hover = .{ .transform = .scale() } },
     .child_gap = 8,
 };
 
-// Apply with .style() — the struct controls everything
+// Apply with .style()
 Button(action).style(&button_style).children({
     Text("Click").end();
 });
 
-// Apply with .baseStyle() — allows builder overrides
-Box().baseStyle(&button_style).padding(.all(32)).background(.hex("#FF0000")).children({
+// Chained methods after .style() override the shared style
+Box().style(&button_style).padding(.all(32)).background(.hex("#FF0000")).children({
     // padding and background override the base style
 });
 ```
 
-**baseStyle vs style:**
-- `.style(&s)` — applies the struct directly, builder chains don't override
-- `.baseStyle(&s)` — applies as base, builder methods CAN override individual properties
+`.style(&s)` is the starting point; any builder method chained after it overrides that one property.
 
 ### Merge & Extend
 
@@ -1066,7 +1064,7 @@ Box()
 
 // Static string
 Box()
-    .inlineStyleStr("clip-path: circle(50%)")
+    .inlineStyle("clip-path: circle(50%)", .{})
     .children({ /* ... */ });
 ```
 
@@ -1119,7 +1117,7 @@ These are direction-independent: `.layout(.top_left)` works correctly regardless
 // Shorthand
 .hw(.px(100), .px(200))       // height, width (note: height first!)
 .size(.full)                  // width & height 100%
-.size(.square_px(100))        // 100x100 square
+.size(.squarePx(100))        // 100x100 square
 .size(.hw(.px(100), .percent(100)))
 
 // Aspect ratio
@@ -1137,8 +1135,8 @@ These are direction-independent: `.layout(.top_left)` works correctly regardless
 .padding(.all(20))                    // All sides
 .padding(.horizontal(16))            // Left & right
 .padding(.vertical(12))              // Top & bottom
-.padding(.tblr(10, 10, 20, 20))     // Top, bottom, left, right
-.padding(.tb(12, 12))               // Top, bottom
+.padding(.xy(20, 10))     // Top, bottom, left, right
+.padding(.vertical(12))               // Top, bottom
 .padding(.xy(16, 12))               // Horizontal, vertical
 // Individual sides:
 .pt(16)    // padding-top
@@ -1148,10 +1146,10 @@ These are direction-independent: `.layout(.top_left)` works correctly regardless
 
 // MARGIN (i16, signed — negative margins allowed!)
 .margin(.all(8))
-.margin(.b(16))                      // Bottom only
-.margin(.t(8))                       // Top only
-.margin(.l(8))                       // Left only
-.margin(.r(8))                       // Right only
+.margin(.{ .bottom = 16 })                      // Bottom only
+.margin(.{ .top = 8 })                       // Top only
+.margin(.{ .left = 8 })                       // Left only
+.margin(.{ .right = 8 })                       // Right only
 // Individual sides:
 .mt(8)     // margin-top
 .mb(8)     // margin-bottom
@@ -1191,7 +1189,7 @@ These are direction-independent: `.layout(.top_left)` works correctly regardless
 // Semi-transparent
 .transparentize(.palette(.tint), 0.5)        // 0.0=opaque, 1.0=transparent
 .transparentize(.black, 0.5)
-.transparentizeHex(.hex("#FF0000"), 0.3)
+.transparentize(.hex("#FF0000"), 0.3)
 ```
 
 ### BACKGROUNDS
@@ -1222,14 +1220,14 @@ These are direction-independent: `.layout(.top_left)` works correctly regardless
 
 ```zig
 .border(.none)
-.border(.simple(.palette(.border_color)))                    // 1px solid all sides
+.border(.thin(.palette(.border_color)))                    // 1px solid all sides
 .border(.round(.palette(.border_color), .all(8)))            // Rounded corners
 .border(.solid(.all(2), .palette(.tint), .all(12)))          // width, color, radius
 .border(.bottom(1, .palette(.border_color)))                 // Bottom only
 .border(.top(1, .palette(.border_color)))                    // Top only
 .border(.right(1, .palette(.border_color)))                  // Right only
 .border(.sharp(.all(1), .palette(.border_color)))            // Sharp corners with width
-.border(.dashed(.palette(.border_color), 1))                 // Dashed
+.border(.{ .thickness = .all(1), .color = .palette(.border_color), .style = .dashed }) // Dashed
 
 // Border radius only
 .radius(.all(8))
@@ -1341,8 +1339,8 @@ For smooth property changes on state updates (sidebar expand, position changes, 
 ### SCROLL
 
 ```zig
-.scroll(.scroll_y())                       // Vertical scroll
-.scroll(.scroll_x())                       // Horizontal scroll
+.scroll(.scrollY())                       // Vertical scroll
+.scroll(.scrollX())                       // Horizontal scroll
 .scroll(.none())                           // No scroll
 .scroll(.{ .x = .scroll, .y = .hidden })   // Horizontal only
 ```
@@ -1400,7 +1398,7 @@ Text("Static string").unmanaged().end();  // Skip persistence for performance
 
 ```zig
 .anchorSource("myAnchor")                  // Mark as anchor source
-.anchorPlacement(.top)                     // Set anchor placement direction
+.placement(.top)                     // Set anchor placement direction
 .placement(.bottom_right)                  // Alias
 ```
 
@@ -1505,9 +1503,9 @@ Text("Static string").unmanaged().end();  // Skip persistence for performance
 | `.onBlur(cb)` | `(fn(*Event) void) → Self` | Blur (needs .bind) |
 | `.onDragStart(cb)` | `(fn(*Event) void) → Self` | Drag start |
 | `.onEvent(ev,cb)` | `(EventType,fn) → Self` | Generic event |
-| `.onEventCtx(ev,fn,ctx)` | `(EventType,fn,any) → Self` | Event + context |
+| `.onEvent(ev,fn,ctx)` | `(EventType,fn,any) → Self` | Event + context |
 | `.onHoverCtx(fn,ctx)` | `(fn,any) → Self` | Hover + context |
-| `.onMountCtx(fn,ctx)` | `(fn,any) → Self` | Mount + context |
+| `.onMount(fn,ctx)` | `(fn,any) → Self` | Mount + context |
 
 #### Element Binding
 | Method | Signature | Description |
@@ -1522,10 +1520,8 @@ Text("Static string").unmanaged().end();  // Skip persistence for performance
 | `.id(v)` | `([]const u8) → Self` | Element ID |
 | `.class(v)` | `([]const u8) → Self` | CSS class |
 | `.classFmt(fmt,args)` | `(comptime,any) → Self` | Dynamic class |
-| `.baseStyle(ptr)` | `(*const Style) → Self` | Overridable style |
-| `.style(ptr)` | `(*const Style) → Self` | Final style |
-| `.inlineStyle(fmt,args)` | `(comptime,any) → Self` | Raw CSS formatted |
-| `.inlineStyleStr(v)` | `([]const u8) → Self` | Raw CSS static |
+| `.style(ptr)` | `(*const Style) → Self` | Shared style; chained methods override it |
+| `.inlineStyle(fmt,args)` | `(comptime,any) → Self` | Raw CSS, formatted (`{{`/`}}` for literal braces) |
 | `.inherit(fields)` | `([]StyleFields) → Self` | Inherit from parent |
 | `.inheritHover(fields)` | `([]StyleFields) → Self` | Inherit hover |
 
@@ -1610,12 +1606,12 @@ fn render() void {
 ```zig
 // Programmatic navigation
 fn goHome() void {
-    Vapor.Kit.navigate("/");
+    Vapor.navigate("/");
 }
 
 fn goToUser(id: u32) void {
     const url = Vapor.fmtln("/user/{d}", .{id});
-    Vapor.Kit.navigate(url);
+    Vapor.navigate(url);
 }
 
 // Button navigation
@@ -1706,7 +1702,7 @@ Instantiate the builder with the `.static` state type for elements that never
 change:
 
 ```zig
-const Static = Vapor.BuilderClose(.static);
+const Static = Vapor.Builder(.static);
 
 fn render() void {
     Static.Text("This label NEVER updates").end();   // Skipped during reconciliation
@@ -1946,7 +1942,7 @@ fn handleKeyDownCtx(form_id: u32, evt: *Vapor.Event) void {
 
 TextField(.string)
     .bind(&input_text)
-    .onEventCtx(.keydown, handleKeyDownCtx, 1)
+    .onEvent(.keydown, handleKeyDownCtx, 1)
     .end();
 ```
 
@@ -1961,7 +1957,7 @@ TextField(.string)
 | `Button(fn)`                    | `fn() void`                      |
 | `Button(fn, .{a, b})`       | `fn(A, B) void`                  |
 | `.onEvent(.event, fn)`          | `fn(*Vapor.Event) void`          |
-| `.onEventCtx(.event, fn, ctx)`  | `fn(Ctx, *Vapor.Event) void`     |
+| `.onEvent(.event, fn, ctx)`  | `fn(Ctx, *Vapor.Event) void`     |
 | `.onChange(fn)`                  | `fn(*Vapor.Event) void`          |
 | `.onHover(fn)` / `.onLeave(fn)` | `fn(*Vapor.Event) void`         |
 
@@ -1991,7 +1987,7 @@ fn handleLeave(_: *Vapor.Event) void { hovered = false; }
 
 // With context
 Box()
-    .onEventCtx(.pointerenter, handleHoverItem, .{item})
+    .onEvent(.pointerenter, handleHoverItem, .{item})
     .children({ /* ... */ });
 
 fn handleHoverItem(item: *Item, _: *Vapor.Event) void {
@@ -2000,8 +1996,8 @@ fn handleHoverItem(item: *Item, _: *Vapor.Event) void {
 
 // Focus/Blur
 TextField(.string)
-    .onEventCtx(.focus, handleFocus, .{id})
-    .onEventCtx(.blur, handleBlur, .{id})
+    .onEvent(.focus, handleFocus, .{id})
+    .onEvent(.blur, handleBlur, .{id})
     .end();
 ```
 
@@ -2025,25 +2021,35 @@ fn handleKeyPress(evt: *Vapor.Event) void {
 }
 ```
 
-### Binded Event Listeners
+### Element Listeners
+
+`Element.listen` attaches a listener that is not part of the render: it stays
+across rerenders and its events do not rerender the page, which suits frequent
+events such as `scroll` or `pointermove`. Call `Vapor.cycle()` from the handler
+when it changes what the page shows. For ordinary handlers use `.onEvent`.
 
 ```zig
-var binded_field: Vapor.Binded = .{};
-var listener_id: ?u32 = null;
+var field: Vapor.Element = .{};
+var key_listener: ?Vapor.Listener = null;
 
 fn mount() void {
-    listener_id = binded_field.addListener(.keydown, onKey);
+    // The element must be on the page, so listen from onMount (or a handler).
+    key_listener = field.listen(.keydown, onKey, .{});
 }
 
 fn destroy() void {
-    if (listener_id) |id| _ = binded_field.removeListener(.keydown, id);
+    if (key_listener) |listener| listener.remove();
+    key_listener = null;
+}
+
+fn onKey(evt: *Vapor.Event) void {
+    _ = evt;
 }
 
 fn render() void {
     Vapor.Hooks(.{ .mounted = mount, .destroy = destroy })({
-        TextField(.string).bind(&binded_field).onChange(onWrite).end();
+        TextField(.string).ref(&field).onChange(onWrite).end();
     });
-    Text(binded_field.text).end();  // auto-updated
 }
 ```
 
@@ -2225,7 +2231,7 @@ Vapor.setGlobalStyleVariables(.{
 ```zig
 // All .palette() references auto-update when theme changes
 Text("Hello").font(16, 500, .palette(.text_color)).end();
-Box().background(.palette(.background)).border(.simple(.palette(.border_color))).children({ ... });
+Box().background(.palette(.background)).border(.thin(.palette(.border_color))).children({ ... });
 
 // Theme toggle button
 Button(Theme.toggleTheme).children({
@@ -2261,15 +2267,15 @@ pub const IconTokens = struct {
     web: ?[]const u8 = null,
     svg: ?[]const u8 = null,
 
-    pub const list_task = &IconTokens{ .web = "bi bi-view-list", .svg = "\u{f0e1}" };
-    pub const cloud_download_fill = &IconTokens{ .web = "bi bi-cloud-download-fill", .svg = "\u{f0e2}" };
-    pub const plus = &IconTokens{ .web = "bi bi-plus", .svg = "\u{f0fe}" };
-    pub const arrow_right = &IconTokens{ .web = "bi bi-arrow-right", .svg = "\u{f0e9}" };
-    pub const search = &IconTokens{ .web = "bi bi-search", .svg = "\u{f0e8}" };
-    pub const home = &IconTokens{ .web = "bi bi-house", .svg = "\u{f0e3}" };
-    pub const cloud_moon = &IconTokens{ .web = "bi bi-cloud-moon", .svg = "\u{f0e6}" };
-    pub const check = &IconTokens{ .web = "bi bi-check", .svg = "\u{f0e7}" };
-    pub const command = &IconTokens{ .web = "bi bi-command", .svg = "\u{f0eb}" };
+    pub const list_task = IconTokens{ .web = "bi bi-view-list", .svg = "\u{f0e1}" };
+    pub const cloud_download_fill = IconTokens{ .web = "bi bi-cloud-download-fill", .svg = "\u{f0e2}" };
+    pub const plus = IconTokens{ .web = "bi bi-plus", .svg = "\u{f0fe}" };
+    pub const arrow_right = IconTokens{ .web = "bi bi-arrow-right", .svg = "\u{f0e9}" };
+    pub const search = IconTokens{ .web = "bi bi-search", .svg = "\u{f0e8}" };
+    pub const home = IconTokens{ .web = "bi bi-house", .svg = "\u{f0e3}" };
+    pub const cloud_moon = IconTokens{ .web = "bi bi-cloud-moon", .svg = "\u{f0e6}" };
+    pub const check = IconTokens{ .web = "bi bi-check", .svg = "\u{f0e7}" };
+    pub const command = IconTokens{ .web = "bi bi-command", .svg = "\u{f0eb}" };
 };
 ```
 
@@ -2637,19 +2643,19 @@ Share one vaporizer instance across files. Memory scales logarithmically.
 
 ```zig
 fn fetchData() void {
-    Vapor.Kit.Fetch.fetch("http://localhost:8080/api/data", .{
+    Vapor.fetch("http://localhost:8080/api/data", .{
         .method = .GET,
         .use_credentials = true,
-    }).handle(handleResponse);
+    }).handle(handleResponse, .{});
 }
 
-fn handleResponse(response: Vapor.Kit.Response) void {
+fn handleResponse(response: Vapor.Fetch.Result) void {
     switch (response) {
-        .Ok => |resp| {
+        .ok => |resp| {
             // resp.body is the response string
             // Parse JSON, populate state, etc.
         },
-        .Err => |resp| {
+        .err => |resp| {
             std.log.err("Failed: {s}", .{resp.message});
         },
     }
@@ -2663,18 +2669,18 @@ var requesting: bool = false;
 
 fn submitData() void {
     requesting = true;
-    Vapor.Kit.Fetch.fetch("http://localhost:8080/api/submit", .{
+    Vapor.fetch("http://localhost:8080/api/submit", .{
         .method = .POST,
         .use_credentials = true,
         .body = json_string,
-    }).handle(handleSubmitResponse);
+    }).handle(handleSubmitResponse, .{});
 }
 
-fn handleSubmitResponse(response: Vapor.Kit.Response) void {
+fn handleSubmitResponse(response: Vapor.Fetch.Result) void {
     requesting = false;
     switch (response) {
-        .Ok => |resp| { /* success */ },
-        .Err => |resp| { err_msg = resp.message; },
+        .ok => |resp| { /* success */ },
+        .err => |resp| { err_msg = resp.message; },
     }
 }
 ```
@@ -2686,8 +2692,8 @@ fn handleSubmitResponse(response: Vapor.Kit.Response) void {
 Bind to DOM elements for programmatic access:
 
 ```zig
-var box: Vapor.Binded = .{};
-var search_field: Vapor.Binded = .{};
+var box: Vapor.Element = .{};
+var search_field: Vapor.Element = .{};
 
 fn mount() void {
     search_field.focus();  // Focus on mount
@@ -2866,7 +2872,7 @@ Vapor.alert("Say {s}", .{"Hi"});
 Vapor.scrollIntoView(element_id, .{ .block = .nearest });
 if (Vapor.getComponentBounds(element_id)) |bounds| { /* ... */ }
 const heading_ids = Vapor.queryComponentIds(.Heading) catch &.{};
-Vapor.Kit.navigate("/path");
+Vapor.navigate("/path");
 Vapor.FileReader.downloadFile("data.json", content, .@"application/json");
 Vapor.fmtln("Count: {d}", .{counter});  // frame-scoped formatted string
 ```
@@ -2942,19 +2948,19 @@ const container_style = Vapor.Style{
 };
 
 const add_btn_style = Vapor.Style{
-    .padding = .tblr(12, 12, 20, 20),
+    .padding = .xy(20, 12),
     .visual = .{
         .background = .hex("#4299e1"),
         .text_color = .white,
         .font_weight = 600,
         .border = .round(.transparent, .all(8)),
     },
-    .interactive = .hover_scale(),
+    .interactive = .{ .hover = .{ .transform = .scale() } },
 };
 
 const todo_item_style = Vapor.Style{
     .layout = .x_between_center,
-    .padding = .tblr(12, 12, 16, 16),
+    .padding = .xy(16, 12),
     .visual = .{
         .background = .hex("#f7fafc"),
         .border = .round(.hex("#e2e8f0"), .all(8)),
@@ -3004,7 +3010,7 @@ fn render() void {
                 TextFmt("{d} item{s}", .{
                     todos.items.len,
                     if (todos.items.len == 1) "" else "s",
-                }).font(12, 400, .hex("#a0aec0")).margin(.t(4)).end();
+                }).font(12, 400, .hex("#a0aec0")).margin(.{ .top = 4 }).end();
             }
         });
     });
@@ -3077,7 +3083,7 @@ var sidebar_expanded: bool = false;
 // ============ HANDLERS ============
 fn selectNav(item: NavItem) void {
     selected_nav = item;
-    Vapor.Kit.navigate(item.route());
+    Vapor.navigate(item.route());
 }
 
 fn onSidebarHover(_: *Vapor.Event) void { sidebar_expanded = true; }
@@ -3102,7 +3108,7 @@ fn render() void {
             .height(.percent(100))
             .padding(.all(24))
             .spacing(24)
-            .scroll(.scroll_y())
+            .scroll(.scrollY())
             .children({
             switch (selected_nav) {
                 .overview => renderOverview(),
@@ -3177,7 +3183,7 @@ fn summaryCard(title: []const u8, value: []const u8) void {
         .width(.expand)
         .padding(.all(16))
         .spacing(8)
-        .border(.simple(.palette(.border_color)))
+        .border(.thin(.palette(.border_color)))
         .children({
         Text(title).font(14, 300, .palette(.text_secondary)).end();
         Text(value).font(28, 600, .palette(.text_color)).end();
@@ -3197,7 +3203,7 @@ fn render() void {
     // Main content
     Center().height(.percent(100)).children({
         Button(openModal)
-            .padding(.tblr(12, 12, 24, 24))
+            .padding(.xy(24, 12))
             .background(.palette(.tint))
             .border(.round(.transparent, .all(8)))
             .pointer()
@@ -3233,7 +3239,7 @@ fn render() void {
                             .font(14, 400, .palette(.text_color)).end();
                         Box().layout(.right_center).children({
                             Button(closeModal)
-                                .padding(.tblr(10, 10, 20, 20))
+                                .padding(.xy(20, 10))
                                 .background(.palette(.tint))
                                 .border(.round(.transparent, .all(8)))
                                 .pointer()
@@ -3329,7 +3335,7 @@ fn render() void {
             // Submit button
             Button(submit)
                 .width(.percent(100))
-                .padding(.tblr(14, 14, 0, 0))
+                .padding(.vertical(14))
                 .layout(.center)
                 .background(.hex("#4299e1"))
                 .border(.round(.transparent, .all(8)))
@@ -3363,7 +3369,7 @@ fn render() void {
         // Trigger button
         Button(toggleDropdown)
             .width(.px(200))
-            .padding(.tblr(10, 10, 12, 12))
+            .padding(.xy(12, 10))
             .layout(.x_between_center)
             .border(.round(.palette(.border_color), .all(8)))
             .pointer()
@@ -3412,16 +3418,16 @@ var data: ?[]const DataItem = null;
 fn fetchData() void {
     loading = true;
     err_msg = null;
-    Vapor.Kit.Fetch.fetch("http://localhost:8080/api/data", .{
+    Vapor.fetch("http://localhost:8080/api/data", .{
         .method = .GET,
-    }).handle(handleResponse);
+    }).handle(handleResponse, .{});
 }
 
-fn handleResponse(response: Vapor.Kit.Response) void {
+fn handleResponse(response: Vapor.Fetch.Result) void {
     loading = false;
     switch (response) {
-        .Ok => |resp| { /* parse resp.body into data */ },
-        .Err => |resp| { err_msg = resp.message; },
+        .ok => |resp| { /* parse resp.body into data */ },
+        .err => |resp| { err_msg = resp.message; },
     }
 }
 
@@ -3521,7 +3527,7 @@ fn render() void {
 
 fn confirmDialog(title: []const u8, message: []const u8, on_confirm: anytype) void {
     Stack().spacing(12).padding(.all(16))
-        .border(.simple(.palette(.border_color)))
+        .border(.thin(.palette(.border_color)))
         .radius(.all(6))
         .children({
         Text(title).font(16, 600, .palette(.text_color)).end();
@@ -3531,7 +3537,7 @@ fn confirmDialog(title: []const u8, message: []const u8, on_confirm: anytype) vo
                 .background(.hex("#DC2626")).radius(.all(4)).pointer()
                 .children({ Text("Confirm").font(14, 500, .white).end(); });
             Button(cancel).padding(.xy(16, 0)).height(.px(34)).layout(.center)
-                .border(.simple(.palette(.border_color))).radius(.all(4)).pointer()
+                .border(.thin(.palette(.border_color))).radius(.all(4)).pointer()
                 .children({ Text("Cancel").font(14, 500, .palette(.text_color)).end(); });
         });
     });

@@ -70,7 +70,7 @@ pub fn render() void {
             .child_gap = 24,
             .direction = .column,
             .margin = .{ .bottom = 32 },
-            .size = .w(.mobile_desktop_percent(100, 70)),
+            .size = .w(.mobileDesktopPercent(100, 70)),
             .padding = .horizontal(12),
         }).children({
             Text("Install").style(heading).end();
@@ -80,7 +80,7 @@ pub fn render() void {
             }).end();
             Image(.{ .src = "/assets/ZIG.svg" }).style(&.{
                 .position = .{ .type = .absolute, .bottom = .percent(5), .left = .percent(20) },
-                .size = .hw(.percent(30), .mobile_desktop_percent(40, 30)),
+                .size = .hw(.percent(30), .mobileDesktopPercent(40, 30)),
             }).end();
             code_snippet("curl -sSL https://raw.githubusercontent.com/senet-toolbox/metal/main/install.sh | bash");
             code_snippet("metal create vapor myapp");

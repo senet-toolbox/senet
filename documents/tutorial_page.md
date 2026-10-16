@@ -142,7 +142,7 @@ fn renderCell(index: usize) void {
         .hex("#f5f5f5");
 
     var cell = Button(makeMove, .{index})
-        .baseStyle(&cell_base)
+        .style(&cell_base)
         .background(bg_color);
 
     if (is_clickable) {
@@ -282,12 +282,12 @@ fn renderStatus() void {
 
     Text(message)
         .font(22, 600, color)
-        .margin(.b(8))
+        .margin(.{ .bottom = 8 })
         .end();
 }
 ```
 
-**Note:** `Vapor.Types.Color` is used for both text and background colours. Margin shorthand uses `.b()` for bottom, `.t()` for top, etc.
+**Note:** `Vapor.Types.Color` is used for both text and background colours. Margins are written as a literal of the sides you set, e.g. `.{ .bottom = 10 }`, or with `.all()`, `.xy()`, `.vertical()` and `.horizontal()`.
 
 {#styling}
 
@@ -302,7 +302,7 @@ const title_style = Vapor.Style{
         .font_weight = 700,
         .text_color = .hex("#2c3e50"),
     },
-    .margin = .b(10),
+    .margin = .{ .bottom = 10 },
 };
 
 const board_container_style = Vapor.Style{
@@ -315,7 +315,7 @@ const board_container_style = Vapor.Style{
 };
 
 const cell_base = Vapor.Style{
-    .size = .square_px(90),
+    .size = .squarePx(90),
     .margin = .all(4),
     .visual = .{
         .border = .solid(.all(1), .hex("#ecf0f1"), .all(4)),
@@ -325,23 +325,23 @@ const cell_base = Vapor.Style{
 };
 
 const reset_button_style = Vapor.Style{
-    .padding = .tblr(14, 14, 28, 28),
+    .padding = .xy(28, 14),
     .visual = .{
         .background = .hex("#27ae60"),
         .font_size = 16,
         .font_weight = 600,
         .text_color = .white,
-        .border_radius = .all(8),
+        .border = .{ .radius = .all(8) },
     },
-    .interactive = .hover_scale(),
-    .margin = .t(20),
+    .interactive = .{ .hover = .{ .transform = .scale() } },
+    .margin = .{ .top = 20 },
 };
 ```
 
 **Style API Notes:**
 
-- `.margin = .b(10)` - shorthand for bottom margin (also `.t()`, `.l()`, `.r()`)
-- `.size = .square_px(90)` - creates a 90x90 pixel square
+- `.margin = .{ .bottom = 10 }` - bottom margin; set any of `.top`, `.bottom`, `.left`, `.right`
+- `.size = .squarePx(90)` - creates a 90x90 pixel square
 - `.border = .solid(.all(4), .hex("#color"), .all(12))` - thickness, color, radius
 
 {#winning-animation}
@@ -443,7 +443,7 @@ const title_style = Vapor.Style{
         .font_weight = 700,
         .text_color = .hex("#2c3e50"),
     },
-    .margin = .b(10),
+    .margin = .{ .bottom = 10 },
 };
 
 const board_container_style = Vapor.Style{
@@ -456,7 +456,7 @@ const board_container_style = Vapor.Style{
 };
 
 const cell_base = Vapor.Style{
-    .size = .square_px(90),
+    .size = .squarePx(90),
     .margin = .all(4),
     .visual = .{
         .border = .solid(.all(1), .hex("#ecf0f1"), .all(4)),
@@ -466,16 +466,16 @@ const cell_base = Vapor.Style{
 };
 
 const reset_button_style = Vapor.Style{
-    .padding = .tblr(14, 14, 28, 28),
+    .padding = .xy(28, 14),
     .visual = .{
         .background = .hex("#27ae60"),
         .font_size = 16,
         .font_weight = 600,
         .text_color = .white,
-        .border_radius = .all(8),
+        .border = .{ .radius = .all(8) },
     },
-    .interactive = .hover_scale(),
-    .margin = .t(20),
+    .interactive = .{ .hover = .{ .transform = .scale() } },
+    .margin = .{ .top = 20 },
 };
 
 // ============================================
@@ -540,7 +540,7 @@ fn renderStatus() void {
 
     Text(message)
         .font(22, 600, color)
-        .margin(.b(8))
+        .margin(.{ .bottom = 8 })
         .end();
 }
 
@@ -569,7 +569,7 @@ fn renderCell(index: usize) void {
         .hex("#f5f5f5");
 
     var cell = Button(makeMove, .{index})
-        .baseStyle(&cell_base)
+        .style(&cell_base)
         .background(bg_color);
 
     if (is_clickable) {
@@ -859,8 +859,8 @@ Congratulations! You've built a complete Tic-Tac-Toe game and learned:
 | Pattern                                      | Usage                                                 |
 | -------------------------------------------- | ----------------------------------------------------- |
 | `Button(fn, .{args})`                     | Button with context passed to handler                 |
-| `.margin(.b(10))`                            | Bottom margin shorthand (also `.t()`, `.l()`, `.r()`) |
-| `.size = .square_px(90)`                     | 90x90 pixel square                                    |
+| `.margin(.{ .bottom = 10 })`                            | Bottom margin (also `.top`, `.left`, `.right`)        |
+| `.size = .squarePx(90)`                     | 90x90 pixel square                                    |
 | `Vapor.Types.Color`                          | Colour type, for both text and backgrounds            |
 | `.border = .solid(.all(4), color, .all(12))` | Border with thickness, color, radius                  |
 

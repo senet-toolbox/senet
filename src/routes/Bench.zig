@@ -202,7 +202,7 @@ fn removeRow(id: u32) void {
 fn ActionButton(label: []const u8, action: fn () void) void {
     Button(.{ .on_press = action })
         .background(.black)
-        .padding(.tblr(8, 8, 16, 16))
+        .padding(.xy(16, 8))
         .children({
         Text(label).font(14, 600, .white).end();
     });
@@ -215,7 +215,7 @@ fn RowView(row: *Row) void {
     Row()
         .direction(.row)
         .background(bg)
-        .padding(.tblr(4, 4, 8, 8))
+        .padding(.xy(8, 4))
         .spacing(12)
         .layout(.left_center)
         .children({
@@ -234,13 +234,13 @@ fn RowView(row: *Row) void {
 
         // Select
         ButtonCtx(selectRow, .{row.id})
-            .padding(.tblr(4, 4, 8, 8))
+            .padding(.xy(8, 4))
             .children({
             Text("Select").font(12, 400, text_color).end();
         });
         // Delete
         ButtonCtx(removeRow, .{row.id})
-            .padding(.tblr(4, 4, 8, 8))
+            .padding(.xy(8, 4))
             .children({
             Text("×").font(16, 700, .red).end();
         });
@@ -278,7 +278,7 @@ fn Benchmark() void {
             // ActionButton("Swap Rows", swapRows);
             Button(.{ .on_press = swapRows })
                 .background(if (counter % 2 == 0) .red else .blue)
-                .padding(.tblr(8, 8, 16, 16))
+                .padding(.xy(16, 8))
                 .children({
                 Text("Swap Rows").font(14, 600, .white).end();
             });
@@ -288,8 +288,8 @@ fn Benchmark() void {
         Vapor.Stack()
             .width(.px(600))
             .height(.px(500))
-            .scroll(.scroll_y())
-            .border(.simple(.black))
+            .scroll(.scrollY())
+            .border(.thin(.black))
             .spacing(1)
             .background(.hex("#eeeeee"))
             .children({

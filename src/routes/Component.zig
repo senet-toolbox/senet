@@ -3,8 +3,12 @@ const Vapor = @import("vapor");
 
 // No useState gymnastics
 var counter: i32 = 0;
-fn increment() void { counter += 1; }
-fn decrement() void { counter -= 1; }
+fn increment() void {
+    counter += 1;
+}
+fn decrement() void {
+    counter -= 1;
+}
 
 // Render
 pub fn ButtonComponent() void {

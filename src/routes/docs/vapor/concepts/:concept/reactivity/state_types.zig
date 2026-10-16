@@ -3,7 +3,7 @@ const Pure = Vapor.Pure;
 const Static = Vapor.Static;
 const TextField = Static.TextField;
 
-var text_field: Vapor.Binded = .{
+var text_field: Vapor.Element = .{
     .text = "Inital Text",
 };
 

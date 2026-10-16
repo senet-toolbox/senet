@@ -108,7 +108,7 @@ fn init() void {
 pub const Item = struct {
     value: T,                              // The actual value
     label: []const u8,                     // Display text
-    icon: ?*const Vapor.IconTokens = null, // Optional icon
+    icon: ?Vapor.IconTokens = null, // Optional icon
     is_selected: bool = false,             // Selection state
     _is_shown: bool = true,                // Visibility (for search)
 };
@@ -573,7 +573,7 @@ Full-screen searchable command palette.
 ```zig
 const MenuItem = struct {
     label: []const u8,
-    icon: ?*const Vapor.IconTokens = null,
+    icon: ?Vapor.IconTokens = null,
     value: []const u8 = "",
 };
 
@@ -586,7 +586,7 @@ var menu_items = [_]MenuItem{
 };
 
 fn onSelect(item: *ComboBoxDialog(MenuItem).Item) void {
-    Vapor.Kit.navigate(item.value.value);
+    Vapor.navigate(item.value.value);
     dialog.close();
 }
 
@@ -856,7 +856,7 @@ pub fn MySelect(comptime T: type) type {
         pub const Item = struct {
             value: T,
             label: []const u8,
-            icon: ?*const Vapor.IconTokens = null,
+            icon: ?Vapor.IconTokens = null,
             is_selected: bool = false,
         };
 
@@ -870,7 +870,7 @@ pub fn MySelect(comptime T: type) type {
         on_select: ?*const fn (*Self, *Item) void = null,
 
         // Binded elements
-        _binded: Vapor.Binded = .{},
+        _binded: Vapor.Element = .{},
 
         // Factory method
         pub fn fromItems(items: []Item) Self {
@@ -910,7 +910,7 @@ pub fn MySelect(comptime T: type) type {
         // Render trigger button
         fn renderTrigger(self: *Self) void {
             Button(toggle, .{self})
-                .padding(.tblr(12, 12, 16, 16))
+                .padding(.xy(16, 12))
                 .border(.round(.palette(.border_color), .all(8)))
                 .layout(.x_between_center)
                 .cursor(.pointer)
@@ -935,7 +935,7 @@ pub fn MySelect(comptime T: type) type {
                 .width(.percent(100))
                 .background(.palette(.background))
                 .border(.round(.palette(.border_color), .all(8)))
-                .shadow(.card(.transparentizeHex(.black, 0.1)))
+                .shadow(.card(.transparentize(.black, 0.1)))
                 .animationEnter(&animEnter)
                 .animationExit(&animExit)
                 .zIndex(100)
@@ -943,14 +943,14 @@ pub fn MySelect(comptime T: type) type {
                     for (self.items) |*item| {
                         Button(selectItem, .{ self, item })
                             .width(.percent(100))
-                            .padding(.tblr(10, 10, 16, 16))
+                            .padding(.xy(16, 10))
                             .background(if (item.is_selected)
                                 .palette(.tint)
                             else
                                 .transparent)
                             .cursor(.pointer)
                             .hover(.{
-                                .background = .transparentizeHex(.palette(.tint), 0.1),
+                                .background = .transparentize(.palette(.tint), 0.1),
                             })
                             .children({
                                 if (item.icon) |icon| {
@@ -1028,7 +1028,7 @@ Pattern for managing keyboard events across overlays.
 ```zig
 const OverlayManager = @import("OverlayManager.zig");
 
-var my_dialog_binded: Vapor.Binded = .{};
+var my_dialog_binded: Vapor.Element = .{};
 
 fn mount() void {
     OverlayManager.register(.keydown, handleKeyPress, &my_dialog_binded);
@@ -1038,7 +1038,7 @@ fn destroy() void {
     OverlayManager.unregister(.keydown, &my_dialog_binded);
 }
 
-fn handleKeyPress(_: *Vapor.Binded, evt: *Vapor.Event) void {
+fn handleKeyPress(_: *Vapor.Element, evt: *Vapor.Event) void {
     evt.preventDefault();
     const key = evt.key();
 
@@ -1081,10 +1081,10 @@ fn render() void {
 ```zig
 // Define at module level for consistency
 var background: Vapor.Types.Color = .palette(.background);
-var border: Vapor.Types.BorderGrouped = .round(.palette(.border_color_light), .all(6));
+var border: Vapor.Types.Border = .round(.palette(.border_color_light), .all(6));
 var border_color: Vapor.Types.Color = .palette(.border_color_light);
 var text_color: Vapor.Types.Color = .palette(.text_color);
-var tint: Vapor.Types.Color = .transparentizeHex(.palette(.tint), 0.8);
+var tint: Vapor.Types.Color = .transparentize(.palette(.tint), 0.8);
 var font_family: []const u8 = "IBM Plex Sans,monospace";
 ```
 

@@ -3,7 +3,7 @@ const Vapor = @import("vapor");
 const Content = @import("../../../../../../components/Content.zig");
 const reinit = @import("../../../../../../components/DocNavbar.zig").reinit;
 const Compiler = @import("../../../../../../main.zig");
-const Fetch = Vapor.Fetch.Fetch;
+const Fetch = Vapor.Fetch.Request;
 const Loader = @import("components").Loader;
 const Error = @import("components").Error;
 
@@ -11,7 +11,6 @@ const Error = @import("components").Error;
 var content: Content.new("") = undefined;
 var markdown: Compiler.vaporize.MarkDown(.{}) = .{};
 var page: []const u8 = "";
-const fetch = Vapor.Kit.Fetch.fetch;
 var f: ?*Fetch = null;
 pub fn init() void {
     f = Fetch.fetch("/documents/kit_page.md", .{ .method = .GET });
