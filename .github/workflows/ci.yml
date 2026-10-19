@@ -25,7 +25,7 @@ jobs:
         with:
           repository: senet-toolbox/vapor
           # Keep in step with the vapor tag pinned in build.zig.zon.
-          ref: v3.1.0
+          ref: v3.1.1
           path: vapor
           # Needed only if the repository is private:
           # token: ${{ secrets.WORKFLOW_TOKEN }}
